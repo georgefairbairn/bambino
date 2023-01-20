@@ -2,7 +2,11 @@
 module.exports = {
   content: ["./app/**/*.{ts,tsx,jsx,js}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        alfaSlab: ['"Alfa Slab One"', "Rockwell", "cursive"],
+      },
+    },
   },
   plugins: [],
 };
