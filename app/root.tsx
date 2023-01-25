@@ -27,7 +27,7 @@ export const links: LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=fallback",
+    href: "https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Sanchez&display=fallback",
   },
 ];
 
