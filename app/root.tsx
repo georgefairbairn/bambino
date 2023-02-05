@@ -7,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import Layout from "./components/layout";
 import tailwind from "./tailwind.css";
 import styles from "./styles/global.css";
 
@@ -39,7 +40,9 @@ export default function App() {
         <Links />
       </head>
       <body className="bg-sky-200">
-        <Outlet />
+        <Layout>
+          <Outlet />
+        </Layout>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
