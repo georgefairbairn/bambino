@@ -1,0 +1,3497 @@
+{
+  "boys": [
+    {
+      "name": "Noah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "NO-ə",
+      "description": "Derived from the Hebrew name נֹחַ (Noach), which means \"rest\" or \"comfort\"."
+    },
+    {
+      "name": "Oliver",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AHL-ə-vər",
+      "description": "From the Old French name Olivier, which was derived from the Latin name Oliverius. It means \"olive tree\"."
+    },
+    {
+      "name": "George",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JORJ",
+      "description": "Derived from the Greek name Γεώργιος (Georgios), which means \"farmer\" or \"earthworker\"."
+    },
+    {
+      "name": "Arthur",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AHR-thər",
+      "description": "Derived from the Celtic name Artorios, which means \"bear king\"."
+    },
+    {
+      "name": "Muhammad",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "mʊˈhæməd",
+      "description": "Derived from the Arabic name محمّد‎ (Muhammad), which means \"praised, commendable\"."
+    },
+    {
+      "name": "Leo",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LEE-o",
+      "description": "Derived from the Latin word leo, which means \"lion\"."
+    },
+    {
+      "name": "Harry",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HAR-ee",
+      "description": "A diminutive of the name Harold or Henry, which means \"ruler of the household\"."
+    },
+    {
+      "name": "Oscar",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AHS-kər",
+      "description": "Derived from the Old English name Osgar, which means \"god spear\"."
+    },
+    {
+      "name": "Archie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AHR-chee",
+      "description": "A diminutive of the name Archibald, which means \"genuine, bold, brave\"."
+    },
+    {
+      "name": "Henry",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HEN-ree",
+      "description": "Derived from the Old German name Heinrich, which means \"ruler of the household\"."
+    },
+    {
+      "name": "Theodore",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "THEE-ə-dawr",
+      "description": "Derived from the Greek name Θεόδωρος (Theodoros), which means \"gift of God\"."
+    },
+    {
+      "name": "Freddie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "FRED-ee",
+      "description": "A diminutive form of the name Frederick or Alfred, meaning 'peaceful ruler' or 'elf counsel'."
+    },
+    {
+      "name": "Jack",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JAK",
+      "description": "A diminutive form of the name John, meaning 'God is gracious'."
+    },
+    {
+      "name": "Charlie",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "CHAR-lee",
+      "description": "A diminutive form of the name Charles or Charlotte, meaning 'free man' or 'petite'."
+    },
+    {
+      "name": "Theo",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "THEE-o",
+      "description": "Short form of the name Theodore, meaning 'gift of God'."
+    },
+    {
+      "name": "Alfie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AL-fee",
+      "description": "A diminutive form of the name Alfred, meaning 'elf counsel'."
+    },
+    {
+      "name": "Jacob",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JAY-kub",
+      "description": "From the Hebrew name Yaakov, meaning 'supplanter' or 'holder of the heel'."
+    },
+    {
+      "name": "Thomas",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "TOM-us",
+      "description": "From the Aramaic name Te'oma, meaning 'twin'."
+    },
+    {
+      "name": "Finley",
+      "origin": "Scottish",
+      "gender": "unisex",
+      "pronunciation": "FIN-lee",
+      "description": "From the Gaelic name Fionnlagh, meaning 'fair hero'."
+    },
+    {
+      "name": "Arlo",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AR-lo",
+      "description": "Meaning 'fortified hill' or 'army hill' in Old English."
+    },
+    {
+      "name": "William",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "WIL-yum",
+      "description": "From the Germanic name Wilhelm, meaning 'will' and 'helmet', or 'resolute protector'."
+    },
+    {
+      "name": "Lucas",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "LOO-kus",
+      "description": "From the Latin name Lucanus, meaning 'light' or 'illumination'."
+    },
+    {
+      "name": "Roman",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "ROH-mun",
+      "description": "From the Latin name Romanus, meaning 'of Rome' or 'citizen of Rome'."
+    },
+    {
+      "name": "Tommy",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "TOM-ee",
+      "description": "A diminutive form of Thomas, meaning 'twin'."
+    },
+    {
+      "name": "Isaac",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "EYE-zik",
+      "description": "Derived from the Hebrew name Yitzhak, meaning 'he will laugh'."
+    },
+    {
+      "name": "Teddy",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "TED-ee",
+      "description": "A diminutive form of Theodore, meaning 'gift of God'."
+    },
+    {
+      "name": "Alexander",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "al-ig-ZAN-dur",
+      "description": "Derived from the Greek name Alexandros, meaning 'defender of the people'."
+    },
+    {
+      "name": "Luca",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "LOO-kah",
+      "description": "Derived from the Latin name Lucas, meaning 'man from Lucania'."
+    },
+    {
+      "name": "Edward",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ED-werd",
+      "description": "Derived from the Old English name Eadweard, meaning 'rich guardian'."
+    },
+    {
+      "name": "James",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JAYMZ",
+      "description": "Derived from the Hebrew name Yaakov, meaning 'supplanter'."
+    },
+    {
+      "name": "Joshua",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JAH-shoo-uh",
+      "description": "Derived from the Hebrew name Yehoshua, meaning 'God is salvation'."
+    },
+    {
+      "name": "Albie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AL-bee",
+      "description": "A diminutive form of Albert, meaning 'noble and bright'."
+    },
+    {
+      "name": "Elijah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ih-LIE-jah",
+      "description": "Derived from the Hebrew name Eliyahu, meaning 'my God is Yahweh'."
+    },
+    {
+      "name": "Max",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "maks",
+      "description": "Short form of Maximilian, meaning 'greatest'."
+    },
+    {
+      "name": "Mohammed",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "moh-HAH-med",
+      "description": "Derived from the Arabic name Muhammad, meaning 'praised, commendable'."
+    },
+    {
+      "name": "Reuben",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ROO-bən",
+      "description": "Derived from the Hebrew name Re'uven, meaning 'behold, a son'"
+    },
+    {
+      "name": "Mason",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "MEY-suhn",
+      "description": "Occupational surname referring to a stoneworker or bricklayer"
+    },
+    {
+      "name": "Sebastian",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "sə-BAS-chən",
+      "description": "Derived from the Greek name Sebastianos, meaning 'venerable' or 'revered'"
+    },
+    {
+      "name": "Rory",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "RAWR-ee",
+      "description": "Derived from the Irish name Ruairí, meaning 'red-haired king'"
+    },
+    {
+      "name": "Jude",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "jood",
+      "description": "Derived from the Hebrew name Yehuda, meaning 'praised'"
+    },
+    {
+      "name": "Louie",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "LOO-ee",
+      "description": "Derived from the French name Louis, meaning 'famous warrior'"
+    },
+    {
+      "name": "Benjamin",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "BEN-jə-min",
+      "description": "Derived from the Hebrew name Binyamin, meaning 'son of the right hand'"
+    },
+    {
+      "name": "Ethan",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "EE-thən",
+      "description": "Derived from the Hebrew word etan, meaning 'firm' or 'strong'"
+    },
+    {
+      "name": "Adam",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "AD-əm",
+      "description": "Derived from the Hebrew word adamah, meaning 'earth'"
+    },
+    {
+      "name": "Hugo",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "HYOO-goh",
+      "description": "Derived from the Germanic name Hugh, meaning 'heart', 'mind', or 'spirit'"
+    },
+    {
+      "name": "Joseph",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JOH-səf",
+      "description": "Derived from the Hebrew name Yosef, meaning 'he will add' or 'God will increase'"
+    },
+    {
+      "name": "Reggie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "REJ-ee",
+      "description": "Diminutive of the name Reginald, meaning 'counselor' or 'ruler'"
+    },
+    {
+      "name": "Ronnie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "RAH-nee",
+      "description": "A diminutive of Ronald or Veronica"
+    },
+    {
+      "name": "Harrison",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HAR-rih-suhn",
+      "description": "A surname meaning 'son of Harry'"
+    },
+    {
+      "name": "Louis",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "LOO-ee",
+      "description": "A French form of the name 'Louis', meaning 'famous warrior'"
+    },
+    {
+      "name": "Ezra",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "EZ-ruh",
+      "description": "A Hebrew name meaning 'help' or 'helper'"
+    },
+    {
+      "name": "Jaxon",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "JAK-suhn",
+      "description": "A modern variant of the name 'Jackson', meaning 'son of Jack'"
+    },
+    {
+      "name": "Logan",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "LOH-guhn",
+      "description": "A Scottish surname meaning 'small hollow'"
+    },
+    {
+      "name": "Daniel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "DAN-yuhl",
+      "description": "A Hebrew name meaning 'God is my judge'"
+    },
+    {
+      "name": "Zachary",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ZAK-uh-ree",
+      "description": "A Hebrew name meaning 'remembered by God'"
+    },
+    {
+      "name": "Samuel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "SAM-yoo-uhl",
+      "description": "A Hebrew name meaning 'heard by God'"
+    },
+    {
+      "name": "Dylan",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "DIL-uhn",
+      "description": "A Welsh name meaning 'son of the sea'"
+    },
+    {
+      "name": "Albert",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "AL-bert",
+      "description": "A German name meaning 'noble and bright'"
+    },
+    {
+      "name": "Hudson",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HUD-suhn",
+      "description": "An English surname meaning 'son of Hudd'"
+    },
+    {
+      "name": "Hunter",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HUN-ter",
+      "description": "Hunter is an English name that means 'one who hunts'. It is a popular name for boys in the United States and other English-speaking countries."
+    },
+    {
+      "name": "Frederick",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "FRED-er-ik",
+      "description": "Frederick is a German name that means 'peaceful ruler'. It was a popular name among European royalty and has been used by many notable figures throughout history."
+    },
+    {
+      "name": "David",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "DAY-vid",
+      "description": "David is a Hebrew name that means 'beloved'. It is a popular name for boys in many countries and has been used by many notable figures throughout history, including the biblical King David."
+    },
+    {
+      "name": "Rowan",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "ROH-en",
+      "description": "Rowan is an Irish name that means 'little redhead'. It is a unisex name that can be used for both boys and girls."
+    },
+    {
+      "name": "Jesse",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JES-ee",
+      "description": "Jesse is a Hebrew name that means 'gift'. It is a popular name for boys in many English-speaking countries and has been used by many notable figures throughout history, including the father of King David in the Bible."
+    },
+    {
+      "name": "Frankie",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "FRANG-kee",
+      "description": "Frankie is an English name that is a diminutive of Francis or Frances. It is a unisex name that can be used for both boys and girls."
+    },
+    {
+      "name": "Toby",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "TOH-bee",
+      "description": "Toby is a Hebrew name that means 'God is good'. It is a popular name for boys in many English-speaking countries."
+    },
+    {
+      "name": "Oakley",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "OAK-lee",
+      "description": "Oakley is an English name that means 'oak meadow'. It is a unisex name that can be used for both boys and girls."
+    },
+    {
+      "name": "Grayson",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "GRAY-sun",
+      "description": "Grayson is an English name that means 'son of the steward'. It is a popular name for boys in the United States and other English-speaking countries."
+    },
+    {
+      "name": "Carter",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "KAHR-ter",
+      "description": "Carter is an English name that means 'one who transports goods by cart'. It is a popular name for boys in the United States and other English-speaking countries."
+    },
+    {
+      "name": "Riley",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "RY-lee",
+      "description": "Riley is a unisex name of Irish origin, meaning 'valiant' or 'courageous'."
+    },
+    {
+      "name": "Felix",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "FEE-liks",
+      "description": "Felix is a Latin name meaning 'happy' or 'fortunate'. It was a popular name among early Christians."
+    },
+    {
+      "name": "Finn",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "FIN",
+      "description": "Finn is a name of Irish origin, meaning 'fair' or 'white'. It is also associated with Finn MacCool, a legendary hero in Irish mythology."
+    },
+    {
+      "name": "Bobby",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "BAH-bee",
+      "description": "Bobby is a diminutive of Robert, meaning 'bright fame'. It is a popular name in the UK."
+    },
+    {
+      "name": "Blake",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "BLAYK",
+      "description": "Blake is a name of Old English origin, meaning 'black' or 'dark'. It is also a popular surname."
+    },
+    {
+      "name": "Sonny",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "SUH-nee",
+      "description": "Sonny is a diminutive of the name Sonnyboy, which is derived from the words 'son' and 'boy'. It is a popular name in America."
+    },
+    {
+      "name": "Caleb",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "KAY-lub",
+      "description": "Caleb is a name of Hebrew origin, meaning 'faithful' or 'devotion to God'. It is also a popular name in the US."
+    },
+    {
+      "name": "Gabriel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "GAY-bree-el",
+      "description": "Gabriel is a name of Hebrew origin, meaning 'God is my strength'. In the Bible, Gabriel is an archangel who serves as a messenger for God."
+    },
+    {
+      "name": "Michael",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "MY-kul",
+      "description": "Michael is a name of Hebrew origin, meaning 'who is like God?'. It is a popular name among Christians and Jews."
+    },
+    {
+      "name": "Jasper",
+      "origin": "Persian",
+      "gender": "male",
+      "pronunciation": "JAS-per",
+      "description": "Jasper is a name of Persian origin, meaning 'treasurer'. It is also a type of precious stone."
+    },
+    {
+      "name": "Alfred",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AL-fred",
+      "description": "A classic name meaning 'wise counselor.'"
+    },
+    {
+      "name": "Otis",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "OH-tis",
+      "description": "A name meaning 'wealthy.'"
+    },
+    {
+      "name": "Stanley",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "STAN-lee",
+      "description": "A name meaning 'rocky meadow.'"
+    },
+    {
+      "name": "Milo",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "MY-lo",
+      "description": "A name meaning 'gracious' or 'soldier.'"
+    },
+    {
+      "name": "Mohammad",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "moh-HAH-med",
+      "description": "A popular name in the Muslim world, meaning 'praised' or 'praiser of God.'"
+    },
+    {
+      "name": "Ralph",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "RALF",
+      "description": "A name meaning 'wolf counsel.'"
+    },
+    {
+      "name": "Liam",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "LEE-um",
+      "description": "A name meaning 'strong-willed warrior' or 'protector.'"
+    },
+    {
+      "name": "Chester",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "CHES-ter",
+      "description": "A name meaning 'fortress' or 'walled town.'"
+    },
+    {
+      "name": "Ellis",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "EL-lis",
+      "description": "A name meaning 'benevolent' or 'kindly.'"
+    },
+    {
+      "name": "Elliot",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "EL-ee-ət",
+      "description": "A name meaning 'Jehovah is God.'"
+    },
+    {
+      "name": "Brody",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "BROH-dee",
+      "description": "A name meaning 'ditch' or 'muddy place.'"
+    },
+    {
+      "name": "Charles",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "CHAR-uhlz",
+      "description": "A name meaning 'free man.'"
+    },
+    {
+      "name": "Kai",
+      "origin": "Hawaiian",
+      "gender": "unisex",
+      "pronunciation": "KAH-ee",
+      "description": "A Hawaiian name meaning \"sea\" or \"ocean\"."
+    },
+    {
+      "name": "Rupert",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "ROO-pert",
+      "description": "A German name meaning \"bright fame\"."
+    },
+    {
+      "name": "Yusuf",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "yoo-SUF",
+      "description": "An Arabic name meaning \"God increases\"."
+    },
+    {
+      "name": "Harvey",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HAR-vee",
+      "description": "An English name meaning \"battle worthy\"."
+    },
+    {
+      "name": "Ollie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AHL-ee",
+      "description": "A diminutive of Oliver, which means \"olive tree\"."
+    },
+    {
+      "name": "Jackson",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JAK-sun",
+      "description": "An English name meaning \"son of Jack\"."
+    },
+    {
+      "name": "Tobias",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "toh-BYE-us",
+      "description": "A Hebrew name meaning \"God is good\"."
+    },
+    {
+      "name": "Nathan",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "NAY-thun",
+      "description": "A Hebrew name meaning \"He gave\" or \"gift from God\"."
+    },
+    {
+      "name": "Myles",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "MY-uls",
+      "description": "A Greek name meaning \"soldier\"."
+    },
+    {
+      "name": "Leon",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "LEE-on",
+      "description": "A Greek name meaning \"lion\"."
+    },
+    {
+      "name": "Ibrahim",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ib-rah-HEEM",
+      "description": "An Arabic name meaning \"father of many nations\"."
+    },
+    {
+      "name": "Jenson",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JEN-sun",
+      "description": "An English name meaning \"son of Jan\" or \"God is gracious\"."
+    },
+    {
+      "name": "Jayden",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "JAY-dən",
+      "description": "A modern name that originated in the United States and has become increasingly popular in recent years."
+    },
+    {
+      "name": "Eli",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "EH-ly",
+      "description": "A short and sweet name that has been used as a nickname for Elijah or Elias, and also as a standalone name."
+    },
+    {
+      "name": "Ryan",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "RYE-ən",
+      "description": "An Irish name that means 'little king', and has been a popular name for boys in the United States and other English-speaking countries."
+    },
+    {
+      "name": "Elliott",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "EL-ee-ət",
+      "description": "A name of English origin that means 'the Lord is my God', and is often spelled with two 't's."
+    },
+    {
+      "name": "Jake",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JAYK",
+      "description": "A short form of Jacob, which means 'supplanter' or 'holder of the heel' in Hebrew, and has been a popular name for boys for many years."
+    },
+    {
+      "name": "Elias",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "ee-LY-əs",
+      "description": "A name of Greek origin that means 'Jehovah is God', and has been a popular name for boys in many different countries."
+    },
+    {
+      "name": "Ruben",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ROO-bən",
+      "description": "A name of Hebrew origin that means 'behold, a son', and has been used for many notable figures throughout history."
+    },
+    {
+      "name": "Miles",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "MYLES",
+      "description": "A name of Latin origin that means 'soldier' or 'merciful', and has been a popular name for boys in English-speaking countries."
+    },
+    {
+      "name": "Musa",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "MOO-sə",
+      "description": "A name of Arabic origin that means 'to draw out', and is often used in Muslim cultures."
+    },
+    {
+      "name": "Beau",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "BOH",
+      "description": "A name of French origin that means 'handsome' or 'beautiful', and has been used for both boys and girls."
+    },
+    {
+      "name": "Dominic",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "DAH-mə-nik",
+      "description": "A name of Latin origin that means 'belonging to the Lord', and has been a popular name for boys in English-speaking countries."
+    },
+    {
+      "name": "Harley",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HAHR-lee",
+      "description": "An English name meaning 'hare clearing'."
+    },
+    {
+      "name": "Leonardo",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "lay-oh-NAHR-doh",
+      "description": "An Italian name meaning 'brave lion'."
+    },
+    {
+      "name": "Luke",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "look",
+      "description": "A Greek name meaning 'from Lucania', a region in southern Italy."
+    },
+    {
+      "name": "Jax",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "jacks",
+      "description": "A modern American name that may be a short form of Jackson or Jaxon."
+    },
+    {
+      "name": "Aaron",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "AIR-ən",
+      "description": "A Hebrew name meaning 'mountain of strength'."
+    },
+    {
+      "name": "Austin",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AW-stin",
+      "description": "An English name meaning 'great' or 'magnificent'."
+    },
+    {
+      "name": "Vinnie",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "VIN-ee",
+      "description": "A diminutive of the name Vincent, meaning 'conquering'."
+    },
+    {
+      "name": "Alex",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "AL-eks",
+      "description": "A Greek name meaning 'defender' or 'helper'."
+    },
+    {
+      "name": "Matthew",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "MATH-yoo",
+      "description": "A Hebrew name meaning 'gift of God'."
+    },
+    {
+      "name": "Aiden",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "AY-dən",
+      "description": "An Irish name meaning 'fiery one' or 'little fire'."
+    },
+    {
+      "name": "Patrick",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "PAT-rik",
+      "description": "An Irish name meaning 'nobleman'."
+    },
+    {
+      "name": "Cody",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "KOH-dee",
+      "description": "An American name possibly derived from the Gaelic surname Mac Óda meaning 'helpful'."
+    },
+    {
+      "name": "Joey",
+      "origin": null,
+      "gender": "male",
+      "pronunciation": "JO-ee",
+      "description": "A playful and friendly name often used as a diminutive of Joseph or Joel."
+    },
+    {
+      "name": "Billy",
+      "origin": null,
+      "gender": "male",
+      "pronunciation": "BIL-ee",
+      "description": "A casual and upbeat name often used as a diminutive of William or Bill."
+    },
+    {
+      "name": "Marley",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "MAHR-lee",
+      "description": "A surname-turned-first-name that means 'pleasant seaside meadow.' It gained popularity as a unisex name due to Bob Marley's influence."
+    },
+    {
+      "name": "Robin",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "RAH-bin",
+      "description": "A gender-neutral name that means 'bright fame' and has been used for both boys and girls since medieval times."
+    },
+    {
+      "name": "River",
+      "origin": null,
+      "gender": "unisex",
+      "pronunciation": "RIH-ver",
+      "description": "A nature-inspired name that evokes a sense of peace and tranquility, often associated with the flowing waters of a river."
+    },
+    {
+      "name": "Eric",
+      "origin": "Scandinavia",
+      "gender": "male",
+      "pronunciation": "EH-rik",
+      "description": "A classic name meaning 'ruler' or 'eternal ruler,' popular in Scandinavia and Germany."
+    },
+    {
+      "name": "Dexter",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "DEKS-tur",
+      "description": "A name that means 'right-handed' and has become popular thanks to the popular TV series of the same name."
+    },
+    {
+      "name": "Vincent",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "VIN-sent",
+      "description": "A classic name that means 'conquering' or 'victorious,' often shortened to 'Vince.'"
+    },
+    {
+      "name": "Jaxson",
+      "origin": null,
+      "gender": "male",
+      "pronunciation": "JAKS-son",
+      "description": "A modern variation of the classic name Jackson, meaning 'son of Jack,' often spelled with an 'x' for a more unique twist."
+    },
+    {
+      "name": "Jonah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JOH-nah",
+      "description": "A name that means 'dove' and is often associated with calmness and peace, appearing in the Bible and the Quran."
+    },
+    {
+      "name": "Lewis",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LOO-is",
+      "description": "A classic name that means 'famous warrior' and has been popular in the UK since the Middle Ages."
+    },
+    {
+      "name": "Axel",
+      "origin": "Scandinavian",
+      "gender": "male",
+      "pronunciation": "AK-səl",
+      "description": "Axel is a strong and unique name, meaning \"father of peace\"."
+    },
+    {
+      "name": "Levi",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "LEE-vie",
+      "description": "Levi is a Hebrew name, meaning \"joined\" or \"attached\"."
+    },
+    {
+      "name": "Bodhi",
+      "origin": "Sanskrit",
+      "gender": "male",
+      "pronunciation": "BOH-dee",
+      "description": "Bodhi is a Sanskrit name, meaning \"enlightenment\"."
+    },
+    {
+      "name": "Ali",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "AH-lee",
+      "description": "Ali is an Arabic name, meaning \"elevated\" or \"exalted\"."
+    },
+    {
+      "name": "Rex",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "reks",
+      "description": "Rex is a Latin name, meaning \"king\" or \"ruler\"."
+    },
+    {
+      "name": "Parker",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "PAHR-kər",
+      "description": "Parker is an English name, meaning \"park keeper\" or \"gamekeeper\"."
+    },
+    {
+      "name": "Robert",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "RAH-bert",
+      "description": "Robert is a Germanic name, meaning \"bright fame\" or \"famous brilliance\"."
+    },
+    {
+      "name": "Cooper",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "KOO-per",
+      "description": "Cooper is an English name, meaning \"barrel maker\" or \"one who makes or repairs casks\"."
+    },
+    {
+      "name": "Ayaan",
+      "origin": "Somali",
+      "gender": "male",
+      "pronunciation": "eye-YAHN",
+      "description": "Ayaan is a Somali name, meaning \"long-awaited\" or \"someone who is very lucky\"."
+    },
+    {
+      "name": "Wilfred",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "WIL-fred",
+      "description": "Wilfred is an English name, meaning \"resolute protection\" or \"desiring peace\"."
+    },
+    {
+      "name": "Remy",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "RAY-mee",
+      "description": "Remy is a French name, meaning \"oarsman\" or \"from the bank of the river\"."
+    },
+    {
+      "name": "Owen",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "OH-en",
+      "description": "Owen is a Welsh name, meaning \"youthful warrior\" or \"well-born\"."
+    },
+    {
+      "name": "Brodie",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "BROH-dee",
+      "description": "Derived from the Scottish surname Brodie, meaning 'ditch'."
+    },
+    {
+      "name": "Enzo",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "EN-zoh",
+      "description": "Short form of Lorenzo, meaning 'from Laurentum', a city in ancient Italy."
+    },
+    {
+      "name": "Yahya",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "YAH-hyuh",
+      "description": "Arabic form of John, meaning 'God is gracious'."
+    },
+    {
+      "name": "Lenny",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "LEN-ee",
+      "description": "Short form of Leonard, meaning 'brave lion'."
+    },
+    {
+      "name": "John",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JAHN",
+      "description": "Derived from the Hebrew name Yochanan, meaning 'God is gracious'."
+    },
+    {
+      "name": "Tyler",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "TY-luhr",
+      "description": "Derived from an English surname meaning 'tiler of roofs'."
+    },
+    {
+      "name": "Muhammed",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "moo-HAH-mid",
+      "description": "Variant of Muhammad, meaning 'praised' or 'praiseworthy'."
+    },
+    {
+      "name": "Nathaniel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "nuh-THAN-yuhl",
+      "description": "Derived from the Hebrew name Netan'el, meaning 'God has given'."
+    },
+    {
+      "name": "Evan",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "EH-vuhn",
+      "description": "Derived from the Welsh name Ifan or Iefan, which is a form of John."
+    },
+    {
+      "name": "Jamie",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "JAY-mee",
+      "description": "Diminutive of James, meaning 'supplanter'."
+    },
+    {
+      "name": "Zakariya",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "zuh-kuh-REE-yuh",
+      "description": "Arabic form of Zachariah, meaning 'God has remembered'."
+    },
+    {
+      "name": "Kit",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "kit",
+      "description": "Short form of Christopher, meaning 'bearer of Christ'."
+    },
+    {
+      "name": "Otto",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "AH-toh",
+      "description": "A strong, classic name with German roots meaning 'wealth' or 'prosperous'."
+    },
+    {
+      "name": "Maxwell",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "MAKS-wel",
+      "description": "A Scottish name meaning 'great stream' or 'mack's well'."
+    },
+    {
+      "name": "Lincoln",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LING-kun",
+      "description": "An English name meaning 'town by the pool'. It was made famous by the American president Abraham Lincoln."
+    },
+    {
+      "name": "Phoenix",
+      "origin": "Greek",
+      "gender": "unisex",
+      "pronunciation": "FEE-niks",
+      "description": "A name of Greek origin meaning 'dark red'. It is also the name of a mythical bird that is said to rise from its own ashes."
+    },
+    {
+      "name": "Nicholas",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "NIK-uh-lus",
+      "description": "A Greek name meaning 'victory of the people'. It is often shortened to Nick or Nicky."
+    },
+    {
+      "name": "Zayn",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ZAYN",
+      "description": "An Arabic name meaning 'beauty' or 'grace'. It has become popular in Western countries thanks to the singer Zayn Malik."
+    },
+    {
+      "name": "Lorenzo",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "lo-REN-zoh",
+      "description": "An Italian name meaning 'from Laurentum'. It is often shortened to Enzo."
+    },
+    {
+      "name": "Maximilian",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "maks-uh-MIL-ee-un",
+      "description": "A German name meaning 'greatest' or 'largest'. It is often shortened to Max."
+    },
+    {
+      "name": "Sidney",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "SID-nee",
+      "description": "An English name meaning 'wide island'. It is often spelled Sydney for girls."
+    },
+    {
+      "name": "Idris",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "I-dris",
+      "description": "A Welsh name meaning 'ardent lord'. It is also the name of a famous Welsh actor, Idris Elba."
+    },
+    {
+      "name": "Isaiah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "eye-ZAY-uh",
+      "description": "A Hebrew name meaning 'salvation of the Lord'. It is often shortened to Izzy."
+    },
+    {
+      "name": "Joel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JOH-uhl",
+      "description": "Derived from the Hebrew name Yoel, meaning 'Jehovah is God'."
+    },
+    {
+      "name": "Archer",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AHR-chur",
+      "description": "Occupational name for a bowman or archer, derived from the Old English word 'arcere'."
+    },
+    {
+      "name": "Xander",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "ZAN-der",
+      "description": "Short form of Alexander, which means 'defender of the people' in Greek."
+    },
+    {
+      "name": "Asher",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ASH-er",
+      "description": "Means 'happy' or 'blessed' in Hebrew. In the Bible, Asher was one of Jacob's twelve sons."
+    },
+    {
+      "name": "Seth",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "SETH",
+      "description": "Means 'appointed' or 'placed' in Hebrew. In the Bible, Seth was the third son of Adam and Eve."
+    },
+    {
+      "name": "Abel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "AY-buhl",
+      "description": "Means 'breath' or 'vanity' in Hebrew. In the Bible, Abel was the second son of Adam and Eve."
+    },
+    {
+      "name": "Rocco",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "RAWK-oh",
+      "description": "Derived from the Germanic name Rochus, meaning 'rest' or 'repose'."
+    },
+    {
+      "name": "Connor",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KAH-nur",
+      "description": "Derived from the Irish-Gaelic name Conchobhar, which means 'lover of hounds'."
+    },
+    {
+      "name": "Eesa",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "EE-sah",
+      "description": "Arabic name for Jesus, a prophet in Islam and the son of Maryam (Mary) in the Quran."
+    },
+    {
+      "name": "Finlay",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "FIN-lee",
+      "description": "Means 'fair-haired hero' in Scottish Gaelic."
+    },
+    {
+      "name": "Maximus",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "MAKS-uh-muhs",
+      "description": "Derived from the Latin word 'maximus', meaning 'greatest' or 'largest'."
+    },
+    {
+      "name": "Raphael",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "rah-fye-el",
+      "description": "From the Hebrew name רָפָאֵל (Rafa'el) meaning \"God heals\"."
+    },
+    {
+      "name": "Rio",
+      "origin": "Spanish/Portuguese",
+      "gender": "Male/Female",
+      "pronunciation": "REE-o",
+      "description": "A unisex name derived from the Spanish or Portuguese word for river."
+    },
+    {
+      "name": "Callum",
+      "origin": "Scottish/Irish",
+      "gender": "male",
+      "pronunciation": "KA-lum",
+      "description": "Derived from the Gaelic name Colm, meaning \"dove\"."
+    },
+    {
+      "name": "Filip",
+      "origin": "Slavic",
+      "gender": "male",
+      "pronunciation": "FEE-lip",
+      "description": "The Slavic form of Philip, meaning \"lover of horses\"."
+    },
+    {
+      "name": "Aidan",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "AY-dən",
+      "description": "Derived from the old Irish name Aodhán, meaning \"fiery one\"."
+    },
+    {
+      "name": "Kayden",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "KAY-dən",
+      "description": "A modern name with uncertain origin, possibly derived from the Arabic name Kaiden, meaning \"companion\"."
+    },
+    {
+      "name": "Rafael",
+      "origin": "Spanish/Portuguese",
+      "gender": "male",
+      "pronunciation": "rah-fye-EL",
+      "description": "Derived from the Hebrew name רָפָאֵל (Rafa'el) meaning \"God heals\"."
+    },
+    {
+      "name": "Christopher",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "KRIS-tə-fər",
+      "description": "Derived from the Greek name Χριστόφορος (Christophoros) meaning \"bearing Christ\"."
+    },
+    {
+      "name": "Frank",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "FRANK",
+      "description": "Derived from the Germanic name Franko, meaning \"free man\"."
+    },
+    {
+      "name": "Kevin",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KEV-in",
+      "description": "Derived from the Irish name Caoimhín, meaning \"handsome\" or \"beloved\"."
+    },
+    {
+      "name": "Cameron",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "KAM-rən",
+      "description": "Derived from the Scottish Gaelic name Camshron, meaning \"crooked nose\"."
+    },
+    {
+      "name": "Syed",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "SAY-id",
+      "description": "Arabic name meaning 'blessed'"
+    },
+    {
+      "name": "Abdullah",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ab-DOO-lah",
+      "description": "Arabic name meaning 'servant of God'"
+    },
+    {
+      "name": "Matteo",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "mah-TEH-oh",
+      "description": "Italian name meaning 'gift of God'"
+    },
+    {
+      "name": "Hamza",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "HAM-zah",
+      "description": "Arabic name meaning 'lion'"
+    },
+    {
+      "name": "Spencer",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "SPEN-ser",
+      "description": "English name meaning 'steward'"
+    },
+    {
+      "name": "Ted",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ted",
+      "description": "Diminutive of Edward, meaning 'wealthy guardian'"
+    },
+    {
+      "name": "Zion",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ZY-ən",
+      "description": "Hebrew name meaning 'highest point'"
+    },
+    {
+      "name": "Anthony",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "AN-thuh-nee",
+      "description": "Latin name meaning 'priceless one'"
+    },
+    {
+      "name": "Kian",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KEE-an",
+      "description": "Irish name meaning 'ancient'"
+    },
+    {
+      "name": "Cole",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "kohl",
+      "description": "English name meaning 'swarthy, coal-black'"
+    },
+    {
+      "name": "Rayan",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ray-AHN",
+      "description": "Arabic name meaning 'gates of heaven'"
+    },
+    {
+      "name": "Xavier",
+      "origin": "Basque",
+      "gender": "male",
+      "pronunciation": "ZAY-vee-er",
+      "description": "Basque name meaning 'new house'"
+    },
+    {
+      "name": "Rudy",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "ROO-dee",
+      "description": "A short form of the name Rudolph meaning 'famous wolf'"
+    },
+    {
+      "name": "Rafferty",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "RA-fur-tee",
+      "description": "A surname that means 'prosperity' or 'wealth'"
+    },
+    {
+      "name": "Ahmed",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "AH-med",
+      "description": "A popular Arabic name that means 'praised' or 'commendable'"
+    },
+    {
+      "name": "Casper",
+      "origin": "Dutch",
+      "gender": "male",
+      "pronunciation": "KAS-per",
+      "description": "A name meaning 'treasurer' or 'keeper of the treasure'"
+    },
+    {
+      "name": "Jason",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "JAY-sun",
+      "description": "A name meaning 'healer' or 'to heal'"
+    },
+    {
+      "name": "Omar",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "oh-MAR",
+      "description": "A popular Arabic name that means 'long-lived' or 'eloquent'"
+    },
+    {
+      "name": "Rafe",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "RAYF",
+      "description": "A short form of the name Raphael meaning 'God has healed'"
+    },
+    {
+      "name": "Nico",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "NEE-koh",
+      "description": "A short form of the name Nicholas meaning 'victorious people'"
+    },
+    {
+      "name": "Bertie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "BUR-tee",
+      "description": "A short form of the name Bertram meaning 'bright raven'"
+    },
+    {
+      "name": "Francis",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "FRAN-sis",
+      "description": "A name meaning 'free one' or 'from France'"
+    },
+    {
+      "name": "Matei",
+      "origin": "Romanian",
+      "gender": "male",
+      "pronunciation": "mah-TAY",
+      "description": "A variant of the name Matthew meaning 'gift of God'"
+    },
+    {
+      "name": "Mateo",
+      "origin": "Spanish",
+      "gender": "male",
+      "pronunciation": "mah-TAY-oh",
+      "description": "A variant of the name Matthew meaning 'gift of God'"
+    },
+    {
+      "name": "Eddie",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ED-ee",
+      "description": "Eddie is a diminutive form of the name Edward or Edmund and means 'wealthy guardian'. It is a popular name in the UK and the US."
+    },
+    {
+      "name": "Jordan",
+      "origin": "Hebrew",
+      "gender": "unisex",
+      "pronunciation": "JOR-dən",
+      "description": "Jordan is derived from the Hebrew name Yarden meaning 'to descend' or 'flow down'. It can be used for both boys and girls and has been a popular name in the US since the 1970s."
+    },
+    {
+      "name": "Tristan",
+      "origin": "Celtic",
+      "gender": "male",
+      "pronunciation": "TRIS-tən",
+      "description": "Tristan is a Celtic name meaning 'sorrowful' or 'tumultuous'. It is also the name of the knight who is the subject of the medieval love story 'Tristan and Isolde'."
+    },
+    {
+      "name": "Leonard",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "LEH-nərd",
+      "description": "Leonard is a Germanic name meaning 'brave lion'. It has been a popular name in England since the Middle Ages and is often shortened to Leo or Lenny."
+    },
+    {
+      "name": "Oskar",
+      "origin": "Scandinavian",
+      "gender": "male",
+      "pronunciation": "OS-kar",
+      "description": "Oskar is a Scandinavian name meaning 'divine spear'. It has been a popular name in Sweden and Norway since the 19th century and is also spelled Oscar."
+    },
+    {
+      "name": "Zain",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ZAYN",
+      "description": "Zain is an Arabic name meaning 'beauty' or 'grace'. It is also spelled Zayn or Zane and has become a popular name in the UK and the US."
+    },
+    {
+      "name": "Eden",
+      "origin": "Hebrew",
+      "gender": "unisex",
+      "pronunciation": "EE-dən",
+      "description": "Eden is a Hebrew name meaning 'delight' or 'paradise'. In the Bible, it is the name of the garden where Adam and Eve lived. It can be used for both boys and girls."
+    },
+    {
+      "name": "Mohamed",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "mə-HAH-med",
+      "description": "Mohamed is an Arabic name meaning 'praised' or 'praiseworthy'. It is the name of the prophet who founded Islam and is the most common name in the world."
+    },
+    {
+      "name": "Douglas",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "DUHG-luhs",
+      "description": "Derived from the Gaelic Dubhghlas, meaning 'dark river' or 'black stream'."
+    },
+    {
+      "name": "Flynn",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "FLIN",
+      "description": "Derived from the Irish Gaelic name Ó Floinn, meaning 'descendant of Flann', Flann meaning 'ruddy, red-haired'."
+    },
+    {
+      "name": "Barnaby",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "BAR-nə-bee",
+      "description": "Derived from the Greek name Barnabas, meaning 'son of encouragement' or 'son of consolation'."
+    },
+    {
+      "name": "Mustafa",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "moos-tah-fah",
+      "description": "Derived from the Arabic word mustafā, meaning 'the chosen one' or 'the preferred one'."
+    },
+    {
+      "name": "Kobe",
+      "origin": "Japanese",
+      "gender": "male",
+      "pronunciation": "KOH-bee",
+      "description": "Derived from the Japanese name Kōbe, meaning 'god's door' or 'door of the spirits'."
+    },
+    {
+      "name": "Ayan",
+      "origin": "Indian",
+      "gender": "male",
+      "pronunciation": "AH-yahn",
+      "description": "Derived from the Sanskrit word āyana, meaning 'movement' or 'path'."
+    },
+    {
+      "name": "Peter",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "PEE-ter",
+      "description": "Derived from the Greek name Petros, meaning 'rock' or 'stone'."
+    },
+    {
+      "name": "Abdul",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "AHB-dool",
+      "description": "Derived from the Arabic word abd, meaning 'servant', and al, meaning 'the'. Abdul means 'servant of the...' followed by one of the names of Allah."
+    },
+    {
+      "name": "Josiah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "joh-SAHY-uh",
+      "description": "Derived from the Hebrew name Yoshiyahu, meaning 'the Lord supports' or 'the Lord heals'."
+    },
+    {
+      "name": "Reginald",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "REJ-uh-nuhld",
+      "description": "Derived from the Old German name Reginald, composed of the elements ragin, meaning 'advice', and wald, meaning 'ruler'."
+    },
+    {
+      "name": "Romeo",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "RO-mee-o",
+      "description": "A name derived from the Italian surname Romaeus, meaning 'pilgrim to Rome'. Famous namesake: Romeo Montague, the male protagonist in Shakespeare's tragedy Romeo and Juliet."
+    },
+    {
+      "name": "Bailey",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "BAY-lee",
+      "description": "A surname and occupational name referring to someone who was a bailiff or administrator of a manor. It is now a popular given name for both boys and girls. Famous namesake: Bailey Salinger, a character in the TV series Party of Five."
+    },
+    {
+      "name": "Victor",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "VIK-tor",
+      "description": "Derived from the Latin word 'victor', meaning 'winner' or 'conqueror'. Famous namesakes: Victor Hugo, French author of Les Misérables and The Hunchback of Notre-Dame; Victor Frankenstein, the protagonist in Mary Shelley's novel Frankenstein."
+    },
+    {
+      "name": "Martin",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "MAR-tin",
+      "description": "Derived from the Latin name 'Martinus', meaning 'of Mars'. Famous namesakes: Martin Luther King Jr., American civil rights leader; Martin Scorsese, American film director; Martin Freeman, English actor."
+    },
+    {
+      "name": "Mark",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "MARK",
+      "description": "Derived from the Latin name 'Marcus', meaning 'warlike'. Famous namesakes: Mark Twain, American author and humorist; Mark Zuckerberg, American entrepreneur and co-founder of Facebook; Mark Wahlberg, American actor and producer."
+    },
+    {
+      "name": "Kairo",
+      "origin": "Egypt",
+      "gender": "male",
+      "pronunciation": "KY-ro",
+      "description": "A name derived from the Egyptian city of Cairo, meaning 'victorious'."
+    },
+    {
+      "name": "Micah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "MY-ka",
+      "description": "Derived from the Hebrew name 'Mikha'el', meaning 'who is like God?'. Famous namesakes: Micah Richards, English former footballer; Micah Stampley, American gospel singer."
+    },
+    {
+      "name": "Ezekiel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ih-ZEEK-ee-ul",
+      "description": "Derived from the Hebrew name 'Yechezqel', meaning 'God strengthens'. Famous namesake: Ezekiel Elliott, American football player."
+    },
+    {
+      "name": "Zac",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ZAK",
+      "description": "Short form of the name Zachary or Zachariah."
+    },
+    {
+      "name": "Barney",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "BAHR-nee",
+      "description": "Diminutive form of the name Barnaby, meaning 'son of comfort'."
+    },
+    {
+      "name": "Marcus",
+      "origin": "Ancient Rome",
+      "gender": "male",
+      "pronunciation": "MAHR-kus",
+      "description": "Roman name derived from the name of the Roman god Mars."
+    },
+    {
+      "name": "Christian",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "KRIS-chun",
+      "description": "Derived from the Latin name Christianus, meaning 'follower of Christ'."
+    },
+    {
+      "name": "Adrian",
+      "origin": "Rome",
+      "gender": "male",
+      "pronunciation": "AY-dree-un",
+      "description": "Derived from the Roman name Adrianus, meaning 'from Hadria'."
+    },
+    {
+      "name": "Lukas",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "LOO-kus",
+      "description": "Variant of the name Lucas, meaning 'man from Lucania'."
+    },
+    {
+      "name": "Ronan",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "ROH-nin",
+      "description": "Irish name meaning 'little seal'."
+    },
+    {
+      "name": "Umar",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "OO-mahr",
+      "description": "Arabic name meaning 'long-lived'."
+    },
+    {
+      "name": "Amir",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ah-MEER",
+      "description": "Arabic name meaning 'prince' or 'commander'."
+    },
+    {
+      "name": "Monty",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "MAHN-tee",
+      "description": "Diminutive of the name Montgomery, meaning 'man power'."
+    },
+    {
+      "name": "Rhys",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "reece",
+      "description": "A Welsh name meaning 'enthusiasm' or 'ardour'"
+    },
+    {
+      "name": "Ahmad",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ah-med",
+      "description": "A name of Arabic origin meaning 'most commendable' or 'most praiseworthy'"
+    },
+    {
+      "name": "Hector",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "hek-tor",
+      "description": "A Greek name meaning 'steadfast' or 'holding fast'"
+    },
+    {
+      "name": "Lennon",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "len-uhn",
+      "description": "An Irish name meaning 'small cloak' or 'little cape'"
+    },
+    {
+      "name": "Nicolas",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "ni-kuh-luhs",
+      "description": "A Greek name meaning 'victorious people'"
+    },
+    {
+      "name": "Franklin",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "frangk-lin",
+      "description": "An English name meaning 'free man'"
+    },
+    {
+      "name": "Jonathan",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "jon-uh-thuhn",
+      "description": "A Hebrew name meaning 'gift of Jehovah'"
+    },
+    {
+      "name": "Zack",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "zak",
+      "description": "A short form of Zachary, meaning 'remembered by God'"
+    },
+    {
+      "name": "Bradley",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "brad-lee",
+      "description": "An English name meaning 'broad meadow'"
+    },
+    {
+      "name": "Quinn",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "kwin",
+      "description": "An Irish name meaning 'descendant of Conn'"
+    },
+    {
+      "name": "Marcel",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "mar-SELL",
+      "description": "A French name meaning 'little warrior' or 'young fighter'."
+    },
+    {
+      "name": "Hayden",
+      "origin": "American",
+      "gender": "unisex",
+      "pronunciation": "HAY-dən",
+      "description": "A name that became popular in the US in the late 20th century. It has no definitive meaning or origin."
+    },
+    {
+      "name": "Ralphie",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "RAL-fee",
+      "description": "A German diminutive of the name Ralph, meaning 'wolf counsel'."
+    },
+    {
+      "name": "Finnley",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "FIN-lee",
+      "description": "An anglicized form of the Irish name Fionnlagh, meaning 'fair-haired hero'."
+    },
+    {
+      "name": "Cruz",
+      "origin": "Spain",
+      "gender": "male",
+      "pronunciation": "krooz",
+      "description": "A Spanish name meaning 'cross'."
+    },
+    {
+      "name": "Remi",
+      "origin": "French",
+      "gender": "unisex",
+      "pronunciation": "RAY-mee",
+      "description": "A French name meaning 'oarsman' or 'remedy'."
+    },
+    {
+      "name": "Zayan",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ZAY-ən",
+      "description": "An Arabic name meaning 'beauty' or 'grace'."
+    },
+    {
+      "name": "Jensen",
+      "origin": "Denmark",
+      "gender": "male",
+      "pronunciation": "YEN-sən",
+      "description": "A Danish surname that has become a popular given name, meaning 'son of Jens'."
+    },
+    {
+      "name": "Zayd",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ZAYD",
+      "description": "An Arabic name meaning 'abundance' or 'growth'."
+    },
+    {
+      "name": "Cillian",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KIL-ee-an",
+      "description": "An Irish name meaning 'little church'."
+    },
+    {
+      "name": "Jakub",
+      "origin": "Poland",
+      "gender": "male",
+      "pronunciation": "YAH-kub",
+      "description": "A Polish form of the name Jacob, meaning 'supplanter'."
+    },
+    {
+      "name": "Milan",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "mee-LAHN",
+      "description": "An Italian name meaning 'gracious' or 'beloved'."
+    },
+    {
+      "name": "Rohan",
+      "origin": "India",
+      "gender": "male",
+      "pronunciation": "RO-hahn",
+      "description": "A Sanskrit name meaning 'ascending' or 'growing'."
+    },
+    {
+      "name": "Amari",
+      "origin": "Africa",
+      "gender": "male",
+      "pronunciation": "ah-MAH-ree",
+      "description": "An African name meaning 'strength' or 'builder'."
+    },
+    {
+      "name": "Cassius",
+      "origin": "Roman",
+      "gender": "male",
+      "pronunciation": "KAH-shus",
+      "description": "A Roman name meaning 'empty' or 'vain'."
+    },
+    {
+      "name": "Coby",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "KOH-bee",
+      "description": "An English name meaning 'supplanter' or 'victorious'."
+    },
+    {
+      "name": "Kaiden",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "KAY-din",
+      "description": "A modern American name, possibly derived from the Gaelic name Caden meaning 'son of Cadán'."
+    },
+    {
+      "name": "Julian",
+      "origin": "Roman",
+      "gender": "male",
+      "pronunciation": "JOO-lee-un",
+      "description": "A Roman name meaning 'youthful' or 'downy-bearded'."
+    },
+    {
+      "name": "Rayyan",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "RAY-yan",
+      "description": "An Arabic name meaning 'gates of paradise'."
+    },
+    {
+      "name": "Damian",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "DAY-mee-un",
+      "description": "A Greek name meaning 'to tame' or 'subdue'."
+    },
+    {
+      "name": "Fraser",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "FRAY-zər",
+      "description": "A Scottish name meaning 'strawberry-bearing' or 'of the forest men'"
+    },
+    {
+      "name": "Ivan",
+      "origin": "Russia",
+      "gender": "male",
+      "pronunciation": "EE-vən",
+      "description": "A Russian name meaning 'God is gracious'"
+    },
+    {
+      "name": "Mylo",
+      "origin": "Unknown",
+      "gender": "male",
+      "pronunciation": "MY-loh",
+      "description": "A modern name with uncertain origins, possibly a variation of the name Miles"
+    },
+    {
+      "name": "Ace",
+      "origin": "Unknown",
+      "gender": "male",
+      "pronunciation": "AYS",
+      "description": "A name meaning 'one' or 'unity', often used as a nickname for a high-achiever"
+    },
+    {
+      "name": "Conor",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KON-ər",
+      "description": "An Irish name meaning 'lover of hounds' or 'lover of wolves'"
+    },
+    {
+      "name": "Osian",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "OSS-ee-an",
+      "description": "A Welsh name meaning 'little deer'"
+    },
+    {
+      "name": "Andrew",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "AN-droo",
+      "description": "A Greek name meaning 'manly' or 'warrior'"
+    },
+    {
+      "name": "Kingsley",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "KINGZ-lee",
+      "description": "An English name meaning 'from the king's field'"
+    },
+    {
+      "name": "Freddy",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "FRED-ee",
+      "description": "A German name meaning 'peaceful ruler'"
+    },
+    {
+      "name": "Kylo",
+      "origin": "Unknown",
+      "gender": "male",
+      "pronunciation": "KYE-loh",
+      "description": "A modern name with uncertain origins, popularized by the Star Wars character Kylo Ren"
+    },
+    {
+      "name": "Sam",
+      "origin": "Various",
+      "gender": "unisex",
+      "pronunciation": "sam",
+      "description": "A short form of Samuel or Samantha."
+    },
+    {
+      "name": "Stefan",
+      "origin": "Germany, Scandinavian countries",
+      "gender": "male",
+      "pronunciation": "STEF-ən",
+      "description": "A name of Greek origin meaning 'crown' or 'garland'."
+    },
+    {
+      "name": "Ari",
+      "origin": "Various",
+      "gender": "unisex",
+      "pronunciation": "AR-ee",
+      "description": "A name of Hebrew origin meaning 'lion' or 'eagle'."
+    },
+    {
+      "name": "Zayaan",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "zay-ahn",
+      "description": "A name of Arabic origin meaning 'beauty' or 'grace'."
+    },
+    {
+      "name": "Lennie",
+      "origin": "Various",
+      "gender": "male",
+      "pronunciation": "LEN-ee",
+      "description": "A diminutive of Leonard or a variation of Lenny."
+    },
+    {
+      "name": "Teddie",
+      "origin": "Various",
+      "gender": "unisex",
+      "pronunciation": "TED-ee",
+      "description": "A diminutive of Theodore or a variation of Teddy."
+    },
+    {
+      "name": "Wyatt",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "WY-ət",
+      "description": "A name of English origin meaning 'brave in war'."
+    },
+    {
+      "name": "Atlas",
+      "origin": "Greek mythology",
+      "gender": "male",
+      "pronunciation": "AT-las",
+      "description": "A name of Greek origin meaning 'enduring'. In Greek mythology, Atlas was a Titan who held up the sky."
+    },
+    {
+      "name": "Hendrix",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "HEN-driks",
+      "description": "A name of Dutch origin meaning 'son of Hendrik'. It is associated with the American musician Jimi Hendrix."
+    },
+    {
+      "name": "Walter",
+      "origin": "Various",
+      "gender": "male",
+      "pronunciation": "WAWL-tər",
+      "description": "A name of German origin meaning 'ruler of the army'."
+    },
+    {
+      "name": "Carson",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "KAHR-sən",
+      "description": "A name meaning \"son of Carr\" or \"son of the marsh\"."
+    },
+    {
+      "name": "Ernest",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "UR-nist",
+      "description": "A name meaning \"serious\" or \"resolute\"."
+    },
+    {
+      "name": "Hassan",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "hah-SAHN",
+      "description": "A name meaning \"handsome\" or \"good-looking\"."
+    },
+    {
+      "name": "Aryan",
+      "origin": "India",
+      "gender": "male",
+      "pronunciation": "AHR-yən",
+      "description": "A name meaning \"noble\" or \"honorable\"."
+    },
+    {
+      "name": "Lennox",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "LE-nəks",
+      "description": "A name meaning \"place of the elm trees\"."
+    },
+    {
+      "name": "Erik",
+      "origin": "Scandinavia",
+      "gender": "male",
+      "pronunciation": "AIR-ik",
+      "description": "A name meaning \"eternal ruler\" or \"ever powerful\"."
+    },
+    {
+      "name": "Ilyas",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "IL-yəs",
+      "description": "A name meaning \"the Lord is my God\"."
+    },
+    {
+      "name": "Corey",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KOR-ee",
+      "description": "A name meaning \"from the hollow\" or \"from the round hill\"."
+    },
+    {
+      "name": "Antoni",
+      "origin": "Poland",
+      "gender": "male",
+      "pronunciation": "ahn-TAW-nee",
+      "description": "A name meaning \"priceless\" or \"invaluable\"."
+    },
+    {
+      "name": "Ayden",
+      "origin": "Turkey",
+      "gender": "male",
+      "pronunciation": "AY-dən",
+      "description": "A name meaning \"fiery\" or \"passionate\"."
+    },
+    {
+      "name": "Huxley",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HUHKS-lee",
+      "description": "Derived from Old English roots meaning 'inhospitable place'."
+    },
+    {
+      "name": "Ismail",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "iz-MEYL",
+      "description": "Means 'heard by God' in Arabic and is a popular name in the Islamic world."
+    },
+    {
+      "name": "Elis",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "EH-lis",
+      "description": "A Welsh variant of the name Elijah, meaning 'my God is Yahweh'."
+    },
+    {
+      "name": "Dominik",
+      "origin": "Germany/Poland",
+      "gender": "male",
+      "pronunciation": "doh-MEE-nik",
+      "description": "Variant of the Latin name Dominicus, meaning 'belonging to the Lord'."
+    },
+    {
+      "name": "Harris",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HAIR-is",
+      "description": "Derived from the Old English words 'hær' (army) and 'rīc' (ruler), meaning 'ruler of the army'."
+    },
+    {
+      "name": "Yunus",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "yoo-NOOS",
+      "description": "Arabic form of the name Jonah, meaning 'dove'."
+    },
+    {
+      "name": "Azaan",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ah-ZAHN",
+      "description": "Means 'call to prayer' in Arabic, and is often given to boys born during the Islamic holy month of Ramadan."
+    },
+    {
+      "name": "Jeremiah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "jeh-RI-my-ah",
+      "description": "From the Hebrew name יִרְמְיָהוּ (Yirmiyahu) meaning 'Yahweh will exalt'."
+    },
+    {
+      "name": "Haris",
+      "origin": "Bosnian/Croatian/Serbian",
+      "gender": "male",
+      "pronunciation": "HAH-ris",
+      "description": "Variant of the name Harith, meaning 'plowman' or 'farmer'."
+    },
+    {
+      "name": "Aleksander",
+      "origin": "Polish",
+      "gender": "male",
+      "pronunciation": "ah-lek-SAHN-der",
+      "description": "Polish form of the name Alexander, meaning 'defender of the people'."
+    },
+    {
+      "name": "Sami",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "SAH-mee",
+      "description": "Short form of Samuel, meaning 'heard by God'"
+    },
+    {
+      "name": "Kasper",
+      "origin": "Scandinavian",
+      "gender": "male",
+      "pronunciation": "KAS-per",
+      "description": "Variant of Jasper, meaning 'treasurer'"
+    },
+    {
+      "name": "Nate",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "nayt",
+      "description": "Short form of Nathan, meaning 'given'"
+    },
+    {
+      "name": "Rufus",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "ROO-fus",
+      "description": "Meaning 'red-haired'"
+    },
+    {
+      "name": "Angus",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "ANG-gus",
+      "description": "Meaning 'unique strength'"
+    },
+    {
+      "name": "Luka",
+      "origin": "Croatian",
+      "gender": "male",
+      "pronunciation": "LOO-kah",
+      "description": "Variant of Luke, meaning 'from Lucania'"
+    },
+    {
+      "name": "Reign",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "RAYN",
+      "description": "Meaning 'ruling sovereign'"
+    },
+    {
+      "name": "Arjun",
+      "origin": "Hindu",
+      "gender": "male",
+      "pronunciation": "AR-jun",
+      "description": "Name of a hero in Hindu mythology"
+    },
+    {
+      "name": "Cian",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KEE-an",
+      "description": "Meaning 'ancient'"
+    },
+    {
+      "name": "Colby",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "KOL-bee",
+      "description": "Meaning 'dark town'"
+    },
+    {
+      "name": "Ernie",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "UR-nee",
+      "description": "Short form of Ernest, meaning 'serious, resolute'"
+    },
+    {
+      "name": "Ziggy",
+      "origin": "Slavic",
+      "gender": "unisex",
+      "pronunciation": "ZIG-ee",
+      "description": "Short form of Sigmund or Siegfried, meaning 'victorious protection'"
+    },
+    {
+      "name": "Denis",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "de-NEE",
+      "description": "French form of Dionysius, meaning 'follower of Dionysus'"
+    },
+    {
+      "name": "Fletcher",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "FLECH-er",
+      "description": "Occupational name for a maker of arrows, bows, or arrows feathers"
+    },
+    {
+      "name": "Philip",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "FIL-ip",
+      "description": "Means 'lover of horses'"
+    },
+    {
+      "name": "Darius",
+      "origin": "Persian",
+      "gender": "male",
+      "pronunciation": "duh-RIE-us",
+      "description": "Means 'possessing goodness'"
+    },
+    {
+      "name": "Greyson",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "GRAY-sun",
+      "description": "Means 'son of the grey-haired one'"
+    },
+    {
+      "name": "Kobi",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "KOH-bee",
+      "description": "Means 'supplanter'"
+    },
+    {
+      "name": "Percy",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "PUR-see",
+      "description": "Means 'pierced valley'"
+    },
+    {
+      "name": "Casey",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "KAY-see",
+      "description": "Means 'brave in battle'"
+    },
+    {
+      "name": "Dougie",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "DUG-ee",
+      "description": "Diminutive form of Douglas, meaning 'dark water' or 'black stream'."
+    },
+    {
+      "name": "Maddox",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "MAD-oks",
+      "description": "Derived from Welsh elements meaning 'fortunate' or 'good' and 'son'."
+    },
+    {
+      "name": "Kaleb",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "KAY-lub",
+      "description": "Variant of Caleb, meaning 'faithful' or 'loyal'."
+    },
+    {
+      "name": "Alexandru",
+      "origin": "Romanian",
+      "gender": "male",
+      "pronunciation": "ah-lek-SAHN-droo",
+      "description": "Romanian form of Alexander, meaning 'defender of the people'."
+    },
+    {
+      "name": "Arham",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "AR-hum",
+      "description": "Derived from Arabic word meaning 'mercy'."
+    },
+    {
+      "name": "Ben",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ben",
+      "description": "Short form of Benjamin, meaning 'son of the right hand' or 'favourite son'."
+    },
+    {
+      "name": "Magnus",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "MAG-nus",
+      "description": "Derived from Latin magnus, meaning 'great' or 'large'."
+    },
+    {
+      "name": "Alan",
+      "origin": "Celtic",
+      "gender": "male",
+      "pronunciation": "AL-an",
+      "description": "Derived from Celtic elements meaning 'rock' or 'little rock'."
+    },
+    {
+      "name": "Lochlan",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "LOCK-lin",
+      "description": "Variant of Lachlan, meaning 'from the fjord-land' or 'from the land of lochs'."
+    },
+    {
+      "name": "Reece",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "rees",
+      "description": "Variant of Rhys, meaning 'enthusiasm' or 'ardour'."
+    },
+    {
+      "name": "Dennis",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "DEN-is",
+      "description": "Variant of Dionysius, meaning 'follower of Dionysus'"
+    },
+    {
+      "name": "Edison",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ED-i-sun",
+      "description": "Derived from the Old English name Eadgyth, meaning 'rich battle'"
+    },
+    {
+      "name": "Malachi",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "muh-LAH-kai",
+      "description": "Means 'my messenger' or 'my angel' in Hebrew"
+    },
+    {
+      "name": "Emmanuel",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ih-MAN-yoo-el",
+      "description": "Means 'God is with us' in Hebrew"
+    },
+    {
+      "name": "Richard",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "RIH-chard",
+      "description": "Means 'brave ruler' in German"
+    },
+    {
+      "name": "Zohan",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ZOH-hahn",
+      "description": "Means 'gift from God' in Hebrew"
+    },
+    {
+      "name": "Andrei",
+      "origin": "Romanian",
+      "gender": "male",
+      "pronunciation": "ahn-DRAY",
+      "description": "A popular name in Romania, meaning 'manly' or 'warrior-like'."
+    },
+    {
+      "name": "Isa",
+      "origin": "Arabic",
+      "gender": "unisex",
+      "pronunciation": "EE-sah",
+      "description": "A short form of the Arabic name 'Isaiah', meaning 'salvation of God'."
+    },
+    {
+      "name": "Aarav",
+      "origin": "India",
+      "gender": "male",
+      "pronunciation": "AH-rav",
+      "description": "A Sanskrit name meaning 'peaceful' or 'calm'."
+    },
+    {
+      "name": "Kiaan",
+      "origin": "India",
+      "gender": "male",
+      "pronunciation": "KEE-ahn",
+      "description": "A Hindi name meaning 'grace of God' or 'ancient' or 'praise'."
+    },
+    {
+      "name": "Santiago",
+      "origin": "Spain",
+      "gender": "male",
+      "pronunciation": "sahn-tee-AH-goh",
+      "description": "A Spanish name meaning 'Saint James'."
+    },
+    {
+      "name": "Ashton",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ASH-tun",
+      "description": "An English name meaning 'ash tree town'."
+    },
+    {
+      "name": "Chase",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "chays",
+      "description": "An English name meaning 'to hunt'."
+    },
+    {
+      "name": "Jan",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "yahn",
+      "description": "A German name meaning 'God is gracious'."
+    },
+    {
+      "name": "Zachariah",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "zak-uh-RYE-uh",
+      "description": "A Hebrew name meaning 'God remembers'."
+    },
+    {
+      "name": "Morgan",
+      "origin": "Welsh",
+      "gender": "unisex",
+      "pronunciation": "MAWR-gan",
+      "description": "A Welsh name meaning 'sea circle'."
+    },
+    {
+      "name": "Koby",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "KOH-bee",
+      "description": "A Hebrew name meaning 'supplanter' or 'holder of the heel'."
+    },
+    {
+      "name": "Layton",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LAY-tuhn",
+      "description": "An English name meaning 'settlement on the river Lea'."
+    },
+    {
+      "name": "Orson",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AWR-suhn",
+      "description": "An English name meaning 'bear cub' or 'son of the bear'."
+    },
+    {
+      "name": "Atticus",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "a-TIK-uhs",
+      "description": "A Greek name meaning 'man of Attica' or 'from Attica'."
+    },
+    {
+      "name": "Malik",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "mah-LEEK",
+      "description": "An Arabic name meaning 'king' or 'ruler'."
+    },
+    {
+      "name": "Ryder",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "RYE-dur",
+      "description": "An English name meaning 'one who rides'."
+    },
+    {
+      "name": "Kacper",
+      "origin": "Polish",
+      "gender": "male",
+      "pronunciation": "KAH-tsper",
+      "description": "A Polish variant of the name Casper, meaning 'treasurer' or 'keeper of the treasure'."
+    },
+    {
+      "name": "Solomon",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "SAHL-uh-mun",
+      "description": "A Hebrew name meaning 'peaceful' or 'peaceful one'."
+    },
+    {
+      "name": "Jimmy",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JIM-ee",
+      "description": "A diminutive of the name James, meaning 'supplanter' or 'holder of the heel'."
+    },
+    {
+      "name": "Danny",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "DAN-ee",
+      "description": "A diminutive of the name Daniel, meaning 'God is my judge'."
+    },
+    {
+      "name": "Antonio",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "an-TOH-nee-oh",
+      "description": "Antonio is a name of Italian origin and means 'priceless one' or 'invaluable one'."
+    },
+    {
+      "name": "Cairo",
+      "origin": "Egypt",
+      "gender": "male",
+      "pronunciation": "KY-roh",
+      "description": "Cairo is a name of Arabic origin and means 'victorious' or 'triumphant'."
+    },
+    {
+      "name": "Haider",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "HAY-der",
+      "description": "Haider is a name of Arabic origin and means 'lion'. It is also a name given to Imam Ali."
+    },
+    {
+      "name": "Rudi",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "ROO-dee",
+      "description": "Rudi is a name of German origin and means 'famous wolf'."
+    },
+    {
+      "name": "Timothy",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "TIM-uh-thee",
+      "description": "Timothy is a name of Greek origin and means 'honoring God'."
+    },
+    {
+      "name": "Declan",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "DEK-lan",
+      "description": "Declan is a name of Irish origin and means 'full of goodness' or 'man of prayer'."
+    },
+    {
+      "name": "Junior",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "JOON-yer",
+      "description": "Junior is a name of Latin origin and means 'young'. It is often used as a suffix to distinguish a son from his father, e.g. John Smith Jr."
+    },
+    {
+      "name": "Yaqub",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "YA-kub",
+      "description": "Yaqub is a name of Arabic origin and means 'supplanter' or 'usurper'. It is the Arabic equivalent of the name Jacob."
+    },
+    {
+      "name": "Lachlan",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "LAK-lan",
+      "description": "Lachlan is a name of Scottish origin and means 'from the land of lakes'."
+    },
+    {
+      "name": "Shay",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "SHAY",
+      "description": "Shay is a name of Irish origin and means 'admirable' or 'hawk-like'."
+    },
+    {
+      "name": "Dawud",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "dah-wood",
+      "description": "Dawud is an Arabic name that means 'beloved' or 'friend'. It is also the Arabic name for the Biblical King David."
+    },
+    {
+      "name": "Ewan",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "yoo-un",
+      "description": "Ewan is a Scottish name that means 'born of the yew tree'."
+    },
+    {
+      "name": "Nikodem",
+      "origin": "Polish",
+      "gender": "male",
+      "pronunciation": "nee-ko-dem",
+      "description": "Nikodem is a Polish name that means 'victorious people'."
+    },
+    {
+      "name": "Bear",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "bair",
+      "description": "Bear is an American name that means 'strong and brave as a bear'. It is also a nature-inspired name that has become popular in recent years."
+    },
+    {
+      "name": "Malakai",
+      "origin": "Hawaiian",
+      "gender": "male",
+      "pronunciation": "mah-lah-kai",
+      "description": "Malakai is a Hawaiian name that means 'my messenger'. It is also a biblical name, spelled as 'Malachi', which means 'my messenger' or 'messenger of God'."
+    },
+    {
+      "name": "Taylor",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "tay-ler",
+      "description": "Taylor is an English name that originally meant 'tailor' or 'one who cuts cloth'. It has become a unisex name in recent years, and is also a popular surname."
+    },
+    {
+      "name": "Aron",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "air-un",
+      "description": "Aron is a Hebrew name that means 'mountain of strength'. It is also spelled as 'Aaron', and is the name of the brother of Moses in the Bible."
+    },
+    {
+      "name": "Buddy",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "buh-dee",
+      "description": "Buddy is an American name that means 'friend' or 'companion'. It is also a term of endearment used for a close friend or partner."
+    },
+    {
+      "name": "Hamish",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "hay-mish",
+      "description": "Hamish is a Scottish name that means 'supplanter'. It is a variant of the name James, and is a popular name in Scotland and Australia."
+    },
+    {
+      "name": "Simon",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "sai-mun",
+      "description": "Simon is a Hebrew name that means 'he has heard'. It is also the name of one of the apostles in the Bible, and is a popular name in many cultures."
+    },
+    {
+      "name": "Zane",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "ZAYN",
+      "description": "A name of American origin meaning God is gracious."
+    },
+    {
+      "name": "Hussain",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "hoo-SAYN",
+      "description": "A name of Arabic origin meaning good-looking, handsome."
+    },
+    {
+      "name": "Ayman",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "EYE-man",
+      "description": "A name of Arabic origin meaning blessed, fortunate."
+    },
+    {
+      "name": "Harri",
+      "origin": "Finnish",
+      "gender": "male",
+      "pronunciation": "HAR-ree",
+      "description": "A Finnish variation of the name Harry, meaning ruler of the home."
+    },
+    {
+      "name": "Matthias",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "muh-THY-uhs",
+      "description": "A name of German origin meaning gift of God."
+    },
+    {
+      "name": "Khalil",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "kah-LEEL",
+      "description": "A name of Arabic origin meaning friend, companion."
+    },
+    {
+      "name": "Rome",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "rohm",
+      "description": "A name of American origin meaning from Rome, Italy."
+    },
+    {
+      "name": "Hughie",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "HYOO-ee",
+      "description": "An Irish variant of the name Hugh, meaning mind, intellect."
+    },
+    {
+      "name": "Sean",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "SHAWN",
+      "description": "An Irish variant of the name John, meaning God is gracious."
+    },
+    {
+      "name": "Sullivan",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "SUHL-uh-vuhn",
+      "description": "An Irish surname used as a given name, meaning dark-eyed one."
+    },
+    {
+      "name": "Tate",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "tayt",
+      "description": "A name of English origin meaning cheerful."
+    },
+    {
+      "name": "Fabian",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "FAY-bee-en",
+      "description": "A name of Latin origin meaning bean grower or bean seller."
+    },
+    {
+      "name": "Laurence",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LAWR-əns",
+      "description": "A name of Latin origin meaning from Laurentum, a city in ancient Italy."
+    },
+    {
+      "name": "Leighton",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LAY-tən",
+      "description": "A name of English origin meaning from the meadow settlement."
+    },
+    {
+      "name": "Mikaeel",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "mik-A-ee-l",
+      "description": "A name of Arabic origin meaning who is like God? It is the Arabic form of the name Michael."
+    },
+    {
+      "name": "Teodor",
+      "origin": "Slavic",
+      "gender": "male",
+      "pronunciation": "teh-oh-DOR",
+      "description": "A name of Slavic origin meaning gift of God."
+    },
+    {
+      "name": "Nolan",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "NO-lən",
+      "description": "A name of Irish origin meaning champion or descendant of Nuallán."
+    },
+    {
+      "name": "Thiago",
+      "origin": "Portuguese",
+      "gender": "male",
+      "pronunciation": "tee-AH-goh",
+      "description": "A name of Portuguese origin meaning supplanter, or one who takes the place of another."
+    },
+    {
+      "name": "Anas",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "AH-nas",
+      "description": "A name of Arabic origin meaning affectionate, friendly."
+    },
+    {
+      "name": "Odin",
+      "origin": "Norse",
+      "gender": "male",
+      "pronunciation": "OH-din",
+      "description": "A name of Norse origin meaning fury, inspiration, or frenzy."
+    },
+    {
+      "name": "Arnie",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "ahr-nee",
+      "description": "Short form of Arnold, meaning 'eagle power'."
+    },
+    {
+      "name": "Aydin",
+      "origin": "Turkish",
+      "gender": "male",
+      "pronunciation": "EYE-din",
+      "description": "Means 'enlightened' or 'clear' in Turkish."
+    },
+    {
+      "name": "Bruno",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "BROO-no",
+      "description": "Derived from the Germanic element brun meaning 'brown'."
+    },
+    {
+      "name": "Kenzo",
+      "origin": "Japanese",
+      "gender": "male",
+      "pronunciation": "KEN-zoh",
+      "description": "Means 'strong and healthy' in Japanese."
+    },
+    {
+      "name": "Loki",
+      "origin": "Norse",
+      "gender": "male",
+      "pronunciation": "LOH-kee",
+      "description": "In Norse mythology, Loki is a trickster god associated with fire and magic."
+    },
+    {
+      "name": "Olly",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AH-lee",
+      "description": "Short form of Oliver, meaning 'olive tree'."
+    },
+    {
+      "name": "Hugh",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "HYOO",
+      "description": "Derived from the Germanic element hug meaning 'heart, mind, spirit'."
+    },
+    {
+      "name": "Leonidas",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "lee-oh-NYE-das",
+      "description": "Means 'son of the lion' in Greek, and is also the name of a Spartan king."
+    },
+    {
+      "name": "Avery",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "AY-vree",
+      "description": "Means 'ruler of the elves' in Old English."
+    },
+    {
+      "name": "Diego",
+      "origin": "Spanish",
+      "gender": "male",
+      "pronunciation": "dee-AY-go",
+      "description": "Derived from the Latin name Didacus, meaning 'learned'."
+    },
+    {
+      "name": "Issac",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "EYE-zik",
+      "description": "A Hebrew name meaning 'he will laugh.'"
+    },
+    {
+      "name": "Jett",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JET",
+      "description": "A modern English name meaning 'black gemstone.'"
+    },
+    {
+      "name": "Oisin",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "UH-sheen",
+      "description": "An Irish name meaning 'little deer.'"
+    },
+    {
+      "name": "Zak",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ZAK",
+      "description": "A short form of the name Zachary, meaning 'remembered by God.'"
+    },
+    {
+      "name": "Ibraheem",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ib-rah-HEEM",
+      "description": "An Arabic name meaning 'father of many nations.'"
+    },
+    {
+      "name": "Ismaeel",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "iz-muh-EEL",
+      "description": "An Arabic name meaning 'God will hear.'"
+    },
+    {
+      "name": "Nikolas",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "ni-KO-las",
+      "description": "A variant of the name Nicholas, meaning 'victorious people.'"
+    },
+    {
+      "name": "Orlando",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "or-LAN-doh",
+      "description": "A name of Italian origin meaning 'famous throughout the land.'"
+    },
+    {
+      "name": "Johnny",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "JAHN-ee",
+      "description": "A diminutive of the name John, meaning 'God is gracious.'"
+    },
+    {
+      "name": "Luis",
+      "origin": "Spanish",
+      "gender": "male",
+      "pronunciation": "LOO-ees",
+      "description": "A Spanish form of the name Louis, meaning 'famous warrior.'"
+    },
+    {
+      "name": "Vinny",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "VIN-ee",
+      "description": "A short form of the name Vincent or Vincenzo."
+    },
+    {
+      "name": "Cohen",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "KOH-en",
+      "description": "An Irish name meaning 'priest'."
+    },
+    {
+      "name": "Jovan",
+      "origin": "Serbian",
+      "gender": "male",
+      "pronunciation": "JOH-van",
+      "description": "A Serbian name meaning 'God is gracious'."
+    },
+    {
+      "name": "Laith",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "Layth",
+      "description": "An Arabic name meaning 'lion'."
+    },
+    {
+      "name": "Vlad",
+      "origin": "Romanian",
+      "gender": "male",
+      "pronunciation": "vlad",
+      "description": "A Romanian name meaning 'ruler' or 'prince'."
+    },
+    {
+      "name": "Idrees",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "ih-DREEZ",
+      "description": "An Arabic name meaning 'one who teaches or guides'."
+    },
+    {
+      "name": "Wilbur",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "WIL-ber",
+      "description": "An Old English name meaning 'willful and bright'."
+    },
+    {
+      "name": "Aahil",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "aa-HIL",
+      "description": "An Arabic name meaning 'great king'."
+    },
+    {
+      "name": "Ayyub",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "eye-YOOP",
+      "description": "An Arabic name meaning 'patient'."
+    },
+    {
+      "name": "Jaxx",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "JAKS",
+      "description": "A modern American name, possibly a variant of Jaxon or Jackson."
+    },
+    {
+      "name": "Khalid",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "Kah-leed",
+      "description": "The name Khalid means 'eternal' or 'immortal' in Arabic."
+    },
+    {
+      "name": "Osman",
+      "origin": "Turkish",
+      "gender": "male",
+      "pronunciation": "Ohs-mahn",
+      "description": "The name Osman means 'servant of God' in Arabic and is a common name in Turkish culture."
+    },
+    {
+      "name": "Aadam",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "Ah-dahm",
+      "description": "The name Aadam is the Arabic form of the name Adam, which means 'man' in Hebrew. It is a popular name among Muslims."
+    },
+    {
+      "name": "Sulaiman",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "Soo-lay-mahn",
+      "description": "The name Sulaiman means 'man of peace' in Arabic and is a popular name in Muslim culture."
+    },
+    {
+      "name": "Tadhg",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "Tie-g",
+      "description": "The name Tadhg means 'poet' or 'philosopher' in Irish and is a popular name in Irish culture."
+    },
+    {
+      "name": "Tommy-Lee",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "Tom-ee Lee",
+      "description": "Tommy-Lee is a compound name made up of the names Tommy and Lee. It is a popular name in English-speaking countries."
+    },
+    {
+      "name": "August",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "Aw-guhst",
+      "description": "The name August means 'great' or 'magnificent' in Latin and is a popular name in many countries."
+    },
+    {
+      "name": "Hadley",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "Had-lee",
+      "description": "The name Hadley means 'heathery meadow' in Old English and is a popular unisex name in English-speaking countries."
+    },
+    {
+      "name": "Kyro",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "Kai-roh",
+      "description": "The name Kyro means 'far-sighted' or 'lord' in Greek and is a popular name in Greek culture."
+    },
+    {
+      "name": "Usman",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "Oos-mahn",
+      "description": "The name Usman means 'trustworthy' or 'friend' in Arabic and is a popular name in Muslim culture."
+    },
+    {
+      "name": "Beauden",
+      "origin": "New Zealand",
+      "gender": "male",
+      "pronunciation": "BO-dun",
+      "description": "A modern name with a French origin, meaning handsome or beautiful."
+    },
+    {
+      "name": "Joe",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JO",
+      "description": "A short form of Joseph or Josephine, meaning he will increase."
+    },
+    {
+      "name": "Ozzy",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AH-zee",
+      "description": "A diminutive form of the name Oswald or Osborn, meaning divine power or godly warrior."
+    },
+    {
+      "name": "Rueben",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "ROO-ben",
+      "description": "Derived from the Hebrew name Re'uven, meaning behold, a son."
+    },
+    {
+      "name": "Tomos",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "TO-mos",
+      "description": "The Welsh form of the name Thomas, meaning twin."
+    },
+    {
+      "name": "Zakaria",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "za-KAR-ee-ya",
+      "description": "A variant of the name Zachary or Zechariah, meaning God remembers."
+    },
+    {
+      "name": "Alvey",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "AL-vee",
+      "description": "An English name of Old Norse origin, meaning elf battle or noble friend."
+    },
+    {
+      "name": "Archibald",
+      "origin": "Scottish",
+      "gender": "male",
+      "pronunciation": "AHR-chi-bawld",
+      "description": "A name of Germanic origin, meaning genuine or bold."
+    },
+    {
+      "name": "Lucian",
+      "origin": "Latin",
+      "gender": "male",
+      "pronunciation": "LOO-see-en",
+      "description": "Derived from the Latin name Lucianus, meaning light or illumination."
+    },
+    {
+      "name": "Marshall",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "MAHR-shuhl",
+      "description": "An English occupational name, meaning caretaker of horses or steward."
+    },
+    {
+      "name": "Marco",
+      "origin": "Italian",
+      "gender": "male",
+      "pronunciation": "MAHR-koh",
+      "description": "A Latin name meaning 'warlike' or 'from Mars'"
+    },
+    {
+      "name": "Neo",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "NEE-oh",
+      "description": "A Greek name meaning 'new' or 'gift'"
+    },
+    {
+      "name": "Abraham",
+      "origin": "Hebrew",
+      "gender": "male",
+      "pronunciation": "A-bruh-ham",
+      "description": "A Hebrew name meaning 'father of many nations'"
+    },
+    {
+      "name": "Jay",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "JAY",
+      "description": "A name of American origin that means 'victory'"
+    },
+    {
+      "name": "Kyrie",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "KEER-ee-ay",
+      "description": "A Greek name meaning 'lord' or 'ruler'"
+    },
+    {
+      "name": "Macsen",
+      "origin": "Welsh",
+      "gender": "male",
+      "pronunciation": "MAKS-en",
+      "description": "A Welsh name derived from the Roman name Maximus, meaning 'greatest'"
+    },
+    {
+      "name": "Raife",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "RAYF",
+      "description": "An English name that means 'wolf counsel'"
+    },
+    {
+      "name": "Bilal",
+      "origin": "Arabic",
+      "gender": "male",
+      "pronunciation": "bi-LAL",
+      "description": "An Arabic name that means 'water' or 'refreshing'"
+    },
+    {
+      "name": "Jago",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "JAY-go",
+      "description": "A Cornish form of the name James, meaning 'supplanter'"
+    },
+    {
+      "name": "Lowen",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "LOH-wen",
+      "description": "A Cornish name that means 'joyful'"
+    },
+    {
+      "name": "Miller",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "MIL-er",
+      "description": "Miller is a surname of English origin that originally referred to someone who owned or worked in a grain mill."
+    },
+    {
+      "name": "Orion",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "oh-RY-ən",
+      "description": "Orion is a Greek name meaning 'son of fire' or 'son of light'. In Greek mythology, Orion was a giant hunter."
+    },
+    {
+      "name": "Ray",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "RAY",
+      "description": "Ray is a short form of Raymond or Raymonde, both of which are of Germanic origin and mean 'wise protector'."
+    },
+    {
+      "name": "Travis",
+      "origin": "French",
+      "gender": "male",
+      "pronunciation": "TRAV-is",
+      "description": "Travis is a surname that has become a popular first name of uncertain origin, possibly from the Old French word 'traverser', meaning 'to cross'."
+    },
+    {
+      "name": "Eduard",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "ED-yərd",
+      "description": "Eduard is a German name derived from the Old High German elements 'ead', meaning 'wealth' or 'fortune', and 'ward', meaning 'guardian' or 'protector'."
+    },
+    {
+      "name": "Franciszek",
+      "origin": "Polish",
+      "gender": "male",
+      "pronunciation": "fran-TSISH-ek",
+      "description": "Franciszek is a Polish form of Francis, which is of Latin origin and means 'Frenchman' or 'free man'."
+    },
+    {
+      "name": "Koa",
+      "origin": "Hawaiian",
+      "gender": "male",
+      "pronunciation": "KOH-ah",
+      "description": "Koa is a Hawaiian name that means 'brave', 'fearless', or 'warrior'. Koa is also the name of a Hawaiian hardwood tree that is highly valued for its strength and durability."
+    },
+    {
+      "name": "Maverick",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "MAV-er-ik",
+      "description": "Maverick is an English surname that has become a popular first name. It means 'independent' or 'nonconformist', and may have originally referred to a calf that has become separated from its mother."
+    },
+    {
+      "name": "Woody",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "WUH-dee",
+      "description": "Short form of the name Woodrow, meaning 'row of houses by a wood'."
+    },
+    {
+      "name": "Zach",
+      "origin": "English",
+      "gender": "male",
+      "pronunciation": "ZAK",
+      "description": "Short form of the name Zachary, meaning 'remembered by God'."
+    },
+    {
+      "name": "Jace",
+      "origin": "American",
+      "gender": "male",
+      "pronunciation": "JAYS",
+      "description": "Modern name with uncertain origin and meaning. Possibly derived from the name Jason or a combination of the initials J.C."
+    },
+    {
+      "name": "Rian",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "REE-an",
+      "description": "Variant spelling of the Irish name Ryan, meaning 'little king'."
+    },
+    {
+      "name": "Maxim",
+      "origin": "Russia",
+      "gender": "male",
+      "pronunciation": "MAKS-im",
+      "description": "Maxim is a name of Russian origin that means 'greatest'. It's a popular name in Russia and other Slavic countries."
+    },
+    {
+      "name": "Paul",
+      "origin": "Romanian",
+      "gender": "male",
+      "pronunciation": "PAWL",
+      "description": "Paul is a name of Latin origin that means 'small' or 'humble'. It's a common name in many countries, including Romania."
+    },
+    {
+      "name": "Tymon",
+      "origin": "Poland",
+      "gender": "male",
+      "pronunciation": "TIE-mon",
+      "description": "Tymon is a name of Greek origin that means 'honoring God'. It's a relatively uncommon name in Poland and other countries."
+    },
+    {
+      "name": "Kobie",
+      "origin": "South Africa",
+      "gender": "male",
+      "pronunciation": "KOH-bee",
+      "description": "Kobie is a name of African origin that means 'supplanter'. It's a common name among the Afrikaans-speaking population of South Africa."
+    },
+    {
+      "name": "Mathias",
+      "origin": "German",
+      "gender": "male",
+      "pronunciation": "mah-TEE-us",
+      "description": "Mathias is a name of Greek origin that means 'gift of God'. It's a popular name in Germany and other European countries."
+    },
+    {
+      "name": "Ruairi",
+      "origin": "Irish",
+      "gender": "male",
+      "pronunciation": "ROO-uh-ree",
+      "description": "Ruairi is a name of Irish origin that means 'red-haired king'. It's a traditional Irish name that has become more popular in recent years."
+    },
+    {
+      "name": "Stephen",
+      "origin": "Greek",
+      "gender": "male",
+      "pronunciation": "STEE-vuhn",
+      "description": "Stephen is a name of Greek origin that means 'crown' or 'garland'. It's a common name in many English-speaking countries, as well as Greece and other countries influenced by Greek culture."
+    }
+  ]
+}

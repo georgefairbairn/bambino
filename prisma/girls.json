@@ -1,0 +1,3497 @@
+{
+  "boys": [
+    {
+      "name": "Olivia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "oh-LIV-ee-uh",
+      "description": "Olivia is a name of Latin origin that means 'olive tree'. It has been a popular name in English-speaking countries since the 18th century."
+    },
+    {
+      "name": "Amelia",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "uh-MEE-lee-uh",
+      "description": "Amelia is a name of German origin that means 'work'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Isla",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "EYE-la",
+      "description": "Isla is a name of Scottish origin that means 'island'. It's a relatively uncommon name in the United States and other countries, but it's becoming more popular."
+    },
+    {
+      "name": "Ava",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "AY-vuh",
+      "description": "Ava is a name of German origin that means 'life' or 'bird'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Ivy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EYE-vee",
+      "description": "Ivy is a name of English origin that refers to the ivy plant, which symbolizes faithfulness and eternity. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Freya",
+      "origin": "Norse",
+      "gender": "female",
+      "pronunciation": "FRAY-uh",
+      "description": "Freya is a name of Norse origin that means 'lady' or 'mistress'. In Norse mythology, Freya is the goddess of love, beauty, and fertility. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Lily",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LIL-ee",
+      "description": "Lily is a name of English origin that refers to the lily flower, which symbolizes purity and beauty. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Florence",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "FLOR-uhns",
+      "description": "Florence is a name of Latin origin that means 'flourishing' or 'prosperous'. It's a popular name in many English-speaking countries, as well as Italy and other countries influenced by Italian culture."
+    },
+    {
+      "name": "Mia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "MEE-uh",
+      "description": "Mia is a name of Italian origin that means 'mine'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Willow",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "WIL-oh",
+      "description": "Willow is a name of English origin that refers to the willow tree, which symbolizes grace and flexibility. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Rosie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "ROH-zee",
+      "description": "Rosie is a diminutive of Rose, a name of Latin origin that refers to the flower of the same name. It's a popular name in many English-speaking countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Sophia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "soh-FEE-uh",
+      "description": "Sophia is a name of Greek origin that means 'wisdom'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Isabella",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "iz-uh-BEL-uh",
+      "description": "Isabella is a name of Italian origin that means 'God is my oath'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Grace",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "grays",
+      "description": "Grace is a name of English origin that means 'elegance' or 'blessing'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Daisy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "DAY-zee",
+      "description": "Daisy is a name of English origin that refers to the daisy flower, which symbolizes innocence and purity. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Sienna",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "see-EN-uh",
+      "description": "Sienna is a name of Italian origin that refers to the city of Siena in Tuscany. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Poppy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PAH-pee",
+      "description": "Poppy is a name of English origin that refers to the poppy flower, which is a symbol of remembrance for soldiers who have died in wars. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Elsie",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "EL-see",
+      "description": "Elsie is a diminutive of Elizabeth, a name of Hebrew origin that means 'God is my oath'. It's a relatively uncommon name in the United States and other countries, but it's becoming more popular."
+    },
+    {
+      "name": "Emily",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EM-uh-lee",
+      "description": "Emily is a name of English origin that means 'rival'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Ella",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "EL-luh",
+      "description": "Ella is a name of German origin that means 'all'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Evelyn",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EV-lin",
+      "description": "Evelyn is a name of English origin that means 'desired' or 'wished for'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Phoebe",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "FEE-bee",
+      "description": "Phoebe is a name of Greek origin that means 'bright' or 'radiant'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Sofia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "soh-FEE-uh",
+      "description": "Sofia is a name of Greek origin that means 'wisdom'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Evie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EE-vee",
+      "description": "Evie is a name of English origin that is a diminutive of Eve or Evelyn. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Charlotte",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "shar-LOT",
+      "description": "Charlotte is a name of French origin that means 'free man'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Harper",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAHR-per",
+      "description": "Harper is a name of English origin that originally referred to someone who played the harp. It's a relatively new name and has become more popular in recent years."
+    },
+    {
+      "name": "Millie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MIL-ee",
+      "description": "Millie is a diminutive of Millicent or Mildred, names of English origin that mean 'strong in work'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Matilda",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "muh-TIL-duh",
+      "description": "Matilda is a name of German origin that means 'mighty in battle'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Maya",
+      "origin": "Sanskrit",
+      "gender": "female",
+      "pronunciation": "MY-uh",
+      "description": "Maya is a name of Sanskrit origin that means 'illusion'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Sophie",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "SOH-fee",
+      "description": "Sophie is a name of Greek origin that means 'wisdom'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Alice",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "AL-is",
+      "description": "Alice is a name of French origin that means 'noble'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Emilia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "eh-MEEL-yah",
+      "description": "Emilia is a name of Italian origin that is a feminine form of Emil. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Isabelle",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "ih-zuh-BEL",
+      "description": "Isabelle is a name of French origin that means 'God is my oath'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Ruby",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "ROO-bee",
+      "description": "Ruby is a name of English origin that refers to the gemstone. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Luna",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "LOO-nuh",
+      "description": "Luna is a name of Italian origin that means 'moon'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Maisie",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "MAY-zee",
+      "description": "Maisie is a name of Scottish origin that is a diminutive of Mairead or Margaret. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Aria",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "AR-ee-uh",
+      "description": "Aria is a name of Italian origin that means 'air' or 'song'. It's a relatively new name and has become more popular in recent years."
+    },
+    {
+      "name": "Penelope",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "puh-NEL-uh-pee",
+      "description": "Penelope is a name of Greek origin that means 'weaver'. In Greek mythology, Penelope was the wife of Odysseus. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Mila",
+      "origin": "Slavic",
+      "gender": "female",
+      "pronunciation": "MEE-luh",
+      "description": "Mila is a name of Slavic origin that means 'gracious' or 'dear'. It's a relatively uncommon name in the United States and other countries, but has become more popular in recent years."
+    },
+    {
+      "name": "Bonnie",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "BAHN-ee",
+      "description": "Bonnie is a name of Scottish origin that means 'pretty' or 'charming'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Eva",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "EE-vuh",
+      "description": "Eva is a name of Hebrew origin that means 'life'. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Hallie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAL-ee",
+      "description": "Hallie is a name of English origin that means 'dweller at the hall meadow'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Eliza",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "ih-LYE-zuh",
+      "description": "Eliza is a name of English origin that is a diminutive of Elizabeth. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Ada",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "AY-duh",
+      "description": "Ada is a name of German origin that means 'noble'. It's a relatively uncommon name in the United States and other countries."
+    },
+    {
+      "name": "Violet",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "VYE-lit",
+      "description": "Violet is a name of English origin that refers to the flower. It's a popular name in many countries, including the United States and the United Kingdom."
+    },
+    {
+      "name": "Esme",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "EZ-mee",
+      "description": "Esme is a French name meaning beloved or esteemed. It gained popularity in the early 20th century and is often associated with literature, particularly J.D. Salinger's 'For Esme - with Love and Squalor'."
+    },
+    {
+      "name": "Arabella",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "air-uh-BEL-uh",
+      "description": "Arabella is a Latin name meaning 'yielding to prayer'. It has been a popular name throughout history and is often associated with nobility and elegance."
+    },
+    {
+      "name": "Imogen",
+      "origin": "Celtic",
+      "gender": "female",
+      "pronunciation": "IM-oh-jen",
+      "description": "Imogen is a Celtic name meaning 'maiden'. It gained popularity in the 20th century and is often associated with Shakespeare's play 'Cymbeline'."
+    },
+    {
+      "name": "Jessica",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "JESS-ih-kuh",
+      "description": "Jessica is a Hebrew name meaning 'gift of God'. It gained popularity in the 20th century and is often associated with Shakespeare's play 'The Merchant of Venice'."
+    },
+    {
+      "name": "Delilah",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "duh-LIE-luh",
+      "description": "Delilah is a Hebrew name meaning 'delicate'. It gained popularity in the late 20th century and is often associated with the biblical story of Samson and Delilah."
+    },
+    {
+      "name": "Lottie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LOT-ee",
+      "description": "Lottie is a diminutive form of the name Charlotte. It gained popularity in the 19th century and is often associated with charm and sweetness."
+    },
+    {
+      "name": "Chloe",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KLOH-ee",
+      "description": "Chloe is a Greek name meaning 'young green shoot'. It has been a popular name throughout history and is often associated with youthfulness and freshness."
+    },
+    {
+      "name": "Layla",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "LAY-luh",
+      "description": "Layla is an Arabic name meaning 'night'. It has been a popular name throughout history and is often associated with beauty and mystery."
+    },
+    {
+      "name": "Thea",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "THEE-uh",
+      "description": "Thea is a Greek name meaning 'goddess'. It gained popularity in the late 20th century and is often associated with strength and beauty."
+    },
+    {
+      "name": "Eleanor",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "EL-ə-nawr",
+      "description": "Derived from the Provençal name Aliénor, which became Eleanor in English. It means 'the other Aenor' or 'the second Aenor', where Aenor is a Germanic name meaning 'mercy' or 'compassion'."
+    },
+    {
+      "name": "Aurora",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "uh-RAW-rə",
+      "description": "The name of the Roman goddess of dawn, derived from the Latin word 'aurora' meaning 'dawn'."
+    },
+    {
+      "name": "Margot",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "mar-GO",
+      "description": "A diminutive of the name Margaret, meaning 'pearl' in Greek. It is also associated with the French word 'marguerite', meaning 'daisy'."
+    },
+    {
+      "name": "Mabel",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "MAY-bəl",
+      "description": "Derived from the Latin name Amabilis, meaning 'lovable' or 'dear'. It was a popular name in medieval England, and has recently seen a resurgence in popularity."
+    },
+    {
+      "name": "Erin",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "AIR-in",
+      "description": "The Anglicized form of the Irish name Éirinn, meaning 'Ireland' or 'peace'. It is also the name of a goddess in Irish mythology."
+    },
+    {
+      "name": "Elizabeth",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "ih-LIZ-ə-bəth",
+      "description": "Derived from the Hebrew name Elisheva, meaning 'my God is an oath' or 'my God is abundance'. It is a classic name that has been used in many cultures and languages throughout history."
+    },
+    {
+      "name": "Emma",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "EM-ə",
+      "description": "Derived from the Germanic name Erma or Irma, meaning 'whole' or 'universal'. It was introduced to England by the Normans and became popular in the 19th century."
+    },
+    {
+      "name": "Scarlett",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "SKAHR-let",
+      "description": "Derived from the Old French word 'escarlate', meaning 'scarlet cloth' or 'red color'. It became a popular name in the 20th century, perhaps due to the character Scarlett O'Hara in the novel 'Gone with the Wind'."
+    },
+    {
+      "name": "Harriet",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAR-ee-et",
+      "description": "Derived from the Old French name Henriette, a feminine form of the name Henry. It means 'ruler of the household' or 'estate ruler'."
+    },
+    {
+      "name": "Lola",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "LOH-lah",
+      "description": "Lola is a diminutive of Dolores, meaning 'sorrows' in Spanish. It is a popular name in Spain and Latin America."
+    },
+    {
+      "name": "Nancy",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "NAN-see",
+      "description": "Nancy is a French name, derived from the city of Nancy in northeastern France. It is also used as a nickname for Ann or Anne."
+    },
+    {
+      "name": "Orla",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "OR-lah",
+      "description": "Orla is an Irish name, derived from the Gaelic word 'orlaith' which means 'golden princess'."
+    },
+    {
+      "name": "Ayla",
+      "origin": "Turkish",
+      "gender": "female",
+      "pronunciation": "EYE-luh",
+      "description": "Ayla is a Turkish name, meaning 'halo of light around the moon'. It is also a Hebrew name, meaning 'oak tree'."
+    },
+    {
+      "name": "Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "ROHZ",
+      "description": "Rose is a classic English name, derived from the flower of the same name. It has been a popular name for girls since the 19th century."
+    },
+    {
+      "name": "Zara",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ZAH-rah",
+      "description": "Zara is an Arabic name, meaning 'princess' or 'flower'. It is also a Hebrew name, meaning 'to blossom'."
+    },
+    {
+      "name": "Iris",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "EYE-ris",
+      "description": "Iris is a Greek name, derived from the Greek word 'iris' which means 'rainbow'. In Greek mythology, Iris was the messenger of the gods."
+    },
+    {
+      "name": "Robyn",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "RAH-bin",
+      "description": "Robyn is a variant of the name Robin, which is derived from the Old French word 'roubin' meaning 'bright fame'. It is a popular name for girls in English-speaking countries."
+    },
+    {
+      "name": "Bella",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "BEL-ah",
+      "description": "Bella is an Italian name, meaning 'beautiful'. It is a popular name for girls in Italy and other countries."
+    },
+    {
+      "name": "Molly",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "MAH-lee",
+      "description": "Molly is a sweet and charming name that has become popular around the world. It means 'bitter' in Irish, but its meaning hasn't stopped it from being a popular choice for parents."
+    },
+    {
+      "name": "Olive",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AH-liv",
+      "description": "Olive is a name that has been growing in popularity in recent years. It's derived from the Latin word 'oliva', which means 'olive tree'. Olive is also a symbol of peace and wisdom."
+    },
+    {
+      "name": "Maria",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "mah-REE-ah",
+      "description": "Maria is a name that has been popular for centuries. It means 'beloved' in Hebrew and 'sea of bitterness' in Egyptian. The name has a number of variations in different languages and cultures."
+    },
+    {
+      "name": "Lyla",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "LIE-luh",
+      "description": "Lyla is a beautiful name that means 'night' in Arabic. It has become increasingly popular in recent years, especially in the United States."
+    },
+    {
+      "name": "Maeve",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "mayv",
+      "description": "Maeve is a name that has been popular in Ireland for centuries. It means 'intoxicating' in Gaelic and is associated with a number of legendary figures in Irish mythology."
+    },
+    {
+      "name": "Ellie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EL-ee",
+      "description": "Ellie is a name that has become popular in recent years. It's a shortened form of names like Eleanor and Elizabeth, but it has also become a name in its own right."
+    },
+    {
+      "name": "Gracie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "GRAY-see",
+      "description": "Gracie is a name that has been popular for generations. It's derived from the Latin word 'gratia', which means 'grace'. Gracie is a sweet and charming name that has stood the test of time."
+    },
+    {
+      "name": "Lyra",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "LIE-ruh",
+      "description": "Lyra is a name that has been growing in popularity in recent years. It's derived from the Greek word for lyre, a stringed musical instrument that was popular in ancient Greece. The name is associated with music and creativity."
+    },
+    {
+      "name": "Darcie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "DAHR-see",
+      "description": "A modern English name meaning 'from Arcy'."
+    },
+    {
+      "name": "Maryam",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "mah-REE-ahm",
+      "description": "A traditional Arabic name meaning 'beloved' or 'wished for'."
+    },
+    {
+      "name": "Edith",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EE-dith",
+      "description": "An English name meaning 'prosperous in war'."
+    },
+    {
+      "name": "Heidi",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "HAY-dee",
+      "description": "A German name meaning 'noble one'."
+    },
+    {
+      "name": "Lucy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LOO-see",
+      "description": "An English name meaning 'light'."
+    },
+    {
+      "name": "Myla",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MY-lah",
+      "description": "A modern English name of uncertain origin, possibly a variation of the name Mila or a combination of Myra and Lila."
+    },
+    {
+      "name": "Amelie",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "ah-MAY-lee",
+      "description": "A French name meaning 'hardworking' or 'industrious'."
+    },
+    {
+      "name": "Amber",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AM-ber",
+      "description": "An English name referring to the orange-yellow gemstone of the same name."
+    },
+    {
+      "name": "Hannah",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "HAN-ah",
+      "description": "A Hebrew name meaning 'grace' or 'favor'."
+    },
+    {
+      "name": "Summer",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "SUHM-ur",
+      "description": "A name referring to the season of summer."
+    },
+    {
+      "name": "Eden",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "EE-din",
+      "description": "A Hebrew name meaning 'delight'."
+    },
+    {
+      "name": "Jasmine",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "JAZ-min",
+      "description": "A name referring to the fragrant flower of the same name."
+    },
+    {
+      "name": "Elodie",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "eh-LOH-dee",
+      "description": "A French name meaning 'marsh flower'."
+    },
+    {
+      "name": "Clara",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "KLAR-ə",
+      "description": "Clara is a Latin name that means 'clear, bright, famous'. It was popularized by the character Clara in the ballet 'The Nutcracker'."
+    },
+    {
+      "name": "Holly",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAW-lee",
+      "description": "Holly is an English name that means 'to prick'. It is also a type of evergreen plant with red berries that is often associated with Christmas."
+    },
+    {
+      "name": "Lilly",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LIL-ee",
+      "description": "Lilly is an English name that means 'pure, innocent'. It is often associated with the flower lily, which is a symbol of purity and innocence."
+    },
+    {
+      "name": "Anna",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "AN-ə",
+      "description": "Anna is a Hebrew name that means 'grace, favor'. It is the name of the mother of the Virgin Mary in the Bible, and is a popular name in many cultures."
+    },
+    {
+      "name": "Lara",
+      "origin": "Russian",
+      "gender": "female",
+      "pronunciation": "LAHR-ə",
+      "description": "Lara is a Russian name that means 'protection, cheerful'. It is often used as a nickname for the name Larissa."
+    },
+    {
+      "name": "Beatrice",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "BEE-ə-tris",
+      "description": "Beatrice is a Latin name that means 'bringer of joy'. It was popularized by the character Beatrice in Shakespeare's play 'Much Ado About Nothing'."
+    },
+    {
+      "name": "Sara",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "SAIR-ə",
+      "description": "Sara is a Hebrew name that means 'princess'. It is the name of the wife of Abraham in the Bible, and is a popular name in many cultures."
+    },
+    {
+      "name": "Nellie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "NEL-ee",
+      "description": "Nellie is an English name that means 'bright, shining'. It is often used as a nickname for the name Helen or Eleanor."
+    },
+    {
+      "name": "Nova",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "NO-və",
+      "description": "Nova is a Latin name that means 'new'. It is often associated with stars that suddenly increase in brightness, called 'novae'."
+    },
+    {
+      "name": "Martha",
+      "origin": "Aramaic",
+      "gender": "female",
+      "pronunciation": "MAHR-thah",
+      "description": "A classic name meaning 'lady' or 'mistress of the house'"
+    },
+    {
+      "name": "Georgia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "JOR-juh",
+      "description": "A name meaning 'farmer' or 'earthworker'"
+    },
+    {
+      "name": "Abigail",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "AB-i-gayl",
+      "description": "A name meaning 'my father's joy'"
+    },
+    {
+      "name": "Eloise",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "EL-oh-eez",
+      "description": "A name meaning 'healthy' or 'wide'"
+    },
+    {
+      "name": "Nevaeh",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "nuh-VAY-uh",
+      "description": "A name that is 'heaven' spelled backwards"
+    },
+    {
+      "name": "Autumn",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AW-tuhm",
+      "description": "A name meaning 'the fall season'"
+    },
+    {
+      "name": "Annabelle",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "AN-uh-bel",
+      "description": "A name meaning 'lovable' or 'beautiful'"
+    },
+    {
+      "name": "Francesca",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "fran-CHES-kah",
+      "description": "A name meaning 'from France' or 'free one'"
+    },
+    {
+      "name": "Frankie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "FRANG-kee",
+      "description": "A diminutive of the name Frances or Francis meaning 'free one'"
+    },
+    {
+      "name": "Annie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AN-ee",
+      "description": "A diminutive of the name Ann meaning 'gracious' or 'full of grace'"
+    },
+    {
+      "name": "Maddison",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "MAD-uh-sun",
+      "description": "A variant of Madison, meaning 'son of the mighty warrior' in Old English"
+    },
+    {
+      "name": "Indie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "IN-dee",
+      "description": "A short form of the name Indigo, referring to the deep blue-purple dye or the color itself"
+    },
+    {
+      "name": "Edie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EE-dee",
+      "description": "A diminutive of the name Edith, meaning 'prosperous in war' in Old English"
+    },
+    {
+      "name": "Ophelia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "oh-FEEL-ee-uh",
+      "description": "A name from Greek mythology, meaning 'help' or 'serpentine' in Greek"
+    },
+    {
+      "name": "Zoe",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "ZO-ee",
+      "description": "A name meaning 'life' in Greek, often associated with the concept of eternal life"
+    },
+    {
+      "name": "Ottilie",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "AHT-uh-lee",
+      "description": "A name meaning 'prosperity' or 'fortune' in Old German, often used in the form of Odilia or Otthild"
+    },
+    {
+      "name": "Amaya",
+      "origin": "Japanese",
+      "gender": "female",
+      "pronunciation": "ah-MY-uh",
+      "description": "A name meaning 'night rain' or 'beautiful night' in Japanese, often used in Japan and Spain"
+    },
+    {
+      "name": "River",
+      "origin": "American",
+      "gender": "unisex",
+      "pronunciation": "RIH-vur",
+      "description": "A nature-inspired name referring to a flowing body of water, often chosen as a unisex name"
+    },
+    {
+      "name": "Aisha",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "eye-EE-shuh",
+      "description": "A name meaning 'living, prosperous' in Arabic, often used in the Muslim world"
+    },
+    {
+      "name": "Marnie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MAHR-nee",
+      "description": "A name meaning 'from the sea' or 'rejoice' in Hebrew, often used as a nickname for Margaret"
+    },
+    {
+      "name": "Felicity",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "fuh-LIS-i-tee",
+      "description": "Derived from the Latin word 'felicitas' which means happiness or good fortune"
+    },
+    {
+      "name": "Nora",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "NO-ra",
+      "description": "A shortened version of the name Honora, which means honor in Latin"
+    },
+    {
+      "name": "Hope",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HOHP",
+      "description": "A virtue name that symbolizes optimism, aspiration and positivity"
+    },
+    {
+      "name": "Sarah",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "SAIR-uh",
+      "description": "A name derived from the Hebrew language that means 'princess' or 'lady'"
+    },
+    {
+      "name": "Victoria",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "vik-TAWR-ee-uh",
+      "description": "A name that means 'victory' in Latin, often associated with the Roman goddess of victory"
+    },
+    {
+      "name": "Esmae",
+      "origin": "Persian",
+      "gender": "female",
+      "pronunciation": "EZ-may",
+      "description": "A variant of the name Esme, which means 'beloved' in Persian"
+    },
+    {
+      "name": "Pippa",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PIP-uh",
+      "description": "A diminutive of Philippa, which means 'lover of horses' in Greek"
+    },
+    {
+      "name": "Fatima",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "fuh-TEE-muh",
+      "description": "A name derived from the daughter of the Islamic prophet Muhammad, meaning 'one who weans'"
+    },
+    {
+      "name": "Anaya",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "uh-NAY-uh",
+      "description": "A name that means 'without a superior' or 'unique' in Sanskrit"
+    },
+    {
+      "name": "Aaliyah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "uh-LEE-yuh",
+      "description": "A name that means 'exalted' or 'highly praised' in Arabic"
+    },
+    {
+      "name": "Isabel",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "ih-SAH-bel",
+      "description": "Isabel is a Spanish variant of the name Elizabeth, meaning 'pledged to God' or 'God is my oath'. It has been a popular name in Spain and Latin America for centuries."
+    },
+    {
+      "name": "Mollie",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "MAH-lee",
+      "description": "Mollie is an Irish variant of the name Mary, meaning 'bitter' or 'beloved'. It is a popular name in Ireland and the United Kingdom."
+    },
+    {
+      "name": "Anastasia",
+      "origin": "Russian",
+      "gender": "female",
+      "pronunciation": "ah-nah-STAH-see-ah",
+      "description": "Anastasia is a Greek name meaning 'resurrection'. It is a popular name in Russia and has been used by several Russian princesses and queens throughout history."
+    },
+    {
+      "name": "Niamh",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "NEEV",
+      "description": "Niamh is an Irish name meaning 'bright' or 'radiant'. In Irish mythology, Niamh was a goddess who carried people across the sea to the Otherworld."
+    },
+    {
+      "name": "Nina",
+      "origin": "Russian",
+      "gender": "female",
+      "pronunciation": "NEE-nuh",
+      "description": "Nina is a Russian name meaning 'grace' or 'favor'. It is a diminutive form of the name Antonina, which means 'priceless' or 'invaluable'."
+    },
+    {
+      "name": "Cleo",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KLEE-oh",
+      "description": "Cleo is a Greek name meaning 'glory' or 'fame'. It is also a short form of the name Cleopatra, which means 'glory of the father'."
+    },
+    {
+      "name": "Julia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "JOO-lee-uh",
+      "description": "Julia is a Latin name meaning 'youthful' or 'soft-haired'. It was a popular name in ancient Rome and has been used by several saints and queens throughout history."
+    },
+    {
+      "name": "Lydia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "LIH-dee-uh",
+      "description": "Lydia is a Greek name meaning 'from Lydia', which was an ancient kingdom in Asia Minor. In the Bible, Lydia was a seller of purple cloth who became one of the first converts to Christianity."
+    },
+    {
+      "name": "Savannah",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "suh-VAN-uh",
+      "description": "Savannah is an English name meaning 'flat, grassy plain'. It is also the name of a city in Georgia, United States, which is known for its historic architecture and parks."
+    },
+    {
+      "name": "Ariana",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "ar-ee-AH-nah",
+      "description": "A name of Greek origin meaning 'very holy'."
+    },
+    {
+      "name": "Gabriella",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "gah-bree-EL-lah",
+      "description": "A feminine form of the name Gabriel, meaning 'God is my strength'."
+    },
+    {
+      "name": "Harlow",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "HAHR-loh",
+      "description": "A name of English origin meaning 'rocky hill'."
+    },
+    {
+      "name": "Alba",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "AL-bah",
+      "description": "A name of Latin origin meaning 'dawn' or 'sunrise'."
+    },
+    {
+      "name": "Darcy",
+      "origin": "French",
+      "gender": "unisex",
+      "pronunciation": "DAHR-see",
+      "description": "A name of French origin meaning 'from Arcy'."
+    },
+    {
+      "name": "Darcey",
+      "origin": "French",
+      "gender": "unisex",
+      "pronunciation": "DAHR-see",
+      "description": "A name of French origin meaning 'from Arcy'."
+    },
+    {
+      "name": "Hazel",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAY-zel",
+      "description": "A name of English origin meaning 'the hazel tree'."
+    },
+    {
+      "name": "Cora",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KOR-uh",
+      "description": "A name of Greek origin meaning 'maiden'."
+    },
+    {
+      "name": "Leah",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "LEE-uh",
+      "description": "A name meaning 'weary' or 'delicate' in Hebrew"
+    },
+    {
+      "name": "Arya",
+      "origin": "Hindi",
+      "gender": "female",
+      "pronunciation": "AHR-yuh",
+      "description": "A name meaning 'noble' or 'honorable' in Hindi"
+    },
+    {
+      "name": "Elena",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "eh-LEN-uh",
+      "description": "A name meaning 'bright' or 'shining light' in Greek"
+    },
+    {
+      "name": "Rosa",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "ROH-zuh",
+      "description": "A name meaning 'rose' in Latin"
+    },
+    {
+      "name": "Connie",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KAH-nee",
+      "description": "A name meaning 'constant' or 'steadfast' in Greek"
+    },
+    {
+      "name": "Sadie",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "SAY-dee",
+      "description": "A name meaning 'princess' in Hebrew"
+    },
+    {
+      "name": "Polly",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PAH-lee",
+      "description": "A name meaning 'small' or 'humble' in English"
+    },
+    {
+      "name": "Paisley",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "PAYZ-lee",
+      "description": "A name meaning 'church' or 'pasture' in Scottish Gaelic"
+    },
+    {
+      "name": "Amira",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "uh-MEER-uh",
+      "description": "A name meaning 'princess' or 'leader' in Arabic"
+    },
+    {
+      "name": "Skylar",
+      "origin": "Dutch",
+      "gender": "unisex",
+      "pronunciation": "SKY-lar",
+      "description": "A name meaning 'scholar' or 'protection' in Dutch"
+    },
+    {
+      "name": "Isobel",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "i-SO-bel",
+      "description": "Derived from Elizabeth, meaning \"pledged to God\""
+    },
+    {
+      "name": "Alexandra",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "al-eg-ZAN-dra",
+      "description": "Feminine form of Alexander, meaning \"defender of the people\""
+    },
+    {
+      "name": "Primrose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PRIM-rohz",
+      "description": "Name of a flower, derived from the Latin word \"primus rosa\" meaning \"first rose\""
+    },
+    {
+      "name": "Tilly",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "TIL-ee",
+      "description": "Shortened form of Matilda, meaning \"battle-mighty\""
+    },
+    {
+      "name": "Beatrix",
+      "origin": "Dutch",
+      "gender": "female",
+      "pronunciation": "BEE-triks",
+      "description": "Derived from the Latin name Viatrix, meaning \"voyager\" or \"traveller\""
+    },
+    {
+      "name": "Naomi",
+      "origin": "Israeli",
+      "gender": "female",
+      "pronunciation": "nay-OH-mee",
+      "description": "Derived from the Hebrew name No'omi, meaning \"pleasantness\""
+    },
+    {
+      "name": "Esther",
+      "origin": "Persian",
+      "gender": "female",
+      "pronunciation": "ESS-ter",
+      "description": "Derived from the Persian word \"stara\" meaning \"star\""
+    },
+    {
+      "name": "Skye",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "SKYE",
+      "description": "Name of a Scottish island, meaning \"cloud\""
+    },
+    {
+      "name": "Madison",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "MAD-uh-suhn",
+      "description": "Derived from the surname Madison, meaning \"son of Matthew\""
+    },
+    {
+      "name": "Piper",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "PY-per",
+      "description": "Name of a musical instrument player, meaning \"pipe player\""
+    },
+    {
+      "name": "Zainab",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ZAY-nab",
+      "description": "Derived from the name of a fragrant flowering tree, meaning \"fragrant flower\""
+    },
+    {
+      "name": "Lilah",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "LIE-lah",
+      "description": "Derived from the Hebrew word for \"night\", often given to girls born at night"
+    },
+    {
+      "name": "Callie",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KAL-ee",
+      "description": "Short form of the Greek name Calista, meaning \"most beautiful\""
+    },
+    {
+      "name": "Amara",
+      "origin": "Igbo",
+      "gender": "female",
+      "pronunciation": "ah-MAH-rah",
+      "description": "Derived from the Igbo word \"amarachi\" meaning \"grace of God\""
+    },
+    {
+      "name": "Remi",
+      "origin": "French",
+      "gender": "unisex",
+      "pronunciation": "REH-mee",
+      "description": "Short form of the French name Remi, meaning \"oarsman\" or \"rower\""
+    },
+    {
+      "name": "Clementine",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "KLEM-en-tyne",
+      "description": "Derived from the Latin name Clementina, meaning \"merciful\" or \"gentle\""
+    },
+    {
+      "name": "Faith",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "FAYTH",
+      "description": "A virtue name meaning \"faithful\" or \"loyal\""
+    },
+    {
+      "name": "Dorothy",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "DAWR-uh-thee",
+      "description": "Derived from the Greek name Dorothea, meaning \"gift of God\""
+    },
+    {
+      "name": "Penny",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "PEN-ee",
+      "description": "Short form of the Greek name Penelope, meaning \"weaver\""
+    },
+    {
+      "name": "Betsy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "BET-see",
+      "description": "Short form of the name Elizabeth, meaning \"pledged to God\""
+    },
+    {
+      "name": "Laura",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "LAW-rah",
+      "description": "A classic name meaning 'laurel' or 'bay tree' in Latin."
+    },
+    {
+      "name": "Eve",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "EEV",
+      "description": "A biblical name meaning 'life' or 'living' in Hebrew."
+    },
+    {
+      "name": "Lexi",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "LEKS-ee",
+      "description": "A modern name derived from the Greek name Alexandra, meaning 'defender' or 'helper'."
+    },
+    {
+      "name": "Mya",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "MY-ah",
+      "description": "A short and sweet name meaning 'great' or 'big' in Greek."
+    },
+    {
+      "name": "Wren",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "REN",
+      "description": "A nature-inspired name derived from the small bird known for its melodious song."
+    },
+    {
+      "name": "Athena",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "uh-THEE-nuh",
+      "description": "A name derived from the Greek goddess of wisdom, warfare, and crafts."
+    },
+    {
+      "name": "Zoya",
+      "origin": "Russian",
+      "gender": "female",
+      "pronunciation": "ZOY-uh",
+      "description": "A name meaning 'life' or 'alive' in Russian."
+    },
+    {
+      "name": "Maggie",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "MAG-ee",
+      "description": "A diminutive of Margaret, meaning 'pearl' in Greek."
+    },
+    {
+      "name": "Liyana",
+      "origin": "Swahili",
+      "gender": "female",
+      "pronunciation": "lee-AH-nah",
+      "description": "A name meaning 'to shine' or 'to be bright' in Swahili."
+    },
+    {
+      "name": "Eliana",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "eh-lee-AH-nuh",
+      "description": "A name meaning 'my God has answered' in Hebrew."
+    },
+    {
+      "name": "Aoife",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "EE-fa",
+      "description": "A popular Irish name that means 'beauty' or 'radiance'."
+    },
+    {
+      "name": "Everly",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "EV-er-lee",
+      "description": "A modern American name that means 'from the boar meadow'."
+    },
+    {
+      "name": "Zahra",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ZAH-rah",
+      "description": "A popular Arabic name that means 'flower' or 'blossom'."
+    },
+    {
+      "name": "Khadija",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "kuh-DEE-juh",
+      "description": "A traditional Arabic name that means 'premature baby' or 'first born'."
+    },
+    {
+      "name": "Ayda",
+      "origin": "Turkish",
+      "gender": "female",
+      "pronunciation": "AY-dah",
+      "description": "A Turkish name that means 'moonlight' or 'enlightened'."
+    },
+    {
+      "name": "Ayat",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-YAHT",
+      "description": "A popular Arabic name that means 'sign' or 'miracle'."
+    },
+    {
+      "name": "Ayah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-YAH",
+      "description": "A traditional Arabic name that means 'verse' or 'sign'."
+    },
+    {
+      "name": "Ariella",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "air-ee-EL-ah",
+      "description": "A modern Hebrew name that means 'lioness of God'."
+    },
+    {
+      "name": "Lillie",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "LIL-ee",
+      "description": "A modern American spelling of the flower name Lily, which means 'pure' or 'innocent'."
+    },
+    {
+      "name": "Etta",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "ET-ah",
+      "description": "A German name that means 'little one' or 'household ruler'."
+    },
+    {
+      "name": "Hattie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAT-ee",
+      "description": "A diminutive of the name Harriet or Henrietta meaning 'ruler of the household'."
+    },
+    {
+      "name": "Effie",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "EH-fee",
+      "description": "A diminutive of the name Euphemia meaning 'well-spoken'."
+    },
+    {
+      "name": "Paige",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "PAYJ",
+      "description": "A name derived from an occupational surname meaning 'page, servant'."
+    },
+    {
+      "name": "Raya",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "RAY-ah",
+      "description": "A name meaning 'friend' in Hebrew."
+    },
+    {
+      "name": "Aurelia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "aw-REEL-ee-ə",
+      "description": "A name meaning 'golden' in Latin."
+    },
+    {
+      "name": "Winnie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "WIN-ee",
+      "description": "A diminutive of the name Winifred or Edwina meaning 'blessed peacemaking friend'."
+    },
+    {
+      "name": "Nola",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "NOH-lə",
+      "description": "A name derived from the Irish Gaelic phrase 'fionnghuala' meaning 'white shoulder'."
+    },
+    {
+      "name": "Riley",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "RYE-lee",
+      "description": "A name meaning 'courageous' or 'valiant' in Irish Gaelic."
+    },
+    {
+      "name": "Liliana",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "lil-ee-AH-nə",
+      "description": "A name derived from the Latin word 'lilium' meaning 'lily'."
+    },
+    {
+      "name": "Alana",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "ə-LAH-nə",
+      "description": "A name derived from the Irish Gaelic word 'a leanbh' meaning 'child' or 'nurturing'."
+    },
+    {
+      "name": "Maia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "MY-uh",
+      "description": "Maia is a name derived from Greek mythology, where Maia was the goddess of spring and growth."
+    },
+    {
+      "name": "Alyssa",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "uh-LISS-uh",
+      "description": "Alyssa is a name derived from the Greek word 'alyssum', meaning 'madness' or 'rage'."
+    },
+    {
+      "name": "Nyla",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "NY-luh",
+      "description": "Nyla is an Arabic name meaning 'winner' or 'successful'."
+    },
+    {
+      "name": "India",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "IN-dee-uh",
+      "description": "India is an English name derived from the name of the country in South Asia."
+    },
+    {
+      "name": "Aubrey",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "AW-bree",
+      "description": "Aubrey is a name that comes from the Germanic language, meaning 'elf ruler'."
+    },
+    {
+      "name": "Hana",
+      "origin": "Japanese",
+      "gender": "female",
+      "pronunciation": "HAH-nuh",
+      "description": "Hana is a Japanese name meaning 'flower'."
+    },
+    {
+      "name": "Hanna",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "HA-nuh",
+      "description": "Hanna is a Hebrew name meaning 'grace' or 'favor'."
+    },
+    {
+      "name": "Emmie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EH-mee",
+      "description": "Emmie is a diminutive of the name Emma, which means 'universal'."
+    },
+    {
+      "name": "Lena",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "LEE-nuh",
+      "description": "Lena is a name that comes from the Greek name 'Elena', meaning 'torch' or 'shining light'."
+    },
+    {
+      "name": "Seren",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "SEH-ren",
+      "description": "Seren is a Welsh name meaning 'star'."
+    },
+    {
+      "name": "Flora",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "FLOR-ə",
+      "description": "A name of Latin origin meaning 'flower'"
+    },
+    {
+      "name": "Maeva",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "ma-EH-va",
+      "description": "A French name meaning 'welcome'"
+    },
+    {
+      "name": "Dua",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "DOO-ah",
+      "description": "An Arabic name meaning 'supplication' or 'prayer'"
+    },
+    {
+      "name": "Hollie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAW-lee",
+      "description": "An English name meaning 'hollow'"
+    },
+    {
+      "name": "Lucia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "loo-CHEE-ah",
+      "description": "A name of Italian origin meaning 'light'"
+    },
+    {
+      "name": "Talia",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "TAH-lee-ah",
+      "description": "A Hebrew name meaning 'dew from God'"
+    },
+    {
+      "name": "Natalia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "na-TAL-ee-ah",
+      "description": "A name of Latin origin meaning 'of or relating to Christmas'"
+    },
+    {
+      "name": "Bethany",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "BETH-ə-nee",
+      "description": "A Hebrew name meaning 'house of figs'"
+    },
+    {
+      "name": "Lana",
+      "origin": "Hawaiian",
+      "gender": "female",
+      "pronunciation": "LAH-nah",
+      "description": "A Hawaiian name meaning 'calm as still waters'"
+    },
+    {
+      "name": "Billie",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "BIL-ee",
+      "description": "A name of English origin that can be used for both boys and girls, meaning 'resolute protection'"
+    },
+    {
+      "name": "Mirha",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "MEER-ha",
+      "description": "A name of Arabic origin meaning 'bitter' or 'unhappy'"
+    },
+    {
+      "name": "Halle",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HAL-ee",
+      "description": "A name of English origin meaning 'from the hall' or 'home ruler'"
+    },
+    {
+      "name": "Leila",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "LAY-lah",
+      "description": "A name of Arabic origin meaning 'night'"
+    },
+    {
+      "name": "Rebecca",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "ruh-BEK-uh",
+      "description": "A name of Hebrew origin meaning 'captivating' or 'knotted cord'"
+    },
+    {
+      "name": "Daphne",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "DAF-nee",
+      "description": "A name of Greek origin meaning 'laurel tree'"
+    },
+    {
+      "name": "Georgie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "JOR-jee",
+      "description": "A diminutive of the name George, meaning 'farmer' or 'earthworker'"
+    },
+    {
+      "name": "Kiara",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "kee-AH-ruh",
+      "description": "A name of Italian origin meaning 'bright', 'clear', or 'famous'"
+    },
+    {
+      "name": "Lila",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "LY-lah",
+      "description": "A name of Arabic origin meaning 'night' or 'black beauty'"
+    },
+    {
+      "name": "Pearl",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PERL",
+      "description": "A name of English origin after the gemstone"
+    },
+    {
+      "name": "Quinn",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "kwin",
+      "description": "A name of Irish origin meaning 'wise' or 'counsel'"
+    },
+    {
+      "name": "Astrid",
+      "origin": "Norwegian",
+      "gender": "female",
+      "pronunciation": "AH-strid",
+      "description": "Derived from the Old Norse name Ástríðr, meaning 'divinely beautiful.' It has been popular in Scandinavia since the Middle Ages."
+    },
+    {
+      "name": "Skyla",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "SKY-luh",
+      "description": "A modern English name, possibly a variation of Skylar, meaning 'sheltering sky' or 'eternal life.'"
+    },
+    {
+      "name": "Brooke",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "BRUUK",
+      "description": "A nature-inspired name meaning 'small stream.' Popularized in the 20th century by the actress Brooke Shields."
+    },
+    {
+      "name": "Hafsa",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "HAHF-suh",
+      "description": "Derived from the Arabic word for lioness, Hafsa is a popular name in the Muslim world, particularly in North Africa and the Middle East."
+    },
+    {
+      "name": "Tabitha",
+      "origin": "Aramaic",
+      "gender": "female",
+      "pronunciation": "TA-buh-thuh",
+      "description": "A biblical name meaning 'gazelle.' Tabitha was a charitable woman in the New Testament who was raised from the dead by Saint Peter."
+    },
+    {
+      "name": "Alayna",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "uh-LAY-nuh",
+      "description": "A modern American name, possibly a variation of Elena or Alaina. It's meaning is unclear but may be related to the word 'precious.'"
+    },
+    {
+      "name": "Valentina",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "vah-luhn-TEE-nuh",
+      "description": "Derived from the Latin word valens, meaning 'strong, healthy, or powerful.' The name has been used in several cultures and languages, including Italian and Spanish."
+    },
+    {
+      "name": "Ivy-Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EYE-vee ROHZ",
+      "description": "A modern name combining two nature-inspired words. Ivy represents fidelity and friendship, while the rose symbolizes love and beauty."
+    },
+    {
+      "name": "Amina",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "uh-MEE-nuh",
+      "description": "Derived from the Arabic word for 'trustworthy, faithful.' Amina is a popular name in the Muslim world and has been used in several cultures and languages."
+    },
+    {
+      "name": "Tallulah",
+      "origin": "Native American",
+      "gender": "female",
+      "pronunciation": "tuh-LOO-luh",
+      "description": "A Native American name meaning 'leaping water.' Tallulah was also the name of a popular American actress in the early 20th century."
+    },
+    {
+      "name": "Aya",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-YAH",
+      "description": "A name meaning 'miracle' or 'sign' in Arabic, often given to girls in Muslim families."
+    },
+    {
+      "name": "Khadijah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "kah-DEE-jah",
+      "description": "A name meaning 'premature child' or 'born prematurely' in Arabic, often given to girls in Muslim families."
+    },
+    {
+      "name": "Harley",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "HAHR-lee",
+      "description": "A name that has been used for both boys and girls, meaning 'hare's meadow' in Old English."
+    },
+    {
+      "name": "Amal",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-MAHL",
+      "description": "A name meaning 'hope' or 'aspiration' in Arabic, often given to girls in Muslim families."
+    },
+    {
+      "name": "Melissa",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "meh-LIS-ah",
+      "description": "A name meaning 'honeybee' in Greek mythology, often given to girls in Western countries."
+    },
+    {
+      "name": "Safa",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "SAH-fah",
+      "description": "A name meaning 'pure' or 'clear' in Arabic, often given to girls in Muslim families."
+    },
+    {
+      "name": "Nelly",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "NEL-ee",
+      "description": "A diminutive of the name 'Eleanor', meaning 'bright one' or 'shining one' in Old French, often given to girls in Western countries."
+    },
+    {
+      "name": "April",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AY-pril",
+      "description": "A name derived from the word 'April', which is the fourth month of the year in the Gregorian calendar, often given to girls in Western countries."
+    },
+    {
+      "name": "Ida",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "EE-dah",
+      "description": "A name meaning 'hardworking' or 'industrious' in German, often given to girls in Western countries."
+    },
+    {
+      "name": "Dottie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "DAH-tee",
+      "description": "A diminutive of the name 'Dorothy', meaning 'gift of God' in Greek, often given to girls in Western countries."
+    },
+    {
+      "name": "Alina",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "ah-LEE-nah",
+      "description": "Alina is a popular name in Germany and Eastern Europe, meaning \"bright\" or \"beautiful\"."
+    },
+    {
+      "name": "Nicole",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "nee-KOHL",
+      "description": "Nicole is a French name meaning \"victorious people\". It was popularized by the American actress and singer Nicole Kidman."
+    },
+    {
+      "name": "Aleena",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "ah-LEE-nah",
+      "description": "Aleena is a modern Indian name meaning \"soft, delicate\". It is a variant of the name Alina."
+    },
+    {
+      "name": "Antonia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "an-TOH-nee-ah",
+      "description": "Antonia is a feminine form of the Roman name Antonius, meaning \"priceless\" or \"invaluable\". It is a popular name in Italy."
+    },
+    {
+      "name": "Diana",
+      "origin": "Romanian",
+      "gender": "female",
+      "pronunciation": "dee-AH-nah",
+      "description": "Diana is a Roman goddess of the moon and hunting, and is the name of the ancient capital of Romania. It has been a popular name since the Renaissance."
+    },
+    {
+      "name": "Noa",
+      "origin": "Israeli",
+      "gender": "female",
+      "pronunciation": "NOH-ah",
+      "description": "Noa is a Hebrew name meaning \"motion\" or \"movement\". It is a unisex name in Israel, but more commonly given to girls."
+    },
+    {
+      "name": "Winter",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "WIN-ter",
+      "description": "Winter is a seasonal name that has become increasingly popular as a first name. It can be associated with the beauty and quiet of the winter season."
+    },
+    {
+      "name": "Alma",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "AHL-mah",
+      "description": "Alma is a Spanish name meaning \"soul\" or \"spirit\". It is also a common name in Finland, where it means \"apple\"."
+    },
+    {
+      "name": "Haniya",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "hah-NEE-yah",
+      "description": "Haniya is an Arabic name meaning \"happy\" or \"joyful\". It is a popular name in Muslim cultures."
+    },
+    {
+      "name": "Noor",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "noor",
+      "description": "Noor is an Arabic name meaning \"light\" or \"enlightenment\". It is a popular name in Muslim cultures and is often used as a middle name."
+    },
+    {
+      "name": "Norah",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "nor-uh",
+      "description": "Derived from the Irish name Nóra, meaning 'light' or 'honor'."
+    },
+    {
+      "name": "Vienna",
+      "origin": "Austrian",
+      "gender": "female",
+      "pronunciation": "vee-EN-uh",
+      "description": "Named after the capital city of Austria, which means 'white or bright' in Latin."
+    },
+    {
+      "name": "Josephine",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "JO-suh-feen",
+      "description": "Feminine form of Joseph, meaning 'God will increase' in Hebrew."
+    },
+    {
+      "name": "Inaya",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "in-EYE-uh",
+      "description": "Meaning 'concern', 'solicitude', or 'care' in Arabic."
+    },
+    {
+      "name": "Aliza",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "uh-LEE-zuh",
+      "description": "Means 'joyful' or 'exultant' in Hebrew."
+    },
+    {
+      "name": "Miriam",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "MEER-ee-uhm",
+      "description": "Derived from the Hebrew name Miryam, meaning 'sea of bitterness' or 'sea of sorrow'."
+    },
+    {
+      "name": "Neve",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "NEEV",
+      "description": "Variant of Niamh, meaning 'radiance' or 'brightness' in Irish Gaelic."
+    },
+    {
+      "name": "Reeva",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "REE-vuh",
+      "description": "Means 'one who is born again' in Sanskrit."
+    },
+    {
+      "name": "Anya",
+      "origin": "Russian",
+      "gender": "female",
+      "pronunciation": "AHN-yuh",
+      "description": "Means 'gracious' or 'merciful' in Russian."
+    },
+    {
+      "name": "Peyton",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PAYT-un",
+      "description": "Derived from a place name meaning 'Pœga's town' in Old English."
+    },
+    {
+      "name": "Alaya",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "uh-LAY-uh",
+      "description": "Meaning 'to rise' or 'ascend', this name has a spiritual connotation and is a popular choice in India."
+    },
+    {
+      "name": "Nadia",
+      "origin": "Slavic",
+      "gender": "female",
+      "pronunciation": "NAH-dyah",
+      "description": "This name means 'hope' in Slavic languages and is a popular choice for baby girls in Eastern Europe."
+    },
+    {
+      "name": "Rae",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "ray",
+      "description": "Short and sweet, this name means 'grace' or 'favor' and is often used as a nickname for longer names like Rachel or Raymond."
+    },
+    {
+      "name": "Ayra",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "AY-ruh",
+      "description": "A popular name in India, Ayra means 'respectable', 'worthy', or 'noble'. It's also a Sanskrit word that means 'wisdom' or 'intelligence'."
+    },
+    {
+      "name": "Inaaya",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "in-AY-ah",
+      "description": "This name means 'gift of God' in Arabic and is a popular choice in Muslim communities. It's also related to the name 'Inayaat', which means 'kindness' or 'benevolence'."
+    },
+    {
+      "name": "Amy",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "AY-mee",
+      "description": "This name means 'beloved' in French and is a popular choice in English-speaking countries. It's also a short form of the name 'Amelia' or 'Amanda'."
+    },
+    {
+      "name": "Rosalie",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "ROZ-uh-lee",
+      "description": "This name means 'rose' or 'flower' in French and is a popular choice for baby girls. It's also related to the name 'Rose', which is a classic and timeless name."
+    },
+    {
+      "name": "Annabel",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AN-uh-bel",
+      "description": "This name means 'lovable' or 'gracious' and is a popular choice in English-speaking countries. It's also related to the name 'Isabel', which means 'God is my oath'."
+    },
+    {
+      "name": "Nylah",
+      "origin": "African",
+      "gender": "female",
+      "pronunciation": "NY-lah",
+      "description": "This name means 'successful' or 'winner' in Swahili and is a popular choice in African countries. It's also related to the name 'Nyla', which means 'winner' in Arabic."
+    },
+    {
+      "name": "Faye",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "FAY",
+      "description": "Faye is a short and sweet name that means fairy. It has a vintage feel and is perfect for parents who love classic names."
+    },
+    {
+      "name": "Nia",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "NEE-ah",
+      "description": "Nia is a Welsh name that means radiance or brightness. It is a short and simple name with a lovely meaning."
+    },
+    {
+      "name": "Syeda",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "see-YE-da",
+      "description": "Syeda is an Arabic name that means lady or mistress. It is a name that is often used in Muslim communities."
+    },
+    {
+      "name": "Alaia",
+      "origin": "Basque",
+      "gender": "female",
+      "pronunciation": "ah-LYE-ah",
+      "description": "Alaia is a Basque name that means joy or happiness. It is a unique and beautiful name that is perfect for parents who want something a little different."
+    },
+    {
+      "name": "Alessia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "ah-LESS-ee-ah",
+      "description": "Alessia is an Italian name that means defender or protector. It is a beautiful and elegant name with a strong meaning."
+    },
+    {
+      "name": "Josie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "JOH-see",
+      "description": "Josie is a diminutive form of the name Josephine, which means God will increase. It is a cute and friendly name that has a vintage feel."
+    },
+    {
+      "name": "Madeleine",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "mad-uh-LEEN",
+      "description": "Madeleine is a French name that means woman of Magdala. It is a classic and elegant name that has been popular for centuries."
+    },
+    {
+      "name": "Nell",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "NEL",
+      "description": "Nell is a short form of the name Eleanor, which means bright one. It is a sweet and simple name that has a vintage feel."
+    },
+    {
+      "name": "Lois",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LO-iss",
+      "description": "Lois is a biblical name that means better or more desirable. It is a simple and classic name that has been used for centuries."
+    },
+    {
+      "name": "Melody",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MEL-uh-dee",
+      "description": "Melody is a musical name that means song. It is a beautiful and elegant name that is perfect for parents who love music."
+    },
+    {
+      "name": "Elise",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "eh-LEES",
+      "description": "Elise is a French name meaning 'pledged to God'. It is a name that has been used for centuries and remains popular today."
+    },
+    {
+      "name": "Yusra",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "YOOS-rah",
+      "description": "Yusra is an Arabic name meaning 'prosperous' or 'wealthy'. It is a name that is often given to girls as a symbol of good fortune and success."
+    },
+    {
+      "name": "Ella-Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EL-uh rohz",
+      "description": "Ella-Rose is a combination of two popular names, Ella and Rose. It is a name that has gained popularity in recent years and is often seen as a feminine and romantic name."
+    },
+    {
+      "name": "Miley",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "MY-lee",
+      "description": "Miley is a modern American name that has gained popularity in recent years. It is often seen as a fun and energetic name that is perfect for girls with a playful personality."
+    },
+    {
+      "name": "Addison",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AD-ih-sun",
+      "description": "Addison is an English name meaning 'son of Adam'. It is a unisex name that is often given to girls as a symbol of strength and independence."
+    },
+    {
+      "name": "Cecilia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "seh-SIL-ee-uh",
+      "description": "Cecilia is a Latin name meaning 'blind'. It is a name that has been used for centuries and remains popular today, often seen as a beautiful and classic name for girls."
+    },
+    {
+      "name": "Laila",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "LAY-luh",
+      "description": "Laila is an Arabic name meaning 'night'. It is a name that is often given to girls as a symbol of beauty and mystery."
+    },
+    {
+      "name": "Mariam",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "muh-REE-uhm",
+      "description": "Mariam is an Arabic name meaning 'beloved'. It is a name that has been used for centuries and remains popular today, often seen as a symbol of love and devotion."
+    },
+    {
+      "name": "Ava-Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AY-vuh rohz",
+      "description": "Ava-Rose is a combination of two popular names, Ava and Rose. It is a name that has gained popularity in recent years and is often seen as a feminine and romantic name."
+    },
+    {
+      "name": "Everleigh",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EV-ər-lee",
+      "description": "Everleigh is a modern name that has gained popularity in recent years. It is a combination of the words 'ever' and 'leigh', and has a happy and joyful sound."
+    },
+    {
+      "name": "Ayesha",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "eye-EE-sha",
+      "description": "Ayesha is a popular name in Arabic cultures, and means 'she who lives'. It is a name that is often associated with beauty and intelligence."
+    },
+    {
+      "name": "Honey",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "HUHN-ee",
+      "description": "Honey is a sweet and playful name that has been used for centuries. It is often associated with sweetness, kindness, and warmth."
+    },
+    {
+      "name": "Georgina",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "JOR-juh-nuh",
+      "description": "Georgina is a feminine form of the name George, which means 'farmer' or 'earth-worker'. It is a classic name that has been used for generations."
+    },
+    {
+      "name": "Saoirse",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "SEER-sha",
+      "description": "Saoirse is a popular name in Ireland, and means 'freedom' in Gaelic. It is a name that is often associated with strength and independence."
+    },
+    {
+      "name": "Freyja",
+      "origin": "Norse",
+      "gender": "female",
+      "pronunciation": "FRAY-yah",
+      "description": "Freyja is a name that comes from Norse mythology, and was the name of the goddess of love, fertility, and war. It is a name that is often associated with beauty and power."
+    },
+    {
+      "name": "Aiza",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "eye-ZAH",
+      "description": "Aiza is a name that means 'noble' or 'honorable' in Arabic. It is a name that is often associated with strength and dignity."
+    },
+    {
+      "name": "Jessie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "JES-ee",
+      "description": "Jessie is a name that has been used for centuries, and is a diminutive form of the name Jessica. It is a name that is often associated with happiness and energy."
+    },
+    {
+      "name": "Lacey",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LAY-see",
+      "description": "Lacey is a name that has been used for centuries, and means 'from Lassy' in French. It is a name that is often associated with beauty and grace."
+    },
+    {
+      "name": "Maja",
+      "origin": "Polish",
+      "gender": "female",
+      "pronunciation": "MAH-yah",
+      "description": "Maja is a popular name in Poland and means 'great' or 'mother.' It is often used as a nickname for women named Maria."
+    },
+    {
+      "name": "Amirah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-MEER-ah",
+      "description": "Amirah means 'princess' in Arabic and is a popular name for Muslim girls."
+    },
+    {
+      "name": "Dolly",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "DAH-lee",
+      "description": "Dolly is a diminutive form of the name Dorothy or Dolores and means 'gift of God.'"
+    },
+    {
+      "name": "Emmeline",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "EM-eh-line",
+      "description": "Emmeline is a French name meaning 'hardworking' or 'industrious.' It was made popular by the British suffragette Emmeline Pankhurst."
+    },
+    {
+      "name": "Mary",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "MARE-ee",
+      "description": "Mary is a classic name of Hebrew origin meaning 'bitter' or 'beloved.' It is a popular name for girls across many cultures and religions."
+    },
+    {
+      "name": "Stella",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "STEL-lah",
+      "description": "Stella means 'star' in Latin and is a popular name for girls around the world."
+    },
+    {
+      "name": "Zofia",
+      "origin": "Polish",
+      "gender": "female",
+      "pronunciation": "ZAWF-yah",
+      "description": "Zofia is a Polish name meaning 'wisdom.' It is a variation of the Greek name Sophia."
+    },
+    {
+      "name": "Belle",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "BEL",
+      "description": "Belle is a French name meaning 'beautiful.' It is often used as a nickname for girls named Isabella or Arabella."
+    },
+    {
+      "name": "Fatimah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "fa-TEE-mah",
+      "description": "Fatimah is an Arabic name meaning 'one who weans.' It is a popular name for Muslim girls and is often spelled Fatima."
+    },
+    {
+      "name": "Katie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "KAY-tee",
+      "description": "Katie is a diminutive form of the name Katherine or Kathleen and means 'pure.' It is a popular name for girls in many English-speaking countries."
+    },
+    {
+      "name": "Keira",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "KEER-ə",
+      "description": "Derived from the Irish name Ciara, meaning 'dark-haired'."
+    },
+    {
+      "name": "Helena",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "heh-LE-nah",
+      "description": "Derived from the Greek name Helene, meaning 'torch' or 'corposant'."
+    },
+    {
+      "name": "Libby",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LIB-ee",
+      "description": "Short form of Elizabeth, meaning 'pledged to God' in Hebrew."
+    },
+    {
+      "name": "Megan",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "MEG-ən",
+      "description": "Derived from the Welsh name Margaret, meaning 'pearl'."
+    },
+    {
+      "name": "Alisha",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "ə-LEE-shə",
+      "description": "Derived from the Sanskrit name Alisha, meaning 'protected by God'."
+    },
+    {
+      "name": "Isla-Rose",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "EYE-lə ROHZ",
+      "description": "A combination of the names Isla, meaning 'island', and Rose, a flower name."
+    },
+    {
+      "name": "Emelia",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "ə-MEE-lee-ə",
+      "description": "A variation of the name Amelia, meaning 'industrious' or 'striving' in German."
+    },
+    {
+      "name": "Harmony",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "HAHR-mə-nee",
+      "description": "Derived from the Greek word harmonia, meaning 'agreement' or 'concord'."
+    },
+    {
+      "name": "Ocean",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "OH-shən",
+      "description": "Derived from the Greek word okeanos, meaning 'ocean' or 'sea'."
+    },
+    {
+      "name": "Audrey",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AW-dree",
+      "description": "Derived from the Old English name Æðelþryð, meaning 'noble strength'."
+    },
+    {
+      "name": "Blossom",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "BLAH-suhm",
+      "description": "Refers to the flowers that appear on a tree or bush"
+    },
+    {
+      "name": "Philippa",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "fi-LIP-uh",
+      "description": "Means 'lover of horses'"
+    },
+    {
+      "name": "Aliyah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-LEE-uh",
+      "description": "Means 'exalted, noble'"
+    },
+    {
+      "name": "Arla",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "AR-luh",
+      "description": "Means 'oath' or 'pledge'"
+    },
+    {
+      "name": "Fern",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "FURN",
+      "description": "Refers to a type of leafy plant that has fronds"
+    },
+    {
+      "name": "Verity",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "VEH-rih-tee",
+      "description": "Means 'truth'"
+    },
+    {
+      "name": "Aida",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "eye-EE-duh",
+      "description": "Means 'returning, visitor'"
+    },
+    {
+      "name": "Sylvie",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "SIL-vee",
+      "description": "Means 'from the forest'"
+    },
+    {
+      "name": "Alicia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "uh-LEE-shuh",
+      "description": "Means 'noble'"
+    },
+    {
+      "name": "Halima",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "hah-LEE-mah",
+      "description": "Means 'gentle, kind'"
+    },
+    {
+      "name": "Jannat",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "juh-NAHT",
+      "description": "Jannat means 'paradise' or 'garden' in Arabic."
+    },
+    {
+      "name": "Aizah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "uh-ZAH",
+      "description": "Aizah means 'replacement' or 'restitution' in Arabic."
+    },
+    {
+      "name": "Aubree",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "AW-bree",
+      "description": "Aubree means 'blond ruler' in French."
+    },
+    {
+      "name": "Marley",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "MAR-lee",
+      "description": "Marley means 'pleasant seaside meadow' in Old English."
+    },
+    {
+      "name": "Meadow",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MEH-do",
+      "description": "Meadow means 'a field of grass or wildflowers' in English."
+    },
+    {
+      "name": "Wynter",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "WIN-ter",
+      "description": "Wynter is a spelling variation of Winter, meaning 'the season between autumn and spring.'"
+    },
+    {
+      "name": "Zaynab",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ZAY-nuhb",
+      "description": "Zaynab is a name derived from Arabic meaning 'fragrant flower' or 'fruit of paradise'."
+    },
+    {
+      "name": "Zuzanna",
+      "origin": "Polish",
+      "gender": "female",
+      "pronunciation": "zoo-ZAHN-nah",
+      "description": "Zuzanna is the Polish form of the name Susanna, meaning 'lily' or 'graceful lily'."
+    },
+    {
+      "name": "Adeline",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "ADD-eh-line",
+      "description": "Adeline means 'noble kind' or 'nobility' in French."
+    },
+    {
+      "name": "Amayah",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "ah-MY-ah",
+      "description": "Amayah is a name derived from the Hebrew language meaning 'close to God'."
+    },
+    {
+      "name": "Avery",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "AY-vree",
+      "description": "Avery is an English name that means 'ruler of the elves'. It can be used for both boys and girls."
+    },
+    {
+      "name": "Daria",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "dah-REE-ah",
+      "description": "Daria is a Greek name that means 'upright' or 'maintains possessions well'. It is a strong and powerful name for a girl."
+    },
+    {
+      "name": "Fiadh",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "FEE-ah",
+      "description": "Fiadh is an Irish name that means 'wild' or 'untamed'. It is a unique and beautiful name for a little girl."
+    },
+    {
+      "name": "Gabriela",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "gah-bree-EL-ah",
+      "description": "Gabriela is a Spanish name that means 'God is my strength'. It is a classic and elegant name for a girl."
+    },
+    {
+      "name": "Eira",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "EYE-rah",
+      "description": "Eira is a Welsh name that means 'snow'. It is a unique and beautiful name for a little girl born in the winter months."
+    },
+    {
+      "name": "Robin",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "RAW-bin",
+      "description": "Robin is an English name that means 'bright fame'. It can be used for both boys and girls."
+    },
+    {
+      "name": "Kaia",
+      "origin": "Hawaiian",
+      "gender": "female",
+      "pronunciation": "KY-ah",
+      "description": "Kaia is a Hawaiian name that means 'sea'. It is a unique and beautiful name for a little girl."
+    },
+    {
+      "name": "Yasmin",
+      "origin": "Persian",
+      "gender": "female",
+      "pronunciation": "yas-MEEN",
+      "description": "Yasmin is a Persian name that means 'jasmine flower'. It is a beautiful and exotic name for a little girl."
+    },
+    {
+      "name": "Kayla",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "KAY-lah",
+      "description": "Kayla is an American name that means 'beloved'. It is a popular and modern name for a girl."
+    },
+    {
+      "name": "Lina",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "LEE-nah",
+      "description": "Lina is an Arabic name that means 'tender' or 'tender-hearted'. It is a sweet and gentle name for a little girl."
+    },
+    {
+      "name": "Amalia",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "ah-MAH-lee-ah",
+      "description": "Derived from the Germanic element 'amal', meaning 'work'. It has roots in Latin and Spanish as well, meaning 'lovable'."
+    },
+    {
+      "name": "Hawa",
+      "origin": "Swahili",
+      "gender": "female",
+      "pronunciation": "HA-wah",
+      "description": "Derived from Swahili meaning 'Eve', the first woman according to Islamic and Biblical traditions."
+    },
+    {
+      "name": "Peggy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "PEG-ee",
+      "description": "Short form of Margaret, derived from Old French meaning 'pearl'."
+    },
+    {
+      "name": "Rachel",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "RAY-chul",
+      "description": "Derived from Hebrew meaning 'ewe', as in a female sheep."
+    },
+    {
+      "name": "Constance",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "KAWN-stəns",
+      "description": "Derived from Latin meaning 'constant, steadfast'."
+    },
+    {
+      "name": "Jemima",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "juh-MY-muh",
+      "description": "Derived from Hebrew meaning 'dove'."
+    },
+    {
+      "name": "Cara",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "KAHR-uh",
+      "description": "Derived from Gaelic or Italian meaning 'beloved' or 'dear'."
+    },
+    {
+      "name": "Ember",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EM-bər",
+      "description": "Derived from Old English meaning 'spark, fiery temper'."
+    },
+    {
+      "name": "Lillian",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LIL-ee-ən",
+      "description": "Derived from the Latin word 'lilium', meaning 'lily'."
+    },
+    {
+      "name": "Octavia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "ahk-TAY-vee-ah",
+      "description": "Derived from Latin meaning 'eighth', as it was originally given to the eighth child in a family."
+    },
+    {
+      "name": "Ffion",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "FEE-on",
+      "description": "Ffion is a Welsh name meaning 'foxglove'."
+    },
+    {
+      "name": "Gianna",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "jee-AH-nuh",
+      "description": "Gianna is an Italian name meaning 'God is gracious'."
+    },
+    {
+      "name": "Romy",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "ROH-mee",
+      "description": "Romy is a German name meaning 'rosemary'."
+    },
+    {
+      "name": "Adelaide",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "AD-ə-layd",
+      "description": "Adelaide is a German name meaning 'noble kind'."
+    },
+    {
+      "name": "Amelia-Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "ə-MEE-lee-ə ROHZ",
+      "description": "Amelia-Rose is a combination of the names Amelia and Rose. Amelia is a German name meaning 'work' and Rose is a flower name."
+    },
+    {
+      "name": "Lily-Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "LI-lee ROHZ",
+      "description": "Lily-Rose is a combination of the names Lily and Rose. Lily is a flower name and Rose is also a flower name."
+    },
+    {
+      "name": "Aqsa",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "AK-sa",
+      "description": "Aqsa is an Arabic name meaning 'farthest' or 'most remote'."
+    },
+    {
+      "name": "Gracie-Mae",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "GRAY-see may",
+      "description": "Gracie-Mae is a combination of the names Gracie and Mae. Gracie is a nickname for Grace, meaning 'favor' or 'blessing', and Mae is a short form of Mary, meaning 'bitter' or 'beloved'."
+    },
+    {
+      "name": "Klara",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "KLAH-rah",
+      "description": "Klara is a German name meaning 'clear' or 'bright'."
+    },
+    {
+      "name": "Lia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "LEE-uh",
+      "description": "Lia is an Italian name that can be short for names like Rosalia or Cecilia. It is also a Greek name meaning 'bearer of good news'."
+    },
+    {
+      "name": "Theodora",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "thee-uh-DAWR-uh",
+      "description": "Theodora is a Greek name that means \"gift of God\". It was the name of several Byzantine empresses, including the wife of Emperor Justinian I."
+    },
+    {
+      "name": "Livia",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "LIV-ee-uh",
+      "description": "Livia is a Latin name that means \"blue\" or \"envious\". It was the name of the wife of Emperor Augustus and the mother of Emperor Tiberius."
+    },
+    {
+      "name": "Angel",
+      "origin": "Greek",
+      "gender": "Male/Female",
+      "pronunciation": "AYN-jəl (male)/AN-jəl (female)",
+      "description": "Angel is a Greek name that means \"messenger\" or \"messenger of God\". It can be used as a name for both boys and girls."
+    },
+    {
+      "name": "Hoorain",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "hoo-RAYN",
+      "description": "Hoorain is an Arabic name that means \"two heavenly rivers\". It is believed to be a name of paradise in Islamic tradition."
+    },
+    {
+      "name": "Iqra",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ik-RAH",
+      "description": "Iqra is an Arabic name that means \"read\" or \"recite\". It is also the first word revealed in the Quran, making it a significant name in Islamic tradition."
+    },
+    {
+      "name": "Isra",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ISS-ruh",
+      "description": "Isra is an Arabic name that means \"night journey\". It refers to the Prophet Muhammad's miraculous journey from Mecca to Jerusalem, which is recounted in Islamic tradition."
+    },
+    {
+      "name": "Selena",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "suh-LEE-nuh",
+      "description": "Selena is a Greek name that means \"moon goddess\". It was the name of the ancient Greek goddess of the moon and is now a popular name for baby girls."
+    },
+    {
+      "name": "Serena",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "suh-REE-nuh",
+      "description": "Serena is a Latin name that means \"calm\" or \"serene\". It was a popular name among early Christians and is still used today."
+    },
+    {
+      "name": "Ariya",
+      "origin": "Sanskrit",
+      "gender": "female",
+      "pronunciation": "ah-REE-yuh",
+      "description": "Ariya is a Sanskrit name that means \"noble\" or \"honorable\". It is a popular name in India and is also used in other parts of the world."
+    },
+    {
+      "name": "Beau",
+      "origin": "French",
+      "gender": "Masculine",
+      "pronunciation": "boh",
+      "description": "Derived from the French word 'beau', which means 'handsome or beautiful'"
+    },
+    {
+      "name": "Maddie",
+      "origin": "English",
+      "gender": "Feminine",
+      "pronunciation": "MAD-ee",
+      "description": "Diminutive form of the name Madeline or Madison"
+    },
+    {
+      "name": "Arianna",
+      "origin": "Italian",
+      "gender": "Feminine",
+      "pronunciation": "ah-ree-AH-nuh",
+      "description": "A combination of the names Ariadne and Anna, meaning 'most holy'"
+    },
+    {
+      "name": "Erica",
+      "origin": "Norse",
+      "gender": "Feminine",
+      "pronunciation": "EH-rih-ka",
+      "description": "Derived from the Old Norse name Eiríkr, meaning 'eternal ruler'"
+    },
+    {
+      "name": "Madeline",
+      "origin": "French",
+      "gender": "Feminine",
+      "pronunciation": "MAD-uh-lin",
+      "description": "Derived from the French name Magdalene, meaning 'of Magdala'"
+    },
+    {
+      "name": "Yara",
+      "origin": "Arabic",
+      "gender": "Feminine",
+      "pronunciation": "YAH-rah",
+      "description": "Means 'small butterfly' or 'the bright light of the dawn' in Arabic"
+    },
+    {
+      "name": "Evangeline",
+      "origin": "Greek",
+      "gender": "Feminine",
+      "pronunciation": "ih-VAN-jeh-leen",
+      "description": "Means 'bearer of good news' in Greek"
+    },
+    {
+      "name": "Reya",
+      "origin": "Indian",
+      "gender": "Feminine",
+      "pronunciation": "RAY-uh",
+      "description": "Means 'queen' or 'goddess Lakshmi' in Sanskrit"
+    },
+    {
+      "name": "Alayah",
+      "origin": "Arabic",
+      "gender": "Feminine",
+      "pronunciation": "uh-LAY-uh",
+      "description": "Means 'exalted, noble, highest social standing' in Arabic"
+    },
+    {
+      "name": "Ava-Mae",
+      "origin": "English",
+      "gender": "Feminine",
+      "pronunciation": "AY-vuh may",
+      "description": "A combination of the names Ava and Mae"
+    },
+    {
+      "name": "Kyra",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KIE-rah",
+      "description": "Kyra is a Greek name meaning 'lady' or 'ruler'. It is a short and simple name that is easy to pronounce."
+    },
+    {
+      "name": "Betty",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "BET-ee",
+      "description": "Betty is a diminutive form of Elizabeth, meaning 'pledged to God'. It was most popular in the United States in the 1930s and 1940s."
+    },
+    {
+      "name": "Elisa",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "eh-LEE-sah",
+      "description": "Elisa is an Italian name derived from the Hebrew name Elisheba, meaning 'God is my oath'. It is a popular name in Italy and other Spanish-speaking countries."
+    },
+    {
+      "name": "Leia",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "LAY-uh",
+      "description": "Leia is a variation of the name Leah, which means 'weary'. It is also famously associated with the Star Wars character Princess Leia Organa."
+    },
+    {
+      "name": "Lucie",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "loo-SEE",
+      "description": "Lucie is a French name that is a variation of the name Lucy. It means 'light' or 'illumination', and is popular in many European countries."
+    },
+    {
+      "name": "Rhea",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "REE-uh",
+      "description": "Rhea is a Greek name meaning 'flowing' or 'a stream'. In Greek mythology, Rhea was a Titaness and the mother of several Olympian gods."
+    },
+    {
+      "name": "Agnes",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "AG-nis",
+      "description": "Agnes is a Greek name meaning 'pure' or 'chaste'. It was a popular name in the Middle Ages and has since had a resurgence in popularity."
+    },
+    {
+      "name": "Ana",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "AH-nah",
+      "description": "Ana is a Spanish name that is a variation of the name Anna, which means 'grace' or 'favor'. It is a popular name in many Spanish-speaking countries."
+    },
+    {
+      "name": "Fleur",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "FLUHR",
+      "description": "Fleur is a French name that means 'flower'. It is a simple and elegant name that is popular in France and other French-speaking countries."
+    },
+    {
+      "name": "Iyla",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "EYE-luh",
+      "description": "Iyla is a modern variant of the name Isla and means 'Island'. It is a popular name in the UK and US."
+    },
+    {
+      "name": "Iona",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "eye-OH-nah",
+      "description": "Iona is a beautiful name of Scottish origin meaning 'blessed'. It is also the name of an island in Scotland that is known for its historical and religious significance."
+    },
+    {
+      "name": "Maisy",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MAY-zee",
+      "description": "Maisy is a popular name in the UK and US. It is a pet form of the name Margaret and means 'pearl'."
+    },
+    {
+      "name": "Minnie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MIN-ee",
+      "description": "Minnie is a cute and charming name that means 'beloved'. It is often used as a nickname for the name Minerva, Wilhelmina, or Mary."
+    },
+    {
+      "name": "Margaret",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MAHR-gret",
+      "description": "Margaret is a classic name of English origin meaning 'pearl'. It was a popular name in the 1920s and 1930s, and has been used by many royal families over the years."
+    },
+    {
+      "name": "Raven",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "RAY-vin",
+      "description": "Raven is a name of English origin meaning 'blackbird'. It is also a bird of the genus Corvus and has been used in literature and mythology as a symbol of wisdom and prophecy."
+    },
+    {
+      "name": "Vivienne",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "vee-vee-EN",
+      "description": "Vivienne is a beautiful French name meaning 'alive' or 'lively'. It is the feminine form of the name Vivian and has been used in literature and film, including the famous designer Vivienne Westwood."
+    },
+    {
+      "name": "Marwa",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "MAR-wah",
+      "description": "Marwa is a name of Arabic origin meaning 'fragrant plant'. It is also the name of a hill in Mecca, Saudi Arabia, which is an important site for Muslims during the annual Hajj pilgrimage."
+    },
+    {
+      "name": "Bella-Rose",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "BEL-uh ROHZ",
+      "description": "Bella-Rose is a modern name that combines the names Bella and Rose. Bella means 'beautiful' in Italian, while Rose is a flower that symbolizes love and beauty."
+    },
+    {
+      "name": "Celine",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "seh-LEEN",
+      "description": "Of French origin, meaning 'heavenly'."
+    },
+    {
+      "name": "Imaan",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ih-MAHN",
+      "description": "Of Arabic origin, meaning 'faith' or 'belief'."
+    },
+    {
+      "name": "Rowan",
+      "origin": "Irish",
+      "gender": "unisex",
+      "pronunciation": "ROH-ən",
+      "description": "Of Irish origin, meaning 'little red-haired one'."
+    },
+    {
+      "name": "Margo",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "MAR-goh",
+      "description": "Of Greek origin, meaning 'pearl'."
+    },
+    {
+      "name": "Anais",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "ah-nah-EES",
+      "description": "Of French origin, a variant of Anna or Anne meaning 'gracious'."
+    },
+    {
+      "name": "Blake",
+      "origin": "English",
+      "gender": "unisex",
+      "pronunciation": "blayk",
+      "description": "Of English origin, meaning 'fair-haired' or 'dark-haired' depending on gender."
+    },
+    {
+      "name": "Nala",
+      "origin": "Swahili",
+      "gender": "female",
+      "pronunciation": "NAH-lah",
+      "description": "In Swahili, this name means 'queen,' 'lion,' and 'successful'."
+    },
+    {
+      "name": "Aayat",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-YAHT",
+      "description": "Of Arabic origin, meaning 'sign' or 'proof'."
+    },
+    {
+      "name": "Aiyla",
+      "origin": "Turkish",
+      "gender": "female",
+      "pronunciation": "eye-LAH",
+      "description": "Of Turkish origin, meaning 'moonlight'."
+    },
+    {
+      "name": "Alicja",
+      "origin": "Polish",
+      "gender": "female",
+      "pronunciation": "ah-LEETS-yah",
+      "description": "Of Polish origin, a variant of Alice meaning 'noble' or 'kind'."
+    },
+    {
+      "name": "Anayah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "uh-nay-uh",
+      "description": "Anayah is a name that means 'caring, guardian' in Arabic. It's a popular name among Muslim parents."
+    },
+    {
+      "name": "Brianna",
+      "origin": "Irish",
+      "gender": "female",
+      "pronunciation": "bree-AN-ə",
+      "description": "Brianna is a feminine name of Irish origin meaning 'strong, virtuous, and honorable'."
+    },
+    {
+      "name": "Juno",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "JOO-noh",
+      "description": "Juno is a name that comes from Roman mythology. Juno was the queen of the gods and the protector of women and marriage."
+    },
+    {
+      "name": "Sydney",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "SIN-dee",
+      "description": "Sydney is an English name that means 'wide island'. It's a popular name for girls and boys."
+    },
+    {
+      "name": "Frances",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "FRAN-sis",
+      "description": "Frances is a name that means 'free' in Latin. It's a unisex name that is more commonly used for girls."
+    },
+    {
+      "name": "Indigo",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "IN-di-goh",
+      "description": "Indigo is a name that comes from the deep blue-purple dye that has been used for centuries. It's a unique and modern name for girls."
+    },
+    {
+      "name": "Lexie",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "LEKS-ee",
+      "description": "Lexie is a name that means 'defender' in Greek. It's a modern and popular name for girls."
+    },
+    {
+      "name": "Macie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MAY-see",
+      "description": "Macie is a name that means 'weapon' in Old French. It's a popular and modern name for girls."
+    },
+    {
+      "name": "Stevie",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "STEE-vee",
+      "description": "Stevie is a name that means 'crown' in English. It's a unisex name that is more commonly used for girls."
+    },
+    {
+      "name": "Aila",
+      "origin": "Finnish",
+      "gender": "female",
+      "pronunciation": "EYE-la",
+      "description": "Aila is a name that means 'from a strong place' in Finnish. It's a unique and modern name for girls."
+    },
+    {
+      "name": "Hiba",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "HEE-bah",
+      "description": "Hiba is an Arabic name meaning 'gift from God'."
+    },
+    {
+      "name": "Inayah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "in-AY-ah",
+      "description": "Inayah is an Arabic name meaning 'concern', 'care' or 'protection'."
+    },
+    {
+      "name": "Leyla",
+      "origin": "Persian",
+      "gender": "female",
+      "pronunciation": "LAY-lah",
+      "description": "Leyla is a Persian name meaning 'night' or 'dark beauty'."
+    },
+    {
+      "name": "Aminah",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-MEE-nah",
+      "description": "Aminah is an Arabic name meaning 'truthful' or 'trustworthy'."
+    },
+    {
+      "name": "Pola",
+      "origin": "Polish",
+      "gender": "female",
+      "pronunciation": "POH-lah",
+      "description": "Pola is a Polish name meaning 'poppy flower'."
+    },
+    {
+      "name": "Alys",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "AY-lis",
+      "description": "Alys is a Greek name meaning 'rational' or 'logical'."
+    },
+    {
+      "name": "Bianca",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "bee-AHN-ka",
+      "description": "Bianca is an Italian name meaning 'white' or 'fair'."
+    },
+    {
+      "name": "Duaa",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "DOO-ah",
+      "description": "Duaa is an Arabic name meaning 'supplication' or 'prayer'."
+    },
+    {
+      "name": "Ines",
+      "origin": "Spanish",
+      "gender": "female",
+      "pronunciation": "ee-NESS",
+      "description": "Ines is a Spanish name meaning 'pure' or 'chaste'."
+    },
+    {
+      "name": "Lilia",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "LIL-ee-ah",
+      "description": "Lilia is a Latin name meaning 'lily' or 'pure'."
+    },
+    {
+      "name": "Mara",
+      "origin": "Hebrew",
+      "gender": "female",
+      "pronunciation": "MAHR-ah",
+      "description": "A short form of the name Tamara, which means \"palm tree\" or \"date tree\"."
+    },
+    {
+      "name": "Tia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "TEE-ah",
+      "description": "Short form of the name Letitia, which means \"happiness\" or \"joy\"."
+    },
+    {
+      "name": "Margaux",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "mar-GO",
+      "description": "A variant of the name Margaret, which means \"pearl\"."
+    },
+    {
+      "name": "Catherine",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KATH-rin",
+      "description": "Derived from the Greek name Aikaterine, which means \"pure\"."
+    },
+    {
+      "name": "Theia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "THAY-ah",
+      "description": "Derived from the Greek word theios, which means \"divine\" or \"goddess-like\"."
+    },
+    {
+      "name": "Emilie",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "EH-mih-lee",
+      "description": "A variant of the name Emily, which means \"rival\" or \"industrious\"."
+    },
+    {
+      "name": "Emmy",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "EM-ee",
+      "description": "Short form of the name Emma, which means \"universal\" or \"whole\"."
+    },
+    {
+      "name": "Henrietta",
+      "origin": "German",
+      "gender": "female",
+      "pronunciation": "hen-ree-ET-tah",
+      "description": "A feminine form of the name Henry, which means \"ruler of the household\"."
+    },
+    {
+      "name": "Natalie",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "nuh-TAL-ee",
+      "description": "Derived from the Latin word natalis, which means \"birthday\" or \"born on Christmas\"."
+    },
+    {
+      "name": "Ava-Grace",
+      "origin": "Latin",
+      "gender": "female",
+      "pronunciation": "AH-vah GRAYSS",
+      "description": "A combination of the names Ava, which means \"life\", and Grace, which means \"blessing\" or \"favor\"."
+    },
+    {
+      "name": "Elora",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "ih-LOR-ah",
+      "description": "Elora is a beautiful name with a whimsical and enchanting sound. It has no specific country of origin and can be used across different cultures and traditions."
+    },
+    {
+      "name": "Pixie",
+      "origin": "Swedish",
+      "gender": "female",
+      "pronunciation": "PIKS-ee",
+      "description": "Pixie is a cute and playful name that is often associated with fairies and magical creatures. It has no specific country of origin and can be used as a nickname or a given name."
+    },
+    {
+      "name": "Ameera",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "ah-MEER-ah",
+      "description": "Ameera is a beautiful Arabic name that means princess or commander. It is a popular name in Muslim cultures and is often given to girls who are seen as strong and powerful."
+    },
+    {
+      "name": "Cataleya",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "ka-tuh-LAY-uh",
+      "description": "Cataleya is a beautiful Greek name that is often associated with the orchid flower. It has a delicate and feminine sound and is often used as a given name for girls."
+    },
+    {
+      "name": "Dakota",
+      "origin": "Native American",
+      "gender": "unisex",
+      "pronunciation": "dah-KOH-tah",
+      "description": "Dakota is a unisex name that comes from the Native American Sioux tribe. It means 'friendly' or 'allies' and is often used as a given name for both boys and girls."
+    },
+    {
+      "name": "Demi",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "DEH-mee",
+      "description": "Demi is a gender-neutral name of French origin, meaning 'half' or 'small.'"
+    },
+    {
+      "name": "Jennifer",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "JEN-uh-fur",
+      "description": "Jennifer is a classic name that comes from the Welsh language. It means 'white wave' or 'fair phantom' and has a timeless and elegant sound."
+    },
+    {
+      "name": "Mae",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MAY",
+      "description": "Mae is an English feminine given name. It is a variant of May, and derives from the month of May, which is named after the Roman goddess Maia."
+    },
+    {
+      "name": "Naya",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "NY-ah",
+      "description": "Naya is a beautiful Arabic name that means 'new' or 'fresh'. It has a simple and elegant sound and is often used as a given name for girls."
+    },
+    {
+      "name": "Oliwia",
+      "origin": "Polish",
+      "gender": "female",
+      "pronunciation": "o-LEE-vee-ah",
+      "description": "A Polish name meaning 'olive tree'."
+    },
+    {
+      "name": "Eadie",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "EE-dee",
+      "description": "A diminutive of Edith, meaning 'prosperous in war'."
+    },
+    {
+      "name": "Zoey",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "ZOH-ee",
+      "description": "A Greek name meaning 'life'."
+    },
+    {
+      "name": "Genevieve",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "JEN-uh-veev",
+      "description": "A French name meaning 'tribe woman'."
+    },
+    {
+      "name": "Michelle",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "mih-SHEHL",
+      "description": "A French name meaning 'who is like God?'."
+    },
+    {
+      "name": "Camilla",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "kuh-MIL-uh",
+      "description": "An Italian name meaning 'young ceremonial attendant'."
+    },
+    {
+      "name": "Elle",
+      "origin": "French",
+      "gender": "female",
+      "pronunciation": "EL",
+      "description": "A French name meaning 'she' or 'her'."
+    },
+    {
+      "name": "Katherine",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "KATH-rin",
+      "description": "A Greek name meaning 'pure'."
+    },
+    {
+      "name": "Sabrina",
+      "origin": "Welsh",
+      "gender": "female",
+      "pronunciation": "suh-BREE-nuh",
+      "description": "A Welsh name meaning 'from the river Severn'."
+    },
+    {
+      "name": "Zuri",
+      "origin": "Swahili",
+      "gender": "female",
+      "pronunciation": "ZOO-ree",
+      "description": "A Swahili name meaning 'good' or 'beautiful'."
+    },
+    {
+      "name": "Arielle",
+      "origin": "Israeli",
+      "gender": "female",
+      "pronunciation": "air-ee-EL",
+      "description": "A Hebrew name meaning 'lion of God'"
+    },
+    {
+      "name": "Dolcie",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "DOL-see",
+      "description": "An Italian name meaning 'sweet' or 'pleasant'"
+    },
+    {
+      "name": "Isla-Mae",
+      "origin": "Scottish",
+      "gender": "female",
+      "pronunciation": "EYE-luh may",
+      "description": "A combination of the names Isla, a Scottish name meaning 'island', and Mae, a name meaning 'pearl'"
+    },
+    {
+      "name": "Kira",
+      "origin": "Russian",
+      "gender": "female",
+      "pronunciation": "KEER-ah",
+      "description": "A Russian name meaning 'leader' or 'ruler'"
+    },
+    {
+      "name": "Liana",
+      "origin": "Italian",
+      "gender": "female",
+      "pronunciation": "lee-AH-nuh",
+      "description": "An Italian name meaning 'to bind' or 'twine around'"
+    },
+    {
+      "name": "Phoenix",
+      "origin": "Greek",
+      "gender": "unisex",
+      "pronunciation": "FEE-niks",
+      "description": "A name derived from Greek mythology, representing rebirth and renewal"
+    },
+    {
+      "name": "Sapphire",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "SAF-ire",
+      "description": "A name derived from the gemstone, symbolizing wisdom and truth"
+    },
+    {
+      "name": "Thalia",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "THAY-lee-uh",
+      "description": "A Greek name meaning 'to blossom'"
+    },
+    {
+      "name": "Alara",
+      "origin": "Turkish",
+      "gender": "female",
+      "pronunciation": "uh-LAH-ruh",
+      "description": "A Turkish name meaning 'alarm' or 'awakening'"
+    },
+    {
+      "name": "Amiyah",
+      "origin": "American",
+      "gender": "female",
+      "pronunciation": "uh-MY-uh",
+      "description": "A modern American name, possibly derived from the name Amaya, meaning 'night rain' in Japanese"
+    },
+    {
+      "name": "Hania",
+      "origin": "Arabic",
+      "gender": "female",
+      "pronunciation": "HAH-nee-ah",
+      "description": "Hania is a popular name in Arabic-speaking countries and means 'happiness' or 'bliss'."
+    },
+    {
+      "name": "Mylah",
+      "origin": "English",
+      "gender": "female",
+      "pronunciation": "MY-lah",
+      "description": "Mylah is a modern and unique name that has recently become popular. The name has no specific meaning but is often associated with beauty and grace."
+    },
+    {
+      "name": "Myra",
+      "origin": "Greek",
+      "gender": "female",
+      "pronunciation": "MY-rah",
+      "description": "Myra is a Greek name meaning 'sweet ointment' or 'perfume'. The name is associated with beauty, grace, and elegance."
+    },
+    {
+      "name": "Lylah",
+      "origin": "Indian",
+      "gender": "female",
+      "pronunciation": "LY-lah",
+      "description": "Lylah is a modern variation of the name Lila, which means 'night' in Arabic. The name is often associated with beauty, mystery, and darkness."
+    },
+    {
+      "name": "Mali",
+      "origin": "Thai",
+      "gender": "female",
+      "pronunciation": "MAH-lee",
+      "description": "Mali is a Thai name meaning 'jasmine flower'. The name is often associated with purity, innocence, and beauty."
+    },
+    {
+      "name": "Mira",
+      "origin": "Sanskrit",
+      "gender": "female",
+      "pronunciation": "MEE-rah",
+      "description": "Mira is a Sanskrit name meaning 'ocean' or 'sea'. The name is often associated with beauty, grace, and elegance."
+    },
+    {
+      "name": "Miya",
+      "origin": "Japanese",
+      "gender": "female",
+      "pronunciation": "MEE-yah",
+      "description": "Miya is a Japanese name meaning 'temple' or 'shrine'. The name is often associated with spirituality, purity, and simplicity."
+    }
+  ]
+}
