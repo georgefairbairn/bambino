@@ -884,15 +884,15 @@
     },
     {
       "name": "Joey",
-      "origin": null,
+      "origin": "English",
       "gender": "male",
       "pronunciation": "JO-ee",
       "description": "A playful and friendly name often used as a diminutive of Joseph or Joel."
     },
     {
       "name": "Billy",
-      "origin": null,
-      "gender": "male",
+      "origin": "English",
+      "gender": "unisex",
       "pronunciation": "BIL-ee",
       "description": "A casual and upbeat name often used as a diminutive of William or Bill."
     },
@@ -912,7 +912,7 @@
     },
     {
       "name": "River",
-      "origin": null,
+      "origin": "English",
       "gender": "unisex",
       "pronunciation": "RIH-ver",
       "description": "A nature-inspired name that evokes a sense of peace and tranquility, often associated with the flowing waters of a river."
@@ -940,7 +940,7 @@
     },
     {
       "name": "Jaxson",
-      "origin": null,
+      "origin": "American",
       "gender": "male",
       "pronunciation": "JAKS-son",
       "description": "A modern variation of the classic name Jackson, meaning 'son of Jack,' often spelled with an 'x' for a more unique twist."
