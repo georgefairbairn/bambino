@@ -1,6 +1,7 @@
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Link } from "@remix-run/react";
 
 const FEATURED_NAMES = [
   "Penelope",
@@ -57,13 +58,17 @@ export default function Index() {
             Find the <span className="font-alfaSlab">perfect</span> name for
             your baby
           </p>
-          <button className="group flex justify-start items-center bg-black text-white w-fit py-3.5 px-6 rounded-full">
+          {/* TODO: update URL */}
+          <Link
+            to="/names/1"
+            className="group flex justify-start items-center bg-black text-white w-fit py-3.5 px-6 rounded-full"
+          >
             <span className="mr-2.5">Get started</span>
             <ArrowRight
               size={24}
               className="group-hover:translate-x-2 transition-transform ease-in-out duration-300"
             />
-          </button>
+          </Link>
         </div>
       </div>
     </div>

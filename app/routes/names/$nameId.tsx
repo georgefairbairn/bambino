@@ -17,6 +17,7 @@ export const loader = async () => {
 
 export default function Name() {
   const { name } = useLoaderData<typeof loader>();
+
   return (
     <div className="flex justify-between max-w-4xl w-full mx-auto">
       <div className="flex flex-col justify-start w-full">
@@ -44,7 +45,7 @@ export default function Name() {
             </div>
             <div className="flex-1">
               <span className="pr-2">Meaning:</span>
-              <span className="font-bold">"{name?.meaning.toLowerCase()}"</span>
+              <span className="font-bold">"REMOVE"</span>
             </div>
           </div>
           <div className="pt-5">{name?.description}</div>

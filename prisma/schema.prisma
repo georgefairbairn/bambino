@@ -11,12 +11,23 @@ datasource db {
   relationMode = "prisma"
 }
 
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  liked        Name[]   @relation(name: "liked")
+  disliked     Name[]   @relation(name: "disliked")
+}
+
 model Name {
   id            Int    @id @default(autoincrement())
   name          String @unique
   origin        String
-  meaning       String
   description   String @db.Text
   pronunciation String
   gender        String
+  likedBy       User[] @relation("liked")
+  dislikedBy    User[] @relation("disliked")
 }
