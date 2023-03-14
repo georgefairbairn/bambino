@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@remix-run/react";
+import { AUTH_STATUS, ROUTES } from "~/utils/consts";
 
 const FEATURED_NAMES = [
   "Penelope",
@@ -26,6 +27,13 @@ export default function Index() {
 
     return () => clearTimeout(timeout);
   }, [nameIndex]);
+
+  const authStatus = AUTH_STATUS.SIGNED_OUT;
+
+  const redirectUrl =
+    authStatus === AUTH_STATUS.SIGNED_OUT
+      ? `${ROUTES.LIBRARY}${ROUTES.SIGNIN}`
+      : ROUTES.LIBRARY;
 
   const underlineColor =
     nameIndex % 2 === 0 ? "border-b-pink-500" : "border-b-blue-500";
@@ -58,9 +66,8 @@ export default function Index() {
             Find the <span className="font-alfaSlab">perfect</span> name for
             your baby
           </p>
-          {/* TODO: update URL */}
           <Link
-            to="/names/1"
+            to={redirectUrl}
             className="group flex justify-start items-center bg-black text-white w-fit py-3.5 px-6 rounded-full"
           >
             <span className="mr-2.5">Get started</span>
