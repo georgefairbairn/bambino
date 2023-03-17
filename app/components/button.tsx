@@ -10,7 +10,7 @@ export default function Button({
 }: Props & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`flex items-center bg-black text-white px-6 py-3 rounded-lg w-fit ${className} sm:text-xl`}
+      className={`flex items-center bg-black text-white px-6 py-3 rounded-lg w-fit ${className} sm:text-lg`}
       {...delegated}
     >
       {children}

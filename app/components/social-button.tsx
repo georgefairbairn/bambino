@@ -112,7 +112,7 @@ export default function SocialButton({
 
   return (
     <button
-      className={`flex items-center text-white px-8 py-3 rounded-lg w-fit shadow-lg ${buttonClasses} ${className} sm:text-xl`}
+      className={`flex items-center text-white px-6 py-3 rounded-lg w-fit shadow-lg ${buttonClasses} ${className} sm:text-lg`}
       {...delegated}
     >
       {icon}

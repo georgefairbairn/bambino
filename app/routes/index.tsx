@@ -61,13 +61,13 @@ export default function Index() {
         </AnimatePresence>
       </div>
       <div>
-        <div className="text-2xl flex flex-col justify-center">
-          <p className="w-10/12 sm:w-64 mb-4 sm:mb-7">
+        <div className="flex flex-col justify-center">
+          <p className="w-10/12 sm:w-64 mb-4 sm:mb-7 text-2xl">
             Find the <span className="font-alfaSlab">perfect</span> name for
             your baby
           </p>
-          <ButtonLink to={redirectUrl}>
-            <span className="mr-2.5">Get started</span>
+          <ButtonLink to={redirectUrl} className="group">
+            <span className="mr-2.5 text-2xl">Get started</span>
             <ArrowRight
               size={24}
               className="group-hover:translate-x-2 transition-transform ease-in-out duration-300"
