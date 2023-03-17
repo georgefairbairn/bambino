@@ -66,10 +66,7 @@ export default function Index() {
             Find the <span className="font-alfaSlab">perfect</span> name for
             your baby
           </p>
-          <ButtonLink
-            to={redirectUrl}
-            className="group flex justify-start items-center bg-black text-white w-fit py-3.5 px-6 rounded-full"
-          >
+          <ButtonLink to={redirectUrl}>
             <span className="mr-2.5">Get started</span>
             <ArrowRight
               size={24}
