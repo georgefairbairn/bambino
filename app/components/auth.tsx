@@ -13,7 +13,8 @@ interface Props {
 
 const enum STYLES {
   OVERLAY = "bg-black bg-opacity-40 fixed inset-0",
-  CONTENT = "fixed top-1/2 left-1/2 max-h-[95vh] w-[90vw] max-w-[70vw] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-9 border-4 border-black drop-shadow-2xl overflow-auto",
+  CONTENT = "fixed top-1/2 left-1/2 max-h-[95vh] max-h-[95vh] w-[90vw] sm:max-w-[70vw] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-4 pt-10 sm:p-9 border-4 border-black drop-shadow-2xl overflow-auto",
+  TITLE = "text-center text-2xl font-bold mb-10 sm:text-4xl",
 }
 
 export default function Auth({ open, close }: Props) {
@@ -41,18 +42,16 @@ export default function Auth({ open, close }: Props) {
 
   const renderGetStarted = () => (
     <>
-      <Dialog.Title className="text-center text-4xl font-bold mb-10">
-        Get started
-      </Dialog.Title>
-      <div className="flex justify-around">
-        <div className="flex justify-center w-full py-20 border-r-4 border-black">
+      <Dialog.Title className={STYLES.TITLE}>Get started</Dialog.Title>
+      <div className="flex flex-col justify-around sm:flex-row">
+        <div className="flex justify-center w-full pb-10 border-b-4 border-double border-black sm:border-r-4 sm:border-b-0 sm:py-10">
           <Button
             onClick={() => handleStatusSelection(SIGNED_OUT_STATUS.NEW_USER)}
           >
             I'm a new user
           </Button>
         </div>
-        <div className="flex justify-center w-full py-20">
+        <div className="flex justify-center w-full py-10">
           <Button
             onClick={() => handleStatusSelection(SIGNED_OUT_STATUS.HAS_ACCOUNT)}
           >
@@ -112,46 +111,46 @@ export default function Auth({ open, close }: Props) {
 
     return (
       <>
-        <Dialog.Title className="text-center text-4xl font-bold mb-10">
+        <Dialog.Title className={STYLES.TITLE}>
           <div className="flex justify-between">
             <button onClick={handleBack} aria-label="Back">
               <ArrowLeftIcon />
             </button>
             {title}
-            <div></div>
+            <div className="w-6"></div>
           </div>
         </Dialog.Title>
-        <div className="flex justify-between">
-          <div className="flex flex-col justify-start w-full border-r-4 border-black">
+        <div className="flex flex-col justify-between sm:flex-row">
+          <div className="flex flex-col justify-start w-full border-b-4 border-double border-black pb-10 sm:border-r-4 sm:border-b-0 sm:pb-0">
             <Input
               autoFocus
               id="email"
               placeholder="Email"
-              className="w-9/12 mb-6"
+              className="mb-6 sm:w-9/12"
             />
             <Input
               id="password"
               placeholder="Password"
-              className="w-9/12 mb-6"
+              className="mb-6 sm:w-9/12"
             />
             <Button onClick={action}>{actionText}</Button>
           </div>
-          <div className="flex flex-col justify-start items-end w-full">
+          <div className="flex flex-col justify-start items-end w-full pt-10 sm:pt-0">
             <SocialButton
               variant={SOCIAL_BUTTON_VARIANTS.FACEBOOK}
-              className="mb-6 w-10/12"
+              className="mb-6 w-full sm:w-10/12"
             >
               {`${actionText} with Facebook`}
             </SocialButton>
             <SocialButton
               variant={SOCIAL_BUTTON_VARIANTS.GOOGLE}
-              className="mb-6 w-10/12"
+              className="mb-6 w-full sm:w-10/12"
             >
               {`${actionText} with Google`}
             </SocialButton>
             <SocialButton
               variant={SOCIAL_BUTTON_VARIANTS.APPLE}
-              className="w-10/12"
+              className="w-full sm:w-10/12"
             >
               {`${actionText} with Apple`}
             </SocialButton>

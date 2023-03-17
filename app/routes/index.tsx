@@ -62,7 +62,7 @@ export default function Index() {
       </div>
       <div>
         <div className="text-2xl flex flex-col justify-center">
-          <p className="w-64 mb-4 sm:mb-7">
+          <p className="w-10/12 sm:w-64 mb-4 sm:mb-7">
             Find the <span className="font-alfaSlab">perfect</span> name for
             your baby
           </p>
