@@ -15,6 +15,9 @@ module.exports = {
           ...defaultTheme.fontFamily.sans,
         ],
       },
+      gridTemplateColumns: {
+        cards: "repeat(auto-fit, minmax(20rem, 1fr))",
+      },
     },
   },
   plugins: [],

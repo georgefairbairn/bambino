@@ -33,6 +33,7 @@
     "@remix-run/dev": "^1.10.0",
     "@remix-run/eslint-config": "^1.10.0",
     "@remix-run/serve": "^1.10.0",
+    "@testing-library/react": "^14.0.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/node": "^18.11.19",
     "@types/react": "^18.0.25",

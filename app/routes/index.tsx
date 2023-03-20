@@ -28,7 +28,7 @@ export default function Index() {
     return () => clearTimeout(timeout);
   }, [nameIndex]);
 
-  const authStatus = AUTH_STATUS.SIGNED_OUT;
+  const authStatus = AUTH_STATUS.SIGNED_IN;
 
   const redirectUrl =
     authStatus === AUTH_STATUS.SIGNED_OUT
@@ -39,7 +39,7 @@ export default function Index() {
     nameIndex % 2 === 0 ? "border-b-pink-500" : "border-b-blue-500";
 
   return (
-    <div className="flex flex-col sm:flex-row sm:max-w-4xl sm:justify-between sm:mx-auto">
+    <div className="flex flex-col mt-16 sm:flex-row sm:max-w-4xl sm:justify-between sm:mx-auto sm:mt-24">
       <div className="flex flex-col justify-end relative h-24 mb-8 overflow-hidden sm:w-[26rem] sm:h-auto sm:mr-16 sm:mb-0">
         <AnimatePresence initial={false}>
           <motion.span
