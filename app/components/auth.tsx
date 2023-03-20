@@ -3,18 +3,13 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, ArrowLeftIcon } from "lucide-react";
 import Button from "./button";
 import { AUTH_STATUS, SIGNED_OUT_STATUS } from "~/utils/consts";
+import { COMMON_STYLES } from "~/styles/common";
 import Input from "./input";
 import SocialButton, { SOCIAL_BUTTON_VARIANTS } from "./social-button";
 
 interface Props {
   open: boolean;
   close: () => void;
-}
-
-const enum STYLES {
-  OVERLAY = "bg-black bg-opacity-40 fixed inset-0",
-  CONTENT = "fixed top-1/2 left-1/2 max-h-[95vh] max-h-[95vh] w-[90vw] sm:max-w-[70vw] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-4 pt-10 sm:p-9 border-4 border-black drop-shadow-2xl overflow-auto",
-  TITLE = "text-center text-2xl font-bold mb-10 sm:text-4xl",
 }
 
 export default function Auth({ open, close }: Props) {
@@ -42,13 +37,15 @@ export default function Auth({ open, close }: Props) {
 
   const renderGetStarted = () => (
     <>
-      <Dialog.Title className={STYLES.TITLE}>Get started</Dialog.Title>
+      <Dialog.Title className={COMMON_STYLES.MODAL_TITLE}>
+        Get started
+      </Dialog.Title>
       <div className="flex flex-col justify-around sm:flex-row">
         <div className="flex justify-center w-full pb-10 border-b-4 border-double border-black sm:border-r-4 sm:border-b-0 sm:py-10">
           <Button
             onClick={() => handleStatusSelection(SIGNED_OUT_STATUS.NEW_USER)}
           >
-            I'm a new user
+            I’m a new user
           </Button>
         </div>
         <div className="flex justify-center w-full py-10">
@@ -111,7 +108,7 @@ export default function Auth({ open, close }: Props) {
 
     return (
       <>
-        <Dialog.Title className={STYLES.TITLE}>
+        <Dialog.Title className={COMMON_STYLES.MODAL_TITLE}>
           <div className="flex justify-between">
             <button onClick={handleBack} aria-label="Back">
               <ArrowLeftIcon />
@@ -198,11 +195,14 @@ export default function Auth({ open, close }: Props) {
   return (
     <Dialog.Root open={open}>
       <Dialog.Portal>
-        <Dialog.Overlay className={STYLES.OVERLAY} />
-        <Dialog.Content className={STYLES.CONTENT} onPointerDownOutside={close}>
+        <Dialog.Overlay className={COMMON_STYLES.MODAL_OVERLAY} />
+        <Dialog.Content
+          className={COMMON_STYLES.MODAL_CONTENT}
+          onPointerDownOutside={close}
+        >
           <>
             {renderContent()}
-            <Dialog.Close asChild className="absolute top-4 right-4">
+            <Dialog.Close asChild className={COMMON_STYLES.MODAL_CLOSE}>
               <button onClick={close} aria-label="Close">
                 <X />
               </button>

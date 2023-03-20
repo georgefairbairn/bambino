@@ -19,3 +19,9 @@ export const enum SIGNED_OUT_STATUS {
   // when they've selected that they have an account, but they haven't signed in yet
   HAS_ACCOUNT = "has_account",
 }
+
+export const enum GENDER {
+  BOY = "boy",
+  GIRL = "girl",
+  BOTH = "both",
+}
