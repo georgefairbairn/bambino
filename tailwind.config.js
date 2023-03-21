@@ -16,7 +16,8 @@ module.exports = {
         ],
       },
       gridTemplateColumns: {
-        cards: "repeat(auto-fit, minmax(20rem, 1fr))",
+        cardsMobile: "repeat(auto-fill, 1fr)",
+        cardsDesktop: "repeat(auto-fill, minmax(20rem, 1fr))",
       },
     },
   },

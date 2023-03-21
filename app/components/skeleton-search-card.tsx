@@ -1,8 +1,10 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Check, Plus, X } from "lucide-react";
+import { ArrowRight, Check, Plus, X } from "lucide-react";
 import { COMMON_STYLES } from "~/styles/common";
-import { GENDER } from "~/utils/consts";
+import { GENDER, ROUTES } from "~/utils/consts";
+import Input from "./input";
+import ButtonLink from "./button-link";
 
 function GenderButton({
   gender,
@@ -13,28 +15,14 @@ function GenderButton({
   select: () => void;
   isSelected?: boolean;
 }) {
-  let text = "Both";
-  let icon = "⚥";
-  let size = "4xl";
-  let textColor = "text-black";
+  let text = "Boy";
+  let icon = "♂";
+  let color = "text-blue-500";
 
-  switch (gender) {
-    case GENDER.BOY:
-      text = "Boy";
-      icon = "♂";
-      size = "5xl";
-      textColor = "text-blue-500";
-      break;
-
-    case GENDER.GIRL:
-      text = "Girl";
-      icon = "♀";
-      size = "5xl";
-      textColor = "text-pink-500";
-      break;
-
-    default:
-      break;
+  if (gender === GENDER.GIRL) {
+    text = "Girl";
+    icon = "♀";
+    color = "text-pink-500";
   }
 
   return (
@@ -45,11 +33,11 @@ function GenderButton({
       }`}
     >
       <div className="flex items-center flex-1 p-4">
-        <p className="mr-2 font-bold">{text}</p>
-        <p className={`text-${size} ${textColor} -mt-2`}>{icon}</p>
+        <p className="mr-2 font-bold text-lg">{text}</p>
+        <p className={`text-5xl ${color} -mt-1`}>{icon}</p>
       </div>
 
-      {isSelected && gender !== GENDER.BOTH && (
+      {isSelected && (
         <div className="w-8 -mr-[38px]">
           <Check size={18} color="white" className="" />
         </div>
@@ -72,12 +60,12 @@ function CreateNewModal({ open, close }: { open: boolean; close: () => void }) {
           <Dialog.Title className={COMMON_STYLES.MODAL_TITLE}>
             New Search
           </Dialog.Title>
-          <h2 className="font-bold">Gender</h2>
+          <h2 className="font-bold text-lg">Gender</h2>
           <p className="mb-4">
             Select which gender of names you’d like to see in the search
             results.
           </p>
-          <div className="grid gap-4">
+          <div className="grid grid-rows-1 grid-cols-2 gap-4">
             <GenderButton
               gender={GENDER.BOY}
               isSelected={selected.boy}
@@ -88,12 +76,33 @@ function CreateNewModal({ open, close }: { open: boolean; close: () => void }) {
               isSelected={selected.girl}
               select={() => setSelected({ ...selected, girl: !selected.girl })}
             />
-            <GenderButton
-              gender={GENDER.BOTH}
-              select={() =>
-                setSelected({ girl: !selected.girl, boy: !selected.boy })
-              }
-            />
+          </div>
+          <h2 className="font-bold text-lg mt-8">Label</h2>
+          <p className="mb-4">
+            Give your search a name so that you can easily find it again later
+            (optional).
+          </p>
+          <Input
+            id="label"
+            placeholder={
+              selected.boy && selected.girl
+                ? "Boy & Girl Search #1"
+                : selected.boy
+                ? "Boy Search #1"
+                : selected.girl
+                ? "Girl Search #1"
+                : "Search #1"
+            }
+            className="mb-10 sm:w-9/12"
+          />
+          <div className="flex justify-end items-center">
+            <ButtonLink to={`${ROUTES.NAMES}/1`} className="group">
+              <span className="mr-2.5">Start</span>
+              <ArrowRight
+                size={24}
+                className="group-hover:translate-x-2 transition-transform ease-in-out duration-300"
+              />
+            </ButtonLink>
           </div>
           <Dialog.Close asChild className={COMMON_STYLES.MODAL_CLOSE}>
             <button onClick={close} aria-label="Close">

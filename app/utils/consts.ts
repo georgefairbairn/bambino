@@ -23,5 +23,4 @@ export const enum SIGNED_OUT_STATUS {
 export const enum GENDER {
   BOY = "boy",
   GIRL = "girl",
-  BOTH = "both",
 }

@@ -26,7 +26,7 @@ export default function Library() {
           <Info size={18} className="mt-0.5" />
         </button>
       </div>
-      <div className="grid grid-cols-cards gap-4">
+      <div className="grid grid-cols-cardsMobile gap-4 sm:grid-cols-cardsDesktop">
         <SkeletonSearchCard />
       </div>
       {searchParams.get("signin") && <Auth open={open} close={closeAuth} />}
