@@ -17,17 +17,38 @@ model User {
   passwordHash String
   name         String
   createdAt    DateTime @default(now())
-  liked        Name[]   @relation(name: "liked")
-  disliked     Name[]   @relation(name: "disliked")
+  Search       Search[]
+}
+
+model Search {
+  id            Int     @id @default(autoincrement())
+  gender        String
+  userId        Int
+  user          User    @relation(fields: [userId], references: [id])
+  LikedNamesLog Names[]
+
+  @@index([userId])
 }
 
 model Name {
-  id            Int    @id @default(autoincrement())
-  name          String @unique
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
   origin        String
-  description   String @db.Text
+  description   String  @db.Text
   pronunciation String
   gender        String
-  likedBy       User[] @relation("liked")
-  dislikedBy    User[] @relation("disliked")
+  LikedNamesLog Names[]
+}
+
+model Names {
+  id        Int      @id @default(autoincrement())
+  nameId    Int
+  name      Name     @relation(fields: [nameId], references: [id])
+  searchId  Int
+  search    Search   @relation(fields: [searchId], references: [id])
+  createdAt DateTime @default(now())
+  liked     Boolean
+
+  @@index([nameId])
+  @@index([searchId])
 }
