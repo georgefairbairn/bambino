@@ -15,7 +15,7 @@ export default function ButtonLink({
   return (
     <Link
       to={to}
-      className={`flex items-center bg-black text-white px-6 py-3 rounded-lg w-fit ${className} sm:text-lg`}
+      className={`flex items-center bg-black text-white px-6 py-3 rounded-lg w-fit sm:text-lg ${className}`}
       {...delegated}
     >
       {children}

@@ -2,6 +2,7 @@ export const enum ROUTES {
   HOME = "/",
   LIBRARY = "/library",
   NAMES = "/names",
+  NEW_SEARCH = "/new-search",
 
   SIGNIN = "?signin=true",
 }
@@ -23,4 +24,6 @@ export const enum SIGNED_OUT_STATUS {
 export const enum GENDER {
   BOY = "boy",
   GIRL = "girl",
+  BOTH = "both",
+  NONE = "none",
 }
