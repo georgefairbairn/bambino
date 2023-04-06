@@ -6,33 +6,46 @@ import { girls } from "./girls.json";
 const prisma = new PrismaClient();
 
 async function main() {
-  // add name data
-  await prisma.name.createMany({
-    data: [...boys, ...girls],
-    skipDuplicates: true,
-  });
+  try {
+    // reset database
+    await prisma.name.deleteMany();
+    console.log("Deleted name data");
+    await prisma.search.deleteMany();
+    console.log("Deleted searches data");
+    await prisma.user.deleteMany();
+    console.log("Deleted user data");
 
-  const passwordHash = await bcrypt.hash(
-    process.env.ADMIN_PASSWORD ?? "password",
-    10
-  );
+    await prisma.$queryRaw`ALTER TABLE Name AUTO_INCREMENT = 1`;
+    await prisma.$queryRaw`ALTER TABLE Search AUTO_INCREMENT = 1`;
+    await prisma.$queryRaw`ALTER TABLE User AUTO_INCREMENT = 1`;
+    console.log("Reset auto-increments");
 
-  // add single user
-  await prisma.user.create({
-    data: {
-      name: "George Admin",
-      email: "george.fair@icloud.com",
-      passwordHash,
-    },
-  });
+    // add name data
+    await prisma.name.createMany({
+      data: [...boys, ...girls],
+      skipDuplicates: true,
+    });
+    console.log("Seeded name data");
+
+    const passwordHash = await bcrypt.hash(
+      process.env.ADMIN_PASSWORD ?? "password",
+      10
+    );
+
+    // add single user
+    await prisma.user.create({
+      data: {
+        name: "George Admin",
+        email: "george.fair@icloud.com",
+        passwordHash,
+      },
+    });
+    console.log("Seeded user data");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+main();
