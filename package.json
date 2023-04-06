@@ -9,6 +9,8 @@
     "dev:css": "npm run generate:css -- --watch",
     "dev:remix": "remix dev",
     "generate:css": "npx tailwindcss -o ./app/tailwind.css",
+    "prisma:generate": "npx prisma generate",
+    "postinstall": "npm run prisma:generate",
     "typecheck": "tsc -b"
   },
   "prisma": {
