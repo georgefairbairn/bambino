@@ -20,19 +20,25 @@ export const action = async ({ request }: ActionArgs) => {
     throw new Error(`Form not submitted correctly.`);
   }
 
-  // TODO: fix once auth flow is worked out
-  const user = await db.user.findFirst();
+  try {
+    // TODO: fix once auth flow is worked out
+    const user = await db.user.findFirst();
 
-  if (!user) return;
+    if (!user) return;
 
-  const fields = {
-    gender,
-    label,
-    userId: user.id,
-  };
+    const fields = {
+      gender,
+      label,
+      userId: user.id,
+    };
 
-  const search = await db.search.create({ data: fields });
-  return redirect(`${ROUTES.SEARCH}/${search.id}`);
+    const count = await db.search.count();
+    const first = await db.search.findFirst();
+    const search = await db.search.create({ data: fields });
+    return redirect(`${ROUTES.SEARCH}/${search.id}`);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 function GenderButton({
