@@ -23,6 +23,7 @@ model User {
 model Search {
   id            Int     @id @default(autoincrement())
   gender        String
+  label         String
   userId        Int
   user          User    @relation(fields: [userId], references: [id])
   LikedNamesLog Names[]
