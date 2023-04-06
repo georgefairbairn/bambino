@@ -15,6 +15,7 @@ async function main() {
     await prisma.user.deleteMany();
     console.log("Deleted user data");
 
+    // comment out for prod seeding
     await prisma.$queryRaw`ALTER TABLE Name AUTO_INCREMENT = 1`;
     await prisma.$queryRaw`ALTER TABLE Search AUTO_INCREMENT = 1`;
     await prisma.$queryRaw`ALTER TABLE User AUTO_INCREMENT = 1`;
