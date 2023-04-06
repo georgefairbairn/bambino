@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { MouseEvent } from "react";
 import type { ActionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
@@ -79,17 +79,23 @@ export default function NewSearch() {
     [GENDER.GIRL]: true,
   });
 
-  const genderValue = useMemo(() => {
-    if (selectedGender[GENDER.BOY] && selectedGender[GENDER.GIRL]) {
-      return GENDER.BOTH;
-    } else if (!selectedGender[GENDER.BOY] && !selectedGender[GENDER.GIRL]) {
-      return GENDER.NONE;
-    } else if (!selectedGender[GENDER.BOY] && selectedGender[GENDER.GIRL]) {
-      return GENDER.GIRL;
-    } else {
-      return GENDER.BOY;
-    }
-  }, [selectedGender]);
+  const genderValue =
+    selectedGender[GENDER.BOY] && selectedGender[GENDER.GIRL]
+      ? GENDER.BOTH
+      : !selectedGender[GENDER.BOY] && !selectedGender[GENDER.GIRL]
+      ? GENDER.NONE
+      : !selectedGender[GENDER.BOY] && selectedGender[GENDER.GIRL]
+      ? GENDER.GIRL
+      : GENDER.BOY;
+
+  const labelValue =
+    genderValue === GENDER.BOTH
+      ? "Boy & Girl Search #1"
+      : genderValue === GENDER.BOY
+      ? "Boy Search #1"
+      : genderValue === GENDER.GIRL
+      ? "Girl Search #1"
+      : "Search #1";
 
   const handleGenderSelection = (
     e: MouseEvent<HTMLButtonElement>,
@@ -137,17 +143,10 @@ export default function NewSearch() {
         </p>
         <Input
           className="mb-16 sm:w-9/12 pl-4 pr-4 py-2 border-4 border-black !rounded-lg max-w-xs"
+          key={genderValue}
           id="label"
           name="label"
-          defaultValue={
-            genderValue === GENDER.BOTH
-              ? "Boy & Girl Search #1"
-              : genderValue === GENDER.BOY
-              ? "Boy Search #1"
-              : genderValue === GENDER.GIRL
-              ? "Girl Search #1"
-              : "Search #1"
-          }
+          defaultValue={labelValue}
           required
         />
         <div className="grid grid-rows-1 grid-cols-2 sm:grid-cols-3">
