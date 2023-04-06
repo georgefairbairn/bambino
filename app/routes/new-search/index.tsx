@@ -32,13 +32,13 @@ export const action = async ({ request }: ActionArgs) => {
       userId: user.id,
     };
 
-    const count = await db.search.count();
-    const first = await db.search.findFirst();
-    const search = await db.search.create({ data: fields });
-    return redirect(`${ROUTES.SEARCH}/${search.id}`);
+    // const count = await db.search.count();
+    const search = await db.search.findFirst();
+    // const search = await db.search.create({ data: fields });
+    return redirect(`${ROUTES.SEARCH}/${search?.id ?? 1}`);
   } catch (error) {
-    console.error(error);
-    return null;
+    // console.error(error);
+    // return null;
   }
 };
 
