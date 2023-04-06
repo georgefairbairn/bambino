@@ -1,7 +1,7 @@
 export const enum ROUTES {
   HOME = "/",
   LIBRARY = "/library",
-  NAMES = "/names",
+  SEARCH = "/search",
   NEW_SEARCH = "/new-search",
 
   SIGNIN = "?signin=true",
