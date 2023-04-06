@@ -7,7 +7,6 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import { withSentry } from "@sentry/remix";
 import Layout from "./components/layout";
 import tailwind from "./tailwind.css";
 import styles from "./styles/global.css";
@@ -33,7 +32,7 @@ export const links: LinksFunction = () => [
   },
 ];
 
-function App() {
+export default function App() {
   return (
     <html lang="en">
       <head>
@@ -51,5 +50,3 @@ function App() {
     </html>
   );
 }
-
-export default withSentry(App);
