@@ -38,6 +38,7 @@ export const action = async ({ request }: ActionArgs) => {
     return redirect(`${ROUTES.SEARCH}/${search.id}`);
   } catch (error) {
     console.error(error);
+    return null;
   }
 };
 
