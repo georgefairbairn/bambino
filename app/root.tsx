@@ -1,4 +1,4 @@
-import type { MetaFunction, LinksFunction } from "@remix-run/node";
+import type { MetaFunction, LinksFunction } from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -6,29 +6,29 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "@remix-run/react";
-import Layout from "./components/layout";
-import tailwind from "./tailwind.css";
-import styles from "./styles/global.css";
+} from '@remix-run/react';
+import Layout from './components/layout';
+import tailwind from './tailwind.css';
+import styles from './styles/global.css';
 
 export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  title: "bambino",
-  viewport: "width=device-width,initial-scale=1",
+  charset: 'utf-8',
+  title: 'bambino',
+  viewport: 'width=device-width,initial-scale=1',
 });
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: tailwind },
-  { rel: "stylesheet", href: styles },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: 'stylesheet', href: tailwind },
+  { rel: 'stylesheet', href: styles },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
+    rel: 'preconnect',
+    href: 'https://fonts.gstatic.com',
+    crossOrigin: 'anonymous',
   },
   {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Sanchez&display=fallback",
+    rel: 'stylesheet',
+    href: 'https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Sanchez&display=fallback',
   },
 ];
 

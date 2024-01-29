@@ -1,11 +1,11 @@
-import { useState } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
-import { X, ArrowLeftIcon } from "lucide-react";
-import Button from "./button";
-import { AUTH_STATUS, SIGNED_OUT_STATUS } from "~/utils/consts";
-import { COMMON_STYLES } from "~/styles/common";
-import Input from "./input";
-import SocialButton, { SOCIAL_BUTTON_VARIANTS } from "./social-button";
+import { useState } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
+import { X, ArrowLeftIcon } from 'lucide-react';
+import Button from './button';
+import { AUTH_STATUS, SIGNED_OUT_STATUS } from '~/utils/consts';
+import { COMMON_STYLES } from '~/styles/common';
+import Input from './input';
+import SocialButton, { SOCIAL_BUTTON_VARIANTS } from './social-button';
 
 interface Props {
   open: boolean;
@@ -64,17 +64,17 @@ export default function Auth({ open, close }: Props) {
   }: {
     type: Exclude<SIGNED_OUT_STATUS, SIGNED_OUT_STATUS.UNDETERMINED>;
   }) => {
-    let title = "";
-    let actionText = "";
+    let title = '';
+    let actionText = '';
     let action = handleSignUp;
     let altCopy = <></>;
-    let altActionText = "";
+    let altActionText = '';
     let altAction = close;
 
     switch (type) {
       case SIGNED_OUT_STATUS.HAS_ACCOUNT:
-        title = "I have an account";
-        actionText = "Sign In";
+        title = 'I have an account';
+        actionText = 'Sign In';
         action = handleSignIn;
         altCopy = (
           <p className="text-center">
@@ -82,13 +82,13 @@ export default function Auth({ open, close }: Props) {
             password?
           </p>
         );
-        altActionText = "Reset password";
+        altActionText = 'Reset password';
         altAction = handleResetPassword;
         break;
 
       case SIGNED_OUT_STATUS.NEW_USER:
         title = "I'm a new user";
-        actionText = "Sign Up";
+        actionText = 'Sign Up';
         altCopy = (
           <>
             <p className="text-center">
@@ -99,7 +99,7 @@ export default function Auth({ open, close }: Props) {
             </p>
           </>
         );
-        altActionText = "Get started without an account";
+        altActionText = 'Get started without an account';
         break;
 
       default:

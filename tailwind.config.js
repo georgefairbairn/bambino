@@ -1,23 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 
-const defaultTheme = require("tailwindcss/defaultTheme");
+const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
-  content: ["./app/**/*.{ts,tsx,jsx,js}"],
+  content: ['./app/**/*.{ts,tsx,jsx,js}'],
   theme: {
     extend: {
       fontFamily: {
-        alfaSlab: ['"Alfa Slab One"', "Rockwell", "cursive"],
+        alfaSlab: ['"Alfa Slab One"', 'Rockwell', 'cursive'],
         sans: [
-          "Sanchez",
+          'Sanchez',
           '"Courier New"',
-          "monospace",
+          'monospace',
           ...defaultTheme.fontFamily.sans,
         ],
       },
       gridTemplateColumns: {
-        cardsMobile: "repeat(auto-fill, 1fr)",
-        cardsDesktop: "repeat(auto-fill, minmax(20rem, 1fr))",
+        cardsMobile: 'repeat(auto-fill, 1fr)',
+        cardsDesktop: 'repeat(auto-fill, minmax(20rem, 1fr))',
       },
     },
   },

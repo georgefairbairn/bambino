@@ -1,7 +1,7 @@
 export const enum SOCIAL_BUTTON_VARIANTS {
-  FACEBOOK = "facebook",
-  GOOGLE = "google",
-  APPLE = "apple",
+  FACEBOOK = 'facebook',
+  GOOGLE = 'google',
+  APPLE = 'apple',
 }
 
 interface Props {
@@ -44,7 +44,7 @@ export default function SocialButton({
           </defs>
         </svg>
       );
-      buttonClasses = "bg-[#1877F2]";
+      buttonClasses = 'bg-[#1877F2]';
       break;
 
     case SOCIAL_BUTTON_VARIANTS.GOOGLE:
@@ -83,7 +83,7 @@ export default function SocialButton({
           />
         </svg>
       );
-      buttonClasses = "text-slate-500";
+      buttonClasses = 'text-slate-500';
       break;
 
     case SOCIAL_BUTTON_VARIANTS.APPLE:
@@ -103,11 +103,11 @@ export default function SocialButton({
           />
         </svg>
       );
-      buttonClasses = "bg-black";
+      buttonClasses = 'bg-black';
       break;
 
     default:
-      throw new Error("Variant type does not exist");
+      throw new Error('Variant type does not exist');
   }
 
   return (

@@ -1,6 +1,6 @@
-import { Link } from "@remix-run/react";
-import { Plus } from "lucide-react";
-import { ROUTES } from "~/utils/consts";
+import { Link } from '@remix-run/react';
+import { Plus } from 'lucide-react';
+import { ROUTES } from '~/utils/consts';
 
 export default function SkeletonSearchCard() {
   return (

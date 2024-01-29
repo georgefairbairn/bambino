@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "@remix-run/react";
-import Auth from "~/components/auth";
-import SkeletonSearchCard from "~/components/skeleton-search-card";
-import { Info } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useSearchParams } from '@remix-run/react';
+import Auth from '~/components/auth';
+import SkeletonSearchCard from '~/components/skeleton-search-card';
+import { Info } from 'lucide-react';
 
 export default function Library() {
   const [open, setOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function Library() {
       <div className="grid grid-cols-cardsMobile gap-4 sm:grid-cols-cardsDesktop">
         <SkeletonSearchCard />
       </div>
-      {searchParams.get("signin") && <Auth open={open} close={closeAuth} />}
+      {searchParams.get('signin') && <Auth open={open} close={closeAuth} />}
     </>
   );
 }

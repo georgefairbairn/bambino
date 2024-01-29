@@ -1,5 +1,5 @@
-import { Link } from "@remix-run/react";
-import { ROUTES } from "../utils/consts";
+import { Link } from '@remix-run/react';
+import { ROUTES } from '../utils/consts';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

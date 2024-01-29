@@ -1,4 +1,4 @@
-import { json } from "@remix-run/node";
+import { json } from '@remix-run/node';
 
 /**
  * This helper function helps us returning the accurate HTTP status,
