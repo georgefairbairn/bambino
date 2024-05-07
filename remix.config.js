@@ -6,6 +6,9 @@ module.exports = {
       ? './server.js'
       : undefined,
   ignoredRouteFiles: ['**/.*'],
+  future: {
+    v2_dev: true,
+  },
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: ".netlify/functions-internal/server.js",
