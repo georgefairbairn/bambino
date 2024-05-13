@@ -20,7 +20,6 @@ export const action = async ({ request }: ActionArgs) => {
     throw new Error(`Form not submitted correctly.`);
   }
 
-  // TODO: fix once auth flow is worked out
   const user = await db.user.findFirst();
 
   if (!user) return;

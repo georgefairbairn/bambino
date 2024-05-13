@@ -7,6 +7,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react';
+import { rootAuthLoader } from '@clerk/remix/ssr.server';
+import { LoaderFunction } from '@remix-run/node';
+import { ClerkApp } from '@clerk/remix';
 import Layout from './components/layout';
 import tailwind from './tailwind.css';
 import styles from './styles/global.css';
@@ -32,7 +35,9 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export default function App() {
+export const loader: LoaderFunction = args => rootAuthLoader(args);
+
+function App() {
   return (
     <html lang="en">
       <head>
@@ -50,3 +55,5 @@ export default function App() {
     </html>
   );
 }
+
+export default ClerkApp(App);

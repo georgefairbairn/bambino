@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { AUTH_STATUS, ROUTES } from '~/utils/consts';
+import { ROUTES } from '~/utils/consts';
 import ButtonLink from '~/components/button-link';
 
 const FEATURED_NAMES = [
@@ -27,13 +27,6 @@ export default function Index() {
 
     return () => clearTimeout(timeout);
   }, [nameIndex]);
-
-  const authStatus = AUTH_STATUS.SIGNED_IN;
-
-  const redirectUrl =
-    authStatus === AUTH_STATUS.SIGNED_OUT
-      ? `${ROUTES.LIBRARY}${ROUTES.SIGNIN}`
-      : ROUTES.LIBRARY;
 
   const underlineColor =
     nameIndex % 2 === 0 ? 'border-b-pink-500' : 'border-b-blue-500';
@@ -66,7 +59,7 @@ export default function Index() {
             Find the <span className="font-alfaSlab">perfect</span> name for
             your baby
           </p>
-          <ButtonLink to={redirectUrl} className="group">
+          <ButtonLink to={ROUTES.LIBRARY} className="group">
             <span className="mr-2.5 text-2xl">Get started</span>
             <ArrowRight
               size={24}
