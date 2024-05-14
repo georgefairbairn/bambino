@@ -2,12 +2,25 @@ import SkeletonSearchCard from '~/components/skeleton-search-card';
 import { Info } from 'lucide-react';
 import { getAuth } from '@clerk/remix/ssr.server';
 import { LoaderFunction, redirect } from '@remix-run/node';
+import { db } from '~/utils/db.server';
 
 export const loader: LoaderFunction = async args => {
   const { userId } = await getAuth(args);
 
   if (!userId) {
     return redirect(process.env.CLERK_SIGN_IN_URL ?? '/');
+  }
+
+  try {
+    const existingUser = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!existingUser) {
+      await db.user.create({ data: { clerkUserId: userId } });
+    }
+  } catch (error) {
+    console.error('Failed to insert or retrieve user:', error);
   }
 
   return {};
