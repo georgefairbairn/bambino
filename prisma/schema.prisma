@@ -26,10 +26,13 @@ model Search {
 }
 
 model Name {
-  id          Int          @id @default(autoincrement())
-  name        String
-  gender      String
-  userActions UserAction[]
+  id            Int          @id @default(autoincrement())
+  name          String
+  gender        String
+  origin        String
+  pronunciation String
+  description   String
+  userActions   UserAction[]
 }
 
 model UserAction {
