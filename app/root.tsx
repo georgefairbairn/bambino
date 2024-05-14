@@ -13,6 +13,7 @@ import { ClerkApp } from '@clerk/remix';
 import Layout from './components/layout';
 import tailwind from './tailwind.css';
 import styles from './styles/global.css';
+import { dark } from '@clerk/themes';
 
 export const meta: MetaFunction = () => ({
   charset: 'utf-8',
@@ -56,4 +57,8 @@ function App() {
   );
 }
 
-export default ClerkApp(App);
+export default ClerkApp(App, {
+  appearance: {
+    baseTheme: dark,
+  },
+});
