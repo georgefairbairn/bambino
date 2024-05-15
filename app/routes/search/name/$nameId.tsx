@@ -29,7 +29,7 @@ export default function NameBlock({ name }: { name: Name }) {
           <span>
             <strong>&nbsp;{name?.origin}</strong>
           </span>
-          <span>&nbsp;{ORIGIN_MAP[name?.origin.toLowerCase()]}</span>
+          <span>&nbsp;{ORIGIN_MAP[name?.origin]}</span>
         </div>
       )}
       {name?.description && (

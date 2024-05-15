@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react';
 import type { ActionArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { ArrowRight, Check } from 'lucide-react';
+import { getAuth } from '@clerk/remix/ssr.server';
 
 import { GENDER, ROUTES } from '~/utils/consts';
 import { db } from '~/utils/db.server';
@@ -11,27 +12,36 @@ import Button from '~/components/button';
 import ButtonLink from '~/components/button-link';
 import Input from '~/components/input';
 
-export const action = async ({ request }: ActionArgs) => {
-  const form = await request.formData();
-  const gender = form.get('gender');
-  const label = form.get('label');
+export const action = async (args: ActionArgs) => {
+  try {
+    const { userId: clerkUserId } = await getAuth(args);
 
-  if (typeof gender !== 'string' || typeof label !== 'string') {
-    throw new Error(`Form not submitted correctly.`);
+    const form = await args.request.formData();
+    const genderPreference = form.get('gender');
+    const label = form.get('label');
+
+    if (
+      typeof genderPreference !== 'string' ||
+      typeof label !== 'string' ||
+      typeof clerkUserId !== 'string'
+    ) {
+      throw new Error(`Form not submitted correctly.`);
+    }
+
+    const user = await db.user.findUnique({ where: { clerkUserId } });
+
+    if (!user) return redirect(ROUTES.LIBRARY);
+
+    const search = await db.search.create({
+      data: { userId: user.id, genderPreference, label },
+    });
+
+    if (!search.id) return redirect(ROUTES.LIBRARY);
+
+    return redirect(`${ROUTES.SEARCH}/${search.id}`);
+  } catch (error) {
+    console.error('Failed to create search:', error);
   }
-
-  const user = await db.user.findFirst();
-
-  if (!user) return;
-
-  const fields = {
-    gender,
-    label,
-    userId: user.id,
-  };
-
-  const search = await db.search.create({ data: fields });
-  return redirect(`${ROUTES.SEARCH}/${search?.id ?? 1}`);
 };
 
 function GenderButton({
