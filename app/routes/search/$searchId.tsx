@@ -3,7 +3,6 @@ import {
   ThumbsDown,
   RefreshCw,
   ArrowLeft,
-  ArrowRight,
   Archive,
 } from 'lucide-react';
 import { Link } from '@remix-run/react';
@@ -14,7 +13,7 @@ import { db } from '~/utils/db.server';
 import Name from '~/routes/search/name/$nameId';
 import { ROUTES } from '~/utils/consts';
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export const loader: LoaderFunction = async ({ params }) => {
   const searchId = params.searchId;
   if (!searchId) return redirect(ROUTES.LIBRARY);
 
@@ -34,7 +33,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     ...(genderPreference !== 'boy' ? [{ gender: 'female' }] : []),
     { gender: 'unisex' },
   ];
-  console.log({ genderConditions });
 
   try {
     const totalNamesCount = await db.name.count({
