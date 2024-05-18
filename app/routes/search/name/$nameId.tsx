@@ -8,6 +8,11 @@ export default function NameBlock({ name }: { name: Name }) {
       ? 'border-b-pink-500'
       : 'border-b-blue-500';
 
+  const speakName = () => {
+    const utterance = new SpeechSynthesisUtterance(name.name);
+    speechSynthesis.speak(utterance);
+  };
+
   return (
     <div className="flex flex-col justify-start w-full">
       <div className="flex items-center">
@@ -17,7 +22,11 @@ export default function NameBlock({ name }: { name: Name }) {
         >
           {name?.name}
         </span>
-        <button className="px-2 mx-2 rounded-full hover:bg-black hover:bg-opacity-5">
+        <button
+          className="px-2 mx-2 rounded-full hover:bg-black hover:bg-opacity-5"
+          type="button"
+          onClick={speakName}
+        >
           <div className="h-fit">
             <Volume2 size={48} />
           </div>
