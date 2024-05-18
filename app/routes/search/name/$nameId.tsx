@@ -8,9 +8,21 @@ export default function NameBlock({ name }: { name: Name }) {
       ? 'border-b-pink-500'
       : 'border-b-blue-500';
 
-  const speakName = () => {
-    const utterance = new SpeechSynthesisUtterance(name.name);
-    speechSynthesis.speak(utterance);
+  const speakName = async () => {
+    try {
+      const response = await fetch(`/api/tts?text=${name.name}`);
+      const data = await response.json();
+
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+
+      const audio = new Audio('data:audio/mp3;base64,' + data.audioContent);
+      audio.play();
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
