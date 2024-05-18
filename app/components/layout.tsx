@@ -15,11 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </h1>
         </Link>
         <div className="flex-1 flex items-center justify-end">
-          {isLoaded && userId ? (
-            <UserButton />
-          ) : (
-            <SignInButton fallbackRedirectUrl="/search" />
-          )}
+          {isLoaded && userId ? <UserButton /> : <SignInButton />}
         </div>
       </div>
       {children}
