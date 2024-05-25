@@ -77,7 +77,7 @@ export const loader: LoaderFunction = async ({ params }) => {
       throw new Response('No available names left to display', { status: 404 });
     }
 
-    return json({ name: randomName });
+    return json({ name: randomName, searchId });
   } catch (error) {
     console.error('Failed to fetch a random name:', error);
     return new Response('Internal Server Error', { status: 500 });
@@ -127,7 +127,7 @@ export const action = async ({ request, params }: ActionArgs) => {
 };
 
 export default function Search() {
-  const { name } = useLoaderData();
+  const { name, searchId } = useLoaderData();
 
   return (
     <div className="flex flex-col max-w-4xl w-full mx-auto my-28">
@@ -174,8 +174,10 @@ export default function Search() {
             Back to Library
           </span>
         </Link>
-        {/* TODO: Update route to new page */}
-        <Link to={ROUTES.LIBRARY} className="flex group items-center">
+        <Link
+          to={`${ROUTES.NAMES}/${searchId}`}
+          className="flex group items-center"
+        >
           <span className="mr-2 group-hover:underline underline-offset-8 text-lg">
             View liked names
           </span>

@@ -11,6 +11,7 @@ import { db } from '~/utils/db.server';
 import Button from '~/components/button';
 import ButtonLink from '~/components/button-link';
 import Input from '~/components/input';
+import { SelectButton } from '~/components/select-button';
 
 export const action = async (args: ActionArgs) => {
   try {
@@ -44,44 +45,6 @@ export const action = async (args: ActionArgs) => {
   }
 };
 
-function GenderButton({
-  gender,
-  select,
-  isSelected,
-}: {
-  gender: GENDER.BOY | GENDER.GIRL;
-  select: (e: MouseEvent<HTMLButtonElement>) => void;
-  isSelected?: boolean;
-}) {
-  let text = 'Boy';
-  let icon = '♂';
-  let color = 'text-blue-500';
-
-  if (gender === GENDER.GIRL) {
-    text = 'Girl';
-    icon = '♀';
-    color = 'text-pink-500';
-  }
-
-  return (
-    <button
-      onClick={select}
-      className="flex justify-between items-center bg-white border-4 border-black box-border rounded-lg w-1/2 sm:w-[9.5rem]"
-    >
-      <div className="flex items-center flex-1 px-4 py-2">
-        <p className="mr-2 font-bold text-lg">{text}</p>
-        <p className={`text-5xl ${color} -mt-1`}>{icon}</p>
-      </div>
-
-      {isSelected && (
-        <div className="flex self-stretch items-center bg-black pl-1.5 pr-0.5">
-          <Check size={18} color="white" className="" />
-        </div>
-      )}
-    </button>
-  );
-}
-
 export default function NewSearch() {
   const [selectedGender, setSelectedGender] = useState({
     [GENDER.BOY]: true,
@@ -106,14 +69,6 @@ export default function NewSearch() {
           ? 'Girl Search #1'
           : 'Search #1';
 
-  const handleGenderSelection = (
-    e: MouseEvent<HTMLButtonElement>,
-    payload: { [GENDER.BOY]: boolean; [GENDER.GIRL]: boolean }
-  ) => {
-    e.preventDefault();
-    setSelectedGender(payload);
-  };
-
   return (
     <form method="post">
       <h1 className="text-2xl font-bold mt-8 mb-8">New Search</h1>
@@ -123,21 +78,23 @@ export default function NewSearch() {
           Select which gender of names you’d like to see in the search results.
         </p>
         <div className="flex gap-8 mb-8">
-          <GenderButton
-            gender={GENDER.BOY}
+          <SelectButton
+            icon={<p className="text-5xl text-blue-500 -mt-1">♂</p>}
+            text="Boy"
             isSelected={selectedGender[GENDER.BOY]}
-            select={e =>
-              handleGenderSelection(e, {
+            onClick={() =>
+              setSelectedGender({
                 [GENDER.GIRL]: selectedGender[GENDER.GIRL],
                 [GENDER.BOY]: !selectedGender[GENDER.BOY],
               })
             }
           />
-          <GenderButton
-            gender={GENDER.GIRL}
+          <SelectButton
+            icon={<p className="text-5xl text-pink-500 -mt-1">♀</p>}
+            text="Girl"
             isSelected={selectedGender[GENDER.GIRL]}
-            select={e =>
-              handleGenderSelection(e, {
+            onClick={() =>
+              setSelectedGender({
                 [GENDER.BOY]: selectedGender[GENDER.BOY],
                 [GENDER.GIRL]: !selectedGender[GENDER.GIRL],
               })

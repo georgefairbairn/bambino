@@ -3,6 +3,7 @@ export const enum ROUTES {
   LIBRARY = '/library',
   SEARCH = '/search',
   NEW_SEARCH = '/new-search',
+  NAMES = '/names',
 }
 
 export const enum GENDER {
@@ -10,6 +11,13 @@ export const enum GENDER {
   GIRL = 'girl',
   BOTH = 'both',
   NONE = 'none',
+}
+
+export const enum FILTERS {
+  BOY = 'boy',
+  GIRL = 'girl',
+  LIKED = 'liked',
+  DISLIKED = 'disliked',
 }
 
 export const ORIGIN_MAP: Record<string, string> = {
