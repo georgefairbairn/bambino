@@ -14,7 +14,14 @@ import { db } from '~/utils/db.server';
 import { FILTERS, ROUTES } from '~/utils/consts';
 import { SelectButton } from '~/components/select-button';
 import { useState } from 'react';
-import { ArrowLeft, Pencil, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Eye,
+  Pencil,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
+} from 'lucide-react';
 import { DialogContent, DialogOverlay } from '@reach/dialog';
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -70,7 +77,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     include: { name: true },
   });
 
-  return json({ label: searchDetails.label, names });
+  return json({ label: searchDetails.label, names, searchId });
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -107,14 +114,14 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Names() {
+  const { label, names, searchId } = useLoaderData();
   const [_, setSearchParams] = useSearchParams();
-  const { label, names } = useLoaderData();
 
   const [filters, setFilters] = useState<{ [k: string]: boolean }>({
-    [FILTERS.BOY]: true,
-    [FILTERS.GIRL]: true,
-    [FILTERS.LIKED]: true,
-    [FILTERS.DISLIKED]: true,
+    [FILTERS.BOY]: false,
+    [FILTERS.GIRL]: false,
+    [FILTERS.LIKED]: false,
+    [FILTERS.DISLIKED]: false,
   });
 
   const [currentNameObj, setCurrentNameObj] = useState<any>(null);
@@ -159,41 +166,40 @@ export default function Names() {
     <div className="flex flex-col my-8">
       <h1 className="text-2xl font-bold mr-2">{label}</h1>
       <div className="flex justify-between items-start mt-8">
-        <Link to={ROUTES.LIBRARY} className="flex group items-center">
+        <Link
+          to={`${ROUTES.SEARCH}/${searchId}`}
+          className="flex group items-center"
+        >
           <ArrowLeft
             size={24}
             className="group-hover:-translate-x-2 transition-transform ease-in-out duration-300"
           />
           <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
-            Back to Library
+            Back to Search
           </span>
         </Link>
         <div className="flex flex-col items-end">
           <div className="text-lg text-slate-500">Filters</div>
           <div className="flex mt-4 gap-4">
             <SelectButton
-              disabled={!filters[FILTERS.GIRL]}
               icon={<p className="text-5xl text-blue-500 -mt-1">♂</p>}
               text="Boy"
               isSelected={filters[FILTERS.BOY]}
               onClick={() => toggleFilter(FILTERS.BOY)}
             />
             <SelectButton
-              disabled={!filters[FILTERS.BOY]}
               icon={<p className="text-5xl text-pink-500 -mt-1">♀</p>}
               text="Girl"
               isSelected={filters[FILTERS.GIRL]}
               onClick={() => toggleFilter(FILTERS.GIRL)}
             />
             <SelectButton
-              disabled={!filters[FILTERS.DISLIKED]}
               icon={<ThumbsUp />}
               text="Liked"
               isSelected={filters[FILTERS.LIKED]}
               onClick={() => toggleFilter(FILTERS.LIKED)}
             />
             <SelectButton
-              disabled={!filters[FILTERS.LIKED]}
               icon={<ThumbsDown />}
               text="Disliked"
               isSelected={filters[FILTERS.DISLIKED]}
@@ -248,6 +254,12 @@ export default function Names() {
               <div className="flex-1">{userAction}</div>
             </div>
             <div className="min-w-20">
+              <Link
+                to={`${ROUTES.SEARCH}/${searchId}/${nameObj.name.id}`}
+                className="text-black inline-block mr-6 hover:scale-125 transition"
+              >
+                <Eye />
+              </Link>
               <button
                 className="text-slate-500 mr-6 hover:scale-125 transition"
                 type="button"
@@ -275,8 +287,6 @@ export default function Names() {
             onDismiss={closeDeleteDialog}
           >
             <DialogContent className="flex flex-col px-5 py-3 rounded-lg mt-4 bg-white border-4 border-black box-border">
-              <h1 className="text-xl font-bold mb-4">{}</h1>
-              <p className="mb-8">Are you sure you want to delete this item?</p>
               <form method="post">
                 <input
                   type="hidden"
@@ -285,6 +295,10 @@ export default function Names() {
                 />
                 <input type="hidden" name="_action" value="delete" />
 
+                <h1 className="text-xl font-bold mb-4">Delete Name</h1>
+                <p className="mb-8">
+                  Are you sure you want to delete this name from your shortlist?
+                </p>
                 <div className="flex justify-end">
                   <button
                     className="mr-2 px-4 py-2 bg-gray-200 rounded-lg"
@@ -296,7 +310,7 @@ export default function Names() {
                     className="px-4 py-2 bg-red-500 text-white rounded-lg"
                     type="submit"
                   >
-                    Confirm
+                    Delete
                   </button>
                 </div>
               </form>

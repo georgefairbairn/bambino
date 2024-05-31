@@ -1,87 +1,28 @@
-import {
-  ThumbsUp,
-  ThumbsDown,
-  RefreshCw,
-  ArrowLeft,
-  Archive,
-} from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { ThumbsUp, ThumbsDown, RefreshCw, ArrowLeft, Baby } from 'lucide-react';
+import { Link, useSearchParams } from '@remix-run/react';
 import type { ActionArgs } from '@remix-run/node';
 import { LoaderFunction, json, redirect } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { db } from '~/utils/db.server';
-import Name from '~/routes/search/name/$nameId';
+import Name from '~/components/name';
 import { ROUTES } from '~/utils/consts';
+import { useEffect } from 'react';
 
 export const loader: LoaderFunction = async ({ params }) => {
-  const searchId = params.searchId;
-  if (!searchId) return redirect(ROUTES.LIBRARY);
+  const { nameId, searchId } = params;
 
-  const searchDetails = await db.search.findUnique({
-    where: {
-      id: parseInt(searchId),
-    },
-  });
-
-  if (!searchDetails) {
-    throw new Response('Search not found', { status: 404 });
+  if (!nameId) {
+    throw new Response('Name ID not found', { status: 404 });
   }
 
-  const genderPreference = searchDetails.genderPreference;
-  const genderConditions = [
-    ...(genderPreference !== 'girl' ? [{ gender: 'male' }] : []),
-    ...(genderPreference !== 'boy' ? [{ gender: 'female' }] : []),
-    { gender: 'unisex' },
-  ];
+  // Fetch the name based on the nameId
+  const name = await db.name.findUnique({ where: { id: parseInt(nameId) } });
 
-  try {
-    const totalNamesCount = await db.name.count({
-      where: {
-        OR: genderConditions,
-        NOT: {
-          userActions: {
-            some: {
-              searchId: parseInt(searchId),
-              actionType: {
-                in: ['like', 'dislike'],
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (totalNamesCount === 0) {
-      throw new Response('No available names left to display', { status: 404 });
-    }
-
-    const randomName = await db.name.findFirst({
-      where: {
-        OR: genderConditions,
-        NOT: {
-          userActions: {
-            some: {
-              searchId: parseInt(searchId),
-              actionType: {
-                in: ['like', 'dislike'],
-              },
-            },
-          },
-        },
-      },
-      take: 1,
-      skip: Math.floor(Math.random() * totalNamesCount),
-    });
-
-    if (!randomName) {
-      throw new Response('No available names left to display', { status: 404 });
-    }
-
-    return json({ name: randomName, searchId });
-  } catch (error) {
-    console.error('Failed to fetch a random name:', error);
-    return new Response('Internal Server Error', { status: 500 });
+  if (!name) {
+    throw new Response('Name not found', { status: 404 });
   }
+
+  return json({ name, searchId });
 };
 
 export const action = async ({ request, params }: ActionArgs) => {
@@ -179,9 +120,9 @@ export default function Search() {
           className="flex group items-center"
         >
           <span className="mr-2 group-hover:underline underline-offset-8 text-lg">
-            View liked names
+            View names shortlist
           </span>
-          <Archive size={24} className="group-hover:scale-125 transition" />
+          <Baby size={24} className="group-hover:scale-125 transition" />
         </Link>
       </div>
     </div>
