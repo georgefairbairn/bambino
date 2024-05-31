@@ -4,6 +4,8 @@ export const enum ROUTES {
   SEARCH = '/search',
   NEW_SEARCH = '/new-search',
   NAMES = '/names',
+  PRIVACY_POLICY = '/privacy-policy',
+  CONTACT_US = '/contact-us',
 }
 
 export const enum GENDER {
