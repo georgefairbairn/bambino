@@ -6,18 +6,24 @@ declare global {
   var __db: PrismaClient | undefined;
 }
 
-// this is needed because in development we don't want to restart
-// the server with every change, but we want to make sure we don't
-// create a new connection to the DB with every change either.
+function initializePrismaClient() {
+  const client = new PrismaClient();
+  client
+    .$connect()
+    .then(() => console.log('Connected to the database successfully'))
+    .catch(error => {
+      console.error('Failed to connect to the database', error);
+      throw new Error('Database connection error');
+    });
+  return client;
+}
+
 if (process.env.NODE_ENV === 'production') {
-  db = new PrismaClient();
-  db.$connect();
+  db = initializePrismaClient();
 } else {
   if (!global.__db) {
-    global.__db = new PrismaClient();
-    global.__db.$connect();
+    global.__db = initializePrismaClient();
   }
-
   db = global.__db;
 }
 
