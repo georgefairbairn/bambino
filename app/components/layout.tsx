@@ -19,8 +19,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {isLoaded && userId ? <UserButton /> : <SignInButton />}
         </div>
       </div>
-      <div className="flex flex-col justify-between flex-1">
-        {children}
+      <div className="flex flex-col justify-start flex-1">
+        <div className="flex-1">{children}</div>
         <div className="flex justify-center">
           {pathname !== ROUTES.PRIVACY_POLICY && (
             <Link className="group" to={ROUTES.PRIVACY_POLICY}>
