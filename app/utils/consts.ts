@@ -6,6 +6,7 @@ export const enum ROUTES {
   NAMES = '/names',
   PRIVACY_POLICY = '/privacy-policy',
   CONTACT_US = '/contact-us',
+  SETTINGS = '/settings',
 }
 
 export const enum GENDER {

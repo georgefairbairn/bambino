@@ -1,8 +1,17 @@
-import { Name } from '@prisma/client';
+import type { Name } from '@prisma/client';
 import { Volume2 } from 'lucide-react';
+import { useEffect } from 'react';
 import { ORIGIN_MAP } from '~/utils/consts';
 
 export default function NameBlock({ name }: { name: Name }) {
+  useEffect(() => {
+    const locale = window.localStorage.getItem('locale');
+
+    if (!locale) {
+      window.localStorage.setItem('locale', navigator.language);
+    }
+  }, []);
+
   const underlineColor =
     name?.gender.toLowerCase() === 'female'
       ? 'border-b-pink-500'
@@ -10,7 +19,9 @@ export default function NameBlock({ name }: { name: Name }) {
 
   const speakName = async () => {
     try {
-      const response = await fetch(`/api/tts?text=${name.name}`);
+      const response = await fetch(
+        `/api/tts?text=${name.name}&locale=${window.localStorage.getItem('locale')}`
+      );
       const data = await response.json();
 
       if (data.error) {

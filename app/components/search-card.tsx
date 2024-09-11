@@ -1,6 +1,5 @@
-import { Search } from '@prisma/client';
+import type { Search } from '@prisma/client';
 import { Link } from '@remix-run/react';
-import { Plus } from 'lucide-react';
 import { ROUTES } from '~/utils/consts';
 
 export default function SearchCard({
@@ -9,7 +8,13 @@ export default function SearchCard({
   genderPreference,
   lastUpdated,
   locale,
-}: Partial<Search> & { locale: string }) {
+}: {
+  id: Search['id'];
+  label: Search['label'];
+  genderPreference: Search['genderPreference'];
+  lastUpdated: string;
+  locale: string;
+}) {
   const readableDate = new Date(lastUpdated ?? 0).toLocaleDateString(locale, {
     year: '2-digit',
     month: 'numeric',

@@ -5,20 +5,22 @@ export function SelectButton({
   isSelected,
   text,
   icon,
+  type,
 }: {
-  onClick: () => void;
-  text: string;
+  onClick?: () => void;
+  text: string | React.ReactNode;
   icon?: React.ReactNode;
   isSelected?: boolean;
+  type?: 'button' | 'submit' | 'reset' | undefined;
 }) {
   return (
     <button
       onClick={onClick}
       className={`flex justify-between items-center bg-white border-4 border-black box-border rounded-md`}
-      type="button"
+      type={type ?? 'button'}
     >
       <div className="flex items-center flex-1 px-4">
-        <p className="mr-2 font-bold text-lg">{text}</p>
+        <span className="mr-2 font-bold text-lg">{text}</span>
         {icon}
       </div>
 

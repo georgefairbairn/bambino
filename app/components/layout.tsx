@@ -1,6 +1,7 @@
 import { Link, useLocation } from '@remix-run/react';
 import { ROUTES } from '../utils/consts';
 import { UserButton, SignInButton, useAuth } from '@clerk/remix';
+import { Settings } from 'lucide-react';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { isLoaded, userId } = useAuth();
@@ -17,6 +18,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </Link>
         <div className="flex-1 flex items-center justify-end">
           {isLoaded && userId ? <UserButton /> : <SignInButton />}
+          <Link className="inline-block group ml-8" to={ROUTES.SETTINGS}>
+            <Settings className="group-hover:rotate-180 group-hover:scale-125 transition" />
+          </Link>
         </div>
       </div>
       <div className="flex flex-col justify-start flex-1">
