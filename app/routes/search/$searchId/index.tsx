@@ -1,4 +1,5 @@
-import { LoaderFunction, redirect } from '@remix-run/node';
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 import { ROUTES } from '~/utils/consts';
 import { db } from '~/utils/db.server'; // Import your Prisma client
 

@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import type { MouseEvent } from 'react';
 import type { ActionArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getAuth } from '@clerk/remix/ssr.server';
 
 import { GENDER, ROUTES } from '~/utils/consts';

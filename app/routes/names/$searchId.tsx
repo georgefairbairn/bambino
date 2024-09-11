@@ -1,15 +1,6 @@
-import {
-  ActionFunction,
-  LoaderFunction,
-  json,
-  redirect,
-} from '@remix-run/node';
-import {
-  Link,
-  useLoaderData,
-  useFetcher,
-  useSearchParams,
-} from '@remix-run/react';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
 import { FILTERS, ROUTES } from '~/utils/consts';
 import { SelectButton } from '~/components/select-button';
@@ -115,6 +106,7 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Names() {
   const { label, names, searchId } = useLoaderData();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setSearchParams] = useSearchParams();
 
   const [filters, setFilters] = useState<{ [k: string]: boolean }>({
@@ -253,7 +245,7 @@ export default function Names() {
               <div className="flex-1">{gender}</div>
               <div className="flex-1">{userAction}</div>
             </div>
-            <div className="min-w-20">
+            <div className="min-w-20 flex">
               <Link
                 to={`${ROUTES.SEARCH}/${searchId}/${nameObj.name.id}`}
                 className="text-black inline-block mr-6 hover:scale-125 transition"
