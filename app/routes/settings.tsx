@@ -4,7 +4,7 @@ import { json, redirect } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 import { SelectButton } from '~/components/select-button';
 import { useLoaderData } from '@remix-run/react';
-import { ROUTES, VOICE_GENDER } from '~/utils/consts';
+import { VOICE_GENDER } from '~/utils/consts';
 import type { User } from '@prisma/client';
 import { useEffect } from 'react';
 
@@ -37,7 +37,7 @@ export const action = async ({ request }: ActionArgs) => {
   }
 
   try {
-    await db.user.update({
+    const updatedUser = await db.user.update({
       where: { id: parseInt(userId) },
       data: {
         ...(locale !== null && { locale }),
@@ -45,7 +45,7 @@ export const action = async ({ request }: ActionArgs) => {
       },
     });
 
-    return redirect(ROUTES.SETTINGS);
+    return json({ user: updatedUser });
   } catch (error) {
     console.error(error);
     return new Response('Failed to update locale', { status: 500 });
@@ -95,7 +95,7 @@ export default function SettingsPage() {
           </div>
         </form>
       </div>
-      <h2 className="text-xl font-bold mb-4">Preferred Voice Gender</h2>
+      <h2 className="text-xl font-bold mb-4 mt-12">Preferred Voice Gender</h2>
       <div className="grid grid-cols-cardsMobile gap-4 sm:grid-cols-cardsDesktop">
         <form method="post" className="flex">
           <input type="hidden" name="voice" value={VOICE_GENDER.MALE} />

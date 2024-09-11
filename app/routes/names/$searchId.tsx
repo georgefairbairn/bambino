@@ -1,6 +1,11 @@
 import type { ActionFunction, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import { Link, useLoaderData, useSearchParams } from '@remix-run/react';
+import {
+  Link,
+  useLoaderData,
+  useNavigate,
+  useSearchParams,
+} from '@remix-run/react';
 import { db } from '~/utils/db.server';
 import { FILTERS, ROUTES } from '~/utils/consts';
 import { SelectButton } from '~/components/select-button';
@@ -108,6 +113,7 @@ export default function Names() {
   const { label, names, searchId } = useLoaderData();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState<{ [k: string]: boolean }>({
     [FILTERS.BOY]: false,
@@ -156,43 +162,55 @@ export default function Names() {
 
   return (
     <div className="flex flex-col my-8">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex group items-center mb-8 sm:hidden"
+      >
+        <ArrowLeft
+          size={24}
+          className="group-hover:-translate-x-2 transition-transform ease-in-out duration-300"
+        />
+        <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
+          Back
+        </span>
+      </button>
       <h1 className="text-2xl font-bold mr-2">{label}</h1>
-      <div className="flex justify-between items-start mt-8">
-        <Link
-          to={`${ROUTES.SEARCH}/${searchId}`}
-          className="flex group items-center"
+      <div className="flex justify-between items-start sm:mt-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="sm:flex group items-center hidden sm:visible"
         >
           <ArrowLeft
             size={24}
             className="group-hover:-translate-x-2 transition-transform ease-in-out duration-300"
           />
           <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
-            Back to Search
+            Back
           </span>
-        </Link>
-        <div className="flex flex-col items-end">
+        </button>
+        <div className="flex flex-col sm:items-end mt-4 sm:mt-0">
           <div className="text-lg text-slate-500">Filters</div>
-          <div className="flex mt-4 gap-4">
+          <div className="flex mt-4 gap-4 flex-wrap">
             <SelectButton
-              icon={<p className="text-5xl text-blue-500 -mt-1">♂</p>}
+              icon={<p className="text-5xl text-blue-500 -mt-1 min-h-12">♂</p>}
               text="Boy"
               isSelected={filters[FILTERS.BOY]}
               onClick={() => toggleFilter(FILTERS.BOY)}
             />
             <SelectButton
-              icon={<p className="text-5xl text-pink-500 -mt-1">♀</p>}
+              icon={<p className="text-5xl text-pink-500 -mt-1 min-h-12">♀</p>}
               text="Girl"
               isSelected={filters[FILTERS.GIRL]}
               onClick={() => toggleFilter(FILTERS.GIRL)}
             />
             <SelectButton
-              icon={<ThumbsUp />}
+              icon={<ThumbsUp className="min-h-12" />}
               text="Liked"
               isSelected={filters[FILTERS.LIKED]}
               onClick={() => toggleFilter(FILTERS.LIKED)}
             />
             <SelectButton
-              icon={<ThumbsDown />}
+              icon={<ThumbsDown className="min-h-12" />}
               text="Disliked"
               isSelected={filters[FILTERS.DISLIKED]}
               onClick={() => toggleFilter(FILTERS.DISLIKED)}
@@ -201,13 +219,11 @@ export default function Names() {
         </div>
       </div>
 
-      <div className="flex w-full text-white bg-black px-5 py-4 rounded-lg mt-6 font-bold">
-        <div className="flex flex-1">
-          <div className="flex-1">Name</div>
-          <div className="flex-1">Gender</div>
-          <div className="flex-1">Decision</div>
-        </div>
-        <div className="min-w-20">Actions</div>
+      <div className="w-full grid grid-cols-4 text-white bg-black px-5 py-4 rounded-lg mt-6 font-bold text-sm sm:text-base">
+        <div className="flex-1">Name</div>
+        <div className="flex-1">Gender</div>
+        <div className="flex-1">Decision</div>
+        <div className="min-w-20 text-sm sm:text-base">Actions</div>
       </div>
       {names.length === 0 ? (
         <div className="flex flex-col w-full items-center mt-12">
@@ -240,32 +256,32 @@ export default function Names() {
             className="flex w-full px-5 py-3 rounded-lg mt-4 bg-white border-4 border-black box-border"
             key={nameObj.id}
           >
-            <div className="flex flex-1 items-center">
-              <div className="flex-1">{name}</div>
-              <div className="flex-1">{gender}</div>
-              <div className="flex-1">{userAction}</div>
-            </div>
-            <div className="min-w-20 flex">
-              <Link
-                to={`${ROUTES.SEARCH}/${searchId}/${nameObj.name.id}`}
-                className="text-black inline-block mr-6 hover:scale-125 transition"
-              >
-                <Eye />
-              </Link>
-              <button
-                className="text-slate-500 mr-6 hover:scale-125 transition"
-                type="button"
-                onClick={() => openEditDialog(nameObj)}
-              >
-                <Pencil />
-              </button>
-              <button
-                type="button"
-                className="text-red-500 hover:scale-125 transition"
-                onClick={() => openDeleteDialog(nameObj)}
-              >
-                <Trash2 />
-              </button>
+            <div className="w-full grid grid-cols-4 gap-2 text-sm sm:text-base">
+              <div>{name}</div>
+              <div>{gender}</div>
+              <div>{userAction}</div>
+              <div className="min-w-20 flex items-center">
+                <Link
+                  to={`${ROUTES.SEARCH}/${searchId}/${nameObj.name.id}`}
+                  className="text-black inline-block mr-2 sm:mr-6 hover:scale-125 transition"
+                >
+                  <Eye />
+                </Link>
+                <button
+                  className="text-slate-500 mr-2 sm:mr-6 hover:scale-125 transition"
+                  type="button"
+                  onClick={() => openEditDialog(nameObj)}
+                >
+                  <Pencil />
+                </button>
+                <button
+                  type="button"
+                  className="text-red-500 hover:scale-125 transition"
+                  onClick={() => openDeleteDialog(nameObj)}
+                >
+                  <Trash2 />
+                </button>
+              </div>
             </div>
           </div>
         );

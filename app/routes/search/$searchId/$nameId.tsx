@@ -1,4 +1,11 @@
-import { ThumbsUp, ThumbsDown, RefreshCw, ArrowLeft, Baby } from 'lucide-react';
+import {
+  ThumbsUp,
+  ThumbsDown,
+  RefreshCw,
+  ArrowLeft,
+  Baby,
+  Settings,
+} from 'lucide-react';
 import { Link, useLoaderData } from '@remix-run/react';
 import type { ActionArgs, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
@@ -69,60 +76,74 @@ export default function Search() {
   const { name, searchId } = useLoaderData();
 
   return (
-    <div className="flex flex-col max-w-4xl w-full mx-auto my-28">
-      <form method="post" className="flex justify-between">
-        <Name name={name} />
-        <div className="flex flex-col ml-10 justify-center">
-          <input type="hidden" name="nameId" value={name?.id} />
-          <button
-            type="submit"
-            name="actionType"
-            value="like"
-            className="flex items-center bg-black text-white text-2xl px-8 py-3 rounded-full w-fit group"
-          >
-            <span className="mr-3">Like</span>
-            <ThumbsUp className="max-w-none group-hover:-rotate-6 group-hover:scale-125 transition" />
-          </button>
-          <button
-            type="submit"
-            name="actionType"
-            value="dislike"
-            className="flex items-center bg-black text-white text-2xl px-8 py-3 rounded-full my-10 w-fit group"
-          >
-            <span className="mr-3">Dislike</span>
-            <ThumbsDown className="max-w-none group-hover:-rotate-6 group-hover:scale-125 transition" />
-          </button>
-          <button
-            type="submit"
-            name="actionType"
-            value="skip"
-            className="flex items-center text-2xl px-8 py-3 rounded-full w-fit hover:bg-black hover:bg-opacity-5 group"
-          >
-            <span className="mr-3">Skip</span>
-            <RefreshCw className="max-w-none group-hover:rotate-180 group-hover:scale-125 transition" />
-          </button>
-        </div>
-      </form>
-      <div className="flex justify-between mt-28">
-        <Link to={ROUTES.LIBRARY} className="flex group items-center">
-          <ArrowLeft
-            size={24}
-            className="group-hover:-translate-x-2 transition-transform ease-in-out duration-300"
-          />
-          <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
-            Back to Library
-          </span>
-        </Link>
-        <Link
-          to={`${ROUTES.NAMES}/${searchId}`}
-          className="flex group items-center"
-        >
-          <span className="mr-2 group-hover:underline underline-offset-8 text-lg">
-            View names shortlist
-          </span>
-          <Baby size={24} className="group-hover:scale-125 transition" />
+    <>
+      <div className="w-full flex justify-end mt-4 mb-4 md:mb-24">
+        <Link className="inline-block group ml-4 md:ml-8" to={ROUTES.SETTINGS}>
+          <Settings className="group-hover:rotate-180 group-hover:scale-125 transition" />
         </Link>
       </div>
-    </div>
+      <div className="flex flex-col max-w-4xl w-full mx-auto">
+        <form
+          method="post"
+          className="flex flex-col justify-between sm:flex-row"
+        >
+          <Name name={name} />
+          <div className="flex flex-row sm:flex-col flex-wrap mt-8 sm:mt-0 sm:ml-10 justify-center">
+            <input type="hidden" name="nameId" value={name?.id} />
+            <button
+              type="submit"
+              name="actionType"
+              value="like"
+              className="flex items-center bg-black text-white text-2xl px-8 py-3 rounded-full w-fit group"
+            >
+              <span className="mr-3">Like</span>
+              <ThumbsUp className="max-w-none group-hover:-rotate-6 group-hover:scale-125 transition" />
+            </button>
+            <button
+              type="submit"
+              name="actionType"
+              value="dislike"
+              className="flex items-center bg-black text-white text-2xl px-8 py-3 rounded-full ml-2 sm:ml-0 sm:my-10 w-fit group"
+            >
+              <span className="mr-3">Dislike</span>
+              <ThumbsDown className="max-w-none group-hover:-rotate-6 group-hover:scale-125 transition" />
+            </button>
+            <button
+              type="submit"
+              name="actionType"
+              value="skip"
+              className="flex items-center text-2xl px-8 py-3 rounded-full w-fit hover:bg-black hover:bg-opacity-5 group mt-8 sm:mt-0"
+            >
+              <span className="mr-3">Skip</span>
+              <RefreshCw className="max-w-none group-hover:rotate-180 group-hover:scale-125 transition" />
+            </button>
+          </div>
+        </form>
+
+        <div className="flex justify-between mt-28">
+          <Link
+            to={ROUTES.LIBRARY}
+            className="flex group items-center flex-1 sm:flex-none"
+          >
+            <ArrowLeft
+              size={24}
+              className="group-hover:-translate-x-2 transition-transform ease-in-out duration-300"
+            />
+            <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
+              Back to Library
+            </span>
+          </Link>
+          <Link
+            to={`${ROUTES.NAMES}/${searchId}`}
+            className="flex group items-center flex-1 sm:flex-none"
+          >
+            <span className="group-hover:underline underline-offset-8 text-lg text-right sm:text-left mr-2">
+              View names shortlist
+            </span>
+            <Baby size={24} className="group-hover:scale-125 transition" />
+          </Link>
+        </div>
+      </div>
+    </>
   );
 }
