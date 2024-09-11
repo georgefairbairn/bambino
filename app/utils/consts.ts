@@ -9,6 +9,11 @@ export const enum ROUTES {
   SETTINGS = '/settings',
 }
 
+export const enum VOICE_GENDER {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
+
 export const enum GENDER {
   BOY = 'boy',
   GIRL = 'girl',

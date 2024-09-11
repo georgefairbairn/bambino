@@ -1,11 +1,25 @@
-import { json, LoaderFunction } from '@remix-run/node';
+import type { LoaderFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
+
+const VOICE_CONFIG: Record<string, { [k: string]: string }> = {
+  'en-US': {
+    MALE: 'en-US-Wavenet-D',
+    FEMALE: 'en-US-Wavenet-E',
+  },
+  'en-GB': {
+    MALE: 'en-GB-Wavenet-B',
+    FEMALE: 'en-GB-Wavenet-A',
+  },
+};
 
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const text = url.searchParams.get('text');
+  const locale = url.searchParams.get('locale');
+  const voice = url.searchParams.get('voice');
 
-  if (!text) {
-    return json({ error: 'Text is required' }, { status: 400 });
+  if (!text || !locale || !voice) {
+    return json({ error: 'Missing params' }, { status: 400 });
   }
 
   try {
@@ -18,7 +32,11 @@ export const loader: LoaderFunction = async ({ request }) => {
         },
         body: JSON.stringify({
           input: { text: text },
-          voice: { languageCode: 'en-US', name: 'en-US-Wavenet-D' },
+          voice: {
+            languageCode: locale,
+            name: VOICE_CONFIG[locale][voice],
+            ssmlGender: voice,
+          },
           audioConfig: { audioEncoding: 'MP3' },
         }),
       }

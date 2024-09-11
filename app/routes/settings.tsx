@@ -4,8 +4,9 @@ import { json, redirect } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 import { SelectButton } from '~/components/select-button';
 import { useLoaderData } from '@remix-run/react';
-import { ROUTES } from '~/utils/consts';
+import { ROUTES, VOICE_GENDER } from '~/utils/consts';
 import type { User } from '@prisma/client';
+import { useEffect } from 'react';
 
 type LoaderData = {
   user: User;
@@ -27,17 +28,21 @@ export const loader: LoaderFunction = async args => {
 
 export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
-  const locale = formData.get('locale');
-  const userId = formData.get('userId');
+  const locale = formData.get('locale') as string;
+  const voice = formData.get('voice') as string;
+  const userId = formData.get('userId') as string;
 
-  if (typeof locale !== 'string' || typeof userId !== 'string') {
+  if (!userId) {
     return new Response('Invalid form submission', { status: 400 });
   }
 
   try {
     await db.user.update({
       where: { id: parseInt(userId) },
-      data: { locale },
+      data: {
+        ...(locale !== null && { locale }),
+        ...(voice !== null && { voice }),
+      },
     });
 
     return redirect(ROUTES.SETTINGS);
@@ -49,8 +54,18 @@ export const action = async ({ request }: ActionArgs) => {
 
 export default function SettingsPage() {
   const {
-    user: { id: userId, locale },
+    user: { id: userId, locale, voice },
   } = useLoaderData<LoaderData>();
+
+  useEffect(() => {
+    if (locale) {
+      window.localStorage.setItem('locale', locale);
+    }
+
+    if (voice) {
+      window.localStorage.setItem('voice', voice);
+    }
+  }, [locale, voice]);
 
   return (
     <div className="flex flex-col mt-8 mb-4">
@@ -76,6 +91,31 @@ export default function SettingsPage() {
               icon={<span>🇺🇸</span>}
               text={<div className="py-4">English (US)</div>}
               isSelected={locale === 'en-US'}
+            />
+          </div>
+        </form>
+      </div>
+      <h2 className="text-xl font-bold mb-4">Preferred Voice Gender</h2>
+      <div className="grid grid-cols-cardsMobile gap-4 sm:grid-cols-cardsDesktop">
+        <form method="post" className="flex">
+          <input type="hidden" name="voice" value={VOICE_GENDER.MALE} />
+          <input type="hidden" name="userId" value={userId} />
+          <SelectButton
+            type="submit"
+            icon={<span>🧔‍♂️</span>}
+            text={<div className="py-4">Male</div>}
+            isSelected={voice === VOICE_GENDER.MALE}
+          />
+        </form>
+        <form method="post">
+          <div className="w-full">
+            <input type="hidden" name="voice" value={VOICE_GENDER.FEMALE} />
+            <input type="hidden" name="userId" value={userId} />
+            <SelectButton
+              type="submit"
+              icon={<span>👩</span>}
+              text={<div className="py-4">Female</div>}
+              isSelected={voice === VOICE_GENDER.FEMALE}
             />
           </div>
         </form>
