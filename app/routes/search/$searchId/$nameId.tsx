@@ -1,12 +1,10 @@
 import { ThumbsUp, ThumbsDown, RefreshCw, ArrowLeft, Baby } from 'lucide-react';
-import { Link, useSearchParams } from '@remix-run/react';
-import type { ActionArgs } from '@remix-run/node';
-import { LoaderFunction, json, redirect } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { Link, useLoaderData } from '@remix-run/react';
+import type { ActionArgs, LoaderFunction } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 import Name from '~/components/name';
 import { ROUTES } from '~/utils/consts';
-import { useEffect } from 'react';
 
 export const loader: LoaderFunction = async ({ params }) => {
   const { nameId, searchId } = params;

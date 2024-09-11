@@ -1,5 +1,5 @@
 import { getAuth } from '@clerk/remix/ssr.server';
-import type { ActionFunctionArgs, LoaderFunction } from '@remix-run/node';
+import type { ActionArgs, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 import { SelectButton } from '~/components/select-button';
@@ -25,7 +25,7 @@ export const loader: LoaderFunction = async args => {
   return json({ user });
 };
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
   const locale = formData.get('locale');
   const userId = formData.get('userId');

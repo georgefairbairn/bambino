@@ -1,4 +1,8 @@
-import type { MetaFunction, LinksFunction } from '@remix-run/node';
+import type {
+  MetaFunction,
+  LinksFunction,
+  LoaderFunction,
+} from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -8,7 +12,6 @@ import {
   ScrollRestoration,
 } from '@remix-run/react';
 import { rootAuthLoader } from '@clerk/remix/ssr.server';
-import { LoaderFunction } from '@remix-run/node';
 import { ClerkApp } from '@clerk/remix';
 import Layout from './components/layout';
 import tailwind from './tailwind.css';

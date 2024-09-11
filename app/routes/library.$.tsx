@@ -1,11 +1,17 @@
 import SkeletonSearchCard from '~/components/skeleton-search-card';
 import { Info } from 'lucide-react';
 import { getAuth } from '@clerk/remix/ssr.server';
-import { LoaderFunction, redirect, json } from '@remix-run/node';
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect, json } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 import SearchCard from '~/components/search-card';
 import { useLoaderData } from '@remix-run/react';
-import { Search } from '@prisma/client';
+import type { Search } from '@prisma/client';
+
+type LoaderData = {
+  searches: Search[];
+  locale: string;
+};
 
 export const loader: LoaderFunction = async args => {
   const { userId } = await getAuth(args);
@@ -40,7 +46,7 @@ export const loader: LoaderFunction = async args => {
 };
 
 export default function Library() {
-  const { searches, locale } = useLoaderData();
+  const { searches, locale } = useLoaderData<LoaderData>();
 
   return (
     <>
@@ -53,7 +59,7 @@ export default function Library() {
       </div>
       <div className="grid grid-cols-cardsMobile gap-4 sm:grid-cols-cardsDesktop">
         <SkeletonSearchCard />
-        {searches.map((search: Search) => (
+        {searches.map(search => (
           <SearchCard
             key={search.id}
             id={search.id}
