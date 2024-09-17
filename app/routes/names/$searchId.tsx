@@ -1,11 +1,6 @@
 import type { ActionFunction, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import {
-  Link,
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-} from '@remix-run/react';
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
 import { FILTERS, ROUTES } from '~/utils/consts';
 import { SelectButton } from '~/components/select-button';
@@ -64,8 +59,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
       condition !== undefined
   );
 
-  console.log({ filters, genderConditions, actionTypeConditions });
-
   const names = await db.userAction.findMany({
     where: {
       searchId: parseInt(searchId),
@@ -118,7 +111,6 @@ export default function Names() {
   const { label, names, searchId } = useLoaderData();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const [filters, setFilters] = useState<{ [k: string]: boolean }>({
     [FILTERS.BOY]: false,
@@ -167,9 +159,9 @@ export default function Names() {
 
   return (
     <div className="flex flex-col my-8">
-      <button
-        onClick={() => navigate(-1)}
+      <Link
         className="flex group items-center mb-8 sm:hidden"
+        to={`${ROUTES.SEARCH}/${searchId}`}
       >
         <ArrowLeft
           size={24}
@@ -178,12 +170,12 @@ export default function Names() {
         <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
           Back
         </span>
-      </button>
+      </Link>
       <h1 className="text-2xl font-bold mr-2">{label}</h1>
       <div className="flex justify-between items-start sm:mt-8">
-        <button
-          onClick={() => navigate(-1)}
+        <Link
           className="sm:flex group items-center hidden sm:visible"
+          to={`${ROUTES.SEARCH}/${searchId}`}
         >
           <ArrowLeft
             size={24}
@@ -192,7 +184,7 @@ export default function Names() {
           <span className="ml-2 group-hover:underline underline-offset-8 text-lg">
             Back
           </span>
-        </button>
+        </Link>
         <div className="flex flex-col sm:items-end mt-4 sm:mt-0">
           <div className="text-lg text-slate-500">Filters</div>
           <div className="flex mt-4 gap-4 flex-wrap">
