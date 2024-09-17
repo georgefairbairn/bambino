@@ -176,7 +176,7 @@ export default function Names() {
       <h1 className="text-2xl font-bold mr-2">{label}</h1>
       <div className="flex w-full sm:justify-end mt-8 sm:mt-0">
         <ButtonLink
-          to={ROUTES.LIBRARY}
+          to={`${ROUTES.COMPARE}/${searchId}`}
           className="group w-full justify-center sm:w-fit"
         >
           <span className="mr-2.5 text-xl">Compare</span>

@@ -16,6 +16,7 @@ model User {
   locale      String   @default("en-US")
   voice       String   @default("FEMALE")
   searches    Search[]
+  sharingCode String   @unique @default(dbgenerated("uuid_generate_v4()"))
 }
 
 model Search {

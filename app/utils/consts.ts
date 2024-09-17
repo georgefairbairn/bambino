@@ -7,6 +7,7 @@ export const enum ROUTES {
   PRIVACY_POLICY = '/privacy-policy',
   CONTACT_US = '/contact-us',
   SETTINGS = '/settings',
+  COMPARE = '/compare',
 }
 
 export const enum VOICE_GENDER {
