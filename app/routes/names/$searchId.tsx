@@ -12,8 +12,10 @@ import {
   ThumbsDown,
   ThumbsUp,
   Trash2,
+  Blend,
 } from 'lucide-react';
 import { DialogContent, DialogOverlay } from '@reach/dialog';
+import ButtonLink from '~/components/button-link';
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const url = new URL(request.url);
@@ -172,6 +174,15 @@ export default function Names() {
         </span>
       </Link>
       <h1 className="text-2xl font-bold mr-2">{label}</h1>
+      <div className="flex w-full sm:justify-end mt-8 sm:mt-0">
+        <ButtonLink
+          to={ROUTES.LIBRARY}
+          className="group w-full justify-center sm:w-fit"
+        >
+          <span className="mr-2.5 text-xl">Compare</span>
+          <Blend size={24} />
+        </ButtonLink>
+      </div>
       <div className="flex justify-between items-start sm:mt-8">
         <Link
           className="sm:flex group items-center hidden sm:visible"
