@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { ROUTES } from '~/utils/consts';
+import { useAuth } from '@clerk/remix';
 import ButtonLink from '~/components/button-link';
 
 const FEATURED_NAMES = [
@@ -15,6 +16,7 @@ const FEATURED_NAMES = [
 
 export default function Index() {
   const [nameIndex, setNameIndex] = useState(0);
+  const { isLoaded, userId } = useAuth();
 
   useEffect(() => {
     const timeout: NodeJS.Timeout = setTimeout(() => {
@@ -60,7 +62,9 @@ export default function Index() {
             your baby
           </p>
           <ButtonLink to={ROUTES.LIBRARY} className="group">
-            <span className="mr-2.5 text-2xl">Get started</span>
+            <span className="mr-2.5 text-2xl">
+              {isLoaded && userId ? 'Go to Library' : 'Get started'}
+            </span>
             <ArrowRight
               size={24}
               className="group-hover:translate-x-2 transition-transform ease-in-out duration-300"
