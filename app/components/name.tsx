@@ -17,10 +17,14 @@ export default function NameBlock({ name }: { name: Name }) {
     }
   }, []);
 
-  const underlineColor =
-    name?.gender.toLowerCase() === 'female'
-      ? 'border-b-pink-500'
-      : 'border-b-blue-500';
+  let underlineColor: string;
+  if (name?.gender.toLowerCase() === 'female') {
+    underlineColor = 'border-b-pink-500';
+  } else if (name?.gender.toLowerCase() === 'male') {
+    underlineColor = 'border-b-blue-500';
+  } else {
+    underlineColor = 'border-b-purple-500';
+  }
 
   const speakName = async () => {
     try {
