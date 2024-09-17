@@ -254,9 +254,9 @@ export default function Names() {
             key={nameObj.id}
           >
             <div className="w-full grid grid-cols-4 gap-2 text-sm sm:text-base">
-              <div>{name}</div>
-              <div>{gender}</div>
-              <div>{userAction}</div>
+              <div className="flex items-center">{name}</div>
+              <div className="flex items-center">{gender}</div>
+              <div className="flex items-center">{userAction}</div>
               <div className="min-w-20 flex items-center">
                 <Link
                   to={`${ROUTES.SEARCH}/${searchId}/${nameObj.name.id}`}
