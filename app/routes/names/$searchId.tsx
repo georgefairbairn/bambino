@@ -39,15 +39,18 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 
   const genderConditions = [
-    !filters.length || filters.includes('boy') ? { gender: 'male' } : undefined,
-    !filters.length || filters.includes('girl')
-      ? { gender: 'female' }
-      : undefined,
-    { gender: 'unisex' },
+    filters.includes('boy') ? { gender: 'male' } : undefined,
+    filters.includes('girl') ? { gender: 'female' } : undefined,
+    { gender: 'unisex' }, // Always include 'unisex'
   ].filter(
     (condition): condition is Exclude<typeof condition, undefined> =>
       condition !== undefined
   );
+
+  // If no gender filters are applied, include all genders
+  if (!filters.includes('boy') && !filters.includes('girl')) {
+    genderConditions.push({ gender: 'male' }, { gender: 'female' });
+  }
 
   const actionTypeConditions = [
     !filters.length || filters.includes('liked')
@@ -60,6 +63,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     (condition): condition is Exclude<typeof condition, undefined> =>
       condition !== undefined
   );
+
+  console.log({ filters, genderConditions, actionTypeConditions });
 
   const names = await db.userAction.findMany({
     where: {
