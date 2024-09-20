@@ -25,11 +25,11 @@ export const loader: LoaderFunction = async args => {
 
   try {
     let existingUser = await db.user.findUnique({
-      where: { clerkUserId: userId },
+      where: { user_id: userId },
     });
 
     if (!existingUser) {
-      existingUser = await db.user.create({ data: { clerkUserId: userId } });
+      existingUser = await db.user.create({ data: { user_id: userId } });
     }
 
     const searches = await db.search.findMany({
@@ -59,7 +59,7 @@ export default function Library() {
       </div>
       <div className="grid grid-cols-cardsMobile gap-4 sm:grid-cols-cardsDesktop">
         <SkeletonSearchCard />
-        {searches.map(search => (
+        {searches?.map(search => (
           <SearchCard
             key={search.id}
             id={search.id}

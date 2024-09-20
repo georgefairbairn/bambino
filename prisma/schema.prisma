@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id          Int      @id @default(autoincrement())
-  clerkUserId String   @unique
+  user_id     String   @unique
   locale      String   @default("en-US")
   voice       String   @default("FEMALE")
   searches    Search[]

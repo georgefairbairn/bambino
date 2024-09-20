@@ -14,7 +14,7 @@ import { SelectButton } from '~/components/select-button';
 
 export const action = async (args: ActionArgs) => {
   try {
-    const { userId: clerkUserId } = await getAuth(args);
+    const { userId } = await getAuth(args);
 
     const form = await args.request.formData();
     const genderPreference = form.get('gender');
@@ -23,12 +23,12 @@ export const action = async (args: ActionArgs) => {
     if (
       typeof genderPreference !== 'string' ||
       typeof label !== 'string' ||
-      typeof clerkUserId !== 'string'
+      typeof userId !== 'string'
     ) {
       throw new Error(`Form not submitted correctly.`);
     }
 
-    const user = await db.user.findUnique({ where: { clerkUserId } });
+    const user = await db.user.findUnique({ where: { user_id: userId } });
 
     if (!user) return redirect(ROUTES.LIBRARY);
 

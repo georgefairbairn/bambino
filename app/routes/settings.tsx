@@ -20,7 +20,7 @@ export const loader: LoaderFunction = async args => {
   }
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { user_id: userId },
   });
 
   return json({ user });
