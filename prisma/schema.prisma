@@ -11,12 +11,11 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  user_id     String   @unique
-  locale      String   @default("en-US")
-  voice       String   @default("FEMALE")
-  searches    Search[]
-  sharingCode String   @unique @default(dbgenerated("uuid_generate_v4()"))
+  id       Int      @id @default(autoincrement())
+  user_id  String   @unique
+  locale   String   @default("en-US")
+  voice    String   @default("FEMALE")
+  searches Search[]
 }
 
 model Search {
@@ -28,6 +27,7 @@ model Search {
   createdAt        DateTime     @default(now())
   lastUpdated      DateTime     @default(now())
   userActions      UserAction[]
+  sharingCode      String       @unique @default(dbgenerated("uuid_generate_v4()"))
 }
 
 model Name {

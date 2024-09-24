@@ -22,10 +22,6 @@ export const loader: LoaderFunction = async args => {
     return redirect(process.env.CLERK_SIGN_IN_URL ?? '/');
   }
 
-  const user = await db.user.findUnique({
-    where: { user_id: userId },
-  });
-
   const searchId = args.params.searchId;
 
   if (!searchId) return redirect(ROUTES.LIBRARY);
@@ -40,15 +36,14 @@ export const loader: LoaderFunction = async args => {
     throw new Response('Search not found', { status: 404 });
   }
 
-  return json({ user, searchDetails });
+  return json({ searchDetails });
 };
 
 export const action = async ({ request }: ActionArgs) => {};
 
 export default function ComparePage() {
   const {
-    user: { sharingCode },
-    searchDetails: { label },
+    searchDetails: { label, sharingCode },
   } = useLoaderData<LoaderData>();
 
   const [copied, setCopied] = useState(false);
