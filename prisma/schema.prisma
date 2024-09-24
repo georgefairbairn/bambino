@@ -22,6 +22,7 @@ model Search {
   id               Int          @id @default(autoincrement())
   user             User         @relation(fields: [userId], references: [id])
   userId           Int
+  sharedUserId     Int
   genderPreference String
   label            String
   createdAt        DateTime     @default(now())
