@@ -67,6 +67,7 @@ export default function Library() {
             label={search.label}
             lastUpdated={search.lastUpdated}
             locale={locale}
+            isShared={!!search.sharedUserId}
           />
         ))}
       </div>

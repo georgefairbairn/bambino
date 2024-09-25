@@ -13,9 +13,13 @@ import {
   ThumbsUp,
   Trash2,
   Blend,
+  Check,
+  X,
 } from 'lucide-react';
 import { DialogContent, DialogOverlay } from '@reach/dialog';
 import ButtonLink from '~/components/button-link';
+import Button from '~/components/button';
+import Input from '~/components/input';
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const url = new URL(request.url);
@@ -73,44 +77,70 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     include: { name: true },
   });
 
-  return json({ label: searchDetails.label, names, searchId });
+  return json({
+    label: searchDetails.label,
+    names,
+    searchId,
+    isShared: searchDetails.sharedUserId,
+  });
 };
 
 export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const userActionId = formData.get('userActionId')?.toString();
-  const action = formData.get('_action');
+  try {
+    const formData = await request.formData();
 
-  if (action === 'delete' && userActionId) {
-    await db.userAction.delete({
-      where: { id: parseInt(userActionId) },
-    });
+    const userActionId = formData.get('userActionId')?.toString();
+    const action = formData.get('_action');
+    const name = formData.get('name');
+    const searchId = formData.get('_searchId');
 
-    return redirect(request.url);
+    if (
+      name &&
+      searchId &&
+      typeof name === 'string' &&
+      typeof searchId === 'string'
+    ) {
+      await db.search.update({
+        where: { id: parseInt(searchId) },
+        data: { label: name },
+      });
+
+      return redirect(request.url);
+    }
+
+    if (action === 'delete' && userActionId) {
+      await db.userAction.delete({
+        where: { id: parseInt(userActionId) },
+      });
+
+      return redirect(request.url);
+    }
+
+    if (action === 'edit' && userActionId) {
+      await db.userAction.delete({
+        where: { id: parseInt(userActionId) },
+      });
+
+      return redirect(request.url);
+    }
+
+    if ((action === 'like' || action === 'dislike') && userActionId) {
+      await db.userAction.update({
+        where: { id: parseInt(userActionId) },
+        data: { actionType: action },
+      });
+
+      return redirect(request.url);
+    }
+
+    return json({ ok: true });
+  } catch (error) {
+    console.error(error);
   }
-
-  if (action === 'edit' && userActionId) {
-    await db.userAction.delete({
-      where: { id: parseInt(userActionId) },
-    });
-
-    return redirect(request.url);
-  }
-
-  if ((action === 'like' || action === 'dislike') && userActionId) {
-    await db.userAction.update({
-      where: { id: parseInt(userActionId) },
-      data: { actionType: action },
-    });
-
-    return redirect(request.url);
-  }
-
-  return json({ ok: true });
 };
 
 export default function Names() {
-  const { label, names, searchId } = useLoaderData();
+  const { label, names, searchId, isShared } = useLoaderData();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setSearchParams] = useSearchParams();
 
@@ -124,6 +154,8 @@ export default function Names() {
   const [currentNameObj, setCurrentNameObj] = useState<any>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [searchName, setSearchName] = useState(label);
+  const [showEditNameInput, setShowEditNameInput] = useState(false);
 
   const openDeleteDialog = (nameObj: any) => {
     setCurrentNameObj(nameObj);
@@ -159,6 +191,11 @@ export default function Names() {
     setSearchParams(query); // Update URL with current filters
   };
 
+  const hideNameInput = () => {
+    setShowEditNameInput(false);
+    setSearchName(label);
+  };
+
   return (
     <div className="flex flex-col my-8">
       <Link
@@ -173,16 +210,52 @@ export default function Names() {
           Back
         </span>
       </Link>
-      <h1 className="text-2xl font-bold mr-2">{label}</h1>
-      <div className="flex w-full sm:justify-end mt-8 sm:mt-0">
-        <ButtonLink
-          to={`${ROUTES.COMPARE}/${searchId}`}
-          className="group w-full justify-center sm:w-fit"
-        >
-          <span className="mr-2.5 text-xl">Compare</span>
-          <Blend size={24} />
-        </ButtonLink>
+      <div className="flex items-center">
+        {showEditNameInput ? (
+          <form method="post" className="flex">
+            <Input
+              className="sm:w-9/12 pl-4 pr-4 py-2 border-4 border-black !rounded-lg max-w-xs"
+              id="name"
+              name="name"
+              value={searchName}
+              placeholder="Enter a name"
+              onChange={e => setSearchName(e.target.value)}
+              autoFocus={showEditNameInput}
+              required
+            />
+            <input type="hidden" name="_searchId" value={searchId} />
+            <Button type="submit" className="!px-4 mx-2">
+              <Check />
+            </Button>
+            <Button type="button" className="!px-4" onClick={hideNameInput}>
+              <X />
+            </Button>
+          </form>
+        ) : (
+          <Button
+            className="group bg-transparent !text-black !p-0"
+            onClick={() => setShowEditNameInput(true)}
+          >
+            <h1 className="text-2xl font-bold mr-4 group-hover:underline underline-offset-8 decoration-slate-500 decoration-dashed">
+              {label}
+            </h1>
+            <div className="group-hover:block hidden text-slate-500">
+              <Pencil />
+            </div>
+          </Button>
+        )}
       </div>
+      {!isShared && (
+        <div className="flex w-full sm:justify-end mt-8 sm:mt-0">
+          <ButtonLink
+            to={`${ROUTES.COMPARE}/${searchId}`}
+            className="group w-full justify-center sm:w-fit"
+          >
+            <span className="mr-2.5 text-xl">Compare</span>
+            <Blend size={24} />
+          </ButtonLink>
+        </div>
+      )}
       <div className="flex justify-between items-start sm:mt-8">
         <Link
           className="sm:flex group items-center hidden sm:visible"

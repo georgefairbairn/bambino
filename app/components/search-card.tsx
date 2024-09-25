@@ -1,5 +1,6 @@
 import type { Search } from '@prisma/client';
 import { Link } from '@remix-run/react';
+import { Blend } from 'lucide-react';
 import { ROUTES } from '~/utils/consts';
 
 export default function SearchCard({
@@ -8,12 +9,14 @@ export default function SearchCard({
   genderPreference,
   lastUpdated,
   locale,
+  isShared,
 }: {
   id: Search['id'];
   label: Search['label'];
   genderPreference: Search['genderPreference'];
   lastUpdated: string;
   locale: string;
+  isShared: boolean;
 }) {
   const readableDate = new Date(lastUpdated ?? 0).toLocaleDateString(locale, {
     year: '2-digit',
@@ -30,7 +33,16 @@ export default function SearchCard({
       to={`${ROUTES.SEARCH}/${id}`}
     >
       <div className="flex items-center justify-between -mt-4">
-        <div className="flex-1 font-bold">{label}</div>
+        <div className="flex-1">
+          <span className="font-bold break-all">
+            {label}
+            {isShared && (
+              <div className="bg-black text-white p-1 ml-2 rounded w-fit inline-flex">
+                <Blend size={16} />
+              </div>
+            )}
+          </span>
+        </div>
         <div>
           {genderPreference !== 'girl' && (
             <span className="text-5xl text-blue-500">♂</span>

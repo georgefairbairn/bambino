@@ -88,7 +88,7 @@ export default function Search() {
           className="flex flex-col justify-between sm:flex-row"
         >
           <Name name={name} />
-          <div className="flex flex-row sm:flex-col flex-wrap mt-8 sm:mt-0 sm:ml-10 justify-center">
+          <div className="flex flex-row sm:flex-col flex-wrap mt-8 sm:mt-0 sm:ml-10 justify-start">
             <input type="hidden" name="nameId" value={name?.id} />
             <button
               type="submit"
