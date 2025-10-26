@@ -1,4 +1,4 @@
-import { Tabs, Redirect, Link } from 'expo-router';
+import { Tabs, Redirect, router } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -30,22 +30,31 @@ export default function TabLayout() {
               backgroundColor: Colors[colorScheme ?? 'light'].background,
             },
             headerRight: () => (
-              <Link href="/profile" asChild>
-                <Pressable accessibilityRole="button" hitSlop={10} className="mr-2">
-                  {user?.imageUrl ? (
-                    <Image
-                      source={{ uri: user.imageUrl }}
-                      className="h-8 w-8 rounded-full border border-[#687076] dark:border-[#9BA1A6]"
-                    />
-                  ) : (
-                    <IconSymbol
-                      size={28}
-                      name="person.circle"
-                      color={Colors[colorScheme ?? 'light'].icon}
-                    />
-                  )}
-                </Pressable>
-              </Link>
+              <Pressable
+                accessibilityRole="button"
+                hitSlop={10}
+                onPress={() => router.push('/profile')}
+                style={{ marginRight: 8 }}
+              >
+                {user?.imageUrl ? (
+                  <Image
+                    source={{ uri: user.imageUrl }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 9999,
+                      borderWidth: 1,
+                      borderColor: (colorScheme ?? 'light') === 'dark' ? '#9BA1A6' : '#687076',
+                    }}
+                  />
+                ) : (
+                  <IconSymbol
+                    size={28}
+                    name="person.circle"
+                    color={Colors[colorScheme ?? 'light'].icon}
+                  />
+                )}
+              </Pressable>
             ),
             tabBarButton: HapticTab,
           }}
