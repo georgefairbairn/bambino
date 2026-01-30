@@ -2,8 +2,11 @@ import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 
+import { useStoreUser } from '@/hooks/use-store-user';
+
 export default function TabsLayout() {
   const { isSignedIn } = useAuth();
+  useStoreUser();
 
   if (!isSignedIn) {
     return <Redirect href="/(auth)/sign-in" />;

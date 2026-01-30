@@ -6,8 +6,8 @@ A mobile app that helps users find suitable baby names through a swipe-based int
 
 **Tech Stack:**
 - Expo SDK 54 + React Native 0.81
-- Clerk authentication (to be set up in Phase 0)
-- Convex backend (to be added)
+- Clerk authentication
+- Convex backend
 - NativeWind for styling
 
 ---
@@ -17,31 +17,31 @@ A mobile app that helps users find suitable baby names through a swipe-based int
 ### Phase 0: Clerk Authentication
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Install Clerk dependencies (@clerk/clerk-expo, expo-web-browser, expo-secure-store) | Not Started |
-| 2 | Configure EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY env variable | Not Started |
-| 3 | Create ClerkProvider wrapper in _layout.tsx | Not Started |
-| 4 | Create (auth) route group with _layout.tsx | Not Started |
-| 5 | Create sign-in screen with email/password | Not Started |
-| 6 | Create sign-up screen with email verification | Not Started |
-| 7 | Add Google SSO to sign-in | Not Started |
-| 8 | Create profile screen with sign-out | Not Started |
-| 9 | Add auth redirect logic (SignedIn/SignedOut) | Not Started |
-| 10 | Test authentication flow | Not Started |
+| 1 | Install Clerk dependencies (@clerk/clerk-expo, expo-web-browser, expo-secure-store) | Complete |
+| 2 | Configure EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY env variable | Complete |
+| 3 | Create ClerkProvider wrapper in _layout.tsx | Complete |
+| 4 | Create (auth) route group with _layout.tsx | Complete |
+| 5 | Create sign-in screen with email/password | Complete |
+| 6 | Create sign-up screen with email verification | Complete |
+| 7 | Add Google SSO to sign-in | Complete |
+| 8 | Create profile screen with sign-out | Complete |
+| 9 | Add auth redirect logic (SignedIn/SignedOut) | Complete |
+| 10 | Test authentication flow | Complete |
 
 ---
 
 ### Phase 1: Convex Setup & Integration
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Install Convex dependencies | Not Started |
-| 2 | Initialize Convex project | Not Started |
-| 3 | Configure Convex environment variables | Not Started |
-| 4 | Create Convex auth config for Clerk JWT | Not Started |
-| 5 | Add ConvexProviderWithClerk to app | Not Started |
-| 6 | Create users table schema | Not Started |
-| 7 | Create getCurrentUser query | Not Started |
-| 8 | Create createOrUpdateUser mutation | Not Started |
-| 9 | Test Clerk-Convex integration | Not Started |
+| 1 | Install Convex dependencies | Complete |
+| 2 | Initialize Convex project | Complete |
+| 3 | Configure Convex environment variables | Complete |
+| 4 | Create Convex auth config for Clerk JWT | Complete |
+| 5 | Add ConvexProviderWithClerk to app | Complete |
+| 6 | Create users table schema | Complete |
+| 7 | Create getCurrentUser query | Complete |
+| 8 | Create createOrUpdateUser mutation | Complete |
+| 9 | Test Clerk-Convex integration | Complete |
 
 ---
 
@@ -306,11 +306,11 @@ matches         // Mutual likes between partners
 
 ```bash
 # .env
-EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...  # Already configured
-EXPO_PUBLIC_CONVEX_URL=https://your-project.convex.cloud  # To be added
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...  # Configured
+EXPO_PUBLIC_CONVEX_URL=https://sincere-greyhound-838.convex.cloud  # Configured
 
 # Convex Dashboard
-CLERK_JWT_ISSUER_DOMAIN=https://clerk.your-domain.com
+CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configured
 ```
 
 ---
@@ -336,8 +336,8 @@ CLERK_JWT_ISSUER_DOMAIN=https://clerk.your-domain.com
 
 | Phase | Name | Tasks | Completed |
 |-------|------|-------|-----------|
-| 0 | Clerk Authentication | 10 | 0 |
-| 1 | Convex Setup | 9 | 0 |
+| 0 | Clerk Authentication | 10 | 10 |
+| 1 | Convex Setup | 9 | 9 |
 | 2 | Name Database | 9 | 0 |
 | 3 | Session System | 9 | 0 |
 | 4 | Swipe Backend | 8 | 0 |
@@ -354,4 +354,4 @@ CLERK_JWT_ISSUER_DOMAIN=https://clerk.your-domain.com
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **138** | **0** |
+| **Total** | | **138** | **19** |
