@@ -39,3 +39,16 @@ NativeWind requires `cssInterop` to enable `className` on custom components. Thi
 
 ### Environment Variables
 - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` - Required for Clerk authentication
+
+## Workflow
+
+### PR Strategy
+- One PR per Notion task (1:1 mapping)
+
+### After Merging a PR
+1. Update the associated Notion task status to complete
+2. Add the GitHub PR URL to the Notion task
+3. Update `PLAN.md` to mark the completed task(s)
+
+### Planning Reference
+Always refer to `PLAN.md` for the current development roadmap and task status.
