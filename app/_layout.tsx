@@ -1,9 +1,11 @@
 import '@/global.css';
 
-import { ClerkLoaded, ClerkProvider } from '@clerk/clerk-expo';
+import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { AlfaSlabOne_400Regular } from '@expo-google-fonts/alfa-slab-one';
 import { Sanchez_400Regular } from '@expo-google-fonts/sanchez';
+import { ConvexProviderWithClerk } from 'convex/react-clerk';
+import { ConvexReactClient } from 'convex/react';
 import { useFonts } from 'expo-font';
 import { Image as ExpoImage } from 'expo-image';
 import { Slot } from 'expo-router';
@@ -21,10 +23,17 @@ cssInterop(Animated.Text, { className: 'style' });
 cssInterop(Animated.View, { className: 'style' });
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL!;
 
 if (!publishableKey) {
   throw new Error('Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Please set it in your .env file.');
 }
+
+if (!convexUrl) {
+  throw new Error('Missing EXPO_PUBLIC_CONVEX_URL. Please set it in your .env file.');
+}
+
+const convex = new ConvexReactClient(convexUrl);
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -45,7 +54,9 @@ export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
-        <Slot />
+        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          <Slot />
+        </ConvexProviderWithClerk>
       </ClerkLoaded>
     </ClerkProvider>
   );
