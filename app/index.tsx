@@ -1,15 +1,15 @@
-import { Text, View } from 'react-native';
+import { SignedIn, SignedOut } from '@clerk/clerk-expo';
+import { Redirect } from 'expo-router';
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <Text>Hello World</Text>
-    </View>
+    <>
+      <SignedIn>
+        <Redirect href="/(tabs)" />
+      </SignedIn>
+      <SignedOut>
+        <Redirect href="/(auth)/sign-in" />
+      </SignedOut>
+    </>
   );
 }
