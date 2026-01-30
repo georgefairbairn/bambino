@@ -12,6 +12,19 @@ A mobile app that helps users find suitable baby names through a swipe-based int
 
 ---
 
+## Post-Phase Completion Workflow
+
+After completing each phase, follow these steps:
+
+1. **Create feature branch** - `git checkout -b feat/<feature-name>`
+2. **Stage and commit changes** - Include all relevant files with conventional commit message
+3. **Push and create PR** - `git push -u origin <branch>` then `gh pr create`
+4. **Merge PR** - `gh pr merge --squash --delete-branch`
+5. **Update PLAN.md** - Mark all phase tasks as Complete, update progress summary
+6. **Update Notion tasks** - Set status to "Done" and add GitHub PR link
+
+---
+
 ## Development Phases
 
 ### Phase 0: Clerk Authentication
