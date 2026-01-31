@@ -27,4 +27,35 @@ export default defineSchema({
     .index('by_gender', ['gender'])
     .index('by_first_letter', ['firstLetter'])
     .index('by_gender_and_first_letter', ['gender', 'firstLetter']),
+
+  sessions: defineTable({
+    name: v.string(),
+    genderFilter: v.union(
+      v.literal('boy'),
+      v.literal('girl'),
+      v.literal('both')
+    ),
+    shareCode: v.string(),
+    status: v.union(v.literal('active'), v.literal('archived')),
+    ownerId: v.id('users'),
+    minLength: v.optional(v.number()),
+    maxLength: v.optional(v.number()),
+    startingLetters: v.optional(v.array(v.string())),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_share_code', ['shareCode'])
+    .index('by_owner_id', ['ownerId'])
+    .index('by_status', ['status']),
+
+  sessionMembers: defineTable({
+    sessionId: v.id('sessions'),
+    userId: v.id('users'),
+    role: v.union(v.literal('owner'), v.literal('partner')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_session_id', ['sessionId'])
+    .index('by_user_id', ['userId'])
+    .index('by_session_and_user', ['sessionId', 'userId']),
 });

@@ -1,0 +1,298 @@
+import { v } from 'convex/values';
+import {
+  mutation,
+  query,
+  internalMutation,
+  QueryCtx,
+  MutationCtx,
+} from './_generated/server';
+import { Id } from './_generated/dataModel';
+
+function generateShareCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function generateUniqueShareCode(
+  ctx: QueryCtx | MutationCtx
+): Promise<string> {
+  let code = generateShareCode();
+  let existing = await ctx.db
+    .query('sessions')
+    .withIndex('by_share_code', (q) => q.eq('shareCode', code))
+    .unique();
+
+  while (existing) {
+    code = generateShareCode();
+    existing = await ctx.db
+      .query('sessions')
+      .withIndex('by_share_code', (q) => q.eq('shareCode', code))
+      .unique();
+  }
+
+  return code;
+}
+
+async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error('Not authenticated');
+  }
+
+  const user = await ctx.db
+    .query('users')
+    .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+    .unique();
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return user;
+}
+
+async function isSessionMember(
+  ctx: QueryCtx | MutationCtx,
+  sessionId: Id<'sessions'>,
+  userId: Id<'users'>
+) {
+  const membership = await ctx.db
+    .query('sessionMembers')
+    .withIndex('by_session_and_user', (q) =>
+      q.eq('sessionId', sessionId).eq('userId', userId)
+    )
+    .unique();
+
+  return membership;
+}
+
+export const createSession = mutation({
+  args: {
+    name: v.string(),
+    genderFilter: v.union(
+      v.literal('boy'),
+      v.literal('girl'),
+      v.literal('both')
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const now = Date.now();
+    const shareCode = await generateUniqueShareCode(ctx);
+
+    const sessionId = await ctx.db.insert('sessions', {
+      name: args.name,
+      genderFilter: args.genderFilter,
+      shareCode,
+      status: 'active',
+      ownerId: user._id,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert('sessionMembers', {
+      sessionId,
+      userId: user._id,
+      role: 'owner',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return sessionId;
+  },
+});
+
+export const updateSession = mutation({
+  args: {
+    sessionId: v.id('sessions'),
+    name: v.optional(v.string()),
+    genderFilter: v.optional(
+      v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))
+    ),
+    status: v.optional(v.union(v.literal('active'), v.literal('archived'))),
+    minLength: v.optional(v.number()),
+    maxLength: v.optional(v.number()),
+    startingLetters: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      throw new Error('Not a member of this session');
+    }
+
+    const { sessionId, ...updates } = args;
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([, value]) => value !== undefined)
+    );
+
+    await ctx.db.patch(args.sessionId, {
+      ...filteredUpdates,
+      updatedAt: Date.now(),
+    });
+
+    return args.sessionId;
+  },
+});
+
+export const deleteSession = mutation({
+  args: {
+    sessionId: v.id('sessions'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    if (session.ownerId !== user._id) {
+      throw new Error('Only the owner can delete a session');
+    }
+
+    const members = await ctx.db
+      .query('sessionMembers')
+      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .collect();
+
+    for (const member of members) {
+      await ctx.db.delete(member._id);
+    }
+
+    await ctx.db.delete(args.sessionId);
+
+    return args.sessionId;
+  },
+});
+
+export const getUserSessions = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return [];
+    }
+
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+      .unique();
+
+    if (!user) {
+      return [];
+    }
+
+    const memberships = await ctx.db
+      .query('sessionMembers')
+      .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+      .collect();
+
+    const sessionsWithRole = await Promise.all(
+      memberships.map(async (membership) => {
+        const session = await ctx.db.get(membership.sessionId);
+        if (!session) return null;
+        return {
+          ...session,
+          role: membership.role,
+        };
+      })
+    );
+
+    return sessionsWithRole.filter((session) => session !== null);
+  },
+});
+
+export const getSessionById = query({
+  args: {
+    sessionId: v.id('sessions'),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Not authenticated');
+    }
+
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+      .unique();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      throw new Error('Not a member of this session');
+    }
+
+    const allMembers = await ctx.db
+      .query('sessionMembers')
+      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .collect();
+
+    const membersWithDetails = await Promise.all(
+      allMembers.map(async (member) => {
+        const memberUser = await ctx.db.get(member.userId);
+        return {
+          userId: member.userId,
+          role: member.role,
+          name: memberUser?.name,
+          email: memberUser?.email,
+          imageUrl: memberUser?.imageUrl,
+        };
+      })
+    );
+
+    return {
+      ...session,
+      members: membersWithDetails,
+    };
+  },
+});
+
+export const createDefaultSession = internalMutation({
+  args: {
+    userId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const shareCode = await generateUniqueShareCode(ctx);
+
+    const sessionId = await ctx.db.insert('sessions', {
+      name: 'My Baby Names',
+      genderFilter: 'both',
+      shareCode,
+      status: 'active',
+      ownerId: args.userId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert('sessionMembers', {
+      sessionId,
+      userId: args.userId,
+      role: 'owner',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return sessionId;
+  },
+});
