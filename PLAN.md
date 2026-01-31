@@ -121,14 +121,14 @@ After completing each phase, follow these steps:
 ### Phase 6: Main Swipe Screen
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create swipe screen layout | Not Started |
-| 2 | Connect swipe queue query | Not Started |
-| 3 | Wire up swipe to mutation | Not Started |
-| 4 | Add loading state | Not Started |
-| 5 | Add error handling | Not Started |
-| 6 | Show progress indicator | Not Started |
-| 7 | Add session name header | Not Started |
-| 8 | Test end-to-end swipe flow | Not Started |
+| 1 | Create swipe screen layout | Complete |
+| 2 | Connect swipe queue query | Complete |
+| 3 | Wire up swipe to mutation | Complete |
+| 4 | Add loading state | Complete |
+| 5 | Add error handling | Complete |
+| 6 | Show progress indicator | Complete |
+| 7 | Add session name header | Complete |
+| 8 | Test end-to-end swipe flow | Complete |
 
 ---
 
@@ -331,10 +331,10 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 ## Verification Checkpoints
 
 ### After Phase 6 (Core MVP)
-- [ ] Sign in with Clerk
-- [ ] See swipe cards with names
-- [ ] Swipe to like/reject/skip
-- [ ] Reload app - selections persist
+- [x] Sign in with Clerk
+- [x] See swipe cards with names
+- [x] Swipe to like/reject/skip
+- [x] Reload app - selections persist
 - [ ] Sign in on another device - data syncs
 
 ### After Phase 16 (Partner Sync)
@@ -355,7 +355,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 3 | Session System | 9 | 9 |
 | 4 | Swipe Backend | 8 | 8 |
 | 5 | Swipe Card UI | 10 | 10 |
-| 6 | Main Swipe Screen | 8 | 0 |
+| 6 | Main Swipe Screen | 8 | 8 |
 | 7 | Session Management | 8 | 0 |
 | 8 | Filter System | 8 | 0 |
 | 9 | Dashboard Liked | 8 | 0 |
@@ -367,4 +367,4 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **138** | **55** |
+| **Total** | | **138** | **63** |
