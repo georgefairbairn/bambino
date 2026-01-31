@@ -1,0 +1,681 @@
+[
+  {
+    "name": "Emma",
+    "gender": "female",
+    "origin": "Germanic",
+    "meaning": "Derived from the Germanic word 'ermen' meaning whole or universal. Emma has been a beloved name for centuries, associated with queens and literary heroines.",
+    "phonetic": "EM-ah"
+  },
+  {
+    "name": "Liam",
+    "gender": "male",
+    "origin": "Irish",
+    "meaning": "An Irish form of William, meaning strong-willed warrior and protector. Liam carries connotations of determination and courage.",
+    "phonetic": "LEE-um"
+  },
+  {
+    "name": "Olivia",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "Derived from the Latin word 'oliva' meaning olive tree. The olive branch is a symbol of peace, giving this name connotations of harmony and beauty.",
+    "phonetic": "oh-LIV-ee-ah"
+  },
+  {
+    "name": "Noah",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Noach meaning rest or comfort. In the Bible, Noah was the righteous man who built the ark to survive the great flood.",
+    "phonetic": "NO-ah"
+  },
+  {
+    "name": "Ava",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "Possibly derived from the Latin 'avis' meaning bird, or a variant of Eve. Ava conveys elegance and timeless beauty.",
+    "phonetic": "AY-vah"
+  },
+  {
+    "name": "Oliver",
+    "gender": "male",
+    "origin": "Latin",
+    "meaning": "From the Latin 'olivarius' meaning olive tree planter. The name symbolizes peace and fruitfulness, and has literary associations with Charles Dickens.",
+    "phonetic": "OL-ih-ver"
+  },
+  {
+    "name": "Sophia",
+    "gender": "female",
+    "origin": "Greek",
+    "meaning": "From the Greek word 'sophia' meaning wisdom. This elegant name has been borne by queens and saints throughout history.",
+    "phonetic": "soh-FEE-ah"
+  },
+  {
+    "name": "Elijah",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Eliyahu meaning 'my God is Yahweh'. In the Bible, Elijah was one of the greatest prophets of Israel.",
+    "phonetic": "ee-LY-jah"
+  },
+  {
+    "name": "Charlotte",
+    "gender": "female",
+    "origin": "French",
+    "meaning": "The French feminine form of Charles, meaning free man or petite. Charlotte evokes sophistication and has royal associations.",
+    "phonetic": "SHAR-lot"
+  },
+  {
+    "name": "James",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "Derived from the Hebrew name Ya'akov (Jacob), meaning supplanter or one who follows. James has been a classic name for kings and presidents.",
+    "phonetic": "JAYMZ"
+  },
+  {
+    "name": "Amelia",
+    "gender": "female",
+    "origin": "Germanic",
+    "meaning": "From the Germanic word 'amal' meaning work or industrious. Amelia Earhart made this name synonymous with adventure and pioneering spirit.",
+    "phonetic": "ah-MEEL-yah"
+  },
+  {
+    "name": "William",
+    "gender": "male",
+    "origin": "Germanic",
+    "meaning": "From the Germanic elements 'wil' (will, desire) and 'helm' (helmet, protection). A name of kings and conquerors throughout history.",
+    "phonetic": "WIL-yum"
+  },
+  {
+    "name": "Mia",
+    "gender": "female",
+    "origin": "Scandinavian",
+    "meaning": "A Scandinavian diminutive of Maria, meaning beloved or wished-for child. Mia is short, sweet, and internationally recognized.",
+    "phonetic": "MEE-ah"
+  },
+  {
+    "name": "Benjamin",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Binyamin meaning son of the right hand, implying strength and favor. Benjamin was the youngest son of Jacob in the Bible.",
+    "phonetic": "BEN-jah-min"
+  },
+  {
+    "name": "Isabella",
+    "gender": "female",
+    "origin": "Hebrew",
+    "meaning": "The Italian and Spanish form of Elizabeth, meaning pledged to God. Isabella has been the name of queens in Spain and England.",
+    "phonetic": "iz-ah-BEL-ah"
+  },
+  {
+    "name": "Lucas",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Loukas meaning from Lucania, a region of southern Italy. The name is associated with light and illumination.",
+    "phonetic": "LOO-kus"
+  },
+  {
+    "name": "Harper",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "An occupational name for someone who plays the harp. Harper suggests creativity, artistry, and a melodic nature.",
+    "phonetic": "HAR-per"
+  },
+  {
+    "name": "Henry",
+    "gender": "male",
+    "origin": "Germanic",
+    "meaning": "From the Germanic name Heinrich meaning ruler of the home. Henry has been borne by eight English kings and remains timelessly distinguished.",
+    "phonetic": "HEN-ree"
+  },
+  {
+    "name": "Evelyn",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "Originally a surname derived from the French Aveline, meaning wished-for child or hazelnut. Evelyn has a vintage charm with modern appeal.",
+    "phonetic": "EV-eh-lin"
+  },
+  {
+    "name": "Alexander",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Alexandros meaning defender of the people. Alexander the Great made this name legendary across civilizations.",
+    "phonetic": "al-eg-ZAN-der"
+  },
+  {
+    "name": "Luna",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "The Latin word for moon. Luna was the Roman goddess of the moon, and the name evokes celestial beauty and mystery.",
+    "phonetic": "LOO-nah"
+  },
+  {
+    "name": "Mason",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "An occupational surname for a stoneworker. Mason suggests craftsmanship, strength, and building something that lasts.",
+    "phonetic": "MAY-sun"
+  },
+  {
+    "name": "Ella",
+    "gender": "female",
+    "origin": "Germanic",
+    "meaning": "A short form of names containing 'ella' or from the Germanic word for all or foreign. Ella is graceful and melodic.",
+    "phonetic": "EL-ah"
+  },
+  {
+    "name": "Sebastian",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Sebastianos meaning from Sebastia, a city in Asia Minor. The name suggests reverence and dignity.",
+    "phonetic": "seh-BAS-chun"
+  },
+  {
+    "name": "Gianna",
+    "gender": "female",
+    "origin": "Italian",
+    "meaning": "The Italian feminine form of John, meaning God is gracious. Gianna is warm, feminine, and carries spiritual depth.",
+    "phonetic": "jee-AH-nah"
+  },
+  {
+    "name": "Jack",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "A medieval diminutive of John, meaning God is gracious. Jack has a friendly, approachable quality that has made it perpetually popular.",
+    "phonetic": "JAK"
+  },
+  {
+    "name": "Aurora",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "The Latin word for dawn. Aurora was the Roman goddess of sunrise, making this name radiant and full of promise.",
+    "phonetic": "aw-ROAR-ah"
+  },
+  {
+    "name": "Aiden",
+    "gender": "male",
+    "origin": "Irish",
+    "meaning": "From the Irish name Aodhán meaning little fire. In Irish mythology, Aodh was the god of the sun and fire.",
+    "phonetic": "AY-den"
+  },
+  {
+    "name": "Chloe",
+    "gender": "female",
+    "origin": "Greek",
+    "meaning": "From the Greek word khloe meaning blooming or young green shoot. In mythology, Chloe was an epithet of the goddess Demeter.",
+    "phonetic": "KLO-ee"
+  },
+  {
+    "name": "Owen",
+    "gender": "male",
+    "origin": "Welsh",
+    "meaning": "From the Welsh name Owain, possibly meaning young warrior or well-born. Owen has Celtic roots and noble associations.",
+    "phonetic": "OH-en"
+  },
+  {
+    "name": "Penelope",
+    "gender": "female",
+    "origin": "Greek",
+    "meaning": "Possibly from the Greek word for weaver. In Homer's Odyssey, Penelope was the faithful wife of Odysseus, symbolizing loyalty and patience.",
+    "phonetic": "peh-NEL-oh-pee"
+  },
+  {
+    "name": "Ethan",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Eitan meaning strong, firm, or enduring. Ethan appears in the Bible as a man known for his wisdom.",
+    "phonetic": "EE-thun"
+  },
+  {
+    "name": "Layla",
+    "gender": "female",
+    "origin": "Arabic",
+    "meaning": "From the Arabic word for night. Layla is the heroine of ancient Arabic poetry, making this name romantic and mysterious.",
+    "phonetic": "LAY-lah"
+  },
+  {
+    "name": "Daniel",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Daniyyel meaning God is my judge. The biblical Daniel was known for his wisdom and interpretation of dreams.",
+    "phonetic": "DAN-yul"
+  },
+  {
+    "name": "Riley",
+    "gender": "neutral",
+    "origin": "Irish",
+    "meaning": "From the Irish surname O'Reilly meaning courageous or valiant. Riley has become a popular unisex name with a spirited feel.",
+    "phonetic": "RY-lee"
+  },
+  {
+    "name": "Matthew",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Mattityahu meaning gift of Yahweh. Matthew was one of the twelve apostles and author of the first Gospel.",
+    "phonetic": "MATH-yoo"
+  },
+  {
+    "name": "Zoey",
+    "gender": "female",
+    "origin": "Greek",
+    "meaning": "From the Greek word zoe meaning life. This vibrant name was used by early Christians as a translation of the Hebrew name Eve.",
+    "phonetic": "ZO-ee"
+  },
+  {
+    "name": "Jackson",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "An English surname meaning son of Jack. Jackson carries American pioneer spirit and has strong, distinguished associations.",
+    "phonetic": "JAK-sun"
+  },
+  {
+    "name": "Nora",
+    "gender": "female",
+    "origin": "Irish",
+    "meaning": "A short form of names like Honora or Eleanor, meaning honor or light. Nora is simple, classic, and timelessly elegant.",
+    "phonetic": "NOR-ah"
+  },
+  {
+    "name": "Logan",
+    "gender": "neutral",
+    "origin": "Scottish",
+    "meaning": "From a Scottish surname meaning little hollow. Logan has rugged appeal and has become popular for both boys and girls.",
+    "phonetic": "LO-gun"
+  },
+  {
+    "name": "Lily",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the flower name, symbolizing purity and innocence. The lily has been a symbol of beauty and virtue for centuries.",
+    "phonetic": "LIL-ee"
+  },
+  {
+    "name": "David",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Dawid meaning beloved. King David was the greatest king of Israel, known for slaying Goliath.",
+    "phonetic": "DAY-vid"
+  },
+  {
+    "name": "Eleanor",
+    "gender": "female",
+    "origin": "French",
+    "meaning": "Possibly from the Greek word for bright or shining light. Eleanor of Aquitaine was one of the most powerful women of the Middle Ages.",
+    "phonetic": "EL-eh-nor"
+  },
+  {
+    "name": "Samuel",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Shemu'el meaning heard by God. Samuel was a prophet and judge who anointed the first kings of Israel.",
+    "phonetic": "SAM-yoo-el"
+  },
+  {
+    "name": "Hannah",
+    "gender": "female",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Channah meaning grace or favor. In the Bible, Hannah was the mother of the prophet Samuel.",
+    "phonetic": "HAN-ah"
+  },
+  {
+    "name": "Joseph",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Yosef meaning he will add. Joseph was the favored son of Jacob who became a powerful leader in Egypt.",
+    "phonetic": "JO-zef"
+  },
+  {
+    "name": "Addison",
+    "gender": "neutral",
+    "origin": "English",
+    "meaning": "An English surname meaning son of Adam. Addison has transitioned to a popular first name with a modern, sophisticated sound.",
+    "phonetic": "AD-ih-sun"
+  },
+  {
+    "name": "Carter",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "An occupational surname for someone who transported goods by cart. Carter has a hardworking, reliable quality.",
+    "phonetic": "KAR-ter"
+  },
+  {
+    "name": "Scarlett",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the English word for the bright red color. Scarlett O'Hara from Gone with the Wind made this name iconic and spirited.",
+    "phonetic": "SKAR-let"
+  },
+  {
+    "name": "John",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Yochanan meaning God is gracious. John has been one of the most enduringly popular names in the English-speaking world.",
+    "phonetic": "JON"
+  },
+  {
+    "name": "Victoria",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin word for victory. Queen Victoria's long reign made this name synonymous with an entire era of British history.",
+    "phonetic": "vik-TOR-ee-ah"
+  },
+  {
+    "name": "Michael",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Mikha'el meaning who is like God. Michael is one of the archangels, known as a warrior against evil.",
+    "phonetic": "MY-kul"
+  },
+  {
+    "name": "Aria",
+    "gender": "female",
+    "origin": "Italian",
+    "meaning": "From the Italian word meaning air or song. In music, an aria is an elaborate solo melody, making this name lyrical and artistic.",
+    "phonetic": "AR-ee-ah"
+  },
+  {
+    "name": "Luke",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Loukas meaning from Lucania. Saint Luke was a physician and author of the third Gospel.",
+    "phonetic": "LOOK"
+  },
+  {
+    "name": "Grace",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin word gratia meaning grace or blessing. Grace embodies elegance, virtue, and divine favor.",
+    "phonetic": "GRAYS"
+  },
+  {
+    "name": "Dylan",
+    "gender": "male",
+    "origin": "Welsh",
+    "meaning": "From the Welsh elements 'dy' (great) and 'llanw' (tide or flow). In Welsh mythology, Dylan was a sea god.",
+    "phonetic": "DIL-un"
+  },
+  {
+    "name": "Camila",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin name Camillus, possibly meaning young ceremonial attendant. Camila is graceful with international appeal.",
+    "phonetic": "kah-MEE-lah"
+  },
+  {
+    "name": "Christopher",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Christophoros meaning bearing Christ. Saint Christopher is the patron saint of travelers.",
+    "phonetic": "KRIS-toh-fer"
+  },
+  {
+    "name": "Elizabeth",
+    "gender": "female",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Elisheva meaning my God is abundance. Elizabeth has been borne by queens, saints, and countless literary heroines.",
+    "phonetic": "ee-LIZ-ah-beth"
+  },
+  {
+    "name": "Nathan",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Natan meaning given. Nathan was a prophet in the Old Testament who confronted King David.",
+    "phonetic": "NAY-thun"
+  },
+  {
+    "name": "Sofia",
+    "gender": "female",
+    "origin": "Greek",
+    "meaning": "A variant spelling of Sophia, from the Greek word meaning wisdom. Sofia has international elegance and classical roots.",
+    "phonetic": "soh-FEE-ah"
+  },
+  {
+    "name": "Andrew",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Andreas meaning manly or brave. Saint Andrew was the first apostle called by Jesus and is patron saint of Scotland.",
+    "phonetic": "AN-droo"
+  },
+  {
+    "name": "Emily",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin name Aemilia meaning rival or industrious. Emily Dickinson and Emily Brontë gave this name literary prestige.",
+    "phonetic": "EM-ih-lee"
+  },
+  {
+    "name": "Isaac",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Yitzchaq meaning he will laugh. Isaac was the long-awaited son of Abraham and Sarah in the Bible.",
+    "phonetic": "EYE-zik"
+  },
+  {
+    "name": "Avery",
+    "gender": "neutral",
+    "origin": "English",
+    "meaning": "From an Old English surname meaning ruler of the elves. Avery has a mystical quality and works well for any gender.",
+    "phonetic": "AY-vuh-ree"
+  },
+  {
+    "name": "Joshua",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Yehoshua meaning Yahweh is salvation. Joshua led the Israelites into the Promised Land after Moses.",
+    "phonetic": "JOSH-oo-ah"
+  },
+  {
+    "name": "Stella",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin word meaning star. Stella evokes celestial beauty and has been immortalized in literature and film.",
+    "phonetic": "STEL-ah"
+  },
+  {
+    "name": "Caleb",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Kalev meaning faithful or devoted. Caleb was one of the twelve spies Moses sent to explore Canaan.",
+    "phonetic": "KAY-leb"
+  },
+  {
+    "name": "Violet",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the purple flower name, symbolizing faithfulness and modesty. Violet has a vintage charm that feels fresh today.",
+    "phonetic": "VY-oh-let"
+  },
+  {
+    "name": "Ryan",
+    "gender": "male",
+    "origin": "Irish",
+    "meaning": "From the Irish surname O'Riain meaning descendant of the king. Ryan has an approachable, friendly sound.",
+    "phonetic": "RY-un"
+  },
+  {
+    "name": "Nova",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin word meaning new. In astronomy, a nova is a star that suddenly increases in brightness, making this name cosmic and radiant.",
+    "phonetic": "NO-vah"
+  },
+  {
+    "name": "Julian",
+    "gender": "male",
+    "origin": "Latin",
+    "meaning": "From the Roman family name Julius, possibly meaning youthful or downy-bearded. Julian has an artistic, sophisticated quality.",
+    "phonetic": "JOO-lee-un"
+  },
+  {
+    "name": "Hazel",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the hazel tree and the greenish-brown eye color. Hazel has an earthy, natural appeal with vintage charm.",
+    "phonetic": "HAY-zul"
+  },
+  {
+    "name": "Leo",
+    "gender": "male",
+    "origin": "Latin",
+    "meaning": "From the Latin word meaning lion. Leo was the name of thirteen popes and conveys strength and nobility.",
+    "phonetic": "LEE-oh"
+  },
+  {
+    "name": "Ivy",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the climbing evergreen plant, symbolizing fidelity and eternity. Ivy has a natural, botanical elegance.",
+    "phonetic": "EYE-vee"
+  },
+  {
+    "name": "Aaron",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Aharon, possibly meaning high mountain or exalted. Aaron was Moses's brother and the first high priest of Israel.",
+    "phonetic": "AIR-un"
+  },
+  {
+    "name": "Willow",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the graceful willow tree, known for its slender branches. Willow evokes flexibility, elegance, and natural beauty.",
+    "phonetic": "WIL-oh"
+  },
+  {
+    "name": "Adrian",
+    "gender": "male",
+    "origin": "Latin",
+    "meaning": "From the Latin name Hadrianus meaning from Hadria. Emperor Hadrian built the famous wall in Britain bearing his name.",
+    "phonetic": "AY-dree-un"
+  },
+  {
+    "name": "Emilia",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Roman family name Aemilius meaning rival. Emilia appears in Shakespeare's Othello and has Italian elegance.",
+    "phonetic": "eh-MEE-lee-ah"
+  },
+  {
+    "name": "Charles",
+    "gender": "male",
+    "origin": "Germanic",
+    "meaning": "From the Germanic name Karl meaning free man. Charlemagne (Charles the Great) was the legendary emperor who united Western Europe.",
+    "phonetic": "CHARLZ"
+  },
+  {
+    "name": "Madelyn",
+    "gender": "female",
+    "origin": "Greek",
+    "meaning": "A modern variant of Madeline, from Magdalene meaning from Magdala. Madelyn has a contemporary feel with classic roots.",
+    "phonetic": "MAD-eh-lin"
+  },
+  {
+    "name": "Thomas",
+    "gender": "male",
+    "origin": "Aramaic",
+    "meaning": "From the Aramaic name Te'oma meaning twin. Saint Thomas was the apostle who doubted the resurrection until he saw proof.",
+    "phonetic": "TOM-us"
+  },
+  {
+    "name": "Isla",
+    "gender": "female",
+    "origin": "Scottish",
+    "meaning": "From the name of a Scottish island (Islay) and river. Isla evokes natural beauty and has a soft, feminine sound.",
+    "phonetic": "EYE-lah"
+  },
+  {
+    "name": "Hunter",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "An occupational name for someone who hunts. Hunter suggests adventure, skill, and a connection with the outdoors.",
+    "phonetic": "HUN-ter"
+  },
+  {
+    "name": "Natalie",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the Latin phrase 'dies natalis' meaning birthday, especially referring to Christmas Day. Natalie is festive and joyful.",
+    "phonetic": "NAT-ah-lee"
+  },
+  {
+    "name": "Wyatt",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "From an English surname meaning brave in war. Wyatt has American Western charm and a strong, confident sound.",
+    "phonetic": "WY-ut"
+  },
+  {
+    "name": "Ruby",
+    "gender": "female",
+    "origin": "Latin",
+    "meaning": "From the precious red gemstone, derived from the Latin 'rubeus' meaning red. Ruby is vibrant, valuable, and warmly elegant.",
+    "phonetic": "ROO-bee"
+  },
+  {
+    "name": "Ezra",
+    "gender": "male",
+    "origin": "Hebrew",
+    "meaning": "From the Hebrew name Ezra meaning help or helper. In the Bible, Ezra was a priest and scribe who led Jewish exiles back from Babylon.",
+    "phonetic": "EZ-rah"
+  },
+  {
+    "name": "Audrey",
+    "gender": "female",
+    "origin": "English",
+    "meaning": "From the Old English name Aethelthryth meaning noble strength. Audrey Hepburn made this name iconic with elegance and grace.",
+    "phonetic": "AW-dree"
+  },
+  {
+    "name": "Grayson",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "An English surname meaning son of the gray-haired one or steward. Grayson has a refined, distinguished quality.",
+    "phonetic": "GRAY-sun"
+  },
+  {
+    "name": "Savannah",
+    "gender": "female",
+    "origin": "Spanish",
+    "meaning": "From the Spanish word 'sabana' meaning treeless plain. Savannah also evokes the charming Southern city in Georgia.",
+    "phonetic": "sah-VAN-ah"
+  },
+  {
+    "name": "Lincoln",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "From an English place name meaning lake colony. Abraham Lincoln made this name synonymous with integrity and leadership.",
+    "phonetic": "LINK-un"
+  },
+  {
+    "name": "Brooklyn",
+    "gender": "neutral",
+    "origin": "English",
+    "meaning": "From the New York City borough, originally meaning broken land in Dutch. Brooklyn has urban energy and creative associations.",
+    "phonetic": "BROOK-lin"
+  },
+  {
+    "name": "Theodore",
+    "gender": "male",
+    "origin": "Greek",
+    "meaning": "From the Greek name Theodoros meaning gift of God. Theodore Roosevelt made this name synonymous with adventurous leadership.",
+    "phonetic": "THEE-oh-dor"
+  },
+  {
+    "name": "Claire",
+    "gender": "female",
+    "origin": "French",
+    "meaning": "From the French word meaning clear or bright. Saint Clare of Assisi founded the order of Poor Clares.",
+    "phonetic": "KLAIR"
+  },
+  {
+    "name": "Hudson",
+    "gender": "male",
+    "origin": "English",
+    "meaning": "An English surname meaning son of Hudd, a medieval nickname for Hugh. The Hudson River adds geographic appeal.",
+    "phonetic": "HUD-sun"
+  },
+  {
+    "name": "Skylar",
+    "gender": "neutral",
+    "origin": "Dutch",
+    "meaning": "From the Dutch surname Schuyler meaning scholar. Skylar has a modern, airy quality that appeals for any gender.",
+    "phonetic": "SKY-lar"
+  }
+]
