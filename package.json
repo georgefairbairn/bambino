@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "seed:names": "npx tsx scripts/seed-names.ts"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.17.1",
