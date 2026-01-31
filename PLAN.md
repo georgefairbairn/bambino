@@ -61,15 +61,15 @@ After completing each phase, follow these steps:
 ### Phase 2: Name Database
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create names table schema | Not Started |
-| 2 | Add indexes to names table | Not Started |
-| 3 | Source baby names dataset | Not Started |
-| 4 | Create name import script | Not Started |
-| 5 | Create seedNames mutation | Not Started |
-| 6 | Import names to Convex | Not Started |
-| 7 | Create getNameById query | Not Started |
-| 8 | Create searchNames query | Not Started |
-| 9 | Verify name data in Convex dashboard | Not Started |
+| 1 | Create names table schema | Complete |
+| 2 | Add indexes to names table | Complete |
+| 3 | Source baby names dataset | Complete |
+| 4 | Create name import script | Complete |
+| 5 | Create seedNames mutation | Complete |
+| 6 | Import names to Convex | Complete |
+| 7 | Create getNameById query | Complete |
+| 8 | Create searchNames query | Complete |
+| 9 | Verify name data in Convex dashboard | Complete |
 
 ---
 
@@ -351,7 +351,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 |-------|------|-------|-----------|
 | 0 | Clerk Authentication | 10 | 10 |
 | 1 | Convex Setup | 9 | 9 |
-| 2 | Name Database | 9 | 0 |
+| 2 | Name Database | 9 | 9 |
 | 3 | Session System | 9 | 0 |
 | 4 | Swipe Backend | 8 | 0 |
 | 5 | Swipe Card UI | 10 | 0 |
@@ -367,4 +367,4 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **138** | **19** |
+| **Total** | | **138** | **28** |
