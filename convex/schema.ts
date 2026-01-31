@@ -58,4 +58,21 @@ export default defineSchema({
     .index('by_session_id', ['sessionId'])
     .index('by_user_id', ['userId'])
     .index('by_session_and_user', ['sessionId', 'userId']),
+
+  selections: defineTable({
+    sessionId: v.id('sessions'),
+    userId: v.id('users'),
+    nameId: v.id('names'),
+    selectionType: v.union(
+      v.literal('like'),
+      v.literal('reject'),
+      v.literal('skip')
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_session_id', ['sessionId'])
+    .index('by_user_session', ['userId', 'sessionId'])
+    .index('by_session_name', ['sessionId', 'nameId'])
+    .index('by_user_session_type', ['userId', 'sessionId', 'selectionType']),
 });
