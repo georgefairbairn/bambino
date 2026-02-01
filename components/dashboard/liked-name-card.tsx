@@ -7,6 +7,7 @@ interface LikedNameCardProps {
   name: Doc<'names'>;
   likedAt: number;
   onRemove: () => void;
+  onPress: () => void;
 }
 
 const GENDER_EMOJI: Record<string, string> = {
@@ -44,7 +45,7 @@ function getRelativeTime(timestamp: number): string {
   return 'Just now';
 }
 
-export function LikedNameCard({ name, likedAt, onRemove }: LikedNameCardProps) {
+export function LikedNameCard({ name, likedAt, onRemove, onPress }: LikedNameCardProps) {
   const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
   const relativeTime = getRelativeTime(likedAt);
 
@@ -60,7 +61,7 @@ export function LikedNameCard({ name, likedAt, onRemove }: LikedNameCardProps) {
   };
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.mainContent}>
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
@@ -82,7 +83,7 @@ export function LikedNameCard({ name, likedAt, onRemove }: LikedNameCardProps) {
       >
         <Ionicons name="trash-outline" size={20} color="#ef4444" />
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 

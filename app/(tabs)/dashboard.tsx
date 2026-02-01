@@ -14,7 +14,9 @@ import {
 import { SearchInput } from '@/components/dashboard/search-input';
 import { LikedNameCard } from '@/components/dashboard/liked-name-card';
 import { RejectedNameCard } from '@/components/dashboard/rejected-name-card';
+import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Fonts } from '@/constants/theme';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
 
@@ -33,6 +35,13 @@ export default function Dashboard() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [likedSortBy, setLikedSortBy] = useState<SortOption>('liked_newest');
   const [rejectedSortBy, setRejectedSortBy] = useState<RejectedSortOption>('rejected_newest');
+
+  // Modal state
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{
+    name: Doc<'names'>;
+    selectionId: Id<'selections'>;
+  } | null>(null);
 
   // Find active session from context, fallback to first session
   const activeSession = sessions?.find((s) => s._id === activeSessionId) ?? sessions?.[0];
@@ -87,6 +96,33 @@ export default function Dashboard() {
   const removeFromLiked = useMutation(api.selections.removeFromLiked);
   const restoreToQueue = useMutation(api.selections.restoreToQueue);
   const hidePermanently = useMutation(api.selections.hidePermanently);
+
+  // Modal handlers
+  const handleCardPress = (name: Doc<'names'>, selectionId: Id<'selections'>) => {
+    setSelectedItem({ name, selectionId });
+    setDetailModalVisible(true);
+  };
+
+  const handleModalRemove = async () => {
+    if (!selectedItem) return;
+    setDetailModalVisible(false);
+    await removeFromLiked({ selectionId: selectedItem.selectionId });
+    setSelectedItem(null);
+  };
+
+  const handleModalRestore = async () => {
+    if (!selectedItem) return;
+    setDetailModalVisible(false);
+    await restoreToQueue({ selectionId: selectedItem.selectionId });
+    setSelectedItem(null);
+  };
+
+  const handleModalHide = async () => {
+    if (!selectedItem) return;
+    setDetailModalVisible(false);
+    await hidePermanently({ selectionId: selectedItem.selectionId });
+    setSelectedItem(null);
+  };
 
   // Loading state
   if (sessions === undefined) {
@@ -210,6 +246,7 @@ export default function Dashboard() {
                 name={item.name}
                 likedAt={item.likedAt}
                 onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
+                onPress={() => handleCardPress(item.name, item.selectionId)}
               />
             )}
             contentContainerStyle={styles.listContent}
@@ -233,6 +270,7 @@ export default function Dashboard() {
                 rejectedAt={item.rejectedAt}
                 onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
                 onHide={() => hidePermanently({ selectionId: item.selectionId })}
+                onPress={() => handleCardPress(item.name, item.selectionId)}
               />
             )}
             contentContainerStyle={styles.listContent}
@@ -240,6 +278,20 @@ export default function Dashboard() {
           />
         </>
       )}
+
+      {/* Name detail modal */}
+      <NameDetailModal
+        visible={detailModalVisible}
+        name={selectedItem?.name ?? null}
+        context={activeTab}
+        onClose={() => {
+          setDetailModalVisible(false);
+          setSelectedItem(null);
+        }}
+        onRemove={activeTab === 'liked' ? handleModalRemove : undefined}
+        onRestore={activeTab === 'rejected' ? handleModalRestore : undefined}
+        onHide={activeTab === 'rejected' ? handleModalHide : undefined}
+      />
     </SafeAreaView>
   );
 }
