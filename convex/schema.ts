@@ -38,6 +38,8 @@ export default defineSchema({
     shareCode: v.string(),
     status: v.union(v.literal('active'), v.literal('archived')),
     ownerId: v.id('users'),
+    originFilter: v.optional(v.array(v.string())),
+    // Legacy filter fields (kept for backward compatibility)
     minLength: v.optional(v.number()),
     maxLength: v.optional(v.number()),
     startingLetters: v.optional(v.array(v.string())),

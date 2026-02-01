@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from 'convex/react';
@@ -44,6 +44,13 @@ export default function Home() {
     activeSession ? { sessionId: activeSession._id } : 'skip',
   );
 
+  // Key to reset SwipeCardStack when session or filters change
+  const swipeQueueKey = useMemo(() => {
+    if (!activeSession) return '';
+    const originKey = (activeSession.originFilter ?? []).sort().join(',');
+    return `${activeSession._id}-${activeSession.genderFilter}-${originKey}-${activeSession.updatedAt}`;
+  }, [activeSession]);
+
   // Loading state
   if (sessions === undefined) {
     return (
@@ -83,7 +90,7 @@ export default function Home() {
         reviewed={stats?.total ?? 0}
         liked={stats?.liked ?? 0}
       />
-      <SwipeCardStack sessionId={activeSession._id} />
+      <SwipeCardStack key={swipeQueueKey} sessionId={activeSession._id} />
     </SafeAreaView>
   );
 }

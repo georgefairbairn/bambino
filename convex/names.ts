@@ -51,6 +51,15 @@ export const getNameById = query({
   },
 });
 
+export const getAvailableOrigins = query({
+  args: {},
+  handler: async (ctx) => {
+    const allNames = await ctx.db.query('names').collect();
+    const origins = new Set(allNames.map((n) => n.origin));
+    return Array.from(origins).sort();
+  },
+});
+
 export const searchNames = query({
   args: {
     search: v.optional(v.string()),

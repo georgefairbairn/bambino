@@ -17,6 +17,7 @@ interface SessionWithRole {
   _id: Id<'sessions'>;
   name: string;
   genderFilter: GenderFilter;
+  originFilter?: string[];
   role: 'owner' | 'partner';
   shareCode: string;
   status: 'active' | 'archived';
@@ -62,7 +63,7 @@ export default function Sessions() {
   }, []);
 
   const handleSubmit = useCallback(
-    async (data: { name: string; genderFilter: GenderFilter }) => {
+    async (data: { name: string; genderFilter: GenderFilter; originFilter: string[] }) => {
       setIsSubmitting(true);
       try {
         if (editingSession) {
@@ -70,11 +71,13 @@ export default function Sessions() {
             sessionId: editingSession._id,
             name: data.name,
             genderFilter: data.genderFilter,
+            originFilter: data.originFilter,
           });
         } else {
           const newSessionId = await createSession({
             name: data.name,
             genderFilter: data.genderFilter,
+            originFilter: data.originFilter,
           });
           // Set new session as active and navigate
           await setActiveSession(newSessionId);
