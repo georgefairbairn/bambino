@@ -8,6 +8,7 @@ interface RejectedNameCardProps {
   rejectedAt: number;
   onRestore: () => void;
   onHide: () => void;
+  onPress: () => void;
 }
 
 const GENDER_EMOJI: Record<string, string> = {
@@ -45,7 +46,13 @@ function getRelativeTime(timestamp: number): string {
   return 'Just now';
 }
 
-export function RejectedNameCard({ name, rejectedAt, onRestore, onHide }: RejectedNameCardProps) {
+export function RejectedNameCard({
+  name,
+  rejectedAt,
+  onRestore,
+  onHide,
+  onPress,
+}: RejectedNameCardProps) {
   const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
   const relativeTime = getRelativeTime(rejectedAt);
 
@@ -72,7 +79,7 @@ export function RejectedNameCard({ name, rejectedAt, onRestore, onHide }: Reject
   };
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.mainContent}>
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
@@ -103,7 +110,7 @@ export function RejectedNameCard({ name, rejectedAt, onRestore, onHide }: Reject
           <Ionicons name="eye-off-outline" size={20} color="#ef4444" />
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

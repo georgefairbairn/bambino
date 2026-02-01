@@ -187,13 +187,12 @@ After completing each phase, follow these steps:
 ### Phase 11: Name Detail View
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create name detail modal | Not Started |
-| 2 | Display full name info | Not Started |
-| 3 | Show gender badge | Not Started |
-| 4 | Show origin tags | Not Started |
-| 5 | Add quick action buttons | Not Started |
-| 6 | Add view on swipe card preview | Not Started |
-| 7 | Link from dashboard lists | Not Started |
+| 1 | Create name detail modal | Complete |
+| 2 | Display full name info | Complete |
+| 3 | Show gender badge | Complete |
+| 4 | Show origin tags | Complete |
+| 5 | Add quick action buttons | Complete |
+| 6 | Link from dashboard lists | Complete |
 
 ---
 
@@ -358,11 +357,11 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 8 | Filter System | 6 | 6 |
 | 9 | Dashboard Liked | 8 | 8 |
 | 10 | Dashboard Rejected | 6 | 6 |
-| 11 | Name Detail | 7 | 0 |
+| 11 | Name Detail | 6 | 6 |
 | 12 | Popularity Backend | 7 | 0 |
 | 13 | Popularity Charts | 7 | 0 |
 | 14 | Share Code | 9 | 0 |
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **136** | **91** |
+| **Total** | | **135** | **97** |
