@@ -45,3 +45,6 @@ app-example
 
 # Claude Code
 .claude/
+
+# SSA raw data files (download from ssa.gov)
+data/ssa-raw/*.txt

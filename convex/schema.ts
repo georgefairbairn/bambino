@@ -21,12 +21,25 @@ export default defineSchema({
     phonetic: v.string(),
     length: v.number(),
     firstLetter: v.string(),
+    currentRank: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index('by_name', ['name'])
     .index('by_gender', ['gender'])
     .index('by_first_letter', ['firstLetter'])
     .index('by_gender_and_first_letter', ['gender', 'firstLetter']),
+
+  namePopularity: defineTable({
+    name: v.string(),
+    gender: v.string(),
+    year: v.number(),
+    rank: v.number(),
+    count: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_name_gender', ['name', 'gender'])
+    .index('by_year_gender', ['year', 'gender'])
+    .index('by_name_gender_year', ['name', 'gender', 'year']),
 
   sessions: defineTable({
     name: v.string(),
