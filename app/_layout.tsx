@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import { Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SessionProvider } from '@/contexts/session-context';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -57,7 +58,9 @@ export default function RootLayout() {
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
           <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-            <Slot />
+            <SessionProvider>
+              <Slot />
+            </SessionProvider>
           </ConvexProviderWithClerk>
         </ClerkLoaded>
       </ClerkProvider>

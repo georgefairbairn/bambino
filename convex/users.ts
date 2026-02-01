@@ -1,6 +1,5 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { internal } from './_generated/api';
 
 export const getCurrentUser = query({
   args: {},
@@ -55,10 +54,6 @@ export const createOrUpdateUser = mutation({
       imageUrl: args.imageUrl,
       createdAt: now,
       updatedAt: now,
-    });
-
-    await ctx.scheduler.runAfter(0, internal.sessions.createDefaultSession, {
-      userId,
     });
 
     return userId;

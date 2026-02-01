@@ -39,6 +39,21 @@ async function isSessionMemberOrThrow(
   return membership;
 }
 
+async function isSessionMember(
+  ctx: QueryCtx | MutationCtx,
+  sessionId: Id<'sessions'>,
+  userId: Id<'users'>
+) {
+  const membership = await ctx.db
+    .query('sessionMembers')
+    .withIndex('by_session_and_user', (q) =>
+      q.eq('sessionId', sessionId).eq('userId', userId)
+    )
+    .unique();
+
+  return membership;
+}
+
 export const recordSelection = mutation({
   args: {
     sessionId: v.id('sessions'),
@@ -91,11 +106,16 @@ export const getSwipeQueue = query({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-    await isSessionMemberOrThrow(ctx, args.sessionId, user._id);
 
+    // Check if session exists and user is a member (graceful handling for deleted sessions)
     const session = await ctx.db.get(args.sessionId);
     if (!session) {
-      throw new Error('Session not found');
+      return [];
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      return [];
     }
 
     const limit = args.limit ?? 50;
@@ -190,7 +210,17 @@ export const getSelectionStats = query({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-    await isSessionMemberOrThrow(ctx, args.sessionId, user._id);
+
+    // Check if session exists and user is a member (graceful handling for deleted sessions)
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      return { liked: 0, rejected: 0, skipped: 0, total: 0 };
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      return { liked: 0, rejected: 0, skipped: 0, total: 0 };
+    }
 
     const userSelections = await ctx.db
       .query('selections')
