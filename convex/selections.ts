@@ -241,3 +241,113 @@ export const getSelectionStats = query({
     return stats;
   },
 });
+
+export const getLikedNames = query({
+  args: {
+    sessionId: v.id('sessions'),
+    search: v.optional(v.string()),
+    sortBy: v.optional(
+      v.union(
+        v.literal('name_asc'),
+        v.literal('name_desc'),
+        v.literal('liked_newest'),
+        v.literal('liked_oldest')
+      )
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    // Check if session exists and user is a member
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      return [];
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      return [];
+    }
+
+    // Get all liked selections for this user in this session
+    const likedSelections = await ctx.db
+      .query('selections')
+      .withIndex('by_user_session_type', (q) =>
+        q
+          .eq('userId', user._id)
+          .eq('sessionId', args.sessionId)
+          .eq('selectionType', 'like')
+      )
+      .collect();
+
+    // Join with name details
+    const likedNamesWithDetails = await Promise.all(
+      likedSelections.map(async (selection) => {
+        const name = await ctx.db.get(selection.nameId);
+        return {
+          selectionId: selection._id,
+          likedAt: selection.createdAt,
+          name: name,
+        };
+      })
+    );
+
+    // Filter out any null names (in case name was deleted)
+    let results = likedNamesWithDetails.filter(
+      (item): item is { selectionId: Id<'selections'>; likedAt: number; name: NonNullable<typeof item.name> } =>
+        item.name !== null
+    );
+
+    // Apply search filter
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      results = results.filter((item) =>
+        item.name.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply sorting
+    const sortBy = args.sortBy ?? 'liked_newest';
+    switch (sortBy) {
+      case 'name_asc':
+        results.sort((a, b) => a.name.name.localeCompare(b.name.name));
+        break;
+      case 'name_desc':
+        results.sort((a, b) => b.name.name.localeCompare(a.name.name));
+        break;
+      case 'liked_newest':
+        results.sort((a, b) => b.likedAt - a.likedAt);
+        break;
+      case 'liked_oldest':
+        results.sort((a, b) => a.likedAt - b.likedAt);
+        break;
+    }
+
+    return results;
+  },
+});
+
+export const removeFromLiked = mutation({
+  args: {
+    selectionId: v.id('selections'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    // Get the selection
+    const selection = await ctx.db.get(args.selectionId);
+    if (!selection) {
+      throw new Error('Selection not found');
+    }
+
+    // Verify ownership
+    if (selection.userId !== user._id) {
+      throw new Error('Not authorized to remove this selection');
+    }
+
+    // Delete the selection
+    await ctx.db.delete(args.selectionId);
+
+    return { success: true };
+  },
+});
