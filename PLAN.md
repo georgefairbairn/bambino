@@ -175,12 +175,12 @@ After completing each phase, follow these steps:
 ### Phase 10: Admin Dashboard - Rejected Names
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create rejected names tab | Not Started |
-| 2 | Create getRejectedNames query | Not Started |
-| 3 | Add restore to queue action | Not Started |
-| 4 | Add hide permanently option | Not Started |
-| 5 | Add search in rejected list | Not Started |
-| 6 | Show rejected count | Not Started |
+| 1 | Create rejected names tab | Complete |
+| 2 | Create getRejectedNames query | Complete |
+| 3 | Add restore to queue action | Complete |
+| 4 | Add hide permanently option | Complete |
+| 5 | Add search in rejected list | Complete |
+| 6 | Show rejected count | Complete |
 
 ---
 
@@ -357,7 +357,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 7 | Session Management | 8 | 8 |
 | 8 | Filter System | 6 | 6 |
 | 9 | Dashboard Liked | 8 | 8 |
-| 10 | Dashboard Rejected | 6 | 0 |
+| 10 | Dashboard Rejected | 6 | 6 |
 | 11 | Name Detail | 7 | 0 |
 | 12 | Popularity Backend | 7 | 0 |
 | 13 | Popularity Charts | 7 | 0 |
@@ -365,4 +365,4 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **136** | **85** |
+| **Total** | | **136** | **91** |
