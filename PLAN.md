@@ -149,14 +149,12 @@ After completing each phase, follow these steps:
 ### Phase 8: Filter System
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create filter settings screen | Not Started |
-| 2 | Add gender filter toggle | Not Started |
-| 3 | Add name length slider | Not Started |
-| 4 | Add starting letter picker | Not Started |
-| 5 | Create updateSessionFilters mutation | Not Started |
-| 6 | Apply filters in swipe queue | Not Started |
-| 7 | Show active filters badge | Not Started |
-| 8 | Add reset filters button | Not Started |
+| 1 | Add origin filter to session form modal | Complete |
+| 2 | Create OriginPicker multi-select component | Complete |
+| 3 | Add originFilter field to sessions schema | Complete |
+| 4 | Create getAvailableOrigins query | Complete |
+| 5 | Apply origin filter in getSwipeQueue | Complete |
+| 6 | Reset swipe queue when filters change | Complete |
 
 ---
 
@@ -357,7 +355,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 5 | Swipe Card UI | 10 | 10 |
 | 6 | Main Swipe Screen | 8 | 8 |
 | 7 | Session Management | 8 | 8 |
-| 8 | Filter System | 8 | 0 |
+| 8 | Filter System | 6 | 6 |
 | 9 | Dashboard Liked | 8 | 0 |
 | 10 | Dashboard Rejected | 6 | 0 |
 | 11 | Name Detail | 7 | 0 |
@@ -367,4 +365,4 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **138** | **71** |
+| **Total** | | **136** | **77** |
