@@ -161,14 +161,14 @@ After completing each phase, follow these steps:
 ### Phase 9: Admin Dashboard - Liked Names
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create dashboard screen | Not Started |
-| 2 | Create liked names tab | Not Started |
-| 3 | Create getLikedNames query | Not Started |
-| 4 | Add liked name list item | Not Started |
-| 5 | Add remove from liked action | Not Started |
-| 6 | Add search/filter in liked list | Not Started |
-| 7 | Add sort options | Not Started |
-| 8 | Show liked count in header | Not Started |
+| 1 | Create dashboard screen | Complete |
+| 2 | Create liked names tab | Complete |
+| 3 | Create getLikedNames query | Complete |
+| 4 | Add liked name list item | Complete |
+| 5 | Add remove from liked action | Complete |
+| 6 | Add search/filter in liked list | Complete |
+| 7 | Add sort options | Complete |
+| 8 | Show liked count in header | Complete |
 
 ---
 
@@ -356,7 +356,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 6 | Main Swipe Screen | 8 | 8 |
 | 7 | Session Management | 8 | 8 |
 | 8 | Filter System | 6 | 6 |
-| 9 | Dashboard Liked | 8 | 0 |
+| 9 | Dashboard Liked | 8 | 8 |
 | 10 | Dashboard Rejected | 6 | 0 |
 | 11 | Name Detail | 7 | 0 |
 | 12 | Popularity Backend | 7 | 0 |
@@ -365,4 +365,4 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **136** | **77** |
+| **Total** | | **136** | **85** |
