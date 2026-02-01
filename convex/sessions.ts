@@ -78,6 +78,7 @@ export const createSession = mutation({
       v.literal('girl'),
       v.literal('both')
     ),
+    originFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -87,6 +88,7 @@ export const createSession = mutation({
     const sessionId = await ctx.db.insert('sessions', {
       name: args.name,
       genderFilter: args.genderFilter,
+      originFilter: args.originFilter,
       shareCode,
       status: 'active',
       ownerId: user._id,
@@ -114,9 +116,7 @@ export const updateSession = mutation({
       v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))
     ),
     status: v.optional(v.union(v.literal('active'), v.literal('archived'))),
-    minLength: v.optional(v.number()),
-    maxLength: v.optional(v.number()),
-    startingLetters: v.optional(v.array(v.string())),
+    originFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);

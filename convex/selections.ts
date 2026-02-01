@@ -145,18 +145,10 @@ export const getSwipeQueue = query({
         return false;
       }
 
-      if (session.minLength !== undefined && name.length < session.minLength) {
-        return false;
-      }
-
-      if (session.maxLength !== undefined && name.length > session.maxLength) {
-        return false;
-      }
-
       if (
-        session.startingLetters !== undefined &&
-        session.startingLetters.length > 0 &&
-        !session.startingLetters.includes(name.firstLetter)
+        session.originFilter !== undefined &&
+        session.originFilter.length > 0 &&
+        !session.originFilter.includes(name.origin)
       ) {
         return false;
       }

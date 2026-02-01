@@ -9,22 +9,26 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { GenderFilterSelector } from './gender-filter-selector';
+import { OriginPicker } from './origin-picker';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
 interface SessionData {
   name: string;
   genderFilter: GenderFilter;
+  originFilter: string[];
 }
 
 interface Session {
   _id: string;
   name: string;
   genderFilter: GenderFilter;
+  originFilter?: string[];
   role: 'owner' | 'partner';
 }
 
@@ -47,6 +51,7 @@ export function SessionFormModal({
 }: SessionFormModalProps) {
   const [name, setName] = useState('');
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('both');
+  const [originFilter, setOriginFilter] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const isEditMode = !!session;
@@ -58,9 +63,11 @@ export function SessionFormModal({
       if (session) {
         setName(session.name);
         setGenderFilter(session.genderFilter);
+        setOriginFilter(session.originFilter ?? []);
       } else {
         setName('');
         setGenderFilter('both');
+        setOriginFilter([]);
       }
       setError(null);
     }
@@ -73,7 +80,7 @@ export function SessionFormModal({
       return;
     }
     setError(null);
-    onSubmit({ name: trimmedName, genderFilter });
+    onSubmit({ name: trimmedName, genderFilter, originFilter });
   };
 
   const handleDelete = () => {
@@ -110,56 +117,64 @@ export function SessionFormModal({
             </Pressable>
           </View>
 
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Name input */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Session Name</Text>
-              <TextInput
-                style={[styles.input, error && styles.inputError]}
-                value={name}
-                onChangeText={(text) => {
-                  setName(text);
-                  setError(null);
-                }}
-                placeholder="e.g., Baby Boy Names"
-                placeholderTextColor="#9ca3af"
-                autoFocus={!isEditMode}
-                maxLength={50}
-              />
-              {error && <Text style={styles.errorText}>{error}</Text>}
+          <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Form */}
+            <View style={styles.form}>
+              {/* Name input */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Session Name</Text>
+                <TextInput
+                  style={[styles.input, error && styles.inputError]}
+                  value={name}
+                  onChangeText={(text) => {
+                    setName(text);
+                    setError(null);
+                  }}
+                  placeholder="e.g., Baby Boy Names"
+                  placeholderTextColor="#9ca3af"
+                  autoFocus={!isEditMode}
+                  maxLength={50}
+                />
+                {error && <Text style={styles.errorText}>{error}</Text>}
+              </View>
+
+              {/* Gender filter */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Show Names For</Text>
+                <GenderFilterSelector value={genderFilter} onChange={setGenderFilter} />
+              </View>
+
+              {/* Origin filter */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Name Origins</Text>
+                <OriginPicker value={originFilter} onChange={setOriginFilter} />
+              </View>
             </View>
 
-            {/* Gender filter */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Show Names For</Text>
-              <GenderFilterSelector value={genderFilter} onChange={setGenderFilter} />
-            </View>
-          </View>
-
-          {/* Actions */}
-          <View style={styles.actions}>
-            <Pressable
-              style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.submitButtonText}>
-                {isEditMode ? 'Save Changes' : 'Create Session'}
-              </Text>
-            </Pressable>
-
-            {canDelete && (
+            {/* Actions */}
+            <View style={styles.actions}>
               <Pressable
-                style={[styles.deleteButton, isSubmitting && styles.buttonDisabled]}
-                onPress={handleDelete}
+                style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
+                onPress={handleSubmit}
                 disabled={isSubmitting}
               >
-                <Ionicons name="trash-outline" size={18} color="#dc2626" />
-                <Text style={styles.deleteButtonText}>Delete Session</Text>
+                <Text style={styles.submitButtonText}>
+                  {isEditMode ? 'Save Changes' : 'Create Session'}
+                </Text>
               </Pressable>
-            )}
-          </View>
+
+              {canDelete && (
+                <Pressable
+                  style={[styles.deleteButton, isSubmitting && styles.buttonDisabled]}
+                  onPress={handleDelete}
+                  disabled={isSubmitting}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#dc2626" />
+                  <Text style={styles.deleteButtonText}>Delete Session</Text>
+                </Pressable>
+              )}
+            </View>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -181,6 +196,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
     paddingBottom: 40,
+    maxHeight: '85%',
+  },
+  scrollContent: {
+    flexGrow: 0,
   },
   handleBar: {
     width: 40,
