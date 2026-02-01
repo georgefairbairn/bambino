@@ -1,0 +1,13 @@
+# SSA Baby Names Data
+
+This directory should contain the raw SSA baby names data files.
+
+## Setup
+
+1. Download from: https://www.ssa.gov/oact/babynames/names.zip
+2. Extract the .txt files (yob1880.txt through yob2023.txt) into this directory
+3. Run: npm run process:ssa
+4. Then run: npm run seed:popularity
+
+The .txt files contain records in format: Name,Gender,Count
+Example: Emma,F,22532

@@ -199,13 +199,13 @@ After completing each phase, follow these steps:
 ### Phase 12: Popularity Data Backend
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create namePopularity table | Not Started |
-| 2 | Source historical popularity data | Not Started |
-| 3 | Create popularity import script | Not Started |
-| 4 | Import popularity data | Not Started |
-| 5 | Create getNamePopularity query | Not Started |
-| 6 | Create getPopularNamesForYear query | Not Started |
-| 7 | Add current rank to names table | Not Started |
+| 1 | Create namePopularity table | Complete |
+| 2 | Source historical popularity data | Complete |
+| 3 | Create popularity import script | Complete |
+| 4 | Import popularity data | Complete |
+| 5 | Create getNamePopularity query | Complete |
+| 6 | Create getPopularNamesForYear query | Complete |
+| 7 | Add current rank to names table | Complete |
 
 ---
 
@@ -358,10 +358,10 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 9 | Dashboard Liked | 8 | 8 |
 | 10 | Dashboard Rejected | 6 | 6 |
 | 11 | Name Detail | 6 | 6 |
-| 12 | Popularity Backend | 7 | 0 |
+| 12 | Popularity Backend | 7 | 7 |
 | 13 | Popularity Charts | 7 | 0 |
 | 14 | Share Code | 9 | 0 |
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **135** | **97** |
+| **Total** | | **135** | **104** |

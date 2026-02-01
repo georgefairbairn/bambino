@@ -9,7 +9,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "seed:names": "npx tsx scripts/seed-names.ts"
+    "seed:names": "npx tsx scripts/seed-names.ts",
+    "process:ssa": "npx tsx scripts/process-ssa-data.ts",
+    "seed:popularity": "npx tsx scripts/seed-popularity.ts"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.17.1",
