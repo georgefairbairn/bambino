@@ -7,9 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { useActiveSession } from '@/hooks/use-active-session';
 import { LikedNamesHeader, SortOption } from '@/components/dashboard/liked-names-header';
+import {
+  RejectedNamesHeader,
+  RejectedSortOption,
+} from '@/components/dashboard/rejected-names-header';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { LikedNameCard } from '@/components/dashboard/liked-name-card';
+import { RejectedNameCard } from '@/components/dashboard/rejected-name-card';
 import { Fonts } from '@/constants/theme';
+
+type TabType = 'liked' | 'rejected';
 
 export default function Dashboard() {
   const sessions = useQuery(api.sessions.getUserSessions);
@@ -21,9 +28,11 @@ export default function Dashboard() {
   } = useActiveSession();
   const router = useRouter();
 
+  const [activeTab, setActiveTab] = useState<TabType>('liked');
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('liked_newest');
+  const [likedSortBy, setLikedSortBy] = useState<SortOption>('liked_newest');
+  const [rejectedSortBy, setRejectedSortBy] = useState<RejectedSortOption>('rejected_newest');
 
   // Find active session from context, fallback to first session
   const activeSession = sessions?.find((s) => s._id === activeSessionId) ?? sessions?.[0];
@@ -51,14 +60,33 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // Reset search when switching tabs
+  useEffect(() => {
+    setSearchInput('');
+    setDebouncedSearch('');
+  }, [activeTab]);
+
   const likedNames = useQuery(
     api.selections.getLikedNames,
     activeSession?._id
-      ? { sessionId: activeSession._id, search: debouncedSearch || undefined, sortBy }
+      ? { sessionId: activeSession._id, search: debouncedSearch || undefined, sortBy: likedSortBy }
+      : 'skip',
+  );
+
+  const rejectedNames = useQuery(
+    api.selections.getRejectedNames,
+    activeSession?._id
+      ? {
+          sessionId: activeSession._id,
+          search: debouncedSearch || undefined,
+          sortBy: rejectedSortBy,
+        }
       : 'skip',
   );
 
   const removeFromLiked = useMutation(api.selections.removeFromLiked);
+  const restoreToQueue = useMutation(api.selections.restoreToQueue);
+  const hidePermanently = useMutation(api.selections.hidePermanently);
 
   // Loading state
   if (sessions === undefined) {
@@ -92,11 +120,18 @@ export default function Dashboard() {
     );
   }
 
-  // Liked names loading state
-  if (likedNames === undefined) {
+  const currentData = activeTab === 'liked' ? likedNames : rejectedNames;
+
+  // Data loading state
+  if (currentData === undefined) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <LikedNamesHeader count={0} sortBy={sortBy} onSortChange={setSortBy} />
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {activeTab === 'liked' ? (
+          <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
+        ) : (
+          <RejectedNamesHeader count={0} sortBy={rejectedSortBy} onSortChange={setRejectedSortBy} />
+        )}
         <SearchInput value={searchInput} onChangeText={setSearchInput} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0a7ea4" />
@@ -105,28 +140,49 @@ export default function Dashboard() {
     );
   }
 
-  // Empty liked names state
-  if (likedNames.length === 0) {
+  // Empty state
+  if (currentData.length === 0) {
     const isSearching = debouncedSearch.length > 0;
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <LikedNamesHeader count={0} sortBy={sortBy} onSortChange={setSortBy} />
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {activeTab === 'liked' ? (
+          <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
+        ) : (
+          <RejectedNamesHeader count={0} sortBy={rejectedSortBy} onSortChange={setRejectedSortBy} />
+        )}
         <SearchInput value={searchInput} onChangeText={setSearchInput} />
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-            <Ionicons name={isSearching ? 'search' : 'heart-outline'} size={64} color="#9ca3af" />
+            <Ionicons
+              name={
+                isSearching
+                  ? 'search'
+                  : activeTab === 'liked'
+                    ? 'heart-outline'
+                    : 'close-circle-outline'
+              }
+              size={64}
+              color="#9ca3af"
+            />
           </View>
           <Text style={styles.emptyTitle}>
-            {isSearching ? 'No Results Found' : 'No Liked Names Yet'}
+            {isSearching
+              ? 'No Results Found'
+              : activeTab === 'liked'
+                ? 'No Liked Names Yet'
+                : 'No Rejected Names'}
           </Text>
           <Text style={styles.emptyDescription}>
             {isSearching
               ? `No names match "${debouncedSearch}"`
-              : 'Start swiping to add names to your liked list!'}
+              : activeTab === 'liked'
+                ? 'Start swiping to add names to your liked list!'
+                : 'Names you swipe left on will appear here.'}
           </Text>
           {!isSearching && (
             <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)')}>
-              <Ionicons name="heart" size={24} color="#fff" />
+              <Ionicons name={activeTab === 'liked' ? 'heart' : 'albums'} size={24} color="#fff" />
               <Text style={styles.createButtonText}>Start Swiping</Text>
             </Pressable>
           )}
@@ -137,22 +193,90 @@ export default function Dashboard() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LikedNamesHeader count={likedNames.length} sortBy={sortBy} onSortChange={setSortBy} />
-      <SearchInput value={searchInput} onChangeText={setSearchInput} />
-      <FlatList
-        data={likedNames}
-        keyExtractor={(item) => item.selectionId}
-        renderItem={({ item }) => (
-          <LikedNameCard
-            name={item.name}
-            likedAt={item.likedAt}
-            onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
+      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab === 'liked' ? (
+        <>
+          <LikedNamesHeader
+            count={likedNames?.length ?? 0}
+            sortBy={likedSortBy}
+            onSortChange={setLikedSortBy}
           />
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+          <SearchInput value={searchInput} onChangeText={setSearchInput} />
+          <FlatList
+            data={likedNames}
+            keyExtractor={(item) => item.selectionId}
+            renderItem={({ item }) => (
+              <LikedNameCard
+                name={item.name}
+                likedAt={item.likedAt}
+                onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
+              />
+            )}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
+      ) : (
+        <>
+          <RejectedNamesHeader
+            count={rejectedNames?.length ?? 0}
+            sortBy={rejectedSortBy}
+            onSortChange={setRejectedSortBy}
+          />
+          <SearchInput value={searchInput} onChangeText={setSearchInput} />
+          <FlatList
+            data={rejectedNames}
+            keyExtractor={(item) => item.selectionId}
+            renderItem={({ item }) => (
+              <RejectedNameCard
+                name={item.name}
+                rejectedAt={item.rejectedAt}
+                onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
+                onHide={() => hidePermanently({ selectionId: item.selectionId })}
+              />
+            )}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
+      )}
     </SafeAreaView>
+  );
+}
+
+interface TabBarProps {
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
+}
+
+function TabBar({ activeTab, onTabChange }: TabBarProps) {
+  return (
+    <View style={styles.tabBar}>
+      <Pressable
+        style={[styles.tab, activeTab === 'liked' && styles.tabActive]}
+        onPress={() => onTabChange('liked')}
+      >
+        <Ionicons
+          name={activeTab === 'liked' ? 'heart' : 'heart-outline'}
+          size={20}
+          color={activeTab === 'liked' ? '#0a7ea4' : '#6b7280'}
+        />
+        <Text style={[styles.tabText, activeTab === 'liked' && styles.tabTextActive]}>Liked</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.tab, activeTab === 'rejected' && styles.tabActive]}
+        onPress={() => onTabChange('rejected')}
+      >
+        <Ionicons
+          name={activeTab === 'rejected' ? 'close-circle' : 'close-circle-outline'}
+          size={20}
+          color={activeTab === 'rejected' ? '#ef4444' : '#6b7280'}
+        />
+        <Text style={[styles.tabText, activeTab === 'rejected' && styles.tabTextActive]}>
+          Rejected
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -160,6 +284,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#C6E7F5',
+  },
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  tabActive: {
+    backgroundColor: '#e0f2fe',
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    color: '#6b7280',
+  },
+  tabTextActive: {
+    color: '#0a7ea4',
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
