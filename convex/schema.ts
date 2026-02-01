@@ -68,7 +68,8 @@ export default defineSchema({
     selectionType: v.union(
       v.literal('like'),
       v.literal('reject'),
-      v.literal('skip')
+      v.literal('skip'),
+      v.literal('hidden')
     ),
     createdAt: v.number(),
     updatedAt: v.number(),
