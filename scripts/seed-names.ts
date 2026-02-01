@@ -5,12 +5,11 @@ import namesData from '../data/names.json';
 const BATCH_SIZE = 100;
 
 async function seedNames() {
-  const deploymentUrl = process.env.CONVEX_URL;
+  const deploymentUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 
   if (!deploymentUrl) {
-    console.error('Error: CONVEX_URL environment variable is not set.');
-    console.error('Please set it to your Convex deployment URL.');
-    console.error('You can find this in your Convex dashboard or .env.local file.');
+    console.error('Error: EXPO_PUBLIC_CONVEX_URL environment variable is not set.');
+    console.error('Please set it in your .env.local file.');
     process.exit(1);
   }
 
