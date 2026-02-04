@@ -212,13 +212,13 @@ After completing each phase, follow these steps:
 ### Phase 13: Popularity Charts UI
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Install charting library | Not Started |
-| 2 | Create popularity chart component | Not Started |
-| 3 | Add chart to name detail | Not Started |
-| 4 | Add mini chart to swipe card | Not Started |
-| 5 | Show current rank badge | Not Started |
-| 6 | Add year selector on chart | Not Started |
-| 7 | Handle missing data gracefully | Not Started |
+| 1 | Install charting library | Complete |
+| 2 | Create popularity chart component | Complete |
+| 3 | Add chart to name detail | Complete |
+| 4 | Add mini chart to swipe card | Complete |
+| 5 | Show current rank badge | Complete |
+| 6 | Add year selector on chart | Complete |
+| 7 | Handle missing data gracefully | Complete |
 
 ---
 
@@ -359,9 +359,9 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 10 | Dashboard Rejected | 6 | 6 |
 | 11 | Name Detail | 6 | 6 |
 | 12 | Popularity Backend | 7 | 7 |
-| 13 | Popularity Charts | 7 | 0 |
+| 13 | Popularity Charts | 7 | 7 |
 | 14 | Share Code | 9 | 0 |
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **135** | **104** |
+| **Total** | | **135** | **111** |

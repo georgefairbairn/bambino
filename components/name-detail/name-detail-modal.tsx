@@ -4,6 +4,7 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { Fonts } from '@/constants/theme';
 import { GenderBadge } from './gender-badge';
 import { QuickActionButtons } from './quick-action-buttons';
+import { RankBadge, PopularityChart } from '@/components/popularity';
 
 type Context = 'swipe' | 'liked' | 'rejected';
 
@@ -53,9 +54,10 @@ export function NameDetailModal({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContainer}
           >
-            {/* Gender badge */}
+            {/* Badges */}
             <View style={styles.badgeContainer}>
               <GenderBadge gender={name.gender as 'boy' | 'girl' | 'unisex'} size="large" />
+              <RankBadge rank={name.currentRank} size="large" />
             </View>
 
             {/* Name */}
@@ -84,6 +86,14 @@ export function NameDetailModal({
                 </View>
               )}
             </View>
+
+            {/* Popularity chart */}
+            {name.gender !== 'neutral' && (
+              <PopularityChart
+                name={name.name}
+                gender={name.gender as 'male' | 'female' | 'neutral'}
+              />
+            )}
 
             {/* Quick action buttons */}
             <QuickActionButtons
@@ -147,7 +157,10 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   badgeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
     marginBottom: 16,
   },
   name: {
