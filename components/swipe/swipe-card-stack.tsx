@@ -2,12 +2,14 @@ import { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
+import { useRouter } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
 import { SwipeActionButtons } from './swipe-action-buttons';
 import { UndoButton } from './undo-button';
 import { EmptyState } from './empty-state';
+import { MatchCelebrationModal } from '@/components/matches';
 import { useCardAnimation } from '@/hooks/use-card-animation';
 import * as Haptics from 'expo-haptics';
 import { CARD_WIDTH, CARD_HEIGHT, PEEK_CARD } from '@/constants/swipe';
@@ -18,6 +20,8 @@ interface SwipeCardStackProps {
 }
 
 export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
+  const router = useRouter();
+
   // Fetch initial queue from backend
   const serverQueue = useQuery(api.selections.getSwipeQueue, {
     sessionId,
@@ -35,6 +39,8 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
     selectionType: 'like' | 'reject' | 'skip';
   } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
+  const [showMatchModal, setShowMatchModal] = useState(false);
 
   // Card animation for the top card
   const topCardAnimation = useCardAnimation({
@@ -66,11 +72,17 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
 
       // Record to backend
       try {
-        await recordSelection({
+        const result = await recordSelection({
           sessionId,
           nameId: currentName._id,
           selectionType,
         });
+
+        // Check if we got a match
+        if (result.match && result.match.name) {
+          setMatchedName(result.match.name as Doc<'names'>);
+          setShowMatchModal(true);
+        }
       } catch (error) {
         // Revert on error
         console.error('Failed to record selection:', error);
@@ -214,6 +226,21 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
 
       {/* Undo button */}
       {lastAction && <UndoButton onUndo={handleUndo} />}
+
+      {/* Match celebration modal */}
+      <MatchCelebrationModal
+        visible={showMatchModal}
+        name={matchedName}
+        onClose={() => {
+          setShowMatchModal(false);
+          setMatchedName(null);
+        }}
+        onViewMatches={() => {
+          setShowMatchModal(false);
+          setMatchedName(null);
+          router.push('/matches' as const);
+        }}
+      />
     </View>
   );
 }

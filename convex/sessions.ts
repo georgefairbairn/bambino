@@ -1,11 +1,5 @@
 import { v } from 'convex/values';
-import {
-  mutation,
-  query,
-  internalMutation,
-  QueryCtx,
-  MutationCtx,
-} from './_generated/server';
+import { mutation, query, internalMutation, QueryCtx, MutationCtx } from './_generated/server';
 import { Id } from './_generated/dataModel';
 
 function generateShareCode(): string {
@@ -17,9 +11,7 @@ function generateShareCode(): string {
   return code;
 }
 
-async function generateUniqueShareCode(
-  ctx: QueryCtx | MutationCtx
-): Promise<string> {
+async function generateUniqueShareCode(ctx: QueryCtx | MutationCtx): Promise<string> {
   let code = generateShareCode();
   let existing = await ctx.db
     .query('sessions')
@@ -58,13 +50,11 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
 async function isSessionMember(
   ctx: QueryCtx | MutationCtx,
   sessionId: Id<'sessions'>,
-  userId: Id<'users'>
+  userId: Id<'users'>,
 ) {
   const membership = await ctx.db
     .query('sessionMembers')
-    .withIndex('by_session_and_user', (q) =>
-      q.eq('sessionId', sessionId).eq('userId', userId)
-    )
+    .withIndex('by_session_and_user', (q) => q.eq('sessionId', sessionId).eq('userId', userId))
     .unique();
 
   return membership;
@@ -73,11 +63,7 @@ async function isSessionMember(
 export const createSession = mutation({
   args: {
     name: v.string(),
-    genderFilter: v.union(
-      v.literal('boy'),
-      v.literal('girl'),
-      v.literal('both')
-    ),
+    genderFilter: v.union(v.literal('boy'), v.literal('girl'), v.literal('both')),
     originFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
@@ -112,9 +98,7 @@ export const updateSession = mutation({
   args: {
     sessionId: v.id('sessions'),
     name: v.optional(v.string()),
-    genderFilter: v.optional(
-      v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))
-    ),
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
     status: v.optional(v.union(v.literal('active'), v.literal('archived'))),
     originFilter: v.optional(v.array(v.string())),
   },
@@ -133,7 +117,7 @@ export const updateSession = mutation({
 
     const { sessionId, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
-      Object.entries(updates).filter(([, value]) => value !== undefined)
+      Object.entries(updates).filter(([, value]) => value !== undefined),
     );
 
     await ctx.db.patch(args.sessionId, {
@@ -206,7 +190,7 @@ export const getUserSessions = query({
           ...session,
           role: membership.role,
         };
-      })
+      }),
     );
 
     return sessionsWithRole.filter((session) => session !== null);
@@ -257,7 +241,7 @@ export const getSessionById = query({
           email: memberUser?.email,
           imageUrl: memberUser?.imageUrl,
         };
-      })
+      }),
     );
 
     return {
@@ -346,6 +330,58 @@ export const getSessionByShareCode = query({
       ownerName: owner?.name ?? 'Unknown',
       genderFilter: session.genderFilter,
     };
+  },
+});
+
+export const archiveSession = mutation({
+  args: {
+    sessionId: v.id('sessions'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      throw new Error('Not a member of this session');
+    }
+
+    await ctx.db.patch(args.sessionId, {
+      status: 'archived',
+      updatedAt: Date.now(),
+    });
+
+    return args.sessionId;
+  },
+});
+
+export const unarchiveSession = mutation({
+  args: {
+    sessionId: v.id('sessions'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    if (!membership) {
+      throw new Error('Not a member of this session');
+    }
+
+    await ctx.db.patch(args.sessionId, {
+      status: 'active',
+      updatedAt: Date.now(),
+    });
+
+    return args.sessionId;
   },
 });
 

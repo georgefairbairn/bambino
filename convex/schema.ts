@@ -43,11 +43,7 @@ export default defineSchema({
 
   sessions: defineTable({
     name: v.string(),
-    genderFilter: v.union(
-      v.literal('boy'),
-      v.literal('girl'),
-      v.literal('both')
-    ),
+    genderFilter: v.union(v.literal('boy'), v.literal('girl'), v.literal('both')),
     shareCode: v.string(),
     status: v.union(v.literal('active'), v.literal('archived')),
     ownerId: v.id('users'),
@@ -82,7 +78,7 @@ export default defineSchema({
       v.literal('like'),
       v.literal('reject'),
       v.literal('skip'),
-      v.literal('hidden')
+      v.literal('hidden'),
     ),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -91,4 +87,22 @@ export default defineSchema({
     .index('by_user_session', ['userId', 'sessionId'])
     .index('by_session_name', ['sessionId', 'nameId'])
     .index('by_user_session_type', ['userId', 'sessionId', 'selectionType']),
+
+  matches: defineTable({
+    sessionId: v.id('sessions'),
+    nameId: v.id('names'),
+    user1Id: v.id('users'),
+    user2Id: v.id('users'),
+    isFavorite: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+    rank: v.optional(v.number()),
+    isChosen: v.optional(v.boolean()),
+    matchedAt: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_session_id', ['sessionId'])
+    .index('by_session_name', ['sessionId', 'nameId'])
+    .index('by_session_favorite', ['sessionId', 'isFavorite'])
+    .index('by_session_chosen', ['sessionId', 'isChosen']),
 });

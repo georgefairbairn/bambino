@@ -240,43 +240,43 @@ After completing each phase, follow these steps:
 ### Phase 15: Partner Sync - Match Detection
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create matches table schema | Not Started |
-| 2 | Create checkForMatch function | Not Started |
-| 3 | Create match on mutual like | Not Started |
-| 4 | Create getMatches query | Not Started |
-| 5 | Add match notification trigger | Not Started |
-| 6 | Create match celebration modal | Not Started |
-| 7 | Add match sound/haptic | Not Started |
+| 1 | Create matches table schema | Complete |
+| 2 | Create checkForMatch function | Complete |
+| 3 | Create match on mutual like | Complete |
+| 4 | Create getMatches query | Complete |
+| 5 | Add match notification trigger | Complete |
+| 6 | Create match celebration modal | Complete |
+| 7 | Add match sound/haptic | Complete |
 
 ---
 
 ### Phase 16: Matches View
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Create matches list screen | Not Started |
-| 2 | Display matched names | Not Started |
-| 3 | Add star/favorite match | Not Started |
-| 4 | Add notes to match | Not Started |
-| 5 | Add manual ranking | Not Started |
-| 6 | Create updateMatch mutation | Not Started |
-| 7 | Show match count badge | Not Started |
-| 8 | Add share matches feature | Not Started |
+| 1 | Create matches list screen | Complete |
+| 2 | Display matched names | Complete |
+| 3 | Add star/favorite match | Complete |
+| 4 | Add notes to match | Complete |
+| 5 | Add manual ranking | Complete |
+| 6 | Create updateMatch mutation | Complete |
+| 7 | Show match count badge | Complete |
+| 8 | Add share matches feature | Complete |
 
 ---
 
 ### Phase 17: Final Selection & Polish
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Add choose this name action | Not Started |
-| 2 | Create chosen name display | Not Started |
-| 3 | Add archive session option | Not Started |
-| 4 | Create onboarding flow | Not Started |
-| 5 | Add swipe tutorial | Not Started |
-| 6 | Add push notifications setup | Not Started |
-| 7 | Add new match notification | Not Started |
-| 8 | Add app icon and splash screen | Not Started |
-| 9 | Performance optimization | Not Started |
-| 10 | Error boundary setup | Not Started |
+| 1 | Add choose this name action | Complete |
+| 2 | Create chosen name display | Complete |
+| 3 | Add archive session option | Complete |
+| 4 | Create onboarding flow | Complete |
+| 5 | Add swipe tutorial | Complete |
+| 6 | Add push notifications setup | Deferred |
+| 7 | Add new match notification | Deferred |
+| 8 | Add app icon and splash screen | Deferred |
+| 9 | Performance optimization | Complete |
+| 10 | Error boundary setup | Complete |
 
 ---
 
@@ -335,10 +335,10 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 - [ ] Sign in on another device - data syncs
 
 ### After Phase 16 (Partner Sync)
-- [ ] Create session, get share code
-- [ ] Partner joins with code
-- [ ] Both like same name
-- [ ] Match appears for both users in real-time
+- [x] Create session, get share code
+- [x] Partner joins with code
+- [x] Both like same name
+- [x] Match appears for both users in real-time
 
 ---
 
@@ -361,7 +361,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 12 | Popularity Backend | 7 | 7 |
 | 13 | Popularity Charts | 7 | 7 |
 | 14 | Share Code | 9 | 9 |
-| 15 | Match Detection | 7 | 0 |
-| 16 | Matches View | 8 | 0 |
-| 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **135** | **120** |
+| 15 | Match Detection | 7 | 7 |
+| 16 | Matches View | 8 | 8 |
+| 17 | Polish & Launch | 10 | 7 |
+| **Total** | | **135** | **132** |
