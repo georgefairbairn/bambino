@@ -6,6 +6,7 @@ import { useCardAnimation } from '@/hooks/use-card-animation';
 import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { CARD_WIDTH, CARD_HEIGHT, CARD_STYLES, SWIPE_COLORS } from '@/constants/swipe';
 import { Fonts } from '@/constants/theme';
+import { RankBadge, SparklineChart } from '@/components/popularity';
 
 interface SwipeCardProps {
   name: Doc<'names'>;
@@ -61,6 +62,11 @@ export function SwipeCard({
 
         {/* Card content */}
         <View style={styles.content}>
+          {/* Rank badge */}
+          <View style={styles.rankBadgeContainer}>
+            <RankBadge rank={name.currentRank} size="small" />
+          </View>
+
           {/* Name */}
           <Text style={styles.name}>{name.name}</Text>
 
@@ -85,6 +91,16 @@ export function SwipeCard({
               </View>
             )}
           </View>
+
+          {/* Sparkline chart */}
+          {name.gender !== 'neutral' && (
+            <View style={styles.sparklineContainer}>
+              <SparklineChart
+                name={name.name}
+                gender={name.gender as 'male' | 'female' | 'neutral'}
+              />
+            </View>
+          )}
         </View>
       </Animated.View>
     </GestureDetector>
@@ -141,12 +157,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 32,
   },
+  rankBadgeContainer: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+  },
   name: {
     fontSize: 48,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#1a1a1a',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   metadata: {
     width: '100%',
@@ -171,5 +192,9 @@ const styles = StyleSheet.create({
     color: '#374151',
     flexShrink: 1,
     textAlign: 'center',
+  },
+  sparklineContainer: {
+    marginTop: 16,
+    alignItems: 'center',
   },
 });
