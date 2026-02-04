@@ -9,6 +9,7 @@ import { Id } from '@/convex/_generated/dataModel';
 import { useActiveSession } from '@/hooks/use-active-session';
 import { SessionCard } from '@/components/session/session-card';
 import { SessionFormModal } from '@/components/session/session-form-modal';
+import { JoinSessionModal } from '@/components/session/join-session-modal';
 import { Fonts } from '@/constants/theme';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
@@ -36,6 +37,7 @@ export default function Sessions() {
   const deleteSession = useMutation(api.sessions.deleteSession);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [joinModalVisible, setJoinModalVisible] = useState(false);
   const [editingSession, setEditingSession] = useState<SessionWithRole | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,6 +58,18 @@ export default function Sessions() {
     setEditingSession(null);
     setModalVisible(true);
   }, []);
+
+  const handleJoinPress = useCallback(() => {
+    setJoinModalVisible(true);
+  }, []);
+
+  const handleJoinSuccess = useCallback(
+    async (sessionId: string) => {
+      await setActiveSession(sessionId as Id<'sessions'>);
+      router.push('/(tabs)');
+    },
+    [setActiveSession, router],
+  );
 
   const handleCloseModal = useCallback(() => {
     setModalVisible(false);
@@ -138,6 +152,10 @@ export default function Sessions() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Sessions</Text>
+        <Pressable style={styles.joinButton} onPress={handleJoinPress}>
+          <Ionicons name="enter-outline" size={18} color="#0a7ea4" />
+          <Text style={styles.joinButtonText}>Join</Text>
+        </Pressable>
       </View>
 
       {/* Session list */}
@@ -174,6 +192,13 @@ export default function Sessions() {
         onSubmit={handleSubmit}
         onDelete={handleDelete}
         isSubmitting={isSubmitting}
+      />
+
+      {/* Join Modal */}
+      <JoinSessionModal
+        visible={joinModalVisible}
+        onClose={() => setJoinModalVisible(false)}
+        onSuccess={handleJoinSuccess}
       />
     </SafeAreaView>
   );
@@ -224,11 +249,29 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 32,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#1a1a1a',
+  },
+  joinButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#e0f2fe',
+    borderRadius: 8,
+  },
+  joinButtonText: {
+    fontSize: 14,
+    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    color: '#0a7ea4',
+    fontWeight: '600',
   },
   listContent: {
     paddingHorizontal: 20,

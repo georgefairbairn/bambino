@@ -296,3 +296,102 @@ export const createDefaultSession = internalMutation({
     return sessionId;
   },
 });
+
+export const getSessionByShareCode = query({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Validate code format (6 chars, alphanumeric)
+    const normalizedCode = args.code.toUpperCase().replace(/\s/g, '');
+    if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
+      return { error: 'invalid_format' as const };
+    }
+
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_share_code', (q) => q.eq('shareCode', normalizedCode))
+      .unique();
+
+    if (!session) {
+      return { error: 'not_found' as const };
+    }
+
+    // Check if current user is the owner or already a member
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity) {
+      const user = await ctx.db
+        .query('users')
+        .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+        .unique();
+
+      if (user) {
+        if (session.ownerId === user._id) {
+          return { error: 'own_session' as const };
+        }
+
+        const membership = await isSessionMember(ctx, session._id, user._id);
+        if (membership) {
+          return { error: 'already_member' as const };
+        }
+      }
+    }
+
+    // Get owner info
+    const owner = await ctx.db.get(session.ownerId);
+
+    return {
+      sessionId: session._id,
+      name: session.name,
+      ownerName: owner?.name ?? 'Unknown',
+      genderFilter: session.genderFilter,
+    };
+  },
+});
+
+export const joinSessionByCode = mutation({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    // Validate code format
+    const normalizedCode = args.code.toUpperCase().replace(/\s/g, '');
+    if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
+      throw new Error('Please enter a valid 6-character code');
+    }
+
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_share_code', (q) => q.eq('shareCode', normalizedCode))
+      .unique();
+
+    if (!session) {
+      throw new Error('Session not found. Please check the code.');
+    }
+
+    // Check if user owns the session
+    if (session.ownerId === user._id) {
+      throw new Error('This is your own session');
+    }
+
+    // Check if already a member
+    const existingMembership = await isSessionMember(ctx, session._id, user._id);
+    if (existingMembership) {
+      throw new Error("You're already a member of this session");
+    }
+
+    // Add user as partner
+    const now = Date.now();
+    await ctx.db.insert('sessionMembers', {
+      sessionId: session._id,
+      userId: user._id,
+      role: 'partner',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return session._id;
+  },
+});

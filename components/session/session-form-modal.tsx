@@ -10,8 +10,10 @@ import {
   Platform,
   Alert,
   ScrollView,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { Fonts } from '@/constants/theme';
 import { GenderFilterSelector } from './gender-filter-selector';
 import { OriginPicker } from './origin-picker';
@@ -29,6 +31,7 @@ interface Session {
   name: string;
   genderFilter: GenderFilter;
   originFilter?: string[];
+  shareCode?: string;
   role: 'owner' | 'partner';
 }
 
@@ -53,9 +56,11 @@ export function SessionFormModal({
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('both');
   const [originFilter, setOriginFilter] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const isEditMode = !!session;
-  const canDelete = isEditMode && session?.role === 'owner';
+  const isOwner = session?.role === 'owner';
+  const canDelete = isEditMode && isOwner;
 
   // Reset form when modal opens/closes or session changes
   useEffect(() => {
@@ -70,8 +75,31 @@ export function SessionFormModal({
         setOriginFilter([]);
       }
       setError(null);
+      setCopied(false);
     }
   }, [visible, session]);
+
+  const formatShareCode = (code: string) => {
+    return `${code.slice(0, 3)} ${code.slice(3)}`;
+  };
+
+  const handleCopyCode = async () => {
+    if (!session?.shareCode) return;
+    await Clipboard.setStringAsync(session.shareCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShareCode = async () => {
+    if (!session?.shareCode) return;
+    try {
+      await Share.share({
+        message: `Join my baby name session "${session.name}" on Bambino! Use code: ${session.shareCode}`,
+      });
+    } catch {
+      // User cancelled or share failed
+    }
+  };
 
   const handleSubmit = () => {
     const trimmedName = name.trim();
@@ -174,6 +202,34 @@ export function SessionFormModal({
                 </Pressable>
               )}
             </View>
+
+            {/* Share Code Section - only shown for owners editing an existing session */}
+            {isEditMode && isOwner && session?.shareCode && (
+              <View style={styles.shareSection}>
+                <View style={styles.shareDivider} />
+                <Text style={styles.shareLabel}>Invite Partner</Text>
+                <Text style={styles.shareDescription}>
+                  Share this code with your partner so they can join your session
+                </Text>
+                <View style={styles.shareCodeContainer}>
+                  <Text style={styles.shareCode}>{formatShareCode(session.shareCode)}</Text>
+                  <View style={styles.shareActions}>
+                    <Pressable style={styles.shareButton} onPress={handleCopyCode}>
+                      <Ionicons
+                        name={copied ? 'checkmark' : 'copy-outline'}
+                        size={20}
+                        color="#0a7ea4"
+                      />
+                      <Text style={styles.shareButtonText}>{copied ? 'Copied!' : 'Copy'}</Text>
+                    </Pressable>
+                    <Pressable style={styles.shareButton} onPress={handleShareCode}>
+                      <Ionicons name="share-outline" size={20} color="#0a7ea4" />
+                      <Text style={styles.shareButtonText}>Share</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            )}
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -285,5 +341,61 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  shareSection: {
+    marginTop: 24,
+  },
+  shareDivider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginBottom: 20,
+  },
+  shareLabel: {
+    fontSize: 14,
+    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    color: '#4b5563',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  shareDescription: {
+    fontSize: 13,
+    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    color: '#9ca3af',
+    marginBottom: 12,
+  },
+  shareCodeContainer: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  shareCode: {
+    fontSize: 24,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    color: '#1a1a1a',
+    letterSpacing: 2,
+  },
+  shareActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#e0f2fe',
+    borderRadius: 8,
+  },
+  shareButtonText: {
+    fontSize: 13,
+    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    color: '#0a7ea4',
+    fontWeight: '600',
   },
 });
