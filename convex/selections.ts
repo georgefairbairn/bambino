@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
-import { Id } from './_generated/dataModel';
+import { Id, Doc } from './_generated/dataModel';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -23,13 +23,11 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
 async function isSessionMemberOrThrow(
   ctx: QueryCtx | MutationCtx,
   sessionId: Id<'sessions'>,
-  userId: Id<'users'>
+  userId: Id<'users'>,
 ) {
   const membership = await ctx.db
     .query('sessionMembers')
-    .withIndex('by_session_and_user', (q) =>
-      q.eq('sessionId', sessionId).eq('userId', userId)
-    )
+    .withIndex('by_session_and_user', (q) => q.eq('sessionId', sessionId).eq('userId', userId))
     .unique();
 
   if (!membership) {
@@ -42,27 +40,97 @@ async function isSessionMemberOrThrow(
 async function isSessionMember(
   ctx: QueryCtx | MutationCtx,
   sessionId: Id<'sessions'>,
-  userId: Id<'users'>
+  userId: Id<'users'>,
 ) {
   const membership = await ctx.db
     .query('sessionMembers')
-    .withIndex('by_session_and_user', (q) =>
-      q.eq('sessionId', sessionId).eq('userId', userId)
-    )
+    .withIndex('by_session_and_user', (q) => q.eq('sessionId', sessionId).eq('userId', userId))
     .unique();
 
   return membership;
+}
+
+// Check if a match already exists for this session and name
+async function matchExists(
+  ctx: QueryCtx | MutationCtx,
+  sessionId: Id<'sessions'>,
+  nameId: Id<'names'>,
+): Promise<boolean> {
+  const existing = await ctx.db
+    .query('matches')
+    .withIndex('by_session_name', (q) => q.eq('sessionId', sessionId).eq('nameId', nameId))
+    .unique();
+
+  return existing !== null;
+}
+
+// Check for a match when a user likes a name
+// Returns the match details if one was created, null otherwise
+async function checkForMatchAndCreate(
+  ctx: MutationCtx,
+  sessionId: Id<'sessions'>,
+  nameId: Id<'names'>,
+  likingUserId: Id<'users'>,
+): Promise<{ matchId: Id<'matches'>; name: Doc<'names'> | null; matchedAt: number } | null> {
+  // Check if match already exists
+  if (await matchExists(ctx, sessionId, nameId)) {
+    return null;
+  }
+
+  // Get all session members
+  const sessionMembers = await ctx.db
+    .query('sessionMembers')
+    .withIndex('by_session_id', (q) => q.eq('sessionId', sessionId))
+    .collect();
+
+  // If only one member (the liker), no match possible
+  if (sessionMembers.length < 2) {
+    return null;
+  }
+
+  // Get other members who have liked this name
+  const otherMembers = sessionMembers.filter((m) => m.userId !== likingUserId);
+
+  for (const member of otherMembers) {
+    // Check if this member has liked the same name
+    const theirSelection = await ctx.db
+      .query('selections')
+      .withIndex('by_session_name', (q) => q.eq('sessionId', sessionId).eq('nameId', nameId))
+      .filter((q) => q.eq(q.field('userId'), member.userId))
+      .unique();
+
+    if (theirSelection && theirSelection.selectionType === 'like') {
+      // Match found! Create the match record
+      const now = Date.now();
+      const matchId = await ctx.db.insert('matches', {
+        sessionId,
+        nameId,
+        user1Id: likingUserId,
+        user2Id: member.userId,
+        matchedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Get the name details for the response
+      const name = await ctx.db.get(nameId);
+
+      return {
+        matchId,
+        name,
+        matchedAt: now,
+      };
+    }
+  }
+
+  return null;
 }
 
 export const recordSelection = mutation({
   args: {
     sessionId: v.id('sessions'),
     nameId: v.id('names'),
-    selectionType: v.union(
-      v.literal('like'),
-      v.literal('reject'),
-      v.literal('skip')
-    ),
+    selectionType: v.union(v.literal('like'), v.literal('reject'), v.literal('skip')),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -71,7 +139,7 @@ export const recordSelection = mutation({
     const existingSelection = await ctx.db
       .query('selections')
       .withIndex('by_session_name', (q) =>
-        q.eq('sessionId', args.sessionId).eq('nameId', args.nameId)
+        q.eq('sessionId', args.sessionId).eq('nameId', args.nameId),
       )
       .filter((q) => q.eq(q.field('userId'), user._id))
       .unique();
@@ -83,7 +151,15 @@ export const recordSelection = mutation({
         selectionType: args.selectionType,
         updatedAt: now,
       });
-      return existingSelection._id;
+
+      // Check for match if changing to like
+      if (args.selectionType === 'like') {
+        const match = await checkForMatchAndCreate(ctx, args.sessionId, args.nameId, user._id);
+
+        return { selectionId: existingSelection._id, match };
+      }
+
+      return { selectionId: existingSelection._id, match: null };
     }
 
     const selectionId = await ctx.db.insert('selections', {
@@ -95,7 +171,14 @@ export const recordSelection = mutation({
       updatedAt: now,
     });
 
-    return selectionId;
+    // Check for match if this is a like
+    if (args.selectionType === 'like') {
+      const match = await checkForMatchAndCreate(ctx, args.sessionId, args.nameId, user._id);
+
+      return { selectionId, match };
+    }
+
+    return { selectionId, match: null };
   },
 });
 
@@ -122,9 +205,7 @@ export const getSwipeQueue = query({
 
     const userSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session', (q) =>
-        q.eq('userId', user._id).eq('sessionId', args.sessionId)
-      )
+      .withIndex('by_user_session', (q) => q.eq('userId', user._id).eq('sessionId', args.sessionId))
       .collect();
 
     const swipedNameIds = new Set(userSelections.map((s) => s.nameId));
@@ -170,9 +251,7 @@ export const undoLastSelection = mutation({
 
     const userSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session', (q) =>
-        q.eq('userId', user._id).eq('sessionId', args.sessionId)
-      )
+      .withIndex('by_user_session', (q) => q.eq('userId', user._id).eq('sessionId', args.sessionId))
       .collect();
 
     if (userSelections.length === 0) {
@@ -180,7 +259,7 @@ export const undoLastSelection = mutation({
     }
 
     const mostRecent = userSelections.reduce((latest, current) =>
-      current.createdAt > latest.createdAt ? current : latest
+      current.createdAt > latest.createdAt ? current : latest,
     );
 
     const name = await ctx.db.get(mostRecent.nameId);
@@ -216,9 +295,7 @@ export const getSelectionStats = query({
 
     const userSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session', (q) =>
-        q.eq('userId', user._id).eq('sessionId', args.sessionId)
-      )
+      .withIndex('by_user_session', (q) => q.eq('userId', user._id).eq('sessionId', args.sessionId))
       .collect();
 
     const stats = {
@@ -251,8 +328,8 @@ export const getLikedNames = query({
         v.literal('name_asc'),
         v.literal('name_desc'),
         v.literal('liked_newest'),
-        v.literal('liked_oldest')
-      )
+        v.literal('liked_oldest'),
+      ),
     ),
   },
   handler: async (ctx, args) => {
@@ -273,10 +350,7 @@ export const getLikedNames = query({
     const likedSelections = await ctx.db
       .query('selections')
       .withIndex('by_user_session_type', (q) =>
-        q
-          .eq('userId', user._id)
-          .eq('sessionId', args.sessionId)
-          .eq('selectionType', 'like')
+        q.eq('userId', user._id).eq('sessionId', args.sessionId).eq('selectionType', 'like'),
       )
       .collect();
 
@@ -289,21 +363,24 @@ export const getLikedNames = query({
           likedAt: selection.createdAt,
           name: name,
         };
-      })
+      }),
     );
 
     // Filter out any null names (in case name was deleted)
     let results = likedNamesWithDetails.filter(
-      (item): item is { selectionId: Id<'selections'>; likedAt: number; name: NonNullable<typeof item.name> } =>
-        item.name !== null
+      (
+        item,
+      ): item is {
+        selectionId: Id<'selections'>;
+        likedAt: number;
+        name: NonNullable<typeof item.name>;
+      } => item.name !== null,
     );
 
     // Apply search filter
     if (args.search) {
       const searchLower = args.search.toLowerCase();
-      results = results.filter((item) =>
-        item.name.name.toLowerCase().includes(searchLower)
-      );
+      results = results.filter((item) => item.name.name.toLowerCase().includes(searchLower));
     }
 
     // Apply sorting
@@ -361,8 +438,8 @@ export const getRejectedNames = query({
         v.literal('name_asc'),
         v.literal('name_desc'),
         v.literal('rejected_newest'),
-        v.literal('rejected_oldest')
-      )
+        v.literal('rejected_oldest'),
+      ),
     ),
   },
   handler: async (ctx, args) => {
@@ -383,10 +460,7 @@ export const getRejectedNames = query({
     const rejectedSelections = await ctx.db
       .query('selections')
       .withIndex('by_user_session_type', (q) =>
-        q
-          .eq('userId', user._id)
-          .eq('sessionId', args.sessionId)
-          .eq('selectionType', 'reject')
+        q.eq('userId', user._id).eq('sessionId', args.sessionId).eq('selectionType', 'reject'),
       )
       .collect();
 
@@ -399,21 +473,24 @@ export const getRejectedNames = query({
           rejectedAt: selection.createdAt,
           name: name,
         };
-      })
+      }),
     );
 
     // Filter out any null names (in case name was deleted)
     let results = rejectedNamesWithDetails.filter(
-      (item): item is { selectionId: Id<'selections'>; rejectedAt: number; name: NonNullable<typeof item.name> } =>
-        item.name !== null
+      (
+        item,
+      ): item is {
+        selectionId: Id<'selections'>;
+        rejectedAt: number;
+        name: NonNullable<typeof item.name>;
+      } => item.name !== null,
     );
 
     // Apply search filter
     if (args.search) {
       const searchLower = args.search.toLowerCase();
-      results = results.filter((item) =>
-        item.name.name.toLowerCase().includes(searchLower)
-      );
+      results = results.filter((item) => item.name.name.toLowerCase().includes(searchLower));
     }
 
     // Apply sorting

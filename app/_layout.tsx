@@ -15,6 +15,7 @@ import { Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SessionProvider } from '@/contexts/session-context';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -55,15 +56,17 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <ClerkLoaded>
-          <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-            <SessionProvider>
-              <Slot />
-            </SessionProvider>
-          </ConvexProviderWithClerk>
-        </ClerkLoaded>
-      </ClerkProvider>
+      <ErrorBoundary>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <ClerkLoaded>
+            <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+              <SessionProvider>
+                <Slot />
+              </SessionProvider>
+            </ConvexProviderWithClerk>
+          </ClerkLoaded>
+        </ClerkProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }
