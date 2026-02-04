@@ -225,15 +225,15 @@ After completing each phase, follow these steps:
 ### Phase 14: Partner Sync - Share Code
 | Priority | Task | Status |
 |----------|------|--------|
-| 1 | Verify shareCode in session schema | Not Started |
-| 2 | Create share code display screen | Not Started |
-| 3 | Add copy code button | Not Started |
-| 4 | Add share button | Not Started |
-| 5 | Create joinSessionByCode mutation | Not Started |
-| 6 | Create join session screen | Not Started |
-| 7 | Add code validation | Not Started |
-| 8 | Show success/error feedback | Not Started |
-| 9 | Add partner to session members | Not Started |
+| 1 | Verify shareCode in session schema | Complete |
+| 2 | Create share code display screen | Complete |
+| 3 | Add copy code button | Complete |
+| 4 | Add share button | Complete |
+| 5 | Create joinSessionByCode mutation | Complete |
+| 6 | Create join session screen | Complete |
+| 7 | Add code validation | Complete |
+| 8 | Show success/error feedback | Complete |
+| 9 | Add partner to session members | Complete |
 
 ---
 
@@ -360,8 +360,8 @@ CLERK_JWT_ISSUER_DOMAIN=https://assured-lobster-9.clerk.accounts.dev  # Configur
 | 11 | Name Detail | 6 | 6 |
 | 12 | Popularity Backend | 7 | 7 |
 | 13 | Popularity Charts | 7 | 7 |
-| 14 | Share Code | 9 | 0 |
+| 14 | Share Code | 9 | 9 |
 | 15 | Match Detection | 7 | 0 |
 | 16 | Matches View | 8 | 0 |
 | 17 | Polish & Launch | 10 | 0 |
-| **Total** | | **135** | **111** |
+| **Total** | | **135** | **120** |
