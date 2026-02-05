@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   slide: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 17,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 26,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   nextText: {
     fontSize: 18,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },

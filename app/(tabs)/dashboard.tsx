@@ -5,7 +5,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
-import { useActiveSession } from '@/hooks/use-active-session';
+import { useActiveSearch } from '@/hooks/use-active-search';
 import { LikedNamesHeader, SortOption } from '@/components/dashboard/liked-names-header';
 import {
   RejectedNamesHeader,
@@ -21,18 +21,18 @@ import { Doc, Id } from '@/convex/_generated/dataModel';
 type TabType = 'liked' | 'rejected';
 
 export default function Dashboard() {
-  const sessions = useQuery(api.sessions.getUserSessions);
+  const searches = useQuery(api.searches.getUserSearches);
   const {
-    activeSessionId,
-    setActiveSession,
-    clearActiveSession,
-    isLoading: isSessionLoading,
-  } = useActiveSession();
+    activeSearchId,
+    setActiveSearch,
+    clearActiveSearch,
+    isLoading: isSearchLoading,
+  } = useActiveSearch();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<TabType>('liked');
   const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [submittedSearch, setSubmittedSearch] = useState('');
   const [likedSortBy, setLikedSortBy] = useState<SortOption>('liked_newest');
   const [rejectedSortBy, setRejectedSortBy] = useState<RejectedSortOption>('rejected_newest');
 
@@ -43,51 +43,55 @@ export default function Dashboard() {
     selectionId: Id<'selections'>;
   } | null>(null);
 
-  // Find active session from context, fallback to first session
-  const activeSession = sessions?.find((s) => s._id === activeSessionId) ?? sessions?.[0];
+  // Find active search from context, fallback to first search
+  const activeSearch = searches?.find((s) => s._id === activeSearchId) ?? searches?.[0];
 
-  // Clear stale activeSessionId when it doesn't match any session
+  // Clear stale activeSearchId when it doesn't match any search
   useEffect(() => {
-    if (sessions && activeSessionId && !isSessionLoading) {
-      const sessionExists = sessions.some((s) => s._id === activeSessionId);
-      if (!sessionExists) {
-        clearActiveSession();
+    if (searches && activeSearchId && !isSearchLoading) {
+      const searchExists = searches.some((s) => s._id === activeSearchId);
+      if (!searchExists) {
+        clearActiveSearch();
       }
     }
-  }, [sessions, activeSessionId, isSessionLoading, clearActiveSession]);
+  }, [searches, activeSearchId, isSearchLoading, clearActiveSearch]);
 
-  // If no active session is set but we have sessions, set the first one as active
+  // If no active search is set but we have searches, set the first one as active
   useEffect(() => {
-    if (sessions && sessions.length > 0 && !activeSessionId && !isSessionLoading) {
-      setActiveSession(sessions[0]._id);
+    if (searches && searches.length > 0 && !activeSearchId && !isSearchLoading) {
+      setActiveSearch(searches[0]._id);
     }
-  }, [sessions, activeSessionId, isSessionLoading, setActiveSession]);
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [searches, activeSearchId, isSearchLoading, setActiveSearch]);
 
   // Reset search when switching tabs
   useEffect(() => {
     setSearchInput('');
-    setDebouncedSearch('');
+    setSubmittedSearch('');
   }, [activeTab]);
+
+  // Handle search submission (when user presses Enter)
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(searchInput);
+  };
+
+  // Handle search clear (when user presses X)
+  const handleSearchClear = () => {
+    setSubmittedSearch('');
+  };
 
   const likedNames = useQuery(
     api.selections.getLikedNames,
-    activeSession?._id
-      ? { sessionId: activeSession._id, search: debouncedSearch || undefined, sortBy: likedSortBy }
+    activeSearch?._id
+      ? { searchId: activeSearch._id, search: submittedSearch || undefined, sortBy: likedSortBy }
       : 'skip',
   );
 
   const rejectedNames = useQuery(
     api.selections.getRejectedNames,
-    activeSession?._id
+    activeSearch?._id
       ? {
-          sessionId: activeSession._id,
-          search: debouncedSearch || undefined,
+          searchId: activeSearch._id,
+          search: submittedSearch || undefined,
           sortBy: rejectedSortBy,
         }
       : 'skip',
@@ -125,7 +129,7 @@ export default function Dashboard() {
   };
 
   // Loading state
-  if (sessions === undefined) {
+  if (searches === undefined) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
@@ -135,21 +139,21 @@ export default function Dashboard() {
     );
   }
 
-  // No sessions state
-  if (sessions.length === 0 || !activeSession) {
+  // No searches state
+  if (searches.length === 0 || !activeSearch) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <Ionicons name="heart-outline" size={64} color="#9ca3af" />
           </View>
-          <Text style={styles.emptyTitle}>No Session Selected</Text>
+          <Text style={styles.emptyTitle}>No Search Selected</Text>
           <Text style={styles.emptyDescription}>
-            Create or select a session to view your liked names.
+            Create or select a search to view your liked names.
           </Text>
-          <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)/sessions')}>
-            <Ionicons name="albums" size={24} color="#fff" />
-            <Text style={styles.createButtonText}>Go to Sessions</Text>
+          <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)/explore')}>
+            <Ionicons name="compass" size={24} color="#fff" />
+            <Text style={styles.createButtonText}>Go to Explore</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -168,7 +172,12 @@ export default function Dashboard() {
         ) : (
           <RejectedNamesHeader count={0} sortBy={rejectedSortBy} onSortChange={setRejectedSortBy} />
         )}
-        <SearchInput value={searchInput} onChangeText={setSearchInput} />
+        <SearchInput
+          value={searchInput}
+          onChangeText={setSearchInput}
+          onSubmit={handleSearchSubmit}
+          onClear={handleSearchClear}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0a7ea4" />
         </View>
@@ -178,7 +187,7 @@ export default function Dashboard() {
 
   // Empty state
   if (currentData.length === 0) {
-    const isSearching = debouncedSearch.length > 0;
+    const isSearching = submittedSearch.length > 0;
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -187,7 +196,12 @@ export default function Dashboard() {
         ) : (
           <RejectedNamesHeader count={0} sortBy={rejectedSortBy} onSortChange={setRejectedSortBy} />
         )}
-        <SearchInput value={searchInput} onChangeText={setSearchInput} />
+        <SearchInput
+          value={searchInput}
+          onChangeText={setSearchInput}
+          onSubmit={handleSearchSubmit}
+          onClear={handleSearchClear}
+        />
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <Ionicons
@@ -196,7 +210,7 @@ export default function Dashboard() {
                   ? 'search'
                   : activeTab === 'liked'
                     ? 'heart-outline'
-                    : 'close-circle-outline'
+                    : 'heart-dislike-outline'
               }
               size={64}
               color="#9ca3af"
@@ -211,14 +225,14 @@ export default function Dashboard() {
           </Text>
           <Text style={styles.emptyDescription}>
             {isSearching
-              ? `No names match "${debouncedSearch}"`
+              ? `No names match "${submittedSearch}"`
               : activeTab === 'liked'
                 ? 'Start swiping to add names to your liked list!'
                 : 'Names you swipe left on will appear here.'}
           </Text>
           {!isSearching && (
-            <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)')}>
-              <Ionicons name={activeTab === 'liked' ? 'heart' : 'albums'} size={24} color="#fff" />
+            <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)/explore')}>
+              <Ionicons name={activeTab === 'liked' ? 'heart' : 'compass'} size={24} color="#fff" />
               <Text style={styles.createButtonText}>Start Swiping</Text>
             </Pressable>
           )}
@@ -237,7 +251,12 @@ export default function Dashboard() {
             sortBy={likedSortBy}
             onSortChange={setLikedSortBy}
           />
-          <SearchInput value={searchInput} onChangeText={setSearchInput} />
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
           <FlatList
             data={likedNames}
             keyExtractor={(item) => item.selectionId}
@@ -251,6 +270,8 @@ export default function Dashboard() {
             )}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           />
         </>
       ) : (
@@ -260,7 +281,12 @@ export default function Dashboard() {
             sortBy={rejectedSortBy}
             onSortChange={setRejectedSortBy}
           />
-          <SearchInput value={searchInput} onChangeText={setSearchInput} />
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
           <FlatList
             data={rejectedNames}
             keyExtractor={(item) => item.selectionId}
@@ -275,6 +301,8 @@ export default function Dashboard() {
             )}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           />
         </>
       )}
@@ -320,7 +348,7 @@ function TabBar({ activeTab, onTabChange }: TabBarProps) {
         onPress={() => onTabChange('rejected')}
       >
         <Ionicons
-          name={activeTab === 'rejected' ? 'close-circle' : 'close-circle-outline'}
+          name={activeTab === 'rejected' ? 'heart-dislike' : 'heart-dislike-outline'}
           size={20}
           color={activeTab === 'rejected' ? '#ef4444' : '#6b7280'}
         />
@@ -365,7 +393,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   tabTextActive: {
@@ -402,7 +430,7 @@ const styles = StyleSheet.create({
   },
   emptyDescription: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,

@@ -29,10 +29,8 @@ export const Colors = {
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'Sanchez_400Regular',
+    /** iOS system font */
+    sans: undefined,
     /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
@@ -41,15 +39,13 @@ export const Fonts = Platform.select({
     display: 'AlfaSlabOne_400Regular',
   },
   default: {
-    sans: 'normal',
-    serif: 'Sanchez_400Regular',
+    sans: undefined,
     rounded: 'normal',
     mono: 'monospace',
     display: 'AlfaSlabOne_400Regular',
   },
   web: {
     sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: 'Sanchez_400Regular',
     rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
     display: 'AlfaSlabOne_400Regular',

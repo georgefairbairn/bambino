@@ -22,7 +22,11 @@ function loadNames(): Set<string> {
 }
 
 // Process a single SSA year file (format: Name,Gender,Count per line)
-function processYearFile(filePath: string, year: number, validNames: Set<string>): PopularityRecord[] {
+function processYearFile(
+  filePath: string,
+  year: number,
+  validNames: Set<string>,
+): PopularityRecord[] {
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.trim().split('\n');
 

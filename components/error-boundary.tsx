@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },

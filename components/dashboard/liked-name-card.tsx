@@ -11,9 +11,28 @@ interface LikedNameCardProps {
 }
 
 const GENDER_EMOJI: Record<string, string> = {
-  boy: '👦',
-  girl: '👧',
-  unisex: '👶',
+  male: '👦',
+  female: '👧',
+  neutral: '👶',
+};
+
+// Origin to country flag emoji mapping
+const ORIGIN_FLAGS: Record<string, string> = {
+  Hebrew: '🇮🇱',
+  English: '🇬🇧',
+  Latin: '🇮🇹',
+  Greek: '🇬🇷',
+  Germanic: '🇩🇪',
+  Irish: '🇮🇪',
+  French: '🇫🇷',
+  Welsh: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
+  Scottish: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  Italian: '🇮🇹',
+  Spanish: '🇪🇸',
+  Scandinavian: '🇸🇪',
+  Dutch: '🇳🇱',
+  Aramaic: '🇸🇾',
+  Arabic: '🇸🇦',
 };
 
 function getRelativeTime(timestamp: number): string {
@@ -70,7 +89,9 @@ export function LikedNameCard({ name, likedAt, onRemove, onPress }: LikedNameCar
 
         <View style={styles.metaRow}>
           <View style={styles.originBadge}>
-            <Text style={styles.originText}>{name.origin}</Text>
+            <Text style={styles.originText}>
+              {ORIGIN_FLAGS[name.origin] || '🌍'} {name.origin}
+            </Text>
           </View>
           <Text style={styles.timestamp}>Liked {relativeTime}</Text>
         </View>
@@ -132,12 +153,12 @@ const styles = StyleSheet.create({
   },
   originText: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#0a7ea4',
   },
   timestamp: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#9ca3af',
   },
   removeButton: {

@@ -13,9 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
-import { useActiveSession } from '@/hooks/use-active-session';
+import { useActiveSearch } from '@/hooks/use-active-search';
 import { Fonts } from '@/constants/theme';
 import { MatchCard, MatchDetailModal } from '@/components/matches';
+import { JoinSearchModal } from '@/components/search/join-search-modal';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import * as Haptics from 'expo-haptics';
 
@@ -23,7 +24,7 @@ type SortOption = 'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'rank';
 
 type MatchWithName = {
   _id: Id<'matches'>;
-  sessionId: Id<'sessions'>;
+  searchId: Id<'searches'>;
   nameId: Id<'names'>;
   user1Id: Id<'users'>;
   user2Id: Id<'users'>;
@@ -46,19 +47,20 @@ const SORT_OPTIONS: { value: SortOption; label: string; icon: string }[] = [
 ];
 
 export default function Matches() {
-  const { activeSessionId, isLoading: isSessionLoading } = useActiveSession();
+  const { activeSearchId, isLoading: isSearchLoading, setActiveSearch } = useActiveSearch();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
   const matches = useQuery(
     api.matches.getMatches,
-    activeSessionId ? { sessionId: activeSessionId, sortBy } : 'skip',
+    activeSearchId ? { searchId: activeSearchId, sortBy } : 'skip',
   );
 
   const chosenName = useQuery(
     api.matches.getChosenName,
-    activeSessionId ? { sessionId: activeSessionId } : 'skip',
+    activeSearchId ? { searchId: activeSearchId } : 'skip',
   );
 
   const updateMatch = useMutation(api.matches.updateMatch);
@@ -145,8 +147,15 @@ export default function Matches() {
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
 
-  // Loading state
-  if (isSessionLoading || matches === undefined) {
+  const handleJoinSuccess = useCallback(
+    async (searchId: string) => {
+      await setActiveSearch(searchId as Id<'searches'>);
+    },
+    [setActiveSearch],
+  );
+
+  // Loading state (only while checking search context)
+  if (isSearchLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
@@ -156,18 +165,39 @@ export default function Matches() {
     );
   }
 
-  // No session selected
-  if (!activeSessionId) {
+  // No search selected
+  if (!activeSearchId) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="albums-outline" size={64} color="#9ca3af" />
+            <Ionicons name="people-outline" size={64} color="#9ca3af" />
           </View>
-          <Text style={styles.emptyTitle}>No Session Selected</Text>
+          <Text style={styles.emptyTitle}>No Matches Yet</Text>
           <Text style={styles.emptyDescription}>
-            Select a session from the Sessions tab to view matches.
+            Join your partner&apos;s search using their share code. When you both like the same
+            name, it will appear here!
           </Text>
+          <Pressable style={styles.joinButton} onPress={() => setShowJoinModal(true)}>
+            <Ionicons name="enter-outline" size={20} color="#fff" />
+            <Text style={styles.joinButtonText}>Join a Search</Text>
+          </Pressable>
+        </View>
+        <JoinSearchModal
+          visible={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
+          onSuccess={handleJoinSuccess}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // Data loading state
+  if (matches === undefined) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0a7ea4" />
         </View>
       </SafeAreaView>
     );
@@ -177,18 +207,25 @@ export default function Matches() {
   if (matches.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Matches</Text>
-        </View>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="heart-outline" size={64} color="#9ca3af" />
+            <Ionicons name="people-outline" size={64} color="#9ca3af" />
           </View>
           <Text style={styles.emptyTitle}>No Matches Yet</Text>
           <Text style={styles.emptyDescription}>
-            When you and your partner both like the same name, it will appear here!
+            Join your partner&apos;s search using their share code. When you both like the same
+            name, it will appear here!
           </Text>
+          <Pressable style={styles.joinButton} onPress={() => setShowJoinModal(true)}>
+            <Ionicons name="enter-outline" size={20} color="#fff" />
+            <Text style={styles.joinButtonText}>Join a Search</Text>
+          </Pressable>
         </View>
+        <JoinSearchModal
+          visible={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
+          onSuccess={handleJoinSuccess}
+        />
       </SafeAreaView>
     );
   }
@@ -327,7 +364,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },
@@ -352,7 +389,7 @@ const styles = StyleSheet.create({
   },
   chosenBannerText: {
     fontSize: 15,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#92400e',
   },
   chosenName: {
@@ -377,7 +414,7 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   favoriteIndicator: {
@@ -387,7 +424,7 @@ const styles = StyleSheet.create({
   },
   favoriteCount: {
     fontSize: 13,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#f59e0b',
   },
   sortMenu: {
@@ -416,7 +453,7 @@ const styles = StyleSheet.create({
   sortOptionText: {
     flex: 1,
     fontSize: 15,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#374151',
   },
   sortOptionTextActive: {
@@ -452,10 +489,26 @@ const styles = StyleSheet.create({
   },
   emptyDescription: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  joinButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0a7ea4',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 8,
+  },
+  joinButtonText: {
+    fontSize: 16,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#fff',
   },
   listContent: {
     paddingTop: 4,

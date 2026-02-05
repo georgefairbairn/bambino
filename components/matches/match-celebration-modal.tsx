@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   matchBadgeText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   keepSwipingText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#0a7ea4',
   },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   viewMatchesText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },

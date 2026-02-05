@@ -5,14 +5,23 @@ import { Fonts } from '@/constants/theme';
 interface SearchInputProps {
   value: string;
   onChangeText: (text: string) => void;
+  onSubmit?: () => void;
+  onClear?: () => void;
   placeholder?: string;
 }
 
 export function SearchInput({
   value,
   onChangeText,
+  onSubmit,
+  onClear,
   placeholder = 'Search names...',
 }: SearchInputProps) {
+  const handleClear = () => {
+    onChangeText('');
+    onClear?.();
+  };
+
   return (
     <View style={styles.container}>
       <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
@@ -20,6 +29,8 @@ export function SearchInput({
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
+        onSubmitEditing={onSubmit}
+        returnKeyType="search"
         placeholder={placeholder}
         placeholderTextColor="#9ca3af"
         autoCapitalize="none"
@@ -27,7 +38,7 @@ export function SearchInput({
       />
       {value.length > 0 && (
         <Pressable
-          onPress={() => onChangeText('')}
+          onPress={handleClear}
           style={styles.clearButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
@@ -60,7 +71,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#1f2937',
   },
   clearButton: {

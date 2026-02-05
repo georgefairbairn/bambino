@@ -3,12 +3,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 
 interface EmptyStateProps {
-  onUndo?: () => void;
   onReviewSkipped?: () => void;
   hasSkippedNames?: boolean;
 }
 
-export function EmptyState({ onUndo, onReviewSkipped, hasSkippedNames = false }: EmptyStateProps) {
+export function EmptyState({ onReviewSkipped, hasSkippedNames = false }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
@@ -19,8 +18,8 @@ export function EmptyState({ onUndo, onReviewSkipped, hasSkippedNames = false }:
 
       <Text style={styles.description}>Check your liked names or adjust filters to see more.</Text>
 
-      <View style={styles.actions}>
-        {hasSkippedNames && onReviewSkipped && (
+      {hasSkippedNames && onReviewSkipped && (
+        <View style={styles.actions}>
           <Pressable
             onPress={onReviewSkipped}
             style={({ pressed }) => [
@@ -32,22 +31,8 @@ export function EmptyState({ onUndo, onReviewSkipped, hasSkippedNames = false }:
             <Ionicons name="refresh" size={20} color="#ffffff" />
             <Text style={styles.primaryButtonText}>Review Skipped Names</Text>
           </Pressable>
-        )}
-
-        {onUndo && (
-          <Pressable
-            onPress={onUndo}
-            style={({ pressed }) => [
-              styles.button,
-              styles.secondaryButton,
-              pressed && styles.buttonPressed,
-            ]}
-          >
-            <Ionicons name="arrow-undo" size={18} color="#6b7280" />
-            <Text style={styles.secondaryButtonText}>Undo Last</Text>
-          </Pressable>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -71,7 +56,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     marginBottom: 32,
@@ -94,11 +79,6 @@ const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: '#0a7ea4',
   },
-  secondaryButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
   buttonPressed: {
     opacity: 0.8,
   },
@@ -106,10 +86,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
-  },
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6b7280',
   },
 });

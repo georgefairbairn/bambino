@@ -151,6 +151,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
             style={styles.scrollContent}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             {/* Name display */}
             <View style={styles.nameSection}>
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#1a1a1a',
   },
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   },
   matchBadgeText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },
@@ -344,12 +345,12 @@ const styles = StyleSheet.create({
   },
   originText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#0a7ea4',
   },
   meaning: {
     fontSize: 15,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
     fontStyle: 'italic',
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 15,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#6b7280',
   },
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     padding: 14,
     fontSize: 15,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#1a1a1a',
     minHeight: 100,
   },
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
   rankHint: {
     flex: 1,
     fontSize: 13,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#9ca3af',
   },
   buttons: {
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },
@@ -469,7 +470,7 @@ const styles = StyleSheet.create({
   },
   removeButtonText: {
     fontSize: 15,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#ef4444',
   },

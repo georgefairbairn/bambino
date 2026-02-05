@@ -25,18 +25,18 @@ export function LikedNamesHeader({ count, sortBy, onSortChange }: LikedNamesHead
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>Liked Names</Text>
-        <View style={styles.countBadge}>
-          <Text style={styles.countText}>{count}</Text>
-        </View>
+      <View style={styles.topRow}>
+        <Text style={styles.title}>Liked</Text>
+        <Pressable style={styles.sortButton} onPress={() => setShowSortPicker(true)}>
+          <Ionicons name="swap-vertical" size={16} color="#6b7280" />
+          <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
+          <Ionicons name="chevron-down" size={14} color="#6b7280" />
+        </Pressable>
       </View>
 
-      <Pressable style={styles.sortButton} onPress={() => setShowSortPicker(true)}>
-        <Ionicons name="swap-vertical" size={16} color="#6b7280" />
-        <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
-        <Ionicons name="chevron-down" size={14} color="#6b7280" />
-      </Pressable>
+      <View style={styles.countRow}>
+        <Text style={styles.countText}>{count} names</Text>
+      </View>
 
       <Modal
         visible={showSortPicker}
@@ -76,32 +76,29 @@ export function LikedNamesHeader({ count, sortBy, onSortChange }: LikedNamesHead
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   title: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#1a1a1a',
   },
-  countBadge: {
-    backgroundColor: '#0a7ea4',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  countRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
   countText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontFamily: Fonts?.sans,
+    color: '#6b7280',
   },
   sortButton: {
     flexDirection: 'row',
@@ -119,7 +116,7 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   modalOverlay: {
@@ -156,7 +153,7 @@ const styles = StyleSheet.create({
   },
   sortOptionText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#374151',
   },
   sortOptionTextActive: {

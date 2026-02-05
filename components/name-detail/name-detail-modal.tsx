@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#1a1a1a',
     lineHeight: 24,
   },

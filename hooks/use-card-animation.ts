@@ -5,7 +5,9 @@ import {
   withSpring,
   withTiming,
   runOnJS,
+  runOnUI,
   interpolate,
+  interpolateColor,
   Extrapolation,
 } from 'react-native-reanimated';
 import {
@@ -15,6 +17,8 @@ import {
   EXIT_X,
   SPRING_CONFIG,
   TIMING_CONFIG,
+  SWIPE_COLORS,
+  CARD_STYLES,
 } from '@/constants/swipe';
 
 export type SwipeDirection = 'left' | 'right';
@@ -43,10 +47,10 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
         x,
         [-200, 0, 200],
         [-MAX_ROTATION, 0, MAX_ROTATION],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       );
     },
-    [translateX, translateY, rotation]
+    [translateX, translateY, rotation],
   );
 
   // Reset card to center position
@@ -79,6 +83,15 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
     rotation.value = withTiming(MAX_ROTATION, TIMING_CONFIG);
   }, [translateX, rotation, onSwipeComplete]);
 
+  // JS-callable wrappers for programmatic swipes (from button presses)
+  const swipeLeftFromJS = useCallback(() => {
+    runOnUI(swipeLeft)();
+  }, [swipeLeft]);
+
+  const swipeRightFromJS = useCallback(() => {
+    runOnUI(swipeRight)();
+  }, [swipeRight]);
+
   // Animated style for the card transform
   const cardAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -90,23 +103,34 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
 
   // Animated opacity for "LIKE" overlay (visible when swiping right)
   const likeOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateX.value,
-      [0, SWIPE_THRESHOLD],
-      [0, 1],
-      Extrapolation.CLAMP
-    ),
+    opacity: interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1], Extrapolation.CLAMP),
   }));
 
   // Animated opacity for "NOPE" overlay (visible when swiping left)
   const nopeOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
+    opacity: interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [1, 0], Extrapolation.CLAMP),
+  }));
+
+  // Animated background color - transitions from cream to green/red based on swipe direction
+  const cardBackgroundStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
       translateX.value,
-      [-SWIPE_THRESHOLD, 0],
-      [1, 0],
-      Extrapolation.CLAMP
+      [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
+      [SWIPE_COLORS.nope, CARD_STYLES.backgroundColor, SWIPE_COLORS.like],
     ),
   }));
+
+  // Animated text color - transitions from dark to white as swipe progresses
+  const textColorStyle = useAnimatedStyle(() => {
+    const progress = Math.abs(translateX.value) / SWIPE_THRESHOLD;
+    return {
+      color: interpolateColor(
+        Math.min(progress, 1),
+        [0, 1],
+        ['#1a1a1a', '#ffffff'],
+      ),
+    };
+  });
 
   // Reset all values immediately (for when card is removed from deck)
   const resetImmediate = useCallback(() => {
@@ -123,9 +147,13 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
     resetPosition,
     swipeLeft,
     swipeRight,
+    swipeLeftFromJS,
+    swipeRightFromJS,
     resetImmediate,
     cardAnimatedStyle,
     likeOverlayStyle,
     nopeOverlayStyle,
+    cardBackgroundStyle,
+    textColorStyle,
   };
 }

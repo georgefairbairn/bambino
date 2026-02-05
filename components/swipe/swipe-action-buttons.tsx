@@ -1,48 +1,27 @@
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SWIPE_COLORS } from '@/constants/swipe';
 
 interface SwipeActionButtonsProps {
   onLike: () => void;
   onNope: () => void;
-  onSkip: () => void;
   disabled?: boolean;
 }
 
-export function SwipeActionButtons({
-  onLike,
-  onNope,
-  onSkip,
-  disabled = false,
-}: SwipeActionButtonsProps) {
+export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeActionButtonsProps) {
   return (
     <View style={styles.container}>
-      {/* Nope button */}
+      {/* Dislike button */}
       <Pressable
         onPress={onNope}
         disabled={disabled}
         style={({ pressed }) => [
           styles.button,
-          styles.nopeButton,
+          styles.dislikeButton,
           pressed && styles.buttonPressed,
           disabled && styles.buttonDisabled,
         ]}
       >
-        <Ionicons name="close" size={32} color={disabled ? '#d1d5db' : SWIPE_COLORS.nope} />
-      </Pressable>
-
-      {/* Skip button */}
-      <Pressable
-        onPress={onSkip}
-        disabled={disabled}
-        style={({ pressed }) => [
-          styles.button,
-          styles.skipButton,
-          pressed && styles.buttonPressed,
-          disabled && styles.buttonDisabled,
-        ]}
-      >
-        <Ionicons name="help" size={24} color={disabled ? '#d1d5db' : SWIPE_COLORS.skip} />
+        <Ionicons name="heart-dislike" size={32} color={disabled ? '#fca5a5' : '#ef4444'} />
       </Pressable>
 
       {/* Like button */}
@@ -56,7 +35,7 @@ export function SwipeActionButtons({
           disabled && styles.buttonDisabled,
         ]}
       >
-        <Ionicons name="heart" size={32} color={disabled ? '#d1d5db' : SWIPE_COLORS.like} />
+        <Ionicons name="heart" size={32} color={disabled ? '#86efac' : '#22c55e'} />
       </Pressable>
     </View>
   );
@@ -67,38 +46,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 24,
-    marginTop: 32,
+    gap: 40,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
   },
   button: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: 'center',
-    borderWidth: 2,
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     elevation: 4,
   },
-  nopeButton: {
-    borderColor: SWIPE_COLORS.nope,
-  },
-  skipButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderColor: SWIPE_COLORS.skip,
+  dislikeButton: {
+    backgroundColor: '#fff',
+    borderWidth: 3,
+    borderColor: '#ef4444',
   },
   likeButton: {
-    borderColor: SWIPE_COLORS.like,
+    backgroundColor: '#fff',
+    borderWidth: 3,
+    borderColor: '#22c55e',
   },
   buttonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.95 }],
+    transform: [{ scale: 0.92 }],
   },
   buttonDisabled: {
     borderColor: '#e5e7eb',

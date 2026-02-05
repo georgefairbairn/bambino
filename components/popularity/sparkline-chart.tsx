@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   noDataText: {
     fontSize: 10,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#9ca3af',
   },
 });
