@@ -52,10 +52,10 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="explore"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+          title: 'Explore',
+          tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -72,13 +72,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart-circle" size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="sessions"
-        options={{
-          title: 'Sessions',
-          tabBarIcon: ({ color, size }) => <Ionicons name="albums" size={size} color={color} />,
         }}
       />
       <Tabs.Screen

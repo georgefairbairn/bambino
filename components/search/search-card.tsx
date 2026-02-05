@@ -4,11 +4,11 @@ import { Fonts } from '@/constants/theme';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
-interface SessionCardProps {
+interface SearchCardProps {
   name: string;
   genderFilter: GenderFilter;
   role: 'owner' | 'partner';
-  isActive: boolean;
+  partnerName?: string;
   stats: {
     total: number;
     liked: number;
@@ -23,29 +23,24 @@ const GENDER_LABELS: Record<GenderFilter, { emoji: string; label: string }> = {
   both: { emoji: '👶', label: 'Both' },
 };
 
-export function SessionCard({
+export function SearchCard({
   name,
   genderFilter,
   role,
-  isActive,
+  partnerName,
   stats,
   onPress,
   onMenuPress,
-}: SessionCardProps) {
+}: SearchCardProps) {
   const genderInfo = GENDER_LABELS[genderFilter];
 
   return (
-    <Pressable style={[styles.card, isActive && styles.cardActive]} onPress={onPress}>
-      {/* Header row */}
+    <Pressable style={styles.card} onPress={onPress}>
+      {/* Header row with title */}
       <View style={styles.header}>
-        {isActive ? (
-          <View style={styles.activeBadge}>
-            <Ionicons name="checkmark-circle" size={14} color="#0a7ea4" />
-            <Text style={styles.activeBadgeText}>Active</Text>
-          </View>
-        ) : (
-          <View style={styles.placeholder} />
-        )}
+        <Text style={styles.name} numberOfLines={1}>
+          {name}
+        </Text>
         <Pressable
           style={styles.menuButton}
           onPress={(e) => {
@@ -58,10 +53,15 @@ export function SessionCard({
         </Pressable>
       </View>
 
-      {/* Session name */}
-      <Text style={styles.name} numberOfLines={1}>
-        {name}
-      </Text>
+      {/* Partner tag (if joined by someone) */}
+      {partnerName && (
+        <View style={styles.partnerRow}>
+          <View style={styles.partnerBadge}>
+            <Ionicons name="people" size={12} color="#0369a1" />
+            <Text style={styles.partnerText}>{partnerName}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Gender filter */}
       <View style={styles.genderRow}>
@@ -98,34 +98,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  cardActive: {
-    borderColor: '#0a7ea4',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
-  },
-  activeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#e0f2fe',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-  },
-  activeBadgeText: {
-    fontSize: 12,
-    color: '#0a7ea4',
-    fontWeight: '600',
-  },
-  placeholder: {
-    height: 24,
   },
   menuButton: {
     padding: 4,
@@ -134,7 +112,27 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#1a1a1a',
-    marginBottom: 8,
+    flex: 1,
+    marginRight: 8,
+  },
+  partnerRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  partnerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#e0f2fe',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  partnerText: {
+    fontSize: 12,
+    fontFamily: Fonts?.sans,
+    color: '#0369a1',
+    fontWeight: '500',
   },
   genderRow: {
     flexDirection: 'row',
@@ -147,7 +145,7 @@ const styles = StyleSheet.create({
   },
   genderLabel: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   statsRow: {
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#4b5563',
   },
   statsDot: {
@@ -179,7 +177,7 @@ const styles = StyleSheet.create({
   },
   roleText: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#4b5563',
   },
   roleTextPartner: {

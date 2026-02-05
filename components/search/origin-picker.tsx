@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#0a7ea4',
     fontWeight: '600',
   },
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   originText: {
     fontSize: 13,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   originTextSelected: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#9ca3af',
     fontStyle: 'italic',
   },
