@@ -77,7 +77,7 @@ export const searchNames = query({
       results = await ctx.db
         .query('names')
         .withIndex('by_gender_and_first_letter', (q) =>
-          q.eq('gender', args.gender!).eq('firstLetter', args.firstLetter!.toUpperCase())
+          q.eq('gender', args.gender!).eq('firstLetter', args.firstLetter!.toUpperCase()),
         )
         .collect();
     } else if (args.gender) {

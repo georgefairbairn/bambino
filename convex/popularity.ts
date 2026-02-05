@@ -20,7 +20,7 @@ export const seedPopularity = mutation({
       const existing = await ctx.db
         .query('namePopularity')
         .withIndex('by_name_gender_year', (q) =>
-          q.eq('name', record.name).eq('gender', record.gender).eq('year', record.year)
+          q.eq('name', record.name).eq('gender', record.gender).eq('year', record.year),
         )
         .first();
 
@@ -62,7 +62,7 @@ export const updateNamesWithCurrentRank = mutation({
       const popularityRecord = await ctx.db
         .query('namePopularity')
         .withIndex('by_name_gender_year', (q) =>
-          q.eq('name', name.name).eq('gender', ssaGender).eq('year', args.year)
+          q.eq('name', name.name).eq('gender', ssaGender).eq('year', args.year),
         )
         .first();
 

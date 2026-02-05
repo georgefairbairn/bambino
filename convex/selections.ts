@@ -20,45 +20,45 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
-async function isSessionMemberOrThrow(
+async function isSearchMemberOrThrow(
   ctx: QueryCtx | MutationCtx,
-  sessionId: Id<'sessions'>,
+  searchId: Id<'searches'>,
   userId: Id<'users'>,
 ) {
   const membership = await ctx.db
-    .query('sessionMembers')
-    .withIndex('by_session_and_user', (q) => q.eq('sessionId', sessionId).eq('userId', userId))
+    .query('searchMembers')
+    .withIndex('by_search_and_user', (q) => q.eq('searchId', searchId).eq('userId', userId))
     .unique();
 
   if (!membership) {
-    throw new Error('Not a member of this session');
+    throw new Error('Not a member of this search');
   }
 
   return membership;
 }
 
-async function isSessionMember(
+async function isSearchMember(
   ctx: QueryCtx | MutationCtx,
-  sessionId: Id<'sessions'>,
+  searchId: Id<'searches'>,
   userId: Id<'users'>,
 ) {
   const membership = await ctx.db
-    .query('sessionMembers')
-    .withIndex('by_session_and_user', (q) => q.eq('sessionId', sessionId).eq('userId', userId))
+    .query('searchMembers')
+    .withIndex('by_search_and_user', (q) => q.eq('searchId', searchId).eq('userId', userId))
     .unique();
 
   return membership;
 }
 
-// Check if a match already exists for this session and name
+// Check if a match already exists for this search and name
 async function matchExists(
   ctx: QueryCtx | MutationCtx,
-  sessionId: Id<'sessions'>,
+  searchId: Id<'searches'>,
   nameId: Id<'names'>,
 ): Promise<boolean> {
   const existing = await ctx.db
     .query('matches')
-    .withIndex('by_session_name', (q) => q.eq('sessionId', sessionId).eq('nameId', nameId))
+    .withIndex('by_search_name', (q) => q.eq('searchId', searchId).eq('nameId', nameId))
     .unique();
 
   return existing !== null;
@@ -68,34 +68,34 @@ async function matchExists(
 // Returns the match details if one was created, null otherwise
 async function checkForMatchAndCreate(
   ctx: MutationCtx,
-  sessionId: Id<'sessions'>,
+  searchId: Id<'searches'>,
   nameId: Id<'names'>,
   likingUserId: Id<'users'>,
 ): Promise<{ matchId: Id<'matches'>; name: Doc<'names'> | null; matchedAt: number } | null> {
   // Check if match already exists
-  if (await matchExists(ctx, sessionId, nameId)) {
+  if (await matchExists(ctx, searchId, nameId)) {
     return null;
   }
 
-  // Get all session members
-  const sessionMembers = await ctx.db
-    .query('sessionMembers')
-    .withIndex('by_session_id', (q) => q.eq('sessionId', sessionId))
+  // Get all search members
+  const searchMembers = await ctx.db
+    .query('searchMembers')
+    .withIndex('by_search_id', (q) => q.eq('searchId', searchId))
     .collect();
 
   // If only one member (the liker), no match possible
-  if (sessionMembers.length < 2) {
+  if (searchMembers.length < 2) {
     return null;
   }
 
   // Get other members who have liked this name
-  const otherMembers = sessionMembers.filter((m) => m.userId !== likingUserId);
+  const otherMembers = searchMembers.filter((m) => m.userId !== likingUserId);
 
   for (const member of otherMembers) {
     // Check if this member has liked the same name
     const theirSelection = await ctx.db
       .query('selections')
-      .withIndex('by_session_name', (q) => q.eq('sessionId', sessionId).eq('nameId', nameId))
+      .withIndex('by_search_name', (q) => q.eq('searchId', searchId).eq('nameId', nameId))
       .filter((q) => q.eq(q.field('userId'), member.userId))
       .unique();
 
@@ -103,7 +103,7 @@ async function checkForMatchAndCreate(
       // Match found! Create the match record
       const now = Date.now();
       const matchId = await ctx.db.insert('matches', {
-        sessionId,
+        searchId,
         nameId,
         user1Id: likingUserId,
         user2Id: member.userId,
@@ -128,18 +128,18 @@ async function checkForMatchAndCreate(
 
 export const recordSelection = mutation({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     nameId: v.id('names'),
     selectionType: v.union(v.literal('like'), v.literal('reject'), v.literal('skip')),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-    await isSessionMemberOrThrow(ctx, args.sessionId, user._id);
+    await isSearchMemberOrThrow(ctx, args.searchId, user._id);
 
     const existingSelection = await ctx.db
       .query('selections')
-      .withIndex('by_session_name', (q) =>
-        q.eq('sessionId', args.sessionId).eq('nameId', args.nameId),
+      .withIndex('by_search_name', (q) =>
+        q.eq('searchId', args.searchId).eq('nameId', args.nameId),
       )
       .filter((q) => q.eq(q.field('userId'), user._id))
       .unique();
@@ -154,7 +154,7 @@ export const recordSelection = mutation({
 
       // Check for match if changing to like
       if (args.selectionType === 'like') {
-        const match = await checkForMatchAndCreate(ctx, args.sessionId, args.nameId, user._id);
+        const match = await checkForMatchAndCreate(ctx, args.searchId, args.nameId, user._id);
 
         return { selectionId: existingSelection._id, match };
       }
@@ -163,7 +163,7 @@ export const recordSelection = mutation({
     }
 
     const selectionId = await ctx.db.insert('selections', {
-      sessionId: args.sessionId,
+      searchId: args.searchId,
       userId: user._id,
       nameId: args.nameId,
       selectionType: args.selectionType,
@@ -173,7 +173,7 @@ export const recordSelection = mutation({
 
     // Check for match if this is a like
     if (args.selectionType === 'like') {
-      const match = await checkForMatchAndCreate(ctx, args.sessionId, args.nameId, user._id);
+      const match = await checkForMatchAndCreate(ctx, args.searchId, args.nameId, user._id);
 
       return { selectionId, match };
     }
@@ -184,19 +184,19 @@ export const recordSelection = mutation({
 
 export const getSwipeQueue = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member (graceful handling for deleted sessions)
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member (graceful handling for deleted searches)
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return [];
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return [];
     }
@@ -205,18 +205,18 @@ export const getSwipeQueue = query({
 
     const userSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session', (q) => q.eq('userId', user._id).eq('sessionId', args.sessionId))
+      .withIndex('by_user_search', (q) => q.eq('userId', user._id).eq('searchId', args.searchId))
       .collect();
 
     const swipedNameIds = new Set(userSelections.map((s) => s.nameId));
 
     let namesQuery;
-    if (session.genderFilter === 'both') {
+    if (search.genderFilter === 'both') {
       namesQuery = ctx.db.query('names');
     } else {
       namesQuery = ctx.db
         .query('names')
-        .withIndex('by_gender', (q) => q.eq('gender', session.genderFilter));
+        .withIndex('by_gender', (q) => q.eq('gender', search.genderFilter));
     }
 
     const allNames = await namesQuery.collect();
@@ -227,9 +227,9 @@ export const getSwipeQueue = query({
       }
 
       if (
-        session.originFilter !== undefined &&
-        session.originFilter.length > 0 &&
-        !session.originFilter.includes(name.origin)
+        search.originFilter !== undefined &&
+        search.originFilter.length > 0 &&
+        !search.originFilter.includes(name.origin)
       ) {
         return false;
       }
@@ -243,15 +243,15 @@ export const getSwipeQueue = query({
 
 export const undoLastSelection = mutation({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-    await isSessionMemberOrThrow(ctx, args.sessionId, user._id);
+    await isSearchMemberOrThrow(ctx, args.searchId, user._id);
 
     const userSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session', (q) => q.eq('userId', user._id).eq('sessionId', args.sessionId))
+      .withIndex('by_user_search', (q) => q.eq('userId', user._id).eq('searchId', args.searchId))
       .collect();
 
     if (userSelections.length === 0) {
@@ -277,25 +277,25 @@ export const undoLastSelection = mutation({
 
 export const getSelectionStats = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member (graceful handling for deleted sessions)
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member (graceful handling for deleted searches)
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return { liked: 0, rejected: 0, skipped: 0, total: 0 };
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return { liked: 0, rejected: 0, skipped: 0, total: 0 };
     }
 
     const userSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session', (q) => q.eq('userId', user._id).eq('sessionId', args.sessionId))
+      .withIndex('by_user_search', (q) => q.eq('userId', user._id).eq('searchId', args.searchId))
       .collect();
 
     const stats = {
@@ -321,7 +321,7 @@ export const getSelectionStats = query({
 
 export const getLikedNames = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     search: v.optional(v.string()),
     sortBy: v.optional(
       v.union(
@@ -335,22 +335,22 @@ export const getLikedNames = query({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return [];
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return [];
     }
 
-    // Get all liked selections for this user in this session
+    // Get all liked selections for this user in this search
     const likedSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session_type', (q) =>
-        q.eq('userId', user._id).eq('sessionId', args.sessionId).eq('selectionType', 'like'),
+      .withIndex('by_user_search_type', (q) =>
+        q.eq('userId', user._id).eq('searchId', args.searchId).eq('selectionType', 'like'),
       )
       .collect();
 
@@ -431,7 +431,7 @@ export const removeFromLiked = mutation({
 
 export const getRejectedNames = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     search: v.optional(v.string()),
     sortBy: v.optional(
       v.union(
@@ -445,22 +445,22 @@ export const getRejectedNames = query({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return [];
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return [];
     }
 
-    // Get all rejected selections for this user in this session
+    // Get all rejected selections for this user in this search
     const rejectedSelections = await ctx.db
       .query('selections')
-      .withIndex('by_user_session_type', (q) =>
-        q.eq('userId', user._id).eq('sessionId', args.sessionId).eq('selectionType', 'reject'),
+      .withIndex('by_user_search_type', (q) =>
+        q.eq('userId', user._id).eq('searchId', args.searchId).eq('selectionType', 'reject'),
       )
       .collect();
 

@@ -41,7 +41,7 @@ export default defineSchema({
     .index('by_year_gender', ['year', 'gender'])
     .index('by_name_gender_year', ['name', 'gender', 'year']),
 
-  sessions: defineTable({
+  searches: defineTable({
     name: v.string(),
     genderFilter: v.union(v.literal('boy'), v.literal('girl'), v.literal('both')),
     shareCode: v.string(),
@@ -59,19 +59,19 @@ export default defineSchema({
     .index('by_owner_id', ['ownerId'])
     .index('by_status', ['status']),
 
-  sessionMembers: defineTable({
-    sessionId: v.id('sessions'),
+  searchMembers: defineTable({
+    searchId: v.id('searches'),
     userId: v.id('users'),
     role: v.union(v.literal('owner'), v.literal('partner')),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index('by_session_id', ['sessionId'])
+    .index('by_search_id', ['searchId'])
     .index('by_user_id', ['userId'])
-    .index('by_session_and_user', ['sessionId', 'userId']),
+    .index('by_search_and_user', ['searchId', 'userId']),
 
   selections: defineTable({
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     userId: v.id('users'),
     nameId: v.id('names'),
     selectionType: v.union(
@@ -83,13 +83,13 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index('by_session_id', ['sessionId'])
-    .index('by_user_session', ['userId', 'sessionId'])
-    .index('by_session_name', ['sessionId', 'nameId'])
-    .index('by_user_session_type', ['userId', 'sessionId', 'selectionType']),
+    .index('by_search_id', ['searchId'])
+    .index('by_user_search', ['userId', 'searchId'])
+    .index('by_search_name', ['searchId', 'nameId'])
+    .index('by_user_search_type', ['userId', 'searchId', 'selectionType']),
 
   matches: defineTable({
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     nameId: v.id('names'),
     user1Id: v.id('users'),
     user2Id: v.id('users'),
@@ -101,8 +101,8 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index('by_session_id', ['sessionId'])
-    .index('by_session_name', ['sessionId', 'nameId'])
-    .index('by_session_favorite', ['sessionId', 'isFavorite'])
-    .index('by_session_chosen', ['sessionId', 'isChosen']),
+    .index('by_search_id', ['searchId'])
+    .index('by_search_name', ['searchId', 'nameId'])
+    .index('by_search_favorite', ['searchId', 'isFavorite'])
+    .index('by_search_chosen', ['searchId', 'isChosen']),
 });
