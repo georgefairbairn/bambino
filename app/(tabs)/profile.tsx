@@ -1,12 +1,16 @@
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { Image } from 'expo-image';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { VoiceSettingsSection } from '@/components/settings';
+import { Fonts } from '@/constants/theme';
 
 export default function Profile() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleSignOut = useCallback(async () => {
     setIsLoading(true);
@@ -18,31 +22,115 @@ export default function Profile() {
   }, [signOut]);
 
   return (
-    <View className="flex-1 items-center justify-center bg-[#C6E7F5] px-8">
-      {user?.imageUrl ? (
-        <Image source={{ uri: user.imageUrl }} className="mb-4 h-24 w-24 rounded-full" />
-      ) : (
-        <View className="mb-4 h-24 w-24 items-center justify-center rounded-full bg-gray-300">
-          <Text className="text-3xl text-gray-600">
-            {user?.firstName?.[0] || user?.emailAddresses[0]?.emailAddress[0]?.toUpperCase()}
-          </Text>
-        </View>
-      )}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{
+        paddingTop: insets.top + 16,
+        paddingBottom: 32,
+        paddingHorizontal: 24,
+      }}
+    >
+      {/* User Info Section */}
+      <View style={styles.userInfoSection}>
+        {user?.imageUrl ? (
+          <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarInitial}>
+              {user?.firstName?.[0] || user?.emailAddresses[0]?.emailAddress[0]?.toUpperCase()}
+            </Text>
+          </View>
+        )}
 
-      <Text className="mb-2 text-xl font-bold">{user?.fullName || 'User'}</Text>
-      <Text className="mb-8 text-gray-600">{user?.emailAddresses[0]?.emailAddress}</Text>
+        <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
+        <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
+      </View>
 
+      {/* Settings Section */}
+      <View style={styles.settingsSection}>
+        <Text style={styles.sectionTitle}>Settings</Text>
+        <VoiceSettingsSection />
+      </View>
+
+      {/* Sign Out Button */}
       <Pressable
-        className="w-full rounded-lg bg-red-600 p-4"
+        style={[styles.signOutButton, isLoading && styles.buttonDisabled]}
         onPress={handleSignOut}
         disabled={isLoading}
       >
         {isLoading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-center font-semibold text-white">Sign Out</Text>
+          <Text style={styles.signOutButtonText}>Sign Out</Text>
         )}
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#C6E7F5',
+  },
+  userInfoSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  avatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    marginBottom: 16,
+  },
+  avatarPlaceholder: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#d1d5db',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  avatarInitial: {
+    fontSize: 30,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    color: '#4b5563',
+  },
+  userName: {
+    fontSize: 24,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  userEmail: {
+    fontSize: 16,
+    fontFamily: Fonts?.sans,
+    color: '#6b7280',
+  },
+  settingsSection: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    color: '#374151',
+    marginBottom: 16,
+  },
+  signOutButton: {
+    width: '100%',
+    backgroundColor: '#dc2626',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  signOutButtonText: {
+    fontSize: 16,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+});

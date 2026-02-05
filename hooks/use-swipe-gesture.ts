@@ -52,10 +52,8 @@ export function useSwipeGesture({
       const { translationX, velocityX } = event;
 
       // Check if swipe passes threshold by position or velocity
-      const shouldSwipeRight =
-        translationX > SWIPE_THRESHOLD || velocityX > SWIPE_VELOCITY;
-      const shouldSwipeLeft =
-        translationX < -SWIPE_THRESHOLD || velocityX < -SWIPE_VELOCITY;
+      const shouldSwipeRight = translationX > SWIPE_THRESHOLD || velocityX > SWIPE_VELOCITY;
+      const shouldSwipeLeft = translationX < -SWIPE_THRESHOLD || velocityX < -SWIPE_VELOCITY;
 
       if (shouldSwipeRight) {
         swipeRight();

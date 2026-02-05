@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280', // gray-500
   },
   pillTextActive: {

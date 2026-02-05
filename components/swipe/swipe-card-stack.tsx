@@ -1,53 +1,44 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
-import { SwipeCard } from './swipe-card';
+import { SwipeCard, SwipeCardRef } from './swipe-card';
 import { SwipeActionButtons } from './swipe-action-buttons';
-import { UndoButton } from './undo-button';
 import { EmptyState } from './empty-state';
 import { MatchCelebrationModal } from '@/components/matches';
-import { useCardAnimation } from '@/hooks/use-card-animation';
 import * as Haptics from 'expo-haptics';
-import { CARD_WIDTH, CARD_HEIGHT, PEEK_CARD } from '@/constants/swipe';
+import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 
 interface SwipeCardStackProps {
-  sessionId: Id<'sessions'>;
+  searchId: Id<'searches'>;
   onEmpty?: () => void;
 }
 
-export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
+export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
   const router = useRouter();
 
   // Fetch initial queue from backend
   const serverQueue = useQuery(api.selections.getSwipeQueue, {
-    sessionId,
+    searchId,
     limit: 50,
   });
 
   // Mutations
   const recordSelection = useMutation(api.selections.recordSelection);
-  const undoLastSelection = useMutation(api.selections.undoLastSelection);
 
   // Local state for optimistic updates
   const [localQueue, setLocalQueue] = useState<Doc<'names'>[]>([]);
-  const [lastAction, setLastAction] = useState<{
-    name: Doc<'names'>;
-    selectionType: 'like' | 'reject' | 'skip';
-  } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
 
-  // Card animation for the top card
-  const topCardAnimation = useCardAnimation({
-    onSwipeComplete: () => {
-      setIsAnimating(false);
-    },
-  });
+  // Ref to the top card for triggering programmatic swipes
+  const topCardRef = useRef<SwipeCardRef>(null);
+
+  // Track pending selection from button press (to be executed after animation)
+  const pendingSelectionRef = useRef<'like' | 'reject' | null>(null);
 
   // Sync server queue to local state (only when server data arrives)
   useEffect(() => {
@@ -59,13 +50,10 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
 
   // Handle recording a selection
   const handleSelection = useCallback(
-    async (selectionType: 'like' | 'reject' | 'skip') => {
-      if (localQueue.length === 0 || isAnimating) return;
+    async (selectionType: 'like' | 'reject') => {
+      if (localQueue.length === 0) return;
 
       const currentName = localQueue[0];
-
-      // Store for potential undo
-      setLastAction({ name: currentName, selectionType });
 
       // Optimistic update - remove from queue
       setLocalQueue((prev) => prev.slice(1));
@@ -73,7 +61,7 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
       // Record to backend
       try {
         const result = await recordSelection({
-          sessionId,
+          searchId,
           nameId: currentName._id,
           selectionType,
         });
@@ -87,89 +75,42 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
         // Revert on error
         console.error('Failed to record selection:', error);
         setLocalQueue((prev) => [currentName, ...prev]);
-        setLastAction(null);
       }
     },
-    [localQueue, sessionId, recordSelection, isAnimating],
+    [localQueue, searchId, recordSelection],
   );
 
-  // Handle skip - add back to end of queue
-  const handleSkip = useCallback(async () => {
-    if (localQueue.length === 0 || isAnimating) return;
-
-    const currentName = localQueue[0];
-
-    // Store for potential undo
-    setLastAction({ name: currentName, selectionType: 'skip' });
-
-    // Optimistic update - move to end of queue
-    setLocalQueue((prev) => [...prev.slice(1), currentName]);
-
-    // Record to backend
-    try {
-      await recordSelection({
-        sessionId,
-        nameId: currentName._id,
-        selectionType: 'skip',
-      });
-    } catch (error) {
-      // Revert on error
-      console.error('Failed to record skip:', error);
-      setLocalQueue((prev) => [currentName, ...prev.slice(0, -1)]);
-      setLastAction(null);
-    }
-  }, [localQueue, sessionId, recordSelection, isAnimating]);
-
-  // Handle undo
-  const handleUndo = useCallback(async () => {
-    try {
-      const result = await undoLastSelection({ sessionId });
-      if (result && result.name) {
-        // Add the name back to the front of the queue
-        setLocalQueue((prev) => [result.name as Doc<'names'>, ...prev]);
-        setLastAction(null);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-    } catch (error) {
-      console.error('Failed to undo:', error);
-    }
-  }, [sessionId, undoLastSelection]);
-
-  // Button handlers that trigger card animations
+  // Button handlers that trigger card animations (selection deferred until animation completes)
   const handleLikeButton = useCallback(() => {
     if (localQueue.length === 0 || isAnimating) return;
     setIsAnimating(true);
+    pendingSelectionRef.current = 'like';
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    topCardAnimation.swipeRight();
-    handleSelection('like');
-  }, [localQueue, isAnimating, topCardAnimation, handleSelection]);
+    topCardRef.current?.swipeRight();
+  }, [localQueue, isAnimating]);
 
   const handleNopeButton = useCallback(() => {
     if (localQueue.length === 0 || isAnimating) return;
     setIsAnimating(true);
+    pendingSelectionRef.current = 'reject';
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    topCardAnimation.swipeLeft();
-    handleSelection('reject');
-  }, [localQueue, isAnimating, topCardAnimation, handleSelection]);
-
-  const handleSkipButton = useCallback(() => {
-    if (localQueue.length === 0 || isAnimating) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    handleSkip();
-  }, [localQueue, isAnimating, handleSkip]);
+    topCardRef.current?.swipeLeft();
+  }, [localQueue, isAnimating]);
 
   // Check for empty state
   const isEmpty = localQueue.length === 0 && serverQueue !== undefined;
 
   if (isEmpty) {
-    return <EmptyState onUndo={lastAction ? handleUndo : undefined} />;
+    return <EmptyState />;
   }
 
   // Loading state
   if (serverQueue === undefined) {
     return (
       <View style={styles.container}>
-        <View style={styles.loadingCard} />
+        <View style={styles.cardContainer}>
+          <View style={styles.loadingCard} />
+        </View>
       </View>
     );
   }
@@ -178,54 +119,32 @@ export function SwipeCardStack({ sessionId }: SwipeCardStackProps) {
     <View style={styles.container}>
       {/* Card stack */}
       <View style={styles.cardContainer}>
-        {/* Render up to 2 cards: peek card (behind) and active card (top) */}
-        {localQueue.slice(0, 2).map((name, index) => {
-          const isTop = index === 0;
-          const isPeek = index === 1;
-
-          if (isPeek) {
-            return (
-              <Animated.View
-                key={name._id}
-                style={[
-                  styles.peekCard,
-                  {
-                    transform: [{ scale: PEEK_CARD.scale }],
-                    top: PEEK_CARD.translateY,
-                  },
-                ]}
-              >
-                <SwipeCard name={name} isTop={false} />
-              </Animated.View>
-            );
-          }
-
-          return (
-            <SwipeCard
-              key={name._id}
-              name={name}
-              isTop={isTop}
-              onSwipeLeft={() => handleSelection('reject')}
-              onSwipeRight={() => handleSelection('like')}
-              onSwipeComplete={() => {
-                setIsAnimating(false);
-                topCardAnimation.resetImmediate();
-              }}
-            />
-          );
-        })}
+        {localQueue.slice(0, 2).map((name, index) => (
+          <SwipeCard
+            key={name._id}
+            ref={index === 0 ? topCardRef : null}
+            name={name}
+            isTop={index === 0}
+            onSwipeLeft={() => handleSelection('reject')}
+            onSwipeRight={() => handleSelection('like')}
+            onSwipeComplete={() => {
+              // Handle pending selection from button press
+              if (pendingSelectionRef.current) {
+                handleSelection(pendingSelectionRef.current);
+                pendingSelectionRef.current = null;
+              }
+              setIsAnimating(false);
+            }}
+          />
+        ))}
       </View>
 
       {/* Action buttons */}
       <SwipeActionButtons
         onLike={handleLikeButton}
         onNope={handleNopeButton}
-        onSkip={handleSkipButton}
         disabled={isAnimating || localQueue.length === 0}
       />
-
-      {/* Undo button */}
-      {lastAction && <UndoButton onUndo={handleUndo} />}
 
       {/* Match celebration modal */}
       <MatchCelebrationModal
@@ -249,23 +168,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 100,
   },
   cardContainer: {
+    flex: 1,
     width: CARD_WIDTH,
-    height: CARD_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  peekCard: {
-    position: 'absolute',
-    zIndex: -1,
-  },
   loadingCard: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT,
+    height: CARD_HEIGHT_FULL,
     backgroundColor: '#f3f4f6',
-    borderRadius: 24,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#e5e7eb',
   },
 });

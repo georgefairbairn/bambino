@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   },
   chosenText: {
     fontSize: 11,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   rankText: {
     fontSize: 11,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#fff',
   },
@@ -225,12 +225,12 @@ const styles = StyleSheet.create({
   },
   originText: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#0a7ea4',
   },
   timestamp: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#9ca3af',
   },
   notesRow: {
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   notesPreview: {
     flex: 1,
     fontSize: 13,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     fontStyle: 'italic',
   },

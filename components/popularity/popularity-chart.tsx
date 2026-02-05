@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 12,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#9ca3af',
   },
   tooltipContainer: {
@@ -199,13 +199,13 @@ const styles = StyleSheet.create({
   },
   tooltipText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#374151',
     fontWeight: '600',
   },
   axisLabel: {
     fontSize: 10,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
 });
