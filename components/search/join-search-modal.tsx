@@ -15,32 +15,32 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 
-interface JoinSessionModalProps {
+interface JoinSearchModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess: (sessionId: string) => void;
+  onSuccess: (searchId: string) => void;
 }
 
-type SessionPreview = {
-  sessionId: string;
+type SearchPreview = {
+  searchId: string;
   name: string;
   ownerName: string;
   genderFilter: 'boy' | 'girl' | 'both';
 };
 
-export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionModalProps) {
+export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModalProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [preview, setPreview] = useState<SessionPreview | null>(null);
+  const [preview, setPreview] = useState<SearchPreview | null>(null);
 
-  const sessionPreview = useQuery(
-    api.sessions.getSessionByShareCode,
+  const searchPreview = useQuery(
+    api.searches.getSearchByShareCode,
     code.length === 6 && isLookingUp ? { code } : 'skip',
   );
 
-  const joinSession = useMutation(api.sessions.joinSessionByCode);
+  const joinSearch = useMutation(api.searches.joinSearchByCode);
 
   const handleCodeChange = (text: string) => {
     // Only allow alphanumeric characters
@@ -65,11 +65,11 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
       case 'invalid_format':
         return 'Please enter a valid 6-character code';
       case 'not_found':
-        return 'Session not found. Please check the code.';
-      case 'own_session':
-        return 'This is your own session';
+        return 'Search not found. Please check the code.';
+      case 'own_search':
+        return 'This is your own search';
       case 'already_member':
-        return "You're already a member of this session";
+        return "You're already a member of this search";
       default:
         return 'An error occurred. Please try again.';
     }
@@ -79,22 +79,22 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
   const handleQueryResult = () => {
     if (!isLookingUp) return;
 
-    if (sessionPreview && 'error' in sessionPreview && sessionPreview.error) {
-      setError(getErrorMessage(sessionPreview.error));
+    if (searchPreview && 'error' in searchPreview && searchPreview.error) {
+      setError(getErrorMessage(searchPreview.error));
       setIsLookingUp(false);
-    } else if (sessionPreview && 'sessionId' in sessionPreview) {
+    } else if (searchPreview && 'searchId' in searchPreview) {
       setPreview({
-        sessionId: sessionPreview.sessionId,
-        name: sessionPreview.name,
-        ownerName: sessionPreview.ownerName,
-        genderFilter: sessionPreview.genderFilter,
+        searchId: searchPreview.searchId,
+        name: searchPreview.name,
+        ownerName: searchPreview.ownerName,
+        genderFilter: searchPreview.genderFilter,
       });
       setIsLookingUp(false);
     }
   };
 
-  // Call the handler when sessionPreview changes
-  if (isLookingUp && sessionPreview) {
+  // Call the handler when searchPreview changes
+  if (isLookingUp && searchPreview) {
     handleQueryResult();
   }
 
@@ -103,11 +103,11 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
     setError(null);
 
     try {
-      const sessionId = await joinSession({ code });
+      const searchId = await joinSearch({ code });
       handleClose();
-      onSuccess(sessionId);
+      onSuccess(searchId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join session');
+      setError(err instanceof Error ? err.message : 'Failed to join search');
       setIsJoining(false);
     }
   };
@@ -155,7 +155,7 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
                 <Ionicons name="arrow-back" size={24} color="#6b7280" />
               </Pressable>
             )}
-            <Text style={styles.title}>{preview ? 'Join Session' : 'Enter Code'}</Text>
+            <Text style={styles.title}>{preview ? 'Join Search' : 'Enter Code'}</Text>
             <Pressable onPress={handleClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#6b7280" />
             </Pressable>
@@ -165,7 +165,7 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
             // Code Input State
             <View style={styles.content}>
               <Text style={styles.description}>
-                Enter the 6-character code shared by your partner to join their session
+                Enter the 6-character code shared by your partner to join their search
               </Text>
 
               <TextInput
@@ -193,7 +193,7 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
                 {isLookingUp ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text style={styles.primaryButtonText}>Preview</Text>
+                  <Text style={styles.primaryButtonText}>Join</Text>
                 )}
               </Pressable>
             </View>
@@ -225,7 +225,7 @@ export function JoinSessionModal({ visible, onClose, onSuccess }: JoinSessionMod
                   {isJoining ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
-                    <Text style={styles.primaryButtonText}>Join Session</Text>
+                    <Text style={styles.primaryButtonText}>Join Search</Text>
                   )}
                 </Pressable>
                 <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isJoining}>
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
     textAlign: 'center',
   },
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 13,
     color: '#dc2626',
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     textAlign: 'center',
   },
   primaryButton: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#ffffff',
     fontWeight: '600',
   },
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   },
   previewMetaText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
   previewActions: {
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 14,
-    fontFamily: Fonts?.serif || 'Sanchez_400Regular',
+    fontFamily: Fonts?.sans,
     color: '#6b7280',
   },
 });
