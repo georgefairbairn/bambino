@@ -20,23 +20,23 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
-async function isSessionMember(
+async function isSearchMember(
   ctx: QueryCtx | MutationCtx,
-  sessionId: Id<'sessions'>,
+  searchId: Id<'searches'>,
   userId: Id<'users'>,
 ) {
   const membership = await ctx.db
-    .query('sessionMembers')
-    .withIndex('by_session_and_user', (q) => q.eq('sessionId', sessionId).eq('userId', userId))
+    .query('searchMembers')
+    .withIndex('by_search_and_user', (q) => q.eq('searchId', searchId).eq('userId', userId))
     .unique();
 
   return membership;
 }
 
-// Get all matches for a session
+// Get all matches for a search
 export const getMatches = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
     sortBy: v.optional(
       v.union(
         v.literal('newest'),
@@ -50,21 +50,21 @@ export const getMatches = query({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return [];
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return [];
     }
 
-    // Get all matches for this session
+    // Get all matches for this search
     const matches = await ctx.db
       .query('matches')
-      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
       .collect();
 
     // Join with name details
@@ -111,28 +111,28 @@ export const getMatches = query({
   },
 });
 
-// Get match count for a session
+// Get match count for a search
 export const getMatchCount = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return 0;
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return 0;
     }
 
     const matches = await ctx.db
       .query('matches')
-      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
       .collect();
 
     return matches.length;
@@ -157,18 +157,18 @@ export const updateMatch = mutation({
       throw new Error('Match not found');
     }
 
-    // Verify user is a member of the session
-    const membership = await isSessionMember(ctx, match.sessionId, user._id);
+    // Verify user is a member of the search
+    const membership = await isSearchMember(ctx, match.searchId, user._id);
     if (!membership) {
       throw new Error('Not authorized to update this match');
     }
 
-    // If marking as chosen, unmark any other chosen name in the session
+    // If marking as chosen, unmark any other chosen name in the search
     if (args.isChosen === true) {
       const existingChosen = await ctx.db
         .query('matches')
-        .withIndex('by_session_chosen', (q) =>
-          q.eq('sessionId', match.sessionId).eq('isChosen', true),
+        .withIndex('by_search_chosen', (q) =>
+          q.eq('searchId', match.searchId).eq('isChosen', true),
         )
         .collect();
 
@@ -218,8 +218,8 @@ export const deleteMatch = mutation({
       throw new Error('Match not found');
     }
 
-    // Verify user is a member of the session
-    const membership = await isSessionMember(ctx, match.sessionId, user._id);
+    // Verify user is a member of the search
+    const membership = await isSearchMember(ctx, match.searchId, user._id);
     if (!membership) {
       throw new Error('Not authorized to delete this match');
     }
@@ -230,28 +230,28 @@ export const deleteMatch = mutation({
   },
 });
 
-// Get the chosen name for a session
+// Get the chosen name for a search
 export const getChosenName = query({
   args: {
-    sessionId: v.id('sessions'),
+    searchId: v.id('searches'),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if session exists and user is a member
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
+    // Check if search exists and user is a member
+    const search = await ctx.db.get(args.searchId);
+    if (!search) {
       return null;
     }
 
-    const membership = await isSessionMember(ctx, args.sessionId, user._id);
+    const membership = await isSearchMember(ctx, args.searchId, user._id);
     if (!membership) {
       return null;
     }
 
     const chosenMatch = await ctx.db
       .query('matches')
-      .withIndex('by_session_chosen', (q) => q.eq('sessionId', args.sessionId).eq('isChosen', true))
+      .withIndex('by_search_chosen', (q) => q.eq('searchId', args.searchId).eq('isChosen', true))
       .first();
 
     if (!chosenMatch) {

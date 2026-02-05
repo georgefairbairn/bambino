@@ -3,7 +3,6 @@ import '@/global.css';
 import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { AlfaSlabOne_400Regular } from '@expo-google-fonts/alfa-slab-one';
-import { Sanchez_400Regular } from '@expo-google-fonts/sanchez';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { ConvexReactClient } from 'convex/react';
 import { useFonts } from 'expo-font';
@@ -14,7 +13,8 @@ import { useEffect } from 'react';
 import { Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SessionProvider } from '@/contexts/session-context';
+import { SearchProvider } from '@/contexts/search-context';
+import { VoiceSettingsProvider } from '@/contexts/voice-settings-context';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 // Prevent splash screen from auto-hiding
@@ -41,7 +41,6 @@ const convex = new ConvexReactClient(convexUrl);
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     AlfaSlabOne_400Regular,
-    Sanchez_400Regular,
   });
 
   useEffect(() => {
@@ -60,9 +59,11 @@ export default function RootLayout() {
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
           <ClerkLoaded>
             <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-              <SessionProvider>
-                <Slot />
-              </SessionProvider>
+              <VoiceSettingsProvider>
+                <SearchProvider>
+                  <Slot />
+                </SearchProvider>
+              </VoiceSettingsProvider>
             </ConvexProviderWithClerk>
           </ClerkLoaded>
         </ClerkProvider>
