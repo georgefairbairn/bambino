@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 
 const ONBOARDING_KEY = 'bambino_onboarding_completed';
 
@@ -16,7 +17,7 @@ export function useOnboarding() {
       const value = await AsyncStorage.getItem(ONBOARDING_KEY);
       setHasCompletedOnboarding(value === 'true');
     } catch (error) {
-      console.error('Failed to load onboarding status:', error);
+      Sentry.captureException(error);
       setHasCompletedOnboarding(false);
     } finally {
       setIsLoading(false);
@@ -28,7 +29,7 @@ export function useOnboarding() {
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
       setHasCompletedOnboarding(true);
     } catch (error) {
-      console.error('Failed to save onboarding status:', error);
+      Sentry.captureException(error);
     }
   }, []);
 
@@ -37,7 +38,7 @@ export function useOnboarding() {
       await AsyncStorage.removeItem(ONBOARDING_KEY);
       setHasCompletedOnboarding(false);
     } catch (error) {
-      console.error('Failed to reset onboarding status:', error);
+      Sentry.captureException(error);
     }
   }, []);
 

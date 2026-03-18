@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, StyleSheet, Animated, Easing } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import { Doc } from '@/convex/_generated/dataModel';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import * as Haptics from 'expo-haptics';
 
 interface MatchCelebrationModalProps {
@@ -18,6 +19,7 @@ export function MatchCelebrationModal({
   onClose,
   onViewMatches,
 }: MatchCelebrationModalProps) {
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const heartsAnim = useRef(new Animated.Value(0)).current;
@@ -105,22 +107,23 @@ export function MatchCelebrationModal({
             },
           ]}
         >
-          <Ionicons name="heart" size={24} color="#ef4444" style={styles.heart1} />
-          <Ionicons name="heart" size={32} color="#f472b6" style={styles.heart2} />
-          <Ionicons name="heart" size={20} color="#ef4444" style={styles.heart3} />
-          <Ionicons name="heart" size={28} color="#f472b6" style={styles.heart4} />
+          <Ionicons name="heart" size={24} color={colors.primary} style={styles.heart1} />
+          <Ionicons name="heart" size={32} color={colors.secondary} style={styles.heart2} />
+          <Ionicons name="heart" size={20} color={colors.primary} style={styles.heart3} />
+          <Ionicons name="heart" size={28} color={colors.secondary} style={styles.heart4} />
         </Animated.View>
 
         <Animated.View
           style={[
             styles.card,
+            { shadowColor: colors.secondary },
             {
               transform: [{ scale: scaleAnim }, { rotate }],
             },
           ]}
         >
           {/* Match badge */}
-          <View style={styles.matchBadge}>
+          <View style={[styles.matchBadge, { backgroundColor: colors.primary }]}>
             <Ionicons name="heart" size={20} color="#fff" />
             <Text style={styles.matchBadgeText}>{"It's a Match!"}</Text>
             <Ionicons name="heart" size={20} color="#fff" />
@@ -134,14 +137,17 @@ export function MatchCelebrationModal({
 
           {/* Buttons */}
           <View style={styles.buttons}>
-            <Pressable style={styles.keepSwipingButton} onPress={onClose}>
-              <Ionicons name="swap-horizontal" size={20} color="#0a7ea4" />
-              <Text style={styles.keepSwipingText}>Keep Swiping</Text>
+            <Pressable
+              style={[styles.keepSwipingButton, { borderColor: colors.primary }]}
+              onPress={onClose}
+            >
+              <Ionicons name="swap-horizontal" size={20} color={colors.primary} />
+              <Text style={[styles.keepSwipingText, { color: colors.primary }]}>Keep Swiping</Text>
             </Pressable>
 
             {onViewMatches && (
               <Pressable
-                style={styles.viewMatchesButton}
+                style={[styles.viewMatchesButton, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   onClose();
                   onViewMatches();
@@ -202,7 +208,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '85%',
     maxWidth: 340,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -211,7 +216,6 @@ const styles = StyleSheet.create({
   matchBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ef4444',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -227,14 +231,14 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 48,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 16,
   },
   description: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
@@ -251,20 +255,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#0a7ea4',
     gap: 8,
   },
   keepSwipingText: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#0a7ea4',
   },
   viewMatchesButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ef4444',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,

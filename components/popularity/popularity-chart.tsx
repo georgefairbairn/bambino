@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { YearRangeSelector, YearRange } from './year-range-selector';
 
 type Gender = 'male' | 'female' | 'neutral';
@@ -15,9 +17,9 @@ interface PopularityChartProps {
 }
 
 const GENDER_COLORS: Record<Gender, { line: string; gradient: string }> = {
-  male: { line: '#2563eb', gradient: 'rgba(37, 99, 235, 0.2)' },
-  female: { line: '#db2777', gradient: 'rgba(219, 39, 119, 0.2)' },
-  neutral: { line: '#9333ea', gradient: 'rgba(147, 51, 234, 0.2)' },
+  male: { line: '#7CB9E8', gradient: 'rgba(124, 185, 232, 0.2)' },
+  female: { line: '#FF8FAB', gradient: 'rgba(255, 143, 171, 0.2)' },
+  neutral: { line: '#C4A7E7', gradient: 'rgba(196, 167, 231, 0.2)' },
 };
 
 const END_YEAR = 2023;
@@ -35,6 +37,7 @@ function getStartYear(range: YearRange): number | undefined {
 }
 
 export function PopularityChart({ name, gender }: PopularityChartProps) {
+  const { colors: themeColors } = useTheme();
   const [yearRange, setYearRange] = useState<YearRange>('50');
   const [tooltipData, setTooltipData] = useState<{ year: number; rank: number } | null>(null);
 
@@ -67,7 +70,7 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#6b7280" />
+          <LoadingIndicator size="small" />
         </View>
       </View>
     );
@@ -78,14 +81,12 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
     return (
       <View style={styles.container}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="analytics-outline" size={32} color="#9ca3af" />
+          <Ionicons name="analytics-outline" size={32} color="#A89BB5" />
           <Text style={styles.emptyText}>No historical data available</Text>
         </View>
       </View>
     );
   }
-
-  const colors = GENDER_COLORS[gender];
 
   // Find max rank for inverting (so rank 1 appears at top)
   const maxRank = Math.max(...popularityData.map((d) => d.rank));
@@ -104,7 +105,7 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
   const spacing = chartData.length > 1 ? chartWidth / (chartData.length - 1) : chartWidth;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.surfaceSubtle }]}>
       <Text style={styles.title}>Popularity Over Time</Text>
 
       <YearRangeSelector selected={yearRange} onSelect={setYearRange} />
@@ -122,11 +123,11 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
           data={chartData}
           width={chartWidth}
           height={CHART_HEIGHT}
-          color={colors.line}
+          color={GENDER_COLORS[gender].line}
           thickness={2}
           curved
           areaChart
-          startFillColor={colors.gradient}
+          startFillColor={GENDER_COLORS[gender].gradient}
           endFillColor="transparent"
           startOpacity={0.4}
           endOpacity={0}
@@ -134,15 +135,15 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
           endSpacing={10}
           spacing={spacing}
           hideDataPoints={popularityData.length > 30}
-          dataPointsColor={colors.line}
+          dataPointsColor={GENDER_COLORS[gender].line}
           dataPointsRadius={3}
           onPress={handleDataPointPress}
           yAxisTextStyle={styles.axisLabel}
           xAxisLabelTextStyle={styles.axisLabel}
           yAxisThickness={0}
           xAxisThickness={1}
-          xAxisColor="#e5e7eb"
-          rulesColor="#f3f4f6"
+          xAxisColor={themeColors.border}
+          rulesColor={themeColors.surfaceSubtle}
           rulesType="dashed"
           noOfSections={4}
           maxValue={maxRank - minRank + 1}
@@ -161,7 +162,6 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFBF5',
     borderRadius: 12,
     padding: 16,
     gap: 12,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textTransform: 'uppercase',
     letterSpacing: 1,
     textAlign: 'center',
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
   },
   tooltipContainer: {
     alignItems: 'center',
@@ -200,12 +200,12 @@ const styles = StyleSheet.create({
   tooltipText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#374151',
+    color: '#2D1B4E',
     fontWeight: '600',
   },
   axisLabel: {
     fontSize: 10,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
 });

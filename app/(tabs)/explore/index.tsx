@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useQuery } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +10,9 @@ import { Id } from '@/convex/_generated/dataModel';
 import { SearchCard } from '@/components/search/search-card';
 import { JoinSearchModal } from '@/components/search/join-search-modal';
 import { Fonts } from '@/constants/theme';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
+import { useTheme } from '@/contexts/theme-context';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
@@ -28,7 +32,9 @@ interface SearchWithRole {
 
 export default function SearchList() {
   const router = useRouter();
+  const { colors } = useTheme();
   const searches = useQuery(api.searches.getUserSearches) as SearchWithRole[] | undefined;
+  const { showLoading, loadingProps } = useGracefulLoading(searches !== undefined);
 
   const [joinModalVisible, setJoinModalVisible] = useState(false);
 
@@ -62,59 +68,72 @@ export default function SearchList() {
   );
 
   // Loading state
-  if (searches === undefined) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0a7ea4" />
-        </View>
-      </SafeAreaView>
-    );
+  if (showLoading) {
+    return <LoadingScreen {...loadingProps} />;
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Searches</Text>
-        <Pressable style={styles.joinButton} onPress={handleJoinPress}>
-          <Ionicons name="enter-outline" size={18} color="#0a7ea4" />
-          <Text style={styles.joinButtonText}>Join</Text>
-        </Pressable>
-      </View>
+    <GradientBackground>
+      <SafeAreaView style={styles.flexContainer} edges={['top']}>
+        {/* Header */}
+        <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.header}>
+          <Text style={styles.title}>Searches</Text>
+          <Pressable
+            style={[styles.joinButton, { backgroundColor: colors.primaryLight }]}
+            onPress={handleJoinPress}
+          >
+            <Ionicons name="enter-outline" size={18} color={colors.primary} />
+            <Text style={[styles.joinButtonText, { color: colors.primary }]}>Join</Text>
+          </Pressable>
+        </Animated.View>
 
-      {/* Search list */}
-      <FlatList
-        data={searches}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <SearchCardWithStats
-            search={item}
-            onPress={() => handleSearchPress(item)}
-            onMenuPress={() => handleMenuPress(item)}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No searches yet</Text>
-            <Text style={styles.emptySubtext}>Create a search to start swiping on names</Text>
-          </View>
-        }
-      />
+        {/* Search list */}
+        <FlatList
+          data={searches}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item, index }) => (
+            <Animated.View
+              entering={FadeInUp.delay(index * 80)
+                .duration(400)
+                .springify()}
+            >
+              <SearchCardWithStats
+                search={item}
+                onPress={() => handleSearchPress(item)}
+                onMenuPress={() => handleMenuPress(item)}
+              />
+            </Animated.View>
+          )}
+          ListEmptyComponent={
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(500)}
+              style={styles.emptyContainer}
+            >
+              <Text style={styles.emptyText}>No searches yet</Text>
+              <Text style={styles.emptySubtext}>Create a search to start swiping on names</Text>
+            </Animated.View>
+          }
+        />
 
-      {/* FAB */}
-      <Pressable style={styles.fab} onPress={handleCreatePress}>
-        <Ionicons name="add" size={28} color="#ffffff" />
-      </Pressable>
+        {/* FAB */}
+        <Animated.View
+          entering={ZoomIn.delay(400).duration(300).springify()}
+          style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.secondary }]}
+        >
+          <Pressable style={styles.fabInner} onPress={handleCreatePress}>
+            <Ionicons name="add" size={28} color="#ffffff" />
+          </Pressable>
+        </Animated.View>
 
-      {/* Join Modal */}
-      <JoinSearchModal
-        visible={joinModalVisible}
-        onClose={() => setJoinModalVisible(false)}
-        onSuccess={handleJoinSuccess}
-      />
-    </SafeAreaView>
+        {/* Join Modal */}
+        <JoinSearchModal
+          visible={joinModalVisible}
+          onClose={() => setJoinModalVisible(false)}
+          onSuccess={handleJoinSuccess}
+        />
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -149,14 +168,8 @@ function SearchCardWithStats({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flexContainer: {
     flex: 1,
-    backgroundColor: '#C6E7F5',
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   header: {
     paddingHorizontal: 20,
@@ -168,7 +181,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
   },
   joinButton: {
     flexDirection: 'row',
@@ -176,18 +189,16 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#e0f2fe',
     borderRadius: 8,
   },
   joinButtonText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#0a7ea4',
     fontWeight: '600',
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: 120,
     gap: 16,
   },
   emptyContainer: {
@@ -197,29 +208,32 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 100,
     right: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#0a7ea4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+  },
+  fabInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

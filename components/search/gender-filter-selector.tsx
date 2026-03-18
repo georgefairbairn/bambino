@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
@@ -15,8 +16,10 @@ const OPTIONS: { value: GenderFilter; label: string; emoji: string }[] = [
 ];
 
 export function GenderFilterSelector({ value, onChange }: GenderFilterSelectorProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surfaceSubtle }]}>
       {OPTIONS.map((option) => {
         const isSelected = value === option.value;
         return (
@@ -37,7 +40,6 @@ export function GenderFilterSelector({ value, onChange }: GenderFilterSelectorPr
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
     borderRadius: 12,
     padding: 4,
   },
@@ -65,10 +67,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   labelSelected: {
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     fontWeight: '600',
   },
 });

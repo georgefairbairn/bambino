@@ -7,6 +7,8 @@ export default defineSchema({
     email: v.string(),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    isPremium: v.optional(v.boolean()),
+    purchasedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

@@ -1,5 +1,7 @@
-import { View, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/contexts/theme-context';
 
 interface SwipeActionButtonsProps {
   onLike: () => void;
@@ -8,20 +10,25 @@ interface SwipeActionButtonsProps {
 }
 
 export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeActionButtonsProps) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.container}>
+    <Animated.View
+      entering={FadeInUp.delay(200).duration(400).springify()}
+      style={styles.container}
+    >
       {/* Dislike button */}
       <Pressable
         onPress={onNope}
         disabled={disabled}
         style={({ pressed }) => [
           styles.button,
+          { shadowColor: colors.secondary },
           styles.dislikeButton,
           pressed && styles.buttonPressed,
-          disabled && styles.buttonDisabled,
+          disabled && { borderColor: colors.border, backgroundColor: colors.surfaceSubtle },
         ]}
       >
-        <Ionicons name="heart-dislike" size={32} color={disabled ? '#fca5a5' : '#ef4444'} />
+        <Ionicons name="heart-dislike" size={32} color={disabled ? '#FFD4E0' : '#FF8FAB'} />
       </Pressable>
 
       {/* Like button */}
@@ -30,14 +37,15 @@ export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeAc
         disabled={disabled}
         style={({ pressed }) => [
           styles.button,
+          { shadowColor: colors.secondary },
           styles.likeButton,
           pressed && styles.buttonPressed,
-          disabled && styles.buttonDisabled,
+          disabled && { borderColor: colors.border, backgroundColor: colors.surfaceSubtle },
         ]}
       >
-        <Ionicons name="heart" size={32} color={disabled ? '#86efac' : '#22c55e'} />
+        <Ionicons name="heart" size={32} color={disabled ? '#B4EAD0' : '#6DD5A0'} />
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -56,7 +64,6 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -65,18 +72,14 @@ const styles = StyleSheet.create({
   dislikeButton: {
     backgroundColor: '#fff',
     borderWidth: 3,
-    borderColor: '#ef4444',
+    borderColor: '#FF8FAB',
   },
   likeButton: {
     backgroundColor: '#fff',
     borderWidth: 3,
-    borderColor: '#22c55e',
+    borderColor: '#6DD5A0',
   },
   buttonPressed: {
     transform: [{ scale: 0.92 }],
-  },
-  buttonDisabled: {
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
   },
 });

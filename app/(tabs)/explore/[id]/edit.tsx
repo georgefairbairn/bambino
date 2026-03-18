@@ -10,25 +10,30 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
   Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 import { useActiveSearch } from '@/hooks/use-active-search';
 import { GenderFilterSelector } from '@/components/search/gender-filter-selector';
 import { OriginPicker } from '@/components/search/origin-picker';
 import { Fonts } from '@/constants/theme';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
+import { useTheme } from '@/contexts/theme-context';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
 export default function EditSearchScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const searchId = id as Id<'searches'>;
   const { activeSearchId, setActiveSearch } = useActiveSearch();
@@ -99,7 +104,7 @@ export default function EditSearchScreen() {
       });
       router.back();
     } catch (err) {
-      console.error('Failed to update search:', err);
+      Sentry.captureException(err);
       setError('Failed to save changes. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -135,7 +140,7 @@ export default function EditSearchScreen() {
       }
       router.replace('/(tabs)/explore');
     } catch (err) {
-      console.error('Failed to delete search:', err);
+      Sentry.captureException(err);
       setError('Failed to delete search. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -147,160 +152,200 @@ export default function EditSearchScreen() {
     router.back();
   };
 
+  const { showLoading, loadingProps } = useGracefulLoading(searches !== undefined);
+
   // Loading state
-  if (searches === undefined) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0a7ea4" />
-        </View>
-      </SafeAreaView>
-    );
+  if (showLoading) {
+    return <LoadingScreen {...loadingProps} />;
   }
 
   // Search not found
   if (!search) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="search-outline" size={64} color="#9ca3af" />
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Ionicons name="search-outline" size={64} color="#A89BB5" />
+            </View>
+            <Text style={styles.emptyTitle}>Search Not Found</Text>
+            <Text style={styles.emptyDescription}>
+              This search may have been deleted or you don&apos;t have access.
+            </Text>
+            <Pressable
+              style={[styles.backButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.replace('/(tabs)/explore')}
+            >
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+              <Text style={styles.backButtonText}>Back to Searches</Text>
+            </Pressable>
           </View>
-          <Text style={styles.emptyTitle}>Search Not Found</Text>
-          <Text style={styles.emptyDescription}>
-            This search may have been deleted or you don&apos;t have access.
-          </Text>
-          <Pressable style={styles.backButton} onPress={() => router.replace('/(tabs)/explore')}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text style={styles.backButtonText}>Back to Searches</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <View style={styles.inner}>
-          {/* Header */}
-          <Pressable style={styles.header} onPress={Keyboard.dismiss}>
-            <Pressable style={styles.headerButton} onPress={handleBack}>
-              <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-            </Pressable>
-            <Text style={styles.title}>Edit Search</Text>
-            <Pressable
-              style={[styles.doneButton, isSubmitting && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.doneButtonText}>{isSubmitting ? 'Saving...' : 'Done'}</Text>
-            </Pressable>
-          </Pressable>
-
-          <ScrollView
-            style={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Form */}
-            <View style={styles.form}>
-              {/* Name input */}
-              <View style={styles.field}>
-                <Text style={styles.label}>Search Name</Text>
-                <TextInput
-                  style={[styles.input, error && styles.inputError]}
-                  value={name}
-                  onChangeText={(text) => {
-                    setName(text);
-                    setError(null);
-                  }}
-                  placeholder="e.g., Baby Boy Names"
-                  placeholderTextColor="#9ca3af"
-                  maxLength={50}
-                  returnKeyType="done"
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-                {error && <Text style={styles.errorText}>{error}</Text>}
-              </View>
-
-              {/* Gender filter */}
-              <View style={styles.field}>
-                <Text style={styles.label}>Show Names For</Text>
-                <GenderFilterSelector value={genderFilter} onChange={setGenderFilter} />
-              </View>
-
-              {/* Origin filter */}
-              <View style={styles.field}>
-                <Text style={styles.label}>Name Origins</Text>
-                <OriginPicker value={originFilter} onChange={setOriginFilter} />
-              </View>
-            </View>
-
-            {/* Share Code Section - only for owners */}
-            {isOwner && search.shareCode && (
-              <View style={styles.shareSection}>
-                <Text style={styles.shareSectionTitle}>Invite Partner</Text>
-                <Text style={styles.shareDescription}>
-                  Share this code with your partner so they can join your search
-                </Text>
-                <View style={styles.shareCodeContainer}>
-                  <Text style={styles.shareCode}>{formatShareCode(search.shareCode)}</Text>
-                  <View style={styles.shareActions}>
-                    <Pressable style={styles.shareButton} onPress={handleCopyCode}>
-                      <Ionicons
-                        name={copied ? 'checkmark' : 'copy-outline'}
-                        size={20}
-                        color="#0a7ea4"
-                      />
-                      <Text style={styles.shareButtonText}>{copied ? 'Copied!' : 'Copy'}</Text>
-                    </Pressable>
-                    <Pressable style={styles.shareButton} onPress={handleShareCode}>
-                      <Ionicons name="share-outline" size={20} color="#0a7ea4" />
-                      <Text style={styles.shareButtonText}>Share</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* Actions */}
-            <View style={styles.actions}>
-              <Pressable
-                style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
-                onPress={handleSubmit}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.submitButtonText}>
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Text>
-              </Pressable>
-
-              {isOwner && (
+    <GradientBackground>
+      <SafeAreaView style={styles.flexContainer} edges={['top']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <View style={styles.inner}>
+            {/* Header */}
+            <Animated.View entering={FadeInDown.duration(400).springify()}>
+              <Pressable style={styles.header} onPress={Keyboard.dismiss}>
+                <Pressable style={styles.headerButton} onPress={handleBack}>
+                  <Ionicons name="arrow-back" size={24} color="#2D1B4E" />
+                </Pressable>
+                <Text style={styles.title}>Edit Search</Text>
                 <Pressable
-                  style={[styles.deleteButton, isSubmitting && styles.buttonDisabled]}
-                  onPress={handleDelete}
+                  style={[
+                    styles.doneButton,
+                    { backgroundColor: colors.primary },
+                    isSubmitting && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSubmit}
                   disabled={isSubmitting}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#dc2626" />
-                  <Text style={styles.deleteButtonText}>Delete Search</Text>
+                  <Text style={styles.doneButtonText}>{isSubmitting ? 'Saving...' : 'Done'}</Text>
                 </Pressable>
+              </Pressable>
+            </Animated.View>
+
+            <ScrollView
+              style={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Form */}
+              <Animated.View
+                entering={FadeInUp.delay(100).duration(400).springify()}
+                style={styles.form}
+              >
+                {/* Name input */}
+                <View style={styles.field}>
+                  <Text style={styles.label}>Search Name</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+                      error && styles.inputError,
+                    ]}
+                    value={name}
+                    onChangeText={(text) => {
+                      setName(text);
+                      setError(null);
+                    }}
+                    placeholder="e.g., Baby Boy Names"
+                    placeholderTextColor="#A89BB5"
+                    maxLength={50}
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
+                  {error && <Text style={styles.errorText}>{error}</Text>}
+                </View>
+
+                {/* Gender filter */}
+                <View style={styles.field}>
+                  <Text style={styles.label}>Show Names For</Text>
+                  <GenderFilterSelector value={genderFilter} onChange={setGenderFilter} />
+                </View>
+
+                {/* Origin filter */}
+                <View style={styles.field}>
+                  <Text style={styles.label}>Name Origins</Text>
+                  <OriginPicker value={originFilter} onChange={setOriginFilter} />
+                </View>
+              </Animated.View>
+
+              {/* Share Code Section - only for owners */}
+              {isOwner && search.shareCode && (
+                <Animated.View
+                  entering={FadeInUp.delay(200).duration(400).springify()}
+                  style={styles.shareSection}
+                >
+                  <Text style={styles.shareSectionTitle}>Invite Partner</Text>
+                  <Text style={styles.shareDescription}>
+                    Share this code with your partner so they can join your search
+                  </Text>
+                  <View
+                    style={[
+                      styles.shareCodeContainer,
+                      { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+                    ]}
+                  >
+                    <Text style={styles.shareCode}>{formatShareCode(search.shareCode)}</Text>
+                    <View style={styles.shareActions}>
+                      <Pressable
+                        style={[styles.shareButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={handleCopyCode}
+                      >
+                        <Ionicons
+                          name={copied ? 'checkmark' : 'copy-outline'}
+                          size={20}
+                          color={colors.primary}
+                        />
+                        <Text style={[styles.shareButtonText, { color: colors.primary }]}>
+                          {copied ? 'Copied!' : 'Copy'}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={[styles.shareButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={handleShareCode}
+                      >
+                        <Ionicons name="share-outline" size={20} color={colors.primary} />
+                        <Text style={[styles.shareButtonText, { color: colors.primary }]}>
+                          Share
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </Animated.View>
               )}
-            </View>
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+              {/* Actions */}
+              <Animated.View
+                entering={FadeInUp.delay(300).duration(400).springify()}
+                style={styles.actions}
+              >
+                <Pressable
+                  style={[
+                    styles.submitButton,
+                    { backgroundColor: colors.primary },
+                    isSubmitting && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  <Text style={styles.submitButtonText}>
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Text>
+                </Pressable>
+
+                {isOwner && (
+                  <Pressable
+                    style={[styles.deleteButton, isSubmitting && styles.buttonDisabled]}
+                    onPress={handleDelete}
+                    disabled={isSubmitting}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                    <Text style={styles.deleteButtonText}>Delete Search</Text>
+                  </Pressable>
+                )}
+              </Animated.View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flexContainer: {
     flex: 1,
-    backgroundColor: '#C6E7F5',
   },
   keyboardView: {
     flex: 1,
@@ -331,12 +376,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
   },
   doneButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#0a7ea4',
     borderRadius: 8,
   },
   doneButtonText: {
@@ -344,11 +388,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     color: '#ffffff',
     fontWeight: '600',
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   emptyContainer: {
     flex: 1,
@@ -369,19 +408,18 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#2D1B4E',
     textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 16,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0a7ea4',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -410,27 +448,25 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#4b5563',
+    color: '#6B5B7B',
     fontWeight: '600',
   },
   input: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     letterSpacing: 0,
   },
   inputError: {
-    borderColor: '#dc2626',
+    borderColor: '#FF6B6B',
   },
   errorText: {
     fontSize: 12,
-    color: '#dc2626',
+    color: '#FF6B6B',
     fontFamily: Fonts?.sans,
   },
   shareSection: {
@@ -442,20 +478,18 @@ const styles = StyleSheet.create({
   shareSectionTitle: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#4b5563',
+    color: '#6B5B7B',
     fontWeight: '600',
     marginBottom: 4,
   },
   shareDescription: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
     marginBottom: 12,
   },
   shareCodeContainer: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -464,7 +498,7 @@ const styles = StyleSheet.create({
   shareCode: {
     fontSize: 28,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     letterSpacing: 4,
   },
   shareActions: {
@@ -477,22 +511,19 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#e0f2fe',
     borderRadius: 8,
   },
   shareButtonText: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#0a7ea4',
     fontWeight: '600',
   },
   actions: {
     marginTop: 24,
-    marginBottom: 40,
+    marginBottom: 120,
     gap: 12,
   },
   submitButton: {
-    backgroundColor: '#0a7ea4',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -513,7 +544,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#dc2626',
+    color: '#FF6B6B',
   },
   buttonDisabled: {
     opacity: 0.6,

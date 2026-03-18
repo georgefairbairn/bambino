@@ -3,6 +3,7 @@ import { LineChart } from 'react-native-gifted-charts';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type Gender = 'male' | 'female' | 'neutral';
 
@@ -12,9 +13,9 @@ interface SparklineChartProps {
 }
 
 const GENDER_COLORS: Record<Gender, string> = {
-  male: '#2563eb', // blue-600
-  female: '#db2777', // pink-600
-  neutral: '#9333ea', // purple-600
+  male: '#7CB9E8', // sky blue
+  female: '#FF8FAB', // candy pink
+  neutral: '#C4A7E7', // lavender
 };
 
 const CHART_WIDTH = 100;
@@ -24,6 +25,7 @@ const END_YEAR = 2023;
 const START_YEAR = END_YEAR - YEARS_TO_SHOW + 1;
 
 export function SparklineChart({ name, gender }: SparklineChartProps) {
+  const { colors } = useTheme();
   const popularityData = useQuery(api.popularity.getNamePopularity, {
     name,
     gender,
@@ -40,7 +42,7 @@ export function SparklineChart({ name, gender }: SparklineChartProps) {
   if (popularityData === undefined) {
     return (
       <View style={styles.container}>
-        <View style={styles.skeleton} />
+        <View style={[styles.skeleton, { backgroundColor: colors.border }]} />
       </View>
     );
   }
@@ -98,12 +100,11 @@ const styles = StyleSheet.create({
   skeleton: {
     width: CHART_WIDTH - 8,
     height: 2,
-    backgroundColor: '#e5e7eb',
     borderRadius: 1,
   },
   noDataText: {
     fontSize: 10,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
   },
 });

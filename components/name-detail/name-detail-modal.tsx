@@ -2,6 +2,7 @@ import { View, Text, Pressable, Modal, StyleSheet, ScrollView } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Doc } from '@/convex/_generated/dataModel';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import { GenderBadge } from './gender-badge';
 import { QuickActionButtons } from './quick-action-buttons';
 import { RankBadge, PopularityChart } from '@/components/popularity';
@@ -31,21 +32,23 @@ export function NameDetailModal({
   onRestore,
   onHide,
 }: NameDetailModalProps) {
+  const { colors } = useTheme();
+
   if (!name) return null;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
           {/* Handle bar */}
-          <View style={styles.handleBar} />
+          <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
 
           {/* Header with close button */}
           <View style={styles.header}>
             <View style={styles.headerSpacer} />
             <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color="#6B5B7B" />
             </Pressable>
           </View>
 
@@ -66,21 +69,21 @@ export function NameDetailModal({
             {/* Info cards */}
             <View style={styles.infoCards}>
               {name.origin && (
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
                   <Text style={styles.infoLabel}>Origin</Text>
                   <Text style={styles.infoValue}>{name.origin}</Text>
                 </View>
               )}
 
               {name.meaning && (
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
                   <Text style={styles.infoLabel}>Meaning</Text>
                   <Text style={styles.infoValue}>{name.meaning}</Text>
                 </View>
               )}
 
               {name.phonetic && (
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
                   <Text style={styles.infoLabel}>Pronunciation</Text>
                   <Text style={styles.infoValue}>{name.phonetic}</Text>
                 </View>
@@ -122,7 +125,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   sheet: {
-    backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -138,7 +140,6 @@ const styles = StyleSheet.create({
   handleBar: {
     width: 40,
     height: 4,
-    backgroundColor: '#d1d5db',
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 48,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -174,14 +175,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   infoCard: {
-    backgroundColor: '#FFFBF5',
     borderRadius: 12,
     padding: 16,
   },
   infoLabel: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     lineHeight: 24,
   },
 });

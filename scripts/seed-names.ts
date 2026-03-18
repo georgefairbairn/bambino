@@ -1,20 +1,12 @@
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '../convex/_generated/api';
+import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import namesData from '../data/names.json';
 
 const BATCH_SIZE = 100;
 
 async function seedNames() {
-  const deploymentUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-
-  if (!deploymentUrl) {
-    console.error('Error: EXPO_PUBLIC_CONVEX_URL environment variable is not set.');
-    console.error('Please set it in your .env.local file.');
-    process.exit(1);
-  }
-
-  const client = new ConvexHttpClient(deploymentUrl);
-
   console.log(`Starting seed with ${namesData.length} names...`);
   console.log(`Batch size: ${BATCH_SIZE}`);
 
@@ -28,14 +20,27 @@ async function seedNames() {
 
     console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} names)...`);
 
+    const tmpFile = join(tmpdir(), `bambino-seed-names-${batchNumber}.json`);
+
     try {
-      const result = await client.mutation(api.names.seedNames, { names: batch });
-      totalInserted += result.inserted;
-      totalSkipped += result.skipped;
-      console.log(`  Inserted: ${result.inserted}, Skipped: ${result.skipped}`);
+      writeFileSync(tmpFile, JSON.stringify({ names: batch }));
+      const output = execSync(`npx convex run names:seedNames "$(cat ${tmpFile})"`, {
+        encoding: 'utf-8',
+        cwd: process.cwd(),
+      });
+      const parsed = JSON.parse(output.trim());
+      totalInserted += parsed.inserted;
+      totalSkipped += parsed.skipped;
+      console.log(`  Inserted: ${parsed.inserted}, Skipped: ${parsed.skipped}`);
     } catch (error) {
       console.error(`Error processing batch ${batchNumber}:`, error);
       process.exit(1);
+    } finally {
+      try {
+        unlinkSync(tmpFile);
+      } catch {
+        // ignore cleanup errors
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { internalMutation, query } from './_generated/server';
 
 const nameValidator = v.object({
   name: v.string(),
@@ -9,7 +9,7 @@ const nameValidator = v.object({
   phonetic: v.string(),
 });
 
-export const seedNames = mutation({
+export const seedNames = internalMutation({
   args: { names: v.array(nameValidator) },
   handler: async (ctx, args) => {
     const now = Date.now();

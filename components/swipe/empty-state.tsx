@@ -1,6 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface EmptyStateProps {
   onReviewSkipped?: () => void;
@@ -8,30 +10,38 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ onReviewSkipped, hasSkippedNames = false }: EmptyStateProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Ionicons name="checkmark-circle" size={80} color="#22c55e" />
-      </View>
+      <Animated.View entering={ZoomIn.duration(400).springify()} style={styles.iconContainer}>
+        <Ionicons name="checkmark-circle" size={80} color="#6DD5A0" />
+      </Animated.View>
 
-      <Text style={styles.title}>You&apos;ve reviewed all names!</Text>
+      <Animated.Text entering={FadeInUp.delay(200).duration(400).springify()} style={styles.title}>
+        You&apos;ve reviewed all names!
+      </Animated.Text>
 
-      <Text style={styles.description}>Check your liked names or adjust filters to see more.</Text>
+      <Animated.Text entering={FadeInUp.delay(300).duration(400)} style={styles.description}>
+        Check your liked names or adjust filters to see more.
+      </Animated.Text>
 
       {hasSkippedNames && onReviewSkipped && (
-        <View style={styles.actions}>
+        <Animated.View
+          entering={FadeInUp.delay(400).duration(400).springify()}
+          style={styles.actions}
+        >
           <Pressable
             onPress={onReviewSkipped}
             style={({ pressed }) => [
               styles.button,
-              styles.primaryButton,
+              { backgroundColor: colors.primary },
               pressed && styles.buttonPressed,
             ]}
           >
             <Ionicons name="refresh" size={20} color="#ffffff" />
             <Text style={styles.primaryButtonText}>Review Skipped Names</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       )}
     </View>
   );
@@ -50,14 +60,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 12,
   },
   description: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 24,
@@ -75,9 +85,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-  },
-  primaryButton: {
-    backgroundColor: '#0a7ea4',
   },
   buttonPressed: {
     opacity: 0.8,

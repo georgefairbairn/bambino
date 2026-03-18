@@ -24,7 +24,7 @@ export function SearchInput({
 
   return (
     <View style={styles.container}>
-      <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
+      <Ionicons name="search" size={20} color="#A89BB5" style={styles.searchIcon} />
       <TextInput
         style={styles.input}
         value={value}
@@ -32,7 +32,7 @@ export function SearchInput({
         onSubmitEditing={onSubmit}
         returnKeyType="search"
         placeholder={placeholder}
-        placeholderTextColor="#9ca3af"
+        placeholderTextColor="#A89BB5"
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -42,7 +42,7 @@ export function SearchInput({
           style={styles.clearButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close-circle" size={20} color="#9ca3af" />
+          <Ionicons name="close-circle" size={20} color="#A89BB5" />
         </Pressable>
       )}
     </View>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#1f2937',
+    color: '#2D1B4E',
   },
   clearButton: {
     padding: 4,

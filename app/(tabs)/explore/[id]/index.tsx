@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from 'convex/react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -9,9 +9,13 @@ import { Id } from '@/convex/_generated/dataModel';
 import { SwipeCardStack } from '@/components/swipe/swipe-card-stack';
 import { SearchHeader } from '@/components/swipe/search-header';
 import { useActiveSearch } from '@/hooks/use-active-search';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function SwipeView() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const searchId = id as Id<'searches'>;
 
@@ -51,56 +55,52 @@ export default function SwipeView() {
     return `${activeSearch._id}-${activeSearch.genderFilter}-${originKey}-${activeSearch.updatedAt}`;
   }, [activeSearch]);
 
+  const { showLoading, loadingProps } = useGracefulLoading(searches !== undefined);
+
   // Loading state
-  if (searches === undefined) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0a7ea4" />
-        </View>
-      </SafeAreaView>
-    );
+  if (showLoading) {
+    return <LoadingScreen {...loadingProps} />;
   }
 
   // Search not found state
   if (!activeSearch) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="search-outline" size={64} color="#9ca3af" />
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Ionicons name="search-outline" size={64} color="#A89BB5" />
+            </View>
+            <Text style={styles.emptyTitle}>Search Not Found</Text>
+            <Text style={styles.emptyDescription}>
+              This search may have been deleted or you don&apos;t have access.
+            </Text>
+            <Pressable
+              style={[styles.backButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.replace('/(tabs)/explore')}
+            >
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+              <Text style={styles.backButtonText}>Back to Searches</Text>
+            </Pressable>
           </View>
-          <Text style={styles.emptyTitle}>Search Not Found</Text>
-          <Text style={styles.emptyDescription}>
-            This search may have been deleted or you don&apos;t have access.
-          </Text>
-          <Pressable style={styles.backButton} onPress={() => router.replace('/(tabs)/explore')}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text style={styles.backButtonText}>Back to Searches</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <SearchHeader searchName={activeSearch.name} liked={stats?.liked ?? 0} />
-      <SwipeCardStack key={swipeQueueKey} searchId={activeSearch._id} />
-    </SafeAreaView>
+    <GradientBackground>
+      <SafeAreaView style={styles.flexContainer} edges={['top']}>
+        <SearchHeader searchName={activeSearch.name} liked={stats?.liked ?? 0} />
+        <SwipeCardStack key={swipeQueueKey} searchId={activeSearch._id} />
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flexContainer: {
     flex: 1,
-    backgroundColor: '#C6E7F5',
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
   },
   emptyContainer: {
     flex: 1,
@@ -121,19 +121,18 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#2D1B4E',
     textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 16,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0a7ea4',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,

@@ -1,7 +1,9 @@
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
+import { useTheme } from '@/contexts/theme-context';
 
 interface OriginPickerProps {
   value: string[];
@@ -9,6 +11,7 @@ interface OriginPickerProps {
 }
 
 export function OriginPicker({ value, onChange }: OriginPickerProps) {
+  const { colors } = useTheme();
   const availableOrigins = useQuery(api.names.getAvailableOrigins);
   const selectedSet = new Set(value);
 
@@ -35,7 +38,7 @@ export function OriginPicker({ value, onChange }: OriginPickerProps) {
   if (availableOrigins === undefined) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#0a7ea4" />
+        <LoadingIndicator size="small" />
       </View>
     );
   }
@@ -43,11 +46,17 @@ export function OriginPicker({ value, onChange }: OriginPickerProps) {
   return (
     <View style={styles.container}>
       <View style={styles.quickActions}>
-        <Pressable style={styles.quickActionButton} onPress={selectAll}>
-          <Text style={styles.quickActionText}>Select All</Text>
+        <Pressable
+          style={[styles.quickActionButton, { backgroundColor: colors.surfaceSubtle }]}
+          onPress={selectAll}
+        >
+          <Text style={[styles.quickActionText, { color: colors.primary }]}>Select All</Text>
         </Pressable>
-        <Pressable style={styles.quickActionButton} onPress={clearAll}>
-          <Text style={styles.quickActionText}>Clear All</Text>
+        <Pressable
+          style={[styles.quickActionButton, { backgroundColor: colors.surfaceSubtle }]}
+          onPress={clearAll}
+        >
+          <Text style={[styles.quickActionText, { color: colors.primary }]}>Clear All</Text>
         </Pressable>
       </View>
       <View style={styles.grid}>
@@ -56,7 +65,12 @@ export function OriginPicker({ value, onChange }: OriginPickerProps) {
           return (
             <Pressable
               key={origin}
-              style={[styles.originButton, isSelected && styles.originButtonSelected]}
+              style={[
+                styles.originButton,
+                {
+                  backgroundColor: isSelected ? colors.primary : colors.surfaceSubtle,
+                },
+              ]}
               onPress={() => toggleOrigin(origin)}
             >
               <Text style={[styles.originText, isSelected && styles.originTextSelected]}>
@@ -88,13 +102,11 @@ const styles = StyleSheet.create({
   quickActionButton: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#f3f4f6',
     borderRadius: 6,
   },
   quickActionText: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#0a7ea4',
     fontWeight: '600',
   },
   grid: {
@@ -105,16 +117,12 @@ const styles = StyleSheet.create({
   originButton: {
     paddingVertical: 8,
     paddingHorizontal: 14,
-    backgroundColor: '#f3f4f6',
     borderRadius: 20,
-  },
-  originButtonSelected: {
-    backgroundColor: '#0a7ea4',
   },
   originText: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   originTextSelected: {
     color: '#ffffff',
@@ -123,7 +131,7 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
     fontStyle: 'italic',
   },
 });

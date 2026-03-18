@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type Gender = 'boy' | 'girl' | 'unisex';
 type Size = 'small' | 'large';
@@ -12,30 +13,39 @@ interface GenderBadgeProps {
 const GENDER_CONFIG: Record<Gender, { emoji: string; bg: string; text: string; label: string }> = {
   boy: {
     emoji: '👦',
-    bg: '#dbeafe',
-    text: '#2563eb',
+    bg: '#E3F0FF',
+    text: '#7CB9E8',
     label: 'Boy',
   },
   girl: {
     emoji: '👧',
-    bg: '#fce7f3',
-    text: '#db2777',
+    bg: '#FFE4EC',
+    text: '#FF8FAB',
     label: 'Girl',
   },
   unisex: {
     emoji: '👶',
     bg: '#f3e8ff',
-    text: '#9333ea',
+    text: '#C4A7E7',
     label: 'Unisex',
   },
 };
 
 export function GenderBadge({ gender, size = 'large' }: GenderBadgeProps) {
+  const { colors } = useTheme();
   const config = GENDER_CONFIG[gender] ?? GENDER_CONFIG.unisex;
   const isLarge = size === 'large';
 
+  // Use theme colors for girl/unisex backgrounds, keep boy bg fixed
+  const bgColor =
+    gender === 'girl'
+      ? colors.primaryLight
+      : gender === 'unisex'
+        ? colors.secondaryLight
+        : config.bg;
+
   return (
-    <View style={[styles.badge, { backgroundColor: config.bg }, isLarge && styles.badgeLarge]}>
+    <View style={[styles.badge, { backgroundColor: bgColor }, isLarge && styles.badgeLarge]}>
       <Text style={[styles.emoji, isLarge && styles.emojiLarge]}>{config.emoji}</Text>
       <Text style={[styles.label, { color: config.text }, isLarge && styles.labelLarge]}>
         {config.label}

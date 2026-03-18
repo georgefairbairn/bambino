@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type Context = 'swipe' | 'liked' | 'rejected';
 
@@ -23,6 +24,8 @@ export function QuickActionButtons({
   onRestore,
   onHide,
 }: QuickActionButtonsProps) {
+  const { colors } = useTheme();
+
   const handleRemove = () => {
     Alert.alert(
       'Remove from Liked',
@@ -59,12 +62,15 @@ export function QuickActionButtons({
   if (context === 'swipe') {
     return (
       <View style={styles.container}>
-        <Pressable style={[styles.button, styles.rejectButton]} onPress={onReject}>
-          <Ionicons name="close" size={24} color="#ef4444" />
-          <Text style={[styles.buttonText, styles.rejectText]}>Reject</Text>
+        <Pressable
+          style={[styles.button, { backgroundColor: colors.primaryLight, borderColor: '#FF6B6B' }]}
+          onPress={onReject}
+        >
+          <Ionicons name="close" size={24} color="#FF6B6B" />
+          <Text style={[styles.buttonText, { color: '#FF6B6B' }]}>Reject</Text>
         </Pressable>
         <Pressable style={[styles.button, styles.likeButton]} onPress={onLike}>
-          <Ionicons name="heart" size={24} color="#22c55e" />
+          <Ionicons name="heart" size={24} color="#6DD5A0" />
           <Text style={[styles.buttonText, styles.likeText]}>Like</Text>
         </Pressable>
       </View>
@@ -75,7 +81,7 @@ export function QuickActionButtons({
     return (
       <View style={styles.container}>
         <Pressable style={[styles.button, styles.removeButton]} onPress={handleRemove}>
-          <Ionicons name="trash-outline" size={24} color="#ef4444" />
+          <Ionicons name="trash-outline" size={24} color="#FF6B6B" />
           <Text style={[styles.buttonText, styles.removeText]}>Remove from Liked</Text>
         </Pressable>
       </View>
@@ -85,13 +91,22 @@ export function QuickActionButtons({
   // context === 'rejected'
   return (
     <View style={styles.container}>
-      <Pressable style={[styles.button, styles.restoreButton]} onPress={handleRestore}>
-        <Ionicons name="refresh-outline" size={24} color="#0a7ea4" />
-        <Text style={[styles.buttonText, styles.restoreText]}>Restore</Text>
+      <Pressable
+        style={[
+          styles.button,
+          { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+        ]}
+        onPress={handleRestore}
+      >
+        <Ionicons name="refresh-outline" size={24} color={colors.primary} />
+        <Text style={[styles.buttonText, { color: colors.primary }]}>Restore</Text>
       </Pressable>
-      <Pressable style={[styles.button, styles.hideButton]} onPress={handleHide}>
-        <Ionicons name="eye-off-outline" size={24} color="#ef4444" />
-        <Text style={[styles.buttonText, styles.hideText]}>Hide</Text>
+      <Pressable
+        style={[styles.button, { backgroundColor: colors.primaryLight, borderColor: '#FF6B6B' }]}
+        onPress={handleHide}
+      >
+        <Ionicons name="eye-off-outline" size={24} color="#FF6B6B" />
+        <Text style={[styles.buttonText, { color: '#FF6B6B' }]}>Hide</Text>
       </Pressable>
     </View>
   );
@@ -120,40 +135,18 @@ const styles = StyleSheet.create({
   },
   // Swipe context buttons
   likeButton: {
-    backgroundColor: '#dcfce7',
-    borderColor: '#22c55e',
+    backgroundColor: '#E8FFF0',
+    borderColor: '#6DD5A0',
   },
   likeText: {
-    color: '#22c55e',
-  },
-  rejectButton: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#ef4444',
-  },
-  rejectText: {
-    color: '#ef4444',
+    color: '#6DD5A0',
   },
   // Liked context button
   removeButton: {
     backgroundColor: '#ffffff',
-    borderColor: '#ef4444',
+    borderColor: '#FF6B6B',
   },
   removeText: {
-    color: '#ef4444',
-  },
-  // Rejected context buttons
-  restoreButton: {
-    backgroundColor: '#e0f2fe',
-    borderColor: '#0a7ea4',
-  },
-  restoreText: {
-    color: '#0a7ea4',
-  },
-  hideButton: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#ef4444',
-  },
-  hideText: {
-    color: '#ef4444',
+    color: '#FF6B6B',
   },
 });

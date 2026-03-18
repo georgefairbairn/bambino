@@ -8,12 +8,14 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
+import { Paywall } from '@/components/paywall';
+import { useTheme } from '@/contexts/theme-context';
 
 interface JoinSearchModalProps {
   visible: boolean;
@@ -29,11 +31,13 @@ type SearchPreview = {
 };
 
 export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModalProps) {
+  const { colors } = useTheme();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [preview, setPreview] = useState<SearchPreview | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const searchPreview = useQuery(
     api.searches.getSearchByShareCode,
@@ -103,9 +107,20 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
     setError(null);
 
     try {
-      const searchId = await joinSearch({ code });
+      const result = await joinSearch({ code });
+
+      if (result && typeof result === 'object' && 'error' in result) {
+        if (result.error === 'FREE_TIER_PARTNER_LIMIT') {
+          setShowPaywall(true);
+        } else {
+          setError('Failed to join search');
+        }
+        setIsJoining(false);
+        return;
+      }
+
       handleClose();
-      onSuccess(searchId);
+      onSuccess(result as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join search');
       setIsJoining(false);
@@ -118,6 +133,7 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
     setPreview(null);
     setIsLookingUp(false);
     setIsJoining(false);
+    setShowPaywall(false);
     onClose();
   };
 
@@ -152,12 +168,12 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
           <View style={styles.header}>
             {preview && (
               <Pressable onPress={handleBack} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#6b7280" />
+                <Ionicons name="arrow-back" size={24} color="#6B5B7B" />
               </Pressable>
             )}
             <Text style={styles.title}>{preview ? 'Join Search' : 'Enter Code'}</Text>
             <Pressable onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color="#6B5B7B" />
             </Pressable>
           </View>
 
@@ -169,11 +185,17 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
               </Text>
 
               <TextInput
-                style={[styles.codeInput, error && styles.inputError]}
+                style={[
+                  styles.codeInput,
+                  {
+                    backgroundColor: colors.surfaceSubtle,
+                    borderColor: error ? '#FF6B6B' : colors.border,
+                  },
+                ]}
                 value={code}
                 onChangeText={handleCodeChange}
                 placeholder="ABC123"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#A89BB5"
                 autoCapitalize="characters"
                 autoCorrect={false}
                 maxLength={6}
@@ -185,13 +207,14 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
               <Pressable
                 style={[
                   styles.primaryButton,
+                  { backgroundColor: colors.primary },
                   (isLookingUp || code.length !== 6) && styles.buttonDisabled,
                 ]}
                 onPress={handlePreview}
                 disabled={isLookingUp || code.length !== 6}
               >
                 {isLookingUp ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <LoadingIndicator size="small" />
                 ) : (
                   <Text style={styles.primaryButtonText}>Join</Text>
                 )}
@@ -200,14 +223,19 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
           ) : (
             // Preview State
             <View style={styles.content}>
-              <View style={styles.previewCard}>
+              <View
+                style={[
+                  styles.previewCard,
+                  { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+                ]}
+              >
                 <Text style={styles.previewName}>{preview.name}</Text>
                 <View style={styles.previewMeta}>
-                  <Ionicons name="person-outline" size={16} color="#6b7280" />
+                  <Ionicons name="person-outline" size={16} color="#6B5B7B" />
                   <Text style={styles.previewMetaText}>Created by {preview.ownerName}</Text>
                 </View>
                 <View style={styles.previewMeta}>
-                  <Ionicons name="filter-outline" size={16} color="#6b7280" />
+                  <Ionicons name="filter-outline" size={16} color="#6B5B7B" />
                   <Text style={styles.previewMetaText}>
                     {getGenderFilterLabel(preview.genderFilter)}
                   </Text>
@@ -218,12 +246,16 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
 
               <View style={styles.previewActions}>
                 <Pressable
-                  style={[styles.primaryButton, isJoining && styles.buttonDisabled]}
+                  style={[
+                    styles.primaryButton,
+                    { backgroundColor: colors.primary },
+                    isJoining && styles.buttonDisabled,
+                  ]}
                   onPress={handleJoin}
                   disabled={isJoining}
                 >
                   {isJoining ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
+                    <LoadingIndicator size="small" />
                   ) : (
                     <Text style={styles.primaryButtonText}>Join Search</Text>
                   )}
@@ -236,6 +268,12 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <Paywall
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        trigger="partner_limit"
+      />
     </Modal>
   );
 }
@@ -259,7 +297,7 @@ const styles = StyleSheet.create({
   handleBar: {
     width: 40,
     height: 4,
-    backgroundColor: '#d1d5db',
+    backgroundColor: '#E5E7EB',
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -274,7 +312,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     flex: 1,
     textAlign: 'center',
   },
@@ -293,33 +331,27 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
   },
   codeInput: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 28,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     textAlign: 'center',
     letterSpacing: 8,
   },
-  inputError: {
-    borderColor: '#dc2626',
-  },
   errorText: {
     fontSize: 13,
-    color: '#dc2626',
+    color: '#FF6B6B',
     fontFamily: Fonts?.sans,
     textAlign: 'center',
   },
   primaryButton: {
-    backgroundColor: '#0a7ea4',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -334,9 +366,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   previewCard: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 12,
     padding: 20,
     gap: 12,
@@ -344,7 +374,7 @@ const styles = StyleSheet.create({
   previewName: {
     fontSize: 20,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
   },
   previewMeta: {
     flexDirection: 'row',
@@ -354,7 +384,7 @@ const styles = StyleSheet.create({
   previewMetaText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   previewActions: {
     gap: 12,
@@ -368,6 +398,6 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
 });
