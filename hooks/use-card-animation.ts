@@ -15,6 +15,7 @@ import {
   MAX_ROTATION,
   ROTATION_FACTOR,
   EXIT_X,
+  EXIT_Y,
   SPRING_CONFIG,
   TIMING_CONFIG,
   SWIPE_COLORS,
@@ -46,7 +47,7 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
       rotation.value = interpolate(
         x,
         [-200, 0, 200],
-        [-MAX_ROTATION, 0, MAX_ROTATION],
+        [MAX_ROTATION, 0, -MAX_ROTATION],
         Extrapolation.CLAMP,
       );
     },
@@ -69,8 +70,9 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
         runOnJS(onSwipeComplete)('left');
       }
     });
-    rotation.value = withTiming(-MAX_ROTATION, TIMING_CONFIG);
-  }, [translateX, rotation, onSwipeComplete]);
+    translateY.value = withTiming(EXIT_Y, TIMING_CONFIG);
+    rotation.value = withTiming(MAX_ROTATION, TIMING_CONFIG);
+  }, [translateX, translateY, rotation, onSwipeComplete]);
 
   // Animate card exit to the right
   const swipeRight = useCallback(() => {
@@ -80,8 +82,9 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
         runOnJS(onSwipeComplete)('right');
       }
     });
-    rotation.value = withTiming(MAX_ROTATION, TIMING_CONFIG);
-  }, [translateX, rotation, onSwipeComplete]);
+    translateY.value = withTiming(EXIT_Y, TIMING_CONFIG);
+    rotation.value = withTiming(-MAX_ROTATION, TIMING_CONFIG);
+  }, [translateX, translateY, rotation, onSwipeComplete]);
 
   // JS-callable wrappers for programmatic swipes (from button presses)
   const swipeLeftFromJS = useCallback(() => {
@@ -96,7 +99,7 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
   const cardAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
-      { translateY: translateY.value * 0.3 }, // dampen vertical movement
+      { translateY: translateY.value * -0.3 }, // dampen vertical, bias upward
       { rotate: `${rotation.value}deg` },
     ],
   }));

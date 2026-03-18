@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type YearRange = '20' | '50' | 'all';
 
@@ -15,6 +16,8 @@ const OPTIONS: { value: YearRange; label: string }[] = [
 ];
 
 export function YearRangeSelector({ selected, onSelect }: YearRangeSelectorProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       {OPTIONS.map((option) => {
@@ -22,10 +25,14 @@ export function YearRangeSelector({ selected, onSelect }: YearRangeSelectorProps
         return (
           <Pressable
             key={option.value}
-            style={[styles.pill, isActive && styles.pillActive]}
+            style={[styles.pill, isActive && { backgroundColor: colors.primaryLight }]}
             onPress={() => onSelect(option.value)}
           >
-            <Text style={[styles.pillText, isActive && styles.pillTextActive]}>{option.label}</Text>
+            <Text
+              style={[styles.pillText, isActive && { color: colors.primary, fontWeight: '600' }]}
+            >
+              {option.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -45,17 +52,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: 'transparent',
   },
-  pillActive: {
-    backgroundColor: '#e0f2fe', // sky-100
-  },
   pillText: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#6b7280', // gray-500
-  },
-  pillTextActive: {
-    color: '#0a7ea4', // sky-700
-    fontWeight: '600',
+    color: '#6B5B7B', // textSecondary
   },
 });
 

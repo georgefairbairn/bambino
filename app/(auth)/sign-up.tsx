@@ -1,9 +1,13 @@
 import { useSignUp, useSSO } from '@clerk/clerk-expo';
-import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { GradientButton } from '@/components/ui/gradient-button';
+import { StyledInput } from '@/components/ui/styled-input';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -85,96 +89,148 @@ export default function SignUp() {
 
   if (pendingVerification) {
     return (
-      <View className="flex-1 justify-center px-8">
-        <Text className="mb-4 text-center text-3xl font-bold">Verify Email</Text>
-        <Text className="mb-8 text-center text-gray-600">
-          We sent a verification code to {email}
-        </Text>
+      <GradientBackground variant="auth">
+        <View className="flex-1 justify-center px-8">
+          <Animated.Text
+            entering={FadeInDown.duration(500).springify()}
+            className="mb-4 text-center text-3xl font-bold"
+          >
+            Verify Email
+          </Animated.Text>
+          <Animated.Text
+            entering={FadeInDown.delay(100).duration(400)}
+            className="mb-8 text-center text-gray-600"
+          >
+            We sent a verification code to {email}
+          </Animated.Text>
 
-        {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
+          {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
 
-        <TextInput
-          className="mb-6 rounded-lg bg-white p-4 text-center text-2xl tracking-widest"
-          placeholder="000000"
-          value={code}
-          onChangeText={setCode}
-          keyboardType="number-pad"
-          maxLength={6}
-        />
+          <Animated.View entering={FadeInUp.delay(200).duration(400).springify()}>
+            <StyledInput
+              className="mb-6"
+              style={{ textAlign: 'center', fontSize: 24, letterSpacing: 8 }}
+              placeholder="000000"
+              value={code}
+              onChangeText={setCode}
+              keyboardType="number-pad"
+              maxLength={6}
+            />
+          </Animated.View>
 
-        <Pressable
-          className="rounded-lg bg-blue-600 p-4"
-          onPress={handleVerification}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-center font-semibold text-white">Verify Email</Text>
-          )}
-        </Pressable>
-      </View>
+          <Animated.View entering={FadeInUp.delay(300).duration(400).springify()}>
+            <GradientButton
+              title="Verify Email"
+              onPress={handleVerification}
+              variant="primary"
+              loading={isLoading}
+              disabled={isLoading}
+            />
+          </Animated.View>
+        </View>
+      </GradientBackground>
     );
   }
 
   return (
-    <View className="flex-1 justify-center px-8">
-      <Text className="mb-8 text-center text-3xl font-bold">Create Account</Text>
+    <GradientBackground variant="auth">
+      <View className="flex-1 justify-center px-8">
+        <Animated.Text
+          entering={FadeInDown.duration(500).springify()}
+          className="mb-8 text-center text-3xl font-bold"
+        >
+          Create Account
+        </Animated.Text>
 
-      {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
+        {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
 
-      <TextInput
-        className="mb-4 rounded-lg bg-white p-4"
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+        <Animated.View entering={FadeInUp.delay(100).duration(400).springify()}>
+          <StyledInput
+            className="mb-4"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+        </Animated.View>
 
-      <TextInput
-        className="mb-6 rounded-lg bg-white p-4"
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <Animated.View entering={FadeInUp.delay(200).duration(400).springify()}>
+          <StyledInput
+            className="mb-6"
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </Animated.View>
 
-      <Pressable
-        className="mb-4 rounded-lg bg-blue-600 p-4"
-        onPress={handleSignUp}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-center font-semibold text-white">Sign Up</Text>
-        )}
-      </Pressable>
+        <Animated.View entering={FadeInUp.delay(300).duration(400).springify()} className="mb-4">
+          <GradientButton
+            title="Sign Up"
+            onPress={handleSignUp}
+            variant="primary"
+            loading={isLoading}
+            disabled={isLoading}
+          />
+        </Animated.View>
 
-      <View className="mb-6 flex-row items-center">
-        <View className="h-px flex-1 bg-gray-300" />
-        <Text className="mx-4 text-gray-500">or</Text>
-        <View className="h-px flex-1 bg-gray-300" />
+        <Animated.View
+          entering={FadeInUp.delay(400).duration(400)}
+          className="mb-6 flex-row items-center"
+        >
+          <View className="h-px flex-1 bg-gray-300" />
+          <Text className="mx-4 text-gray-500">or</Text>
+          <View className="h-px flex-1 bg-gray-300" />
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-6">
+          <GradientButton
+            title="Continue with Google"
+            onPress={handleGoogleSignUp}
+            variant="secondary"
+            icon="logo-google"
+            disabled={isLoading}
+          />
+        </Animated.View>
+
+        <Animated.View
+          entering={FadeInUp.delay(600).duration(400)}
+          className="flex-row justify-center"
+        >
+          <Text className="text-gray-600">Already have an account? </Text>
+          <Link href="/(auth)/sign-in" asChild>
+            <Pressable>
+              <Text className="font-semibold text-pink-500">Sign In</Text>
+            </Pressable>
+          </Link>
+        </Animated.View>
+
+        <Text className="mt-6 text-center text-xs text-gray-400">
+          By signing up, you agree to our{' '}
+          <Text
+            className="text-pink-500 underline"
+            onPress={() =>
+              WebBrowser.openBrowserAsync(
+                'https://bambino-baby.notion.site/325d3b58308281768597f8bd57581eb7',
+              )
+            }
+          >
+            Terms of Service
+          </Text>{' '}
+          and{' '}
+          <Text
+            className="text-pink-500 underline"
+            onPress={() =>
+              WebBrowser.openBrowserAsync(
+                'https://bambino-baby.notion.site/325d3b58308281158ce6c6cbdd562734',
+              )
+            }
+          >
+            Privacy Policy
+          </Text>
+        </Text>
       </View>
-
-      <Pressable
-        className="mb-6 flex-row items-center justify-center rounded-lg bg-white p-4"
-        onPress={handleGoogleSignUp}
-        disabled={isLoading}
-      >
-        <Ionicons name="logo-google" size={20} color="#4285F4" />
-        <Text className="ml-2 font-semibold">Continue with Google</Text>
-      </Pressable>
-
-      <View className="flex-row justify-center">
-        <Text className="text-gray-600">Already have an account? </Text>
-        <Link href="/(auth)/sign-in" asChild>
-          <Pressable>
-            <Text className="font-semibold text-blue-600">Sign In</Text>
-          </Pressable>
-        </Link>
-      </View>
-    </View>
+    </GradientBackground>
   );
 }

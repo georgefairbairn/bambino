@@ -60,6 +60,35 @@ async function isSearchMember(
   return membership;
 }
 
+// Check if a premium user already has a connection with a free (non-premium) user
+async function userHasFreePartner(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<'users'>,
+): Promise<boolean> {
+  const memberships = await ctx.db
+    .query('searchMembers')
+    .withIndex('by_user_id', (q) => q.eq('userId', userId))
+    .collect();
+
+  for (const membership of memberships) {
+    const members = await ctx.db
+      .query('searchMembers')
+      .withIndex('by_search_id', (q) => q.eq('searchId', membership.searchId))
+      .collect();
+
+    for (const m of members) {
+      if (m.userId !== userId) {
+        const partnerUser = await ctx.db.get(m.userId);
+        if (partnerUser && partnerUser.isPremium !== true) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 export const createSearch = mutation({
   args: {
     name: v.string(),
@@ -67,7 +96,24 @@ export const createSearch = mutation({
     originFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    if (args.name.length === 0 || args.name.length > 100) {
+      throw new Error('Search name must be between 1 and 100 characters');
+    }
+
     const user = await getCurrentUserOrThrow(ctx);
+
+    // Free tier: limit to 1 search
+    if (!user.isPremium) {
+      const existingMemberships = await ctx.db
+        .query('searchMembers')
+        .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+        .collect();
+
+      if (existingMemberships.length >= 1) {
+        return { error: 'FREE_TIER_SEARCH_LIMIT' as const };
+      }
+    }
+
     const now = Date.now();
     const shareCode = await generateUniqueShareCode(ctx);
 
@@ -103,6 +149,10 @@ export const updateSearch = mutation({
     originFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    if (args.name !== undefined && (args.name.length === 0 || args.name.length > 100)) {
+      throw new Error('Search name must be between 1 and 100 characters');
+    }
+
     const user = await getCurrentUserOrThrow(ctx);
 
     const search = await ctx.db.get(args.searchId);
@@ -145,6 +195,27 @@ export const deleteSearch = mutation({
       throw new Error('Only the owner can delete a search');
     }
 
+    // Delete all selections for this search
+    const selections = await ctx.db
+      .query('selections')
+      .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
+      .collect();
+
+    for (const selection of selections) {
+      await ctx.db.delete(selection._id);
+    }
+
+    // Delete all matches for this search
+    const matches = await ctx.db
+      .query('matches')
+      .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
+      .collect();
+
+    for (const match of matches) {
+      await ctx.db.delete(match._id);
+    }
+
+    // Delete all members for this search
     const members = await ctx.db
       .query('searchMembers')
       .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
@@ -154,6 +225,7 @@ export const deleteSearch = mutation({
       await ctx.db.delete(member._id);
     }
 
+    // Delete the search itself
     await ctx.db.delete(args.searchId);
 
     return args.searchId;
@@ -182,33 +254,60 @@ export const getUserSearches = query({
       .withIndex('by_user_id', (q) => q.eq('userId', user._id))
       .collect();
 
-    const searchesWithRole = await Promise.all(
-      memberships.map(async (membership) => {
-        const search = await ctx.db.get(membership.searchId);
-        if (!search) return null;
-
-        // Get all members to find partner info
-        const allMembers = await ctx.db
-          .query('searchMembers')
-          .withIndex('by_search_id', (q) => q.eq('searchId', membership.searchId))
-          .collect();
-
-        // Find the other member (partner) if exists
-        const otherMember = allMembers.find((m) => m.userId !== user._id);
-        let partnerName: string | undefined;
-
-        if (otherMember) {
-          const partnerUser = await ctx.db.get(otherMember.userId);
-          partnerName = partnerUser?.name ?? partnerUser?.email;
-        }
-
-        return {
-          ...search,
-          role: membership.role,
-          partnerName,
-        };
-      }),
+    // Batch load all search documents
+    const searchIds = memberships.map((m) => m.searchId);
+    const searchDocs = await Promise.all(searchIds.map((id) => ctx.db.get(id)));
+    const searchMap = new Map(
+      searchIds.map((id, i) => [id, searchDocs[i]]),
     );
+
+    // Batch load all members for all searches
+    const allMembersBySearch = await Promise.all(
+      searchIds.map((searchId) =>
+        ctx.db
+          .query('searchMembers')
+          .withIndex('by_search_id', (q) => q.eq('searchId', searchId))
+          .collect(),
+      ),
+    );
+
+    // Find partner user IDs across all searches
+    const partnerUserIds = new Set<Id<'users'>>();
+    for (const members of allMembersBySearch) {
+      for (const member of members) {
+        if (member.userId !== user._id) {
+          partnerUserIds.add(member.userId);
+        }
+      }
+    }
+
+    // Batch load all partner user documents
+    const partnerIds = [...partnerUserIds];
+    const partnerDocs = await Promise.all(partnerIds.map((id) => ctx.db.get(id)));
+    const partnerMap = new Map(
+      partnerIds.map((id, i) => [id, partnerDocs[i]]),
+    );
+
+    // Assemble results
+    const searchesWithRole = memberships.map((membership, idx) => {
+      const search = searchMap.get(membership.searchId);
+      if (!search) return null;
+
+      const members = allMembersBySearch[idx];
+      const otherMember = members.find((m) => m.userId !== user._id);
+      let partnerName: string | undefined;
+
+      if (otherMember) {
+        const partnerUser = partnerMap.get(otherMember.userId);
+        partnerName = partnerUser?.name ?? partnerUser?.email;
+      }
+
+      return {
+        ...search,
+        role: membership.role,
+        partnerName,
+      };
+    });
 
     return searchesWithRole.filter((search) => search !== null);
   },
@@ -433,6 +532,27 @@ export const joinSearchByCode = mutation({
     const existingMembership = await isSearchMember(ctx, search._id, user._id);
     if (existingMembership) {
       throw new Error("You're already a member of this search");
+    }
+
+    // Partner connection requires at least one premium user
+    const owner = await ctx.db.get(search.ownerId);
+    const joinerIsPremium = user.isPremium === true;
+    const ownerIsPremium = owner?.isPremium === true;
+
+    if (!joinerIsPremium && !ownerIsPremium) {
+      return { error: 'FREE_TIER_PARTNER_LIMIT' as const };
+    }
+
+    // Premium user can only connect with one free account
+    // Check whichever user is premium to see if they already have a free partner
+    const premiumUserId = joinerIsPremium ? user._id : search.ownerId;
+    const otherIsFree = joinerIsPremium ? !ownerIsPremium : !joinerIsPremium;
+
+    if (otherIsFree) {
+      const hasFreePartner = await userHasFreePartner(ctx, premiumUserId);
+      if (hasFreePartner) {
+        return { error: 'FREE_TIER_PARTNER_LIMIT' as const };
+      }
     }
 
     // Add user as partner

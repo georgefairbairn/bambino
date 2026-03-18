@@ -1,7 +1,10 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Fonts } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Sentry from '@sentry/react-native';
+import { Fonts, Gradients } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 interface Props {
   children: ReactNode;
@@ -24,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });
   }
 
   handleRetry = (): void => {
@@ -37,25 +40,33 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      return (
-        <View style={styles.container}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="warning-outline" size={64} color="#ef4444" />
-          </View>
-          <Text style={styles.title}>Something went wrong</Text>
-          <Text style={styles.message}>
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </Text>
-          <Pressable style={styles.retryButton} onPress={this.handleRetry}>
-            <Ionicons name="refresh-outline" size={20} color="#fff" />
-            <Text style={styles.retryText}>Try Again</Text>
-          </Pressable>
-        </View>
-      );
+      return <ErrorFallback error={this.state.error} onRetry={this.handleRetry} />;
     }
 
     return this.props.children;
   }
+}
+
+// Functional component for error UI to use hooks
+function ErrorFallback({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
+  const { colors } = useTheme();
+
+  return (
+    <LinearGradient colors={[...Gradients.screenBg]} style={styles.container}>
+      <View style={[styles.iconContainer, { backgroundColor: colors.primaryLight }]}>
+        <Ionicons name="warning-outline" size={64} color="#ef4444" />
+      </View>
+      <Text style={styles.title}>Something went wrong</Text>
+      <Text style={styles.message}>{error?.message || 'An unexpected error occurred'}</Text>
+      <Pressable
+        style={[styles.retryButton, { backgroundColor: colors.primary }]}
+        onPress={onRetry}
+      >
+        <Ionicons name="refresh-outline" size={20} color="#fff" />
+        <Text style={styles.retryText}>Try Again</Text>
+      </Pressable>
+    </LinearGradient>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -63,7 +74,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C6E7F5',
     paddingHorizontal: 32,
     gap: 16,
   },
@@ -71,7 +81,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#fef2f2',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -79,20 +88,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1f2937',
+    color: '#2D1B4E',
     textAlign: 'center',
   },
   message: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
   },
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0a7ea4',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,

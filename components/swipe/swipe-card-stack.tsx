@@ -2,14 +2,17 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
+import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { SwipeCard, SwipeCardRef } from './swipe-card';
 import { SwipeActionButtons } from './swipe-action-buttons';
 import { EmptyState } from './empty-state';
 import { MatchCelebrationModal } from '@/components/matches';
+import { Paywall } from '@/components/paywall';
 import * as Haptics from 'expo-haptics';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
+import { useTheme } from '@/contexts/theme-context';
 
 interface SwipeCardStackProps {
   searchId: Id<'searches'>;
@@ -18,6 +21,7 @@ interface SwipeCardStackProps {
 
 export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
   const router = useRouter();
+  const { colors } = useTheme();
 
   // Fetch initial queue from backend
   const serverQueue = useQuery(api.selections.getSwipeQueue, {
@@ -33,6 +37,7 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Ref to the top card for triggering programmatic swipes
   const topCardRef = useRef<SwipeCardRef>(null);
@@ -66,14 +71,21 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
           selectionType,
         });
 
+        // Check if free tier limit was hit
+        if (result && 'error' in result) {
+          setShowPaywall(true);
+          setLocalQueue((prev) => [currentName, ...prev]);
+          return;
+        }
+
         // Check if we got a match
         if (result.match && result.match.name) {
           setMatchedName(result.match.name as Doc<'names'>);
           setShowMatchModal(true);
         }
-      } catch (error) {
+      } catch (error: unknown) {
+        Sentry.captureException(error);
         // Revert on error
-        console.error('Failed to record selection:', error);
         setLocalQueue((prev) => [currentName, ...prev]);
       }
     },
@@ -109,7 +121,12 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
     return (
       <View style={styles.container}>
         <View style={styles.cardContainer}>
-          <View style={styles.loadingCard} />
+          <View
+            style={[
+              styles.loadingCard,
+              { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+            ]}
+          />
         </View>
       </View>
     );
@@ -160,6 +177,9 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
           router.push('/matches' as const);
         }}
       />
+
+      {/* Swipe limit paywall */}
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} trigger="swipe_limit" />
     </View>
   );
 }
@@ -178,9 +198,7 @@ const styles = StyleSheet.create({
   loadingCard: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT_FULL,
-    backgroundColor: '#f3f4f6',
     borderRadius: 16,
     borderWidth: 3,
-    borderColor: '#e5e7eb',
   },
 });

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 import * as Speech from 'expo-speech';
 
 const STORAGE_KEY = 'bambino_voice_settings';
@@ -31,7 +32,7 @@ export function VoiceSettingsProvider({ children }: VoiceSettingsProviderProps) 
           setVoiceIdentifierState(stored);
         }
       } catch (error) {
-        console.error('Failed to load voice settings:', error);
+        Sentry.captureException(error);
       } finally {
         setIsLoading(false);
       }
@@ -48,7 +49,7 @@ export function VoiceSettingsProvider({ children }: VoiceSettingsProviderProps) 
       }
       setVoiceIdentifierState(identifier);
     } catch (error) {
-      console.error('Failed to save voice settings:', error);
+      Sentry.captureException(error);
       throw error;
     }
   }, []);
@@ -58,7 +59,7 @@ export function VoiceSettingsProvider({ children }: VoiceSettingsProviderProps) 
       await AsyncStorage.removeItem(STORAGE_KEY);
       setVoiceIdentifierState(null);
     } catch (error) {
-      console.error('Failed to reset voice settings:', error);
+      Sentry.captureException(error);
       throw error;
     }
   }, []);
@@ -78,7 +79,7 @@ export function VoiceSettingsProvider({ children }: VoiceSettingsProviderProps) 
       );
       return englishVoices[0]?.identifier;
     } catch (error) {
-      console.error('Failed to get available voices:', error);
+      Sentry.captureException(error);
       return undefined;
     }
   }, [voiceIdentifier]);

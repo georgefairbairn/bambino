@@ -7,6 +7,8 @@ import Animated, {
   interpolate,
   interpolateColor,
   withTiming,
+  withDelay,
+  withSpring,
   Extrapolation,
 } from 'react-native-reanimated';
 import { GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
@@ -17,6 +19,8 @@ import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
 import { CARD_WIDTH, CARD_HEIGHT_FULL, SWIPE_THRESHOLD, SWIPE_COLORS } from '@/constants/swipe';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
+import * as Sentry from '@sentry/react-native';
 
 export interface SwipeCardRef {
   swipeLeft: () => void;
@@ -33,9 +37,9 @@ interface SwipeCardProps {
 
 // Gender-based underline colors
 const UNDERLINE_COLORS = {
-  male: '#60a5fa', // blue
-  female: '#f472b6', // pink
-  neutral: '#a78bfa', // lilac/purple
+  male: '#7CB9E8', // sky blue
+  female: '#FF8FAB', // candy pink
+  neutral: '#C4A7E7', // soft purple
 };
 
 // Origin to country flag emoji mapping
@@ -61,6 +65,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   { name, isTop, onSwipeLeft, onSwipeRight, onSwipeComplete },
   ref,
 ) {
+  const { colors } = useTheme();
   const {
     translateX,
     translateY,
@@ -100,18 +105,50 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   });
 
   // Like overlay - only shows when swiping RIGHT (positive translateX)
+  // Ramps fast: 85% opacity at 40% swipe so the label is readable early
   const likeOverlayStyle = useAnimatedStyle(() => {
     const progress = translateX.value / SWIPE_THRESHOLD;
     return {
-      opacity: interpolate(progress, [0, 1], [0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(progress, [0, 0.15, 0.4, 1], [0, 0.4, 0.85, 1], Extrapolation.CLAMP),
+    };
+  });
+
+  // Like stamp icon bounce — scales up with a slight overshoot
+  const likeStampStyle = useAnimatedStyle(() => {
+    const progress = translateX.value / SWIPE_THRESHOLD;
+    const scale = interpolate(
+      progress,
+      [0, 0.2, 0.5, 0.7],
+      [0.6, 0.8, 1.2, 1],
+      Extrapolation.CLAMP,
+    );
+    const rotate = interpolate(progress, [0, 0.3, 0.6], [0, -8, 0], Extrapolation.CLAMP);
+    return {
+      transform: [{ scale }, { rotate: `${rotate}deg` }],
     };
   });
 
   // Dislike overlay - only shows when swiping LEFT (negative translateX)
+  // Same fast ramp as like overlay
   const dislikeOverlayStyle = useAnimatedStyle(() => {
     const progress = -translateX.value / SWIPE_THRESHOLD;
     return {
-      opacity: interpolate(progress, [0, 1], [0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(progress, [0, 0.15, 0.4, 1], [0, 0.4, 0.85, 1], Extrapolation.CLAMP),
+    };
+  });
+
+  // Dislike stamp icon bounce — mirrors the like animation
+  const dislikeStampStyle = useAnimatedStyle(() => {
+    const progress = -translateX.value / SWIPE_THRESHOLD;
+    const scale = interpolate(
+      progress,
+      [0, 0.2, 0.5, 0.7],
+      [0.6, 0.8, 1.2, 1],
+      Extrapolation.CLAMP,
+    );
+    const rotate = interpolate(progress, [0, 0.3, 0.6], [0, 8, 0], Extrapolation.CLAMP);
+    return {
+      transform: [{ scale }, { rotate: `${rotate}deg` }],
     };
   });
 
@@ -120,7 +157,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     const progress = Math.abs(translateX.value) / SWIPE_THRESHOLD;
     return {
       borderWidth: interpolate(progress, [0, 0.5], [5, 0], Extrapolation.CLAMP),
-      borderColor: interpolateColor(progress, [0, 0.5], ['#1a1a1a', 'transparent']),
+      borderColor: interpolateColor(progress, [0, 0.5], [colors.primary, 'transparent']),
     };
   });
 
@@ -138,17 +175,41 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   // Animated underline width for left-to-right reveal (runs only once)
   const underlineWidth = useSharedValue(0);
 
+  // Staggered content entrance animations
+  const originOpacity = useSharedValue(0);
+  const originTranslateY = useSharedValue(12);
+  const meaningOpacity = useSharedValue(0);
+  const meaningTranslateY = useSharedValue(12);
+
   useEffect(() => {
     if (isTop && nameWidth > 0 && !hasAnimated.current) {
       hasAnimated.current = true;
       underlineWidth.value = 0;
       underlineWidth.value = withTiming(nameWidth, { duration: 400 });
+
+      // Stagger origin pill entrance
+      originOpacity.value = withDelay(250, withTiming(1, { duration: 350 }));
+      originTranslateY.value = withDelay(250, withSpring(0, { damping: 15, stiffness: 150 }));
+
+      // Stagger meaning box entrance
+      meaningOpacity.value = withDelay(400, withTiming(1, { duration: 350 }));
+      meaningTranslateY.value = withDelay(400, withSpring(0, { damping: 15, stiffness: 150 }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTop, nameWidth]);
 
   const underlineAnimatedStyle = useAnimatedStyle(() => ({
     width: underlineWidth.value,
+  }));
+
+  const originAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: originOpacity.value,
+    transform: [{ translateY: originTranslateY.value }],
+  }));
+
+  const meaningAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: meaningOpacity.value,
+    transform: [{ translateY: meaningTranslateY.value }],
   }));
 
   // Text-to-speech state and handler
@@ -175,7 +236,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
         onError: () => setIsSpeaking(false),
       });
     } catch (error) {
-      console.error('Speech error:', error);
+      Sentry.captureException(error);
       setIsSpeaking(false);
     }
   }, [name.name, getBestVoice]);
@@ -185,6 +246,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       <Animated.View
         style={[
           styles.card,
+          { borderColor: colors.primary },
           isTop && cardAnimatedStyle,
           isTop && cardBorderStyle,
           { zIndex: isTop ? 2 : 1 },
@@ -195,10 +257,10 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           style={[styles.overlay, styles.likeOverlay, likeOverlayStyle]}
           pointerEvents="none"
         >
-          <View style={styles.likeStamp}>
-            <Ionicons name="heart" size={24} color="#22c55e" />
+          <Animated.View style={[styles.likeStamp, likeStampStyle]}>
+            <Ionicons name="heart" size={24} color="#6DD5A0" />
             <Text style={styles.likeStampText}>LIKE</Text>
-          </View>
+          </Animated.View>
         </Animated.View>
 
         {/* DISLIKE overlay - shows when swiping left */}
@@ -206,10 +268,10 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           style={[styles.overlay, styles.dislikeOverlay, dislikeOverlayStyle]}
           pointerEvents="none"
         >
-          <View style={styles.dislikeStamp}>
-            <Ionicons name="heart-dislike" size={24} color="#ef4444" />
+          <Animated.View style={[styles.dislikeStamp, dislikeStampStyle]}>
+            <Ionicons name="heart-dislike" size={24} color="#FF8FAB" />
             <Text style={styles.dislikeStampText}>NOPE</Text>
-          </View>
+          </Animated.View>
         </Animated.View>
 
         {/* Card content - fades out during swipe */}
@@ -225,9 +287,9 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           />
 
           {/* Origin row with pill and speak button */}
-          <View style={styles.originRow}>
+          <Animated.View style={[styles.originRow, isTop && originAnimatedStyle]}>
             {name.origin && (
-              <View style={styles.originPill}>
+              <View style={[styles.originPill, { backgroundColor: colors.surfaceSubtle }]}>
                 <Text style={styles.originText}>
                   {ORIGIN_FLAGS[name.origin] || '🌍'} {name.origin}
                 </Text>
@@ -235,7 +297,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
             )}
             <TouchableOpacity
               onPress={handleReadName}
-              style={styles.speakButton}
+              style={[styles.speakButton, { backgroundColor: colors.surfaceSubtle }]}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               activeOpacity={0.7}
               accessibilityLabel={`Read ${name.name} aloud`}
@@ -243,16 +305,22 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
               <Ionicons
                 name={isSpeaking ? 'volume-high' : 'volume-medium'}
                 size={24}
-                color={isSpeaking ? '#0a7ea4' : '#6b7280'}
+                color={isSpeaking ? colors.primary : '#6B5B7B'}
               />
             </TouchableOpacity>
-          </View>
+          </Animated.View>
 
           {/* Meaning box */}
           {name.meaning && (
-            <View style={styles.meaningBox}>
+            <Animated.View
+              style={[
+                styles.meaningBox,
+                { backgroundColor: colors.surfaceSubtle },
+                isTop && meaningAnimatedStyle,
+              ]}
+            >
               <Text style={styles.meaningText}>{name.meaning}</Text>
-            </View>
+            </Animated.View>
           )}
         </Animated.View>
       </Animated.View>
@@ -264,10 +332,9 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT_FULL,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 5,
-    borderColor: '#1a1a1a',
     position: 'absolute',
     overflow: 'hidden',
   },
@@ -294,7 +361,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 4,
-    borderColor: '#22c55e',
+    borderColor: '#6DD5A0',
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
@@ -306,20 +373,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 4,
-    borderColor: '#ef4444',
+    borderColor: '#FF8FAB',
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   likeStampText: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#22c55e',
+    color: '#6DD5A0',
     letterSpacing: 3,
   },
   dislikeStampText: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#ef4444',
+    color: '#FF8FAB',
     letterSpacing: 3,
   },
   content: {
@@ -332,7 +399,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     fontSize: 56,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     marginBottom: 12,
   },
   underline: {
@@ -347,7 +414,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   originPill: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -356,18 +422,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
   },
   originText: {
     fontSize: 17,
     fontFamily: Fonts?.sans,
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     fontWeight: '600',
   },
   meaningBox: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
@@ -375,7 +439,7 @@ const styles = StyleSheet.create({
   meaningText: {
     fontSize: 17,
     lineHeight: 26,
-    color: '#374151',
+    color: '#2D1B4E',
     fontFamily: Fonts?.sans,
   },
 });

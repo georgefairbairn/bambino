@@ -1,6 +1,7 @@
 import { useUser } from '@clerk/clerk-expo';
 import { useMutation } from 'convex/react';
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 
 import { api } from '@/convex/_generated/api';
 
@@ -21,7 +22,7 @@ export function useStoreUser() {
           imageUrl: user.imageUrl ?? undefined,
         });
       } catch (error) {
-        console.error('Failed to sync user to Convex:', error);
+        Sentry.captureException(error);
       }
     };
 

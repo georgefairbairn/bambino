@@ -1,6 +1,7 @@
 import '@/global.css';
 
-import { ClerkLoaded, ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import * as Sentry from '@sentry/react-native';
+import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { AlfaSlabOne_400Regular } from '@expo-google-fonts/alfa-slab-one';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
@@ -9,13 +10,22 @@ import { useFonts } from 'expo-font';
 import { Image as ExpoImage } from 'expo-image';
 import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SearchProvider } from '@/contexts/search-context';
+import { ThemeProvider } from '@/contexts/theme-context';
 import { VoiceSettingsProvider } from '@/contexts/voice-settings-context';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { LoadingScreen } from '@/components/ui/loading-screen';
+import { initAnalytics } from '@/lib/analytics';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !__DEV__,
+  tracesSampleRate: 0.2,
+});
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -49,6 +59,10 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   if (!fontsLoaded) {
     return null;
   }
@@ -57,17 +71,31 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-          <ClerkLoaded>
-            <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-              <VoiceSettingsProvider>
-                <SearchProvider>
-                  <Slot />
-                </SearchProvider>
-              </VoiceSettingsProvider>
-            </ConvexProviderWithClerk>
-          </ClerkLoaded>
+          <ThemeProvider>
+            <AuthGate>
+              <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+                <VoiceSettingsProvider>
+                  <SearchProvider>
+                    <Slot />
+                  </SearchProvider>
+                </VoiceSettingsProvider>
+              </ConvexProviderWithClerk>
+            </AuthGate>
+          </ThemeProvider>
         </ClerkProvider>
       </ErrorBoundary>
     </GestureHandlerRootView>
   );
+}
+
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { isLoaded } = useAuth();
+  const [animationDone, setAnimationDone] = useState(false);
+
+  // Always show at least one full animation cycle on app launch
+  if (!animationDone) {
+    return <LoadingScreen isLoading={!isLoaded} onFinished={() => setAnimationDone(true)} />;
+  }
+
+  return <>{children}</>;
 }

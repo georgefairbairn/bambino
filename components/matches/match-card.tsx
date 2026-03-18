@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 interface MatchCardProps {
@@ -55,12 +56,20 @@ function getRelativeTime(timestamp: number): string {
 }
 
 export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchCardProps) {
+  const { colors } = useTheme();
   const { name, isFavorite, isChosen, rank, notes, matchedAt } = match;
   const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
   const relativeTime = getRelativeTime(matchedAt);
 
   return (
-    <Pressable style={[styles.card, isChosen && styles.cardChosen]} onPress={onPress}>
+    <Pressable
+      style={[
+        styles.card,
+        { backgroundColor: colors.surfaceSubtle, shadowColor: colors.secondary },
+        isChosen && styles.cardChosen,
+      ]}
+      onPress={onPress}
+    >
       {/* Chosen indicator */}
       {isChosen && (
         <View style={styles.chosenBadge}>
@@ -80,22 +89,22 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
           <Text style={styles.name}>{name.name}</Text>
-          <View style={styles.matchIndicator}>
+          <View style={[styles.matchIndicator, { backgroundColor: colors.primary }]}>
             <Ionicons name="heart" size={12} color="#fff" />
             <Ionicons name="heart" size={12} color="#fff" />
           </View>
         </View>
 
         <View style={styles.metaRow}>
-          <View style={styles.originBadge}>
-            <Text style={styles.originText}>{name.origin}</Text>
+          <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
+            <Text style={[styles.originText, { color: colors.primary }]}>{name.origin}</Text>
           </View>
           <Text style={styles.timestamp}>Matched {relativeTime}</Text>
         </View>
 
         {notes && (
-          <View style={styles.notesRow}>
-            <Ionicons name="document-text-outline" size={14} color="#6b7280" />
+          <View style={[styles.notesRow, { borderTopColor: colors.border }]}>
+            <Ionicons name="document-text-outline" size={14} color="#6B5B7B" />
             <Text style={styles.notesPreview} numberOfLines={1}>
               {notes}
             </Text>
@@ -113,7 +122,7 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
           <Ionicons
             name={isFavorite ? 'star' : 'star-outline'}
             size={24}
-            color={isFavorite ? '#f59e0b' : '#9ca3af'}
+            color={isFavorite ? '#FFB86C' : '#A89BB5'}
           />
         </Pressable>
 
@@ -124,7 +133,7 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
             onPress={onChoose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="trophy-outline" size={22} color="#0a7ea4" />
+            <Ionicons name="trophy-outline" size={22} color={colors.primary} />
           </Pressable>
         )}
       </View>
@@ -134,14 +143,12 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFBF5',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
@@ -150,8 +157,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   cardChosen: {
-    borderColor: '#f59e0b',
-    backgroundColor: '#fffbeb',
+    borderColor: '#FFB86C',
+    backgroundColor: '#FFF5EB',
   },
   chosenBadge: {
     position: 'absolute',
@@ -159,7 +166,7 @@ const styles = StyleSheet.create({
     left: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#FFB86C',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -175,7 +182,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: 16,
-    backgroundColor: '#0a7ea4',
+    backgroundColor: '#A78BFA',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
@@ -201,12 +208,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     flex: 1,
   },
   matchIndicator: {
     flexDirection: 'row',
-    backgroundColor: '#ef4444',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -218,7 +224,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   originBadge: {
-    backgroundColor: '#e0f2fe',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -226,12 +231,11 @@ const styles = StyleSheet.create({
   originText: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#0a7ea4',
   },
   timestamp: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
   },
   notesRow: {
     flexDirection: 'row',
@@ -240,13 +244,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   notesPreview: {
     flex: 1,
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     fontStyle: 'italic',
   },
   actions: {

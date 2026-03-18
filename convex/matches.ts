@@ -67,16 +67,18 @@ export const getMatches = query({
       .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
       .collect();
 
-    // Join with name details
-    const matchesWithDetails = await Promise.all(
-      matches.map(async (match) => {
-        const name = await ctx.db.get(match.nameId);
-        return {
-          ...match,
-          name,
-        };
-      }),
+    // Batch load all name documents
+    const uniqueNameIds = [...new Set(matches.map((m) => m.nameId))];
+    const nameDocsArray = await Promise.all(uniqueNameIds.map((id) => ctx.db.get(id)));
+    const nameMap = new Map(
+      uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]),
     );
+
+    // Join with name details
+    const matchesWithDetails = matches.map((match) => ({
+      ...match,
+      name: nameMap.get(match.nameId) ?? null,
+    }));
 
     // Filter out any with null names
     let results = matchesWithDetails.filter(
@@ -149,6 +151,10 @@ export const updateMatch = mutation({
     isChosen: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    if (args.notes !== undefined && args.notes.length > 2000) {
+      throw new Error('Notes must be 2000 characters or fewer');
+    }
+
     const user = await getCurrentUserOrThrow(ctx);
 
     // Get the match

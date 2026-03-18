@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
-import { Id, Doc } from './_generated/dataModel';
+import { Doc, Id } from './_generated/dataModel';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -136,6 +136,30 @@ export const recordSelection = mutation({
     const user = await getCurrentUserOrThrow(ctx);
     await isSearchMemberOrThrow(ctx, args.searchId, user._id);
 
+    // Free tier: limit to 25 swipes total
+    if (!user.isPremium) {
+      // Count all selections across all searches for this user
+      const allMemberships = await ctx.db
+        .query('searchMembers')
+        .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+        .collect();
+
+      let totalSelections = 0;
+      for (const membership of allMemberships) {
+        const selections = await ctx.db
+          .query('selections')
+          .withIndex('by_user_search', (q) =>
+            q.eq('userId', user._id).eq('searchId', membership.searchId),
+          )
+          .collect();
+        totalSelections += selections.length;
+      }
+
+      if (totalSelections >= 25) {
+        return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
+      }
+    }
+
     const existingSelection = await ctx.db
       .query('selections')
       .withIndex('by_search_name', (q) =>
@@ -210,34 +234,38 @@ export const getSwipeQueue = query({
 
     const swipedNameIds = new Set(userSelections.map((s) => s.nameId));
 
-    let namesQuery;
-    if (search.genderFilter === 'both') {
-      namesQuery = ctx.db.query('names');
-    } else {
-      namesQuery = ctx.db
-        .query('names')
-        .withIndex('by_gender', (q) => q.eq('gender', search.genderFilter));
+    const hasOriginFilter =
+      search.originFilter !== undefined && search.originFilter.length > 0;
+    const originSet = hasOriginFilter ? new Set(search.originFilter) : null;
+
+    // Map search gender filter to name gender values
+    const genderValue =
+      search.genderFilter === 'boy'
+        ? 'male'
+        : search.genderFilter === 'girl'
+          ? 'female'
+          : null;
+
+    // Use indexed query for gender filter, stream results to avoid collecting all
+    const namesQuery =
+      genderValue !== null
+        ? ctx.db
+            .query('names')
+            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
+        : ctx.db.query('names');
+
+    const results: Doc<'names'>[] = [];
+
+    for await (const name of namesQuery) {
+      if (results.length >= limit) break;
+
+      if (swipedNameIds.has(name._id)) continue;
+      if (originSet && !originSet.has(name.origin)) continue;
+
+      results.push(name);
     }
 
-    const allNames = await namesQuery.collect();
-
-    const filteredNames = allNames.filter((name) => {
-      if (swipedNameIds.has(name._id)) {
-        return false;
-      }
-
-      if (
-        search.originFilter !== undefined &&
-        search.originFilter.length > 0 &&
-        !search.originFilter.includes(name.origin)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return filteredNames.slice(0, limit);
+    return results;
   },
 });
 
@@ -354,17 +382,19 @@ export const getLikedNames = query({
       )
       .collect();
 
-    // Join with name details
-    const likedNamesWithDetails = await Promise.all(
-      likedSelections.map(async (selection) => {
-        const name = await ctx.db.get(selection.nameId);
-        return {
-          selectionId: selection._id,
-          likedAt: selection.createdAt,
-          name: name,
-        };
-      }),
+    // Batch load all name documents
+    const uniqueNameIds = [...new Set(likedSelections.map((s) => s.nameId))];
+    const nameDocsArray = await Promise.all(uniqueNameIds.map((id) => ctx.db.get(id)));
+    const nameMap = new Map(
+      uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]),
     );
+
+    // Join with name details
+    const likedNamesWithDetails = likedSelections.map((selection) => ({
+      selectionId: selection._id,
+      likedAt: selection.createdAt,
+      name: nameMap.get(selection.nameId) ?? null,
+    }));
 
     // Filter out any null names (in case name was deleted)
     let results = likedNamesWithDetails.filter(
@@ -464,17 +494,19 @@ export const getRejectedNames = query({
       )
       .collect();
 
-    // Join with name details
-    const rejectedNamesWithDetails = await Promise.all(
-      rejectedSelections.map(async (selection) => {
-        const name = await ctx.db.get(selection.nameId);
-        return {
-          selectionId: selection._id,
-          rejectedAt: selection.createdAt,
-          name: name,
-        };
-      }),
+    // Batch load all name documents
+    const uniqueNameIds = [...new Set(rejectedSelections.map((s) => s.nameId))];
+    const nameDocsArray = await Promise.all(uniqueNameIds.map((id) => ctx.db.get(id)));
+    const nameMap = new Map(
+      uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]),
     );
+
+    // Join with name details
+    const rejectedNamesWithDetails = rejectedSelections.map((selection) => ({
+      selectionId: selection._id,
+      rejectedAt: selection.createdAt,
+      name: nameMap.get(selection.nameId) ?? null,
+    }));
 
     // Filter out any null names (in case name was deleted)
     let results = rejectedNamesWithDetails.filter(

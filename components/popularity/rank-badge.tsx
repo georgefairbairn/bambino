@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type Size = 'small' | 'large';
 
@@ -9,6 +10,7 @@ interface RankBadgeProps {
 }
 
 export function RankBadge({ rank, size = 'large' }: RankBadgeProps) {
+  const { colors } = useTheme();
   const isLarge = size === 'large';
   const hasRank = rank !== null && rank !== undefined;
 
@@ -16,14 +18,18 @@ export function RankBadge({ rank, size = 'large' }: RankBadgeProps) {
     <View
       style={[
         styles.badge,
-        hasRank ? styles.badgeRanked : styles.badgeUnranked,
+        {
+          backgroundColor: hasRank ? colors.secondaryLight : colors.surfaceSubtle,
+        },
         isLarge && styles.badgeLarge,
       ]}
     >
       <Text
         style={[
           styles.label,
-          hasRank ? styles.labelRanked : styles.labelUnranked,
+          {
+            color: hasRank ? colors.secondary : '#A89BB5',
+          },
           isLarge && styles.labelLarge,
         ]}
       >
@@ -46,12 +52,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 16,
   },
-  badgeRanked: {
-    backgroundColor: '#fef3c7', // amber-100
-  },
-  badgeUnranked: {
-    backgroundColor: '#f3f4f6', // gray-100
-  },
   label: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
@@ -59,11 +59,5 @@ const styles = StyleSheet.create({
   },
   labelLarge: {
     fontSize: 16,
-  },
-  labelRanked: {
-    color: '#92400e', // amber-800
-  },
-  labelUnranked: {
-    color: '#6b7280', // gray-500
   },
 });

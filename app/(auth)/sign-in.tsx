@@ -1,9 +1,13 @@
 import { useSignIn, useSSO } from '@clerk/clerk-expo';
-import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { GradientButton } from '@/components/ui/gradient-button';
+import { StyledInput } from '@/components/ui/styled-input';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -63,63 +67,79 @@ export default function SignIn() {
   }, [startSSOFlow, router]);
 
   return (
-    <View className="flex-1 justify-center px-8">
-      <Text className="mb-8 text-center text-3xl font-bold">Welcome Back</Text>
+    <GradientBackground variant="auth">
+      <View className="flex-1 justify-center px-8">
+        <Animated.Text
+          entering={FadeInDown.duration(500).springify()}
+          className="mb-8 text-center text-3xl font-bold"
+        >
+          Welcome Back
+        </Animated.Text>
 
-      {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
+        {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
 
-      <TextInput
-        className="mb-4 rounded-lg bg-white p-4"
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+        <Animated.View entering={FadeInUp.delay(100).duration(400).springify()}>
+          <StyledInput
+            className="mb-4"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+        </Animated.View>
 
-      <TextInput
-        className="mb-6 rounded-lg bg-white p-4"
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <Animated.View entering={FadeInUp.delay(200).duration(400).springify()}>
+          <StyledInput
+            className="mb-6"
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </Animated.View>
 
-      <Pressable
-        className="mb-4 rounded-lg bg-blue-600 p-4"
-        onPress={handleSignIn}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-center font-semibold text-white">Sign In</Text>
-        )}
-      </Pressable>
+        <Animated.View entering={FadeInUp.delay(300).duration(400).springify()} className="mb-4">
+          <GradientButton
+            title="Sign In"
+            onPress={handleSignIn}
+            variant="primary"
+            loading={isLoading}
+            disabled={isLoading}
+          />
+        </Animated.View>
 
-      <View className="mb-6 flex-row items-center">
-        <View className="h-px flex-1 bg-gray-300" />
-        <Text className="mx-4 text-gray-500">or</Text>
-        <View className="h-px flex-1 bg-gray-300" />
+        <Animated.View
+          entering={FadeInUp.delay(400).duration(400)}
+          className="mb-6 flex-row items-center"
+        >
+          <View className="h-px flex-1 bg-gray-300" />
+          <Text className="mx-4 text-gray-500">or</Text>
+          <View className="h-px flex-1 bg-gray-300" />
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-6">
+          <GradientButton
+            title="Continue with Google"
+            onPress={handleGoogleSignIn}
+            variant="secondary"
+            icon="logo-google"
+            disabled={isLoading}
+          />
+        </Animated.View>
+
+        <Animated.View
+          entering={FadeInUp.delay(600).duration(400)}
+          className="flex-row justify-center"
+        >
+          <Text className="text-gray-600">Don&apos;t have an account? </Text>
+          <Link href="/(auth)/sign-up" asChild>
+            <Pressable>
+              <Text className="font-semibold text-pink-500">Sign Up</Text>
+            </Pressable>
+          </Link>
+        </Animated.View>
       </View>
-
-      <Pressable
-        className="mb-6 flex-row items-center justify-center rounded-lg bg-white p-4"
-        onPress={handleGoogleSignIn}
-        disabled={isLoading}
-      >
-        <Ionicons name="logo-google" size={20} color="#4285F4" />
-        <Text className="ml-2 font-semibold">Continue with Google</Text>
-      </Pressable>
-
-      <View className="flex-row justify-center">
-        <Text className="text-gray-600">Don&apos;t have an account? </Text>
-        <Link href="/(auth)/sign-up" asChild>
-          <Pressable>
-            <Text className="font-semibold text-blue-600">Sign Up</Text>
-          </Pressable>
-        </Link>
-      </View>
-    </View>
+    </GradientBackground>
   );
 }

@@ -1,9 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import * as Speech from 'expo-speech';
 import { Ionicons } from '@expo/vector-icons';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
+import * as Sentry from '@sentry/react-native';
 
 interface Voice {
   identifier: string;
@@ -36,6 +39,7 @@ function formatLanguage(code: string): string {
 }
 
 export function VoiceSettingsSection() {
+  const { colors } = useTheme();
   const { voiceIdentifier, setVoiceIdentifier, isLoading: settingsLoading } = useVoiceSettings();
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isLoadingVoices, setIsLoadingVoices] = useState(true);
@@ -64,7 +68,7 @@ export function VoiceSettingsSection() {
 
         setVoices(filteredVoices);
       } catch (error) {
-        console.error('Failed to load voices:', error);
+        Sentry.captureException(error);
       } finally {
         setIsLoadingVoices(false);
       }
@@ -108,7 +112,7 @@ export function VoiceSettingsSection() {
         onError: () => setPreviewingVoice(null),
       });
     } catch (error) {
-      console.error('Preview speech error:', error);
+      Sentry.captureException(error);
       setPreviewingVoice(null);
     }
   }, []);
@@ -120,7 +124,7 @@ export function VoiceSettingsSection() {
       <View style={styles.container}>
         <Text style={styles.loadingTitle}>Voice for Name Pronunciation</Text>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#0a7ea4" />
+          <LoadingIndicator size="small" />
         </View>
       </View>
     );
@@ -134,7 +138,7 @@ export function VoiceSettingsSection() {
           <Text style={styles.headerTitle}>Voice</Text>
           <Text style={styles.headerSubtitle}>{currentVoiceName}</Text>
         </View>
-        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#6b7280" />
+        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#6B5B7B" />
       </Pressable>
 
       {/* Expandable voice list */}
@@ -165,8 +169,8 @@ export function VoiceSettingsSection() {
           </View>
 
           {/* Info note */}
-          <View style={styles.infoNote}>
-            <Ionicons name="information-circle" size={20} color="#d97706" />
+          <View style={[styles.infoNote, { backgroundColor: colors.surfaceSubtle }]}>
+            <Ionicons name="information-circle" size={20} color="#FFB86C" />
             <Text style={styles.infoNoteText}>
               If you cannot hear the voice, make sure your device is not on silent mode.
             </Text>
@@ -194,17 +198,28 @@ function VoiceOption({
   onSelect,
   onPreview,
 }: VoiceOptionProps) {
+  const { colors } = useTheme();
   return (
     <Pressable
-      style={[styles.voiceOption, isSelected && styles.voiceOptionSelected]}
+      style={[
+        styles.voiceOption,
+        { borderColor: colors.border, backgroundColor: colors.surfaceSubtle },
+        isSelected && { borderColor: colors.primary, backgroundColor: `${colors.primary}0D` },
+      ]}
       onPress={onSelect}
     >
       <View style={styles.voiceOptionContent}>
-        <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+        <View
+          style={[
+            styles.radioOuter,
+            { borderColor: colors.border },
+            isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
+          ]}
+        >
           {isSelected && <View style={styles.radioInner} />}
         </View>
         <View style={styles.voiceOptionTextContainer}>
-          <Text style={[styles.voiceOptionLabel, isSelected && styles.voiceOptionLabelSelected]}>
+          <Text style={[styles.voiceOptionLabel, isSelected && { color: colors.primary }]}>
             {label}
           </Text>
           {sublabel && <Text style={styles.voiceOptionSublabel}>{sublabel}</Text>}
@@ -219,7 +234,7 @@ function VoiceOption({
         <Ionicons
           name={isPreviewing ? 'volume-high' : 'volume-medium-outline'}
           size={20}
-          color={isPreviewing ? '#0a7ea4' : '#6b7280'}
+          color={isPreviewing ? colors.primary : '#6B5B7B'}
         />
       </Pressable>
     </Pressable>
@@ -236,7 +251,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#111827',
+    color: '#2D1B4E',
     marginBottom: 16,
   },
   loadingContainer: {
@@ -255,12 +270,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#111827',
+    color: '#2D1B4E',
   },
   headerSubtitle: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   voiceList: {
     marginTop: 16,
@@ -271,7 +286,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    backgroundColor: '#fffbeb',
     padding: 12,
     borderRadius: 8,
   },
@@ -279,7 +293,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#92400e',
+    color: '#6B5B7B',
   },
   voiceOption: {
     flexDirection: 'row',
@@ -287,13 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
     padding: 12,
-  },
-  voiceOptionSelected: {
-    borderColor: '#0a7ea4',
-    backgroundColor: 'rgba(10, 126, 164, 0.05)',
   },
   voiceOptionContent: {
     flex: 1,
@@ -306,13 +314,8 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#d1d5db',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  radioOuterSelected: {
-    borderColor: '#0a7ea4',
-    backgroundColor: '#0a7ea4',
   },
   radioInner: {
     width: 8,
@@ -327,21 +330,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts?.sans,
     fontWeight: '500',
-    color: '#111827',
-  },
-  voiceOptionLabelSelected: {
-    color: '#0a7ea4',
+    color: '#2D1B4E',
   },
   voiceOptionSublabel: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   previewButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f3f4f6',
     alignItems: 'center',
     justifyContent: 'center',
   },

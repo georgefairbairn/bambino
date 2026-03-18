@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
@@ -32,10 +33,17 @@ export function SearchCard({
   onPress,
   onMenuPress,
 }: SearchCardProps) {
+  const { colors } = useTheme();
   const genderInfo = GENDER_LABELS[genderFilter];
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable
+      style={[
+        styles.card,
+        { backgroundColor: colors.surfaceSubtle, shadowColor: colors.secondary },
+      ]}
+      onPress={onPress}
+    >
       {/* Header row with title */}
       <View style={styles.header}>
         <Text style={styles.name} numberOfLines={1}>
@@ -49,16 +57,16 @@ export function SearchCard({
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="ellipsis-vertical" size={20} color="#6b7280" />
+          <Ionicons name="ellipsis-vertical" size={20} color="#6B5B7B" />
         </Pressable>
       </View>
 
       {/* Partner tag (if joined by someone) */}
       {partnerName && (
         <View style={styles.partnerRow}>
-          <View style={styles.partnerBadge}>
-            <Ionicons name="people" size={12} color="#0369a1" />
-            <Text style={styles.partnerText}>{partnerName}</Text>
+          <View style={[styles.partnerBadge, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="people" size={12} color={colors.secondary} />
+            <Text style={[styles.partnerText, { color: colors.secondary }]}>{partnerName}</Text>
           </View>
         </View>
       )}
@@ -78,8 +86,17 @@ export function SearchCard({
 
       {/* Role badge */}
       <View style={styles.roleRow}>
-        <View style={[styles.roleBadge, role === 'partner' && styles.roleBadgePartner]}>
-          <Text style={[styles.roleText, role === 'partner' && styles.roleTextPartner]}>
+        <View
+          style={[
+            styles.roleBadge,
+            {
+              backgroundColor: role === 'partner' ? colors.secondaryLight : colors.surfaceSubtle,
+            },
+          ]}
+        >
+          <Text
+            style={[styles.roleText, { color: role === 'partner' ? colors.secondary : '#6B5B7B' }]}
+          >
             {role === 'owner' ? 'Owner' : 'Partner'}
           </Text>
         </View>
@@ -90,10 +107,8 @@ export function SearchCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFBF5',
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
@@ -111,7 +126,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     flex: 1,
     marginRight: 8,
   },
@@ -123,7 +138,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#e0f2fe',
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -131,7 +145,6 @@ const styles = StyleSheet.create({
   partnerText: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#0369a1',
     fontWeight: '500',
   },
   genderRow: {
@@ -146,7 +159,7 @@ const styles = StyleSheet.create({
   genderLabel: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   statsRow: {
     flexDirection: 'row',
@@ -157,30 +170,22 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#4b5563',
+    color: '#6B5B7B',
   },
   statsDot: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#A89BB5',
   },
   roleRow: {
     flexDirection: 'row',
   },
   roleBadge: {
-    backgroundColor: '#f3f4f6',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 8,
   },
-  roleBadgePartner: {
-    backgroundColor: '#fef3c7',
-  },
   roleText: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#4b5563',
-  },
-  roleTextPartner: {
-    color: '#92400e',
   },
 });

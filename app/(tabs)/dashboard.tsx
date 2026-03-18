@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,11 +17,16 @@ import { LikedNameCard } from '@/components/dashboard/liked-name-card';
 import { RejectedNameCard } from '@/components/dashboard/rejected-name-card';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
 
 export default function Dashboard() {
+  const { colors } = useTheme();
   const searches = useQuery(api.searches.getUserSearches);
   const {
     activeSearchId,
@@ -128,35 +134,36 @@ export default function Dashboard() {
     setSelectedItem(null);
   };
 
+  const { showLoading, loadingProps } = useGracefulLoading(searches !== undefined);
+
   // Loading state
-  if (searches === undefined) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0a7ea4" />
-        </View>
-      </SafeAreaView>
-    );
+  if (showLoading) {
+    return <LoadingScreen {...loadingProps} />;
   }
 
   // No searches state
-  if (searches.length === 0 || !activeSearch) {
+  if (!searches || searches.length === 0 || !activeSearch) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="heart-outline" size={64} color="#9ca3af" />
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Ionicons name="heart-outline" size={64} color="#A89BB5" />
+            </View>
+            <Text style={styles.emptyTitle}>No Search Selected</Text>
+            <Text style={styles.emptyDescription}>
+              Create or select a search to view your liked names.
+            </Text>
+            <Pressable
+              style={[styles.createButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push('/(tabs)/explore')}
+            >
+              <Ionicons name="compass" size={24} color="#fff" />
+              <Text style={styles.createButtonText}>Go to Explore</Text>
+            </Pressable>
           </View>
-          <Text style={styles.emptyTitle}>No Search Selected</Text>
-          <Text style={styles.emptyDescription}>
-            Create or select a search to view your liked names.
-          </Text>
-          <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)/explore')}>
-            <Ionicons name="compass" size={24} color="#fff" />
-            <Text style={styles.createButtonText}>Go to Explore</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -165,23 +172,29 @@ export default function Dashboard() {
   // Data loading state
   if (currentData === undefined) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-        {activeTab === 'liked' ? (
-          <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
-        ) : (
-          <RejectedNamesHeader count={0} sortBy={rejectedSortBy} onSortChange={setRejectedSortBy} />
-        )}
-        <SearchInput
-          value={searchInput}
-          onChangeText={setSearchInput}
-          onSubmit={handleSearchSubmit}
-          onClear={handleSearchClear}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0a7ea4" />
-        </View>
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          {activeTab === 'liked' ? (
+            <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
+          ) : (
+            <RejectedNamesHeader
+              count={0}
+              sortBy={rejectedSortBy}
+              onSortChange={setRejectedSortBy}
+            />
+          )}
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator size="small" />
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -189,138 +202,171 @@ export default function Dashboard() {
   if (currentData.length === 0) {
     const isSearching = submittedSearch.length > 0;
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-        {activeTab === 'liked' ? (
-          <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
-        ) : (
-          <RejectedNamesHeader count={0} sortBy={rejectedSortBy} onSortChange={setRejectedSortBy} />
-        )}
-        <SearchInput
-          value={searchInput}
-          onChangeText={setSearchInput}
-          onSubmit={handleSearchSubmit}
-          onClear={handleSearchClear}
-        />
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons
-              name={
-                isSearching
-                  ? 'search'
-                  : activeTab === 'liked'
-                    ? 'heart-outline'
-                    : 'heart-dislike-outline'
-              }
-              size={64}
-              color="#9ca3af"
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          {activeTab === 'liked' ? (
+            <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
+          ) : (
+            <RejectedNamesHeader
+              count={0}
+              sortBy={rejectedSortBy}
+              onSortChange={setRejectedSortBy}
             />
-          </View>
-          <Text style={styles.emptyTitle}>
-            {isSearching
-              ? 'No Results Found'
-              : activeTab === 'liked'
-                ? 'No Liked Names Yet'
-                : 'No Rejected Names'}
-          </Text>
-          <Text style={styles.emptyDescription}>
-            {isSearching
-              ? `No names match "${submittedSearch}"`
-              : activeTab === 'liked'
-                ? 'Start swiping to add names to your liked list!'
-                : 'Names you swipe left on will appear here.'}
-          </Text>
-          {!isSearching && (
-            <Pressable style={styles.createButton} onPress={() => router.push('/(tabs)/explore')}>
-              <Ionicons name={activeTab === 'liked' ? 'heart' : 'compass'} size={24} color="#fff" />
-              <Text style={styles.createButtonText}>Start Swiping</Text>
-            </Pressable>
           )}
-        </View>
-      </SafeAreaView>
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Ionicons
+                name={
+                  isSearching
+                    ? 'search'
+                    : activeTab === 'liked'
+                      ? 'heart-outline'
+                      : 'heart-dislike-outline'
+                }
+                size={64}
+                color="#A89BB5"
+              />
+            </View>
+            <Text style={styles.emptyTitle}>
+              {isSearching
+                ? 'No Results Found'
+                : activeTab === 'liked'
+                  ? 'No Liked Names Yet'
+                  : 'No Rejected Names'}
+            </Text>
+            <Text style={styles.emptyDescription}>
+              {isSearching
+                ? `No names match "${submittedSearch}"`
+                : activeTab === 'liked'
+                  ? 'Start swiping to add names to your liked list!'
+                  : 'Names you swipe left on will appear here.'}
+            </Text>
+            {!isSearching && (
+              <Pressable
+                style={[styles.createButton, { backgroundColor: colors.primary }]}
+                onPress={() => router.push('/(tabs)/explore')}
+              >
+                <Ionicons
+                  name={activeTab === 'liked' ? 'heart' : 'compass'}
+                  size={24}
+                  color="#fff"
+                />
+                <Text style={styles.createButtonText}>Start Swiping</Text>
+              </Pressable>
+            )}
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      {activeTab === 'liked' ? (
-        <>
-          <LikedNamesHeader
-            count={likedNames?.length ?? 0}
-            sortBy={likedSortBy}
-            onSortChange={setLikedSortBy}
-          />
-          <SearchInput
-            value={searchInput}
-            onChangeText={setSearchInput}
-            onSubmit={handleSearchSubmit}
-            onClear={handleSearchClear}
-          />
-          <FlatList
-            data={likedNames}
-            keyExtractor={(item) => item.selectionId}
-            renderItem={({ item }) => (
-              <LikedNameCard
-                name={item.name}
-                likedAt={item.likedAt}
-                onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
-                onPress={() => handleCardPress(item.name, item.selectionId)}
+    <GradientBackground>
+      <SafeAreaView style={styles.flexContainer} edges={['top']}>
+        <Animated.View entering={FadeInDown.duration(400).springify()}>
+          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        </Animated.View>
+        {activeTab === 'liked' ? (
+          <>
+            <Animated.View entering={FadeInDown.delay(100).duration(400).springify()}>
+              <LikedNamesHeader
+                count={likedNames?.length ?? 0}
+                sortBy={likedSortBy}
+                onSortChange={setLikedSortBy}
               />
-            )}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          />
-        </>
-      ) : (
-        <>
-          <RejectedNamesHeader
-            count={rejectedNames?.length ?? 0}
-            sortBy={rejectedSortBy}
-            onSortChange={setRejectedSortBy}
-          />
-          <SearchInput
-            value={searchInput}
-            onChangeText={setSearchInput}
-            onSubmit={handleSearchSubmit}
-            onClear={handleSearchClear}
-          />
-          <FlatList
-            data={rejectedNames}
-            keyExtractor={(item) => item.selectionId}
-            renderItem={({ item }) => (
-              <RejectedNameCard
-                name={item.name}
-                rejectedAt={item.rejectedAt}
-                onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
-                onHide={() => hidePermanently({ selectionId: item.selectionId })}
-                onPress={() => handleCardPress(item.name, item.selectionId)}
+              <SearchInput
+                value={searchInput}
+                onChangeText={setSearchInput}
+                onSubmit={handleSearchSubmit}
+                onClear={handleSearchClear}
               />
-            )}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          />
-        </>
-      )}
+            </Animated.View>
+            <FlatList
+              data={likedNames}
+              keyExtractor={(item) => item.selectionId}
+              renderItem={({ item, index }) => (
+                <Animated.View
+                  entering={FadeInUp.delay(index * 50)
+                    .duration(400)
+                    .springify()}
+                >
+                  <LikedNameCard
+                    name={item.name}
+                    likedAt={item.likedAt}
+                    onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
+                    onPress={() => handleCardPress(item.name, item.selectionId)}
+                  />
+                </Animated.View>
+              )}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            />
+          </>
+        ) : (
+          <>
+            <Animated.View entering={FadeInDown.delay(100).duration(400).springify()}>
+              <RejectedNamesHeader
+                count={rejectedNames?.length ?? 0}
+                sortBy={rejectedSortBy}
+                onSortChange={setRejectedSortBy}
+              />
+              <SearchInput
+                value={searchInput}
+                onChangeText={setSearchInput}
+                onSubmit={handleSearchSubmit}
+                onClear={handleSearchClear}
+              />
+            </Animated.View>
+            <FlatList
+              data={rejectedNames}
+              keyExtractor={(item) => item.selectionId}
+              renderItem={({ item, index }) => (
+                <Animated.View
+                  entering={FadeInUp.delay(index * 50)
+                    .duration(400)
+                    .springify()}
+                >
+                  <RejectedNameCard
+                    name={item.name}
+                    rejectedAt={item.rejectedAt}
+                    onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
+                    onHide={() => hidePermanently({ selectionId: item.selectionId })}
+                    onPress={() => handleCardPress(item.name, item.selectionId)}
+                  />
+                </Animated.View>
+              )}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            />
+          </>
+        )}
 
-      {/* Name detail modal */}
-      <NameDetailModal
-        visible={detailModalVisible}
-        name={selectedItem?.name ?? null}
-        context={activeTab}
-        onClose={() => {
-          setDetailModalVisible(false);
-          setSelectedItem(null);
-        }}
-        onRemove={activeTab === 'liked' ? handleModalRemove : undefined}
-        onRestore={activeTab === 'rejected' ? handleModalRestore : undefined}
-        onHide={activeTab === 'rejected' ? handleModalHide : undefined}
-      />
-    </SafeAreaView>
+        {/* Name detail modal */}
+        <NameDetailModal
+          visible={detailModalVisible}
+          name={selectedItem?.name ?? null}
+          context={activeTab}
+          onClose={() => {
+            setDetailModalVisible(false);
+            setSelectedItem(null);
+          }}
+          onRemove={activeTab === 'liked' ? handleModalRemove : undefined}
+          onRestore={activeTab === 'rejected' ? handleModalRestore : undefined}
+          onHide={activeTab === 'rejected' ? handleModalHide : undefined}
+        />
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -330,29 +376,42 @@ interface TabBarProps {
 }
 
 function TabBar({ activeTab, onTabChange }: TabBarProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.tabBar}>
       <Pressable
-        style={[styles.tab, activeTab === 'liked' && styles.tabActive]}
+        style={[styles.tab, activeTab === 'liked' && { backgroundColor: colors.primaryLight }]}
         onPress={() => onTabChange('liked')}
       >
         <Ionicons
           name={activeTab === 'liked' ? 'heart' : 'heart-outline'}
           size={20}
-          color={activeTab === 'liked' ? '#0a7ea4' : '#6b7280'}
+          color={activeTab === 'liked' ? colors.primary : '#6B5B7B'}
         />
-        <Text style={[styles.tabText, activeTab === 'liked' && styles.tabTextActive]}>Liked</Text>
+        <Text
+          style={[
+            styles.tabText,
+            activeTab === 'liked' && { color: colors.primary, fontWeight: '600' as const },
+          ]}
+        >
+          Liked
+        </Text>
       </Pressable>
       <Pressable
-        style={[styles.tab, activeTab === 'rejected' && styles.tabActive]}
+        style={[styles.tab, activeTab === 'rejected' && { backgroundColor: colors.primaryLight }]}
         onPress={() => onTabChange('rejected')}
       >
         <Ionicons
           name={activeTab === 'rejected' ? 'heart-dislike' : 'heart-dislike-outline'}
           size={20}
-          color={activeTab === 'rejected' ? '#ef4444' : '#6b7280'}
+          color={activeTab === 'rejected' ? colors.primary : '#6B5B7B'}
         />
-        <Text style={[styles.tabText, activeTab === 'rejected' && styles.tabTextActive]}>
+        <Text
+          style={[
+            styles.tabText,
+            activeTab === 'rejected' && { color: colors.primary, fontWeight: '600' as const },
+          ]}
+        >
           Rejected
         </Text>
       </Pressable>
@@ -361,9 +420,8 @@ function TabBar({ activeTab, onTabChange }: TabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flexContainer: {
     flex: 1,
-    backgroundColor: '#C6E7F5',
   },
   tabBar: {
     flexDirection: 'row',
@@ -388,17 +446,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 6,
   },
-  tabActive: {
-    backgroundColor: '#e0f2fe',
-  },
   tabText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
-  },
-  tabTextActive: {
-    color: '#0a7ea4',
-    fontWeight: '600',
+    color: '#6B5B7B',
   },
   loadingContainer: {
     flex: 1,
@@ -425,20 +476,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1f2937',
+    color: '#2D1B4E',
     textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0a7ea4',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -451,6 +501,6 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   listContent: {
-    paddingBottom: 16,
+    paddingBottom: 100,
   },
 });

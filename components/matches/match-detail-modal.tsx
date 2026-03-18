@@ -14,8 +14,10 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import { GenderBadge } from '@/components/name-detail/gender-badge';
 import * as Haptics from 'expo-haptics';
+import * as Sentry from '@sentry/react-native';
 
 interface MatchDetailModalProps {
   visible: boolean;
@@ -33,6 +35,7 @@ interface MatchDetailModalProps {
 }
 
 export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalProps) {
+  const { colors } = useTheme();
   const [notes, setNotes] = useState('');
   const [rank, setRank] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -63,7 +66,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onClose();
     } catch (error) {
-      console.error('Failed to update match:', error);
+      Sentry.captureException(error);
       Alert.alert('Error', 'Failed to save changes. Please try again.');
     } finally {
       setIsSaving(false);
@@ -78,7 +81,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
       });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+      Sentry.captureException(error);
     }
   };
 
@@ -99,7 +102,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               onClose();
             } catch (error) {
-              console.error('Failed to choose name:', error);
+              Sentry.captureException(error);
               Alert.alert('Error', 'Failed to choose name. Please try again.');
             }
           },
@@ -123,7 +126,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
               onClose();
             } catch (error) {
-              console.error('Failed to delete match:', error);
+              Sentry.captureException(error);
               Alert.alert('Error', 'Failed to remove match. Please try again.');
             }
           },
@@ -138,12 +141,12 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
         <Pressable style={styles.backdrop} onPress={onClose} />
 
         <View style={styles.sheet}>
-          <View style={styles.handleBar} />
+          <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
 
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <Text style={styles.headerTitle}>Match Details</Text>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color="#6B5B7B" />
             </Pressable>
           </View>
 
@@ -155,15 +158,15 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
           >
             {/* Name display */}
             <View style={styles.nameSection}>
-              <View style={styles.matchBadge}>
+              <View style={[styles.matchBadge, { backgroundColor: colors.primary }]}>
                 <Ionicons name="heart" size={16} color="#fff" />
                 <Text style={styles.matchBadgeText}>{"It's a Match!"}</Text>
               </View>
               <Text style={styles.name}>{name.name}</Text>
               <View style={styles.badges}>
                 <GenderBadge gender={name.gender as 'boy' | 'girl' | 'unisex'} />
-                <View style={styles.originBadge}>
-                  <Text style={styles.originText}>{name.origin}</Text>
+                <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
+                  <Text style={[styles.originText, { color: colors.primary }]}>{name.origin}</Text>
                 </View>
               </View>
               {name.meaning && <Text style={styles.meaning}>{name.meaning}</Text>}
@@ -172,13 +175,17 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
             {/* Quick actions */}
             <View style={styles.quickActions}>
               <Pressable
-                style={[styles.quickAction, isFavorite && styles.quickActionActive]}
+                style={[
+                  styles.quickAction,
+                  { borderColor: colors.border },
+                  isFavorite && styles.quickActionActive,
+                ]}
                 onPress={handleToggleFavorite}
               >
                 <Ionicons
                   name={isFavorite ? 'star' : 'star-outline'}
                   size={24}
-                  color={isFavorite ? '#f59e0b' : '#6b7280'}
+                  color={isFavorite ? '#f59e0b' : '#6B5B7B'}
                 />
                 <Text style={[styles.quickActionText, isFavorite && styles.quickActionTextActive]}>
                   {isFavorite ? 'Favorited' : 'Favorite'}
@@ -186,14 +193,18 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               </Pressable>
 
               <Pressable
-                style={[styles.quickAction, isChosen && styles.quickActionChosen]}
+                style={[
+                  styles.quickAction,
+                  { borderColor: colors.border },
+                  isChosen && styles.quickActionChosen,
+                ]}
                 onPress={isChosen ? undefined : handleChoose}
                 disabled={isChosen}
               >
                 <Ionicons
                   name={isChosen ? 'trophy' : 'trophy-outline'}
                   size={24}
-                  color={isChosen ? '#f59e0b' : '#6b7280'}
+                  color={isChosen ? '#f59e0b' : '#6B5B7B'}
                 />
                 <Text style={[styles.quickActionText, isChosen && styles.quickActionTextChosen]}>
                   {isChosen ? 'Chosen!' : 'Choose'}
@@ -205,9 +216,12 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
             <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>Notes</Text>
               <TextInput
-                style={styles.notesInput}
+                style={[
+                  styles.notesInput,
+                  { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+                ]}
                 placeholder="Add your thoughts about this name..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#A89BB5"
                 multiline
                 numberOfLines={3}
                 value={notes}
@@ -221,9 +235,12 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               <Text style={styles.inputLabel}>Rank</Text>
               <View style={styles.rankContainer}>
                 <TextInput
-                  style={styles.rankInput}
+                  style={[
+                    styles.rankInput,
+                    { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+                  ]}
                   placeholder="#"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor="#A89BB5"
                   keyboardType="number-pad"
                   value={rank}
                   onChangeText={(text) => setRank(text.replace(/[^0-9]/g, ''))}
@@ -236,7 +253,11 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
             {/* Action buttons */}
             <View style={styles.buttons}>
               <Pressable
-                style={[styles.saveButton, isSaving && styles.buttonDisabled]}
+                style={[
+                  styles.saveButton,
+                  { backgroundColor: colors.primary },
+                  isSaving && styles.buttonDisabled,
+                ]}
                 onPress={handleSave}
                 disabled={isSaving}
               >
@@ -245,7 +266,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               </Pressable>
 
               <Pressable style={styles.removeButton} onPress={handleRemoveMatch}>
-                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
                 <Text style={styles.removeButtonText}>Remove Match</Text>
               </Pressable>
             </View>
@@ -275,7 +296,6 @@ const styles = StyleSheet.create({
   handleBar: {
     width: 40,
     height: 4,
-    backgroundColor: '#d1d5db',
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -288,13 +308,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   headerTitle: {
     fontSize: 18,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
   },
   closeButton: {
     padding: 4,
@@ -312,7 +331,6 @@ const styles = StyleSheet.create({
   matchBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ef4444',
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 16,
@@ -328,7 +346,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 42,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -338,7 +356,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   originBadge: {
-    backgroundColor: '#e0f2fe',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -346,12 +363,11 @@ const styles = StyleSheet.create({
   originText: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    color: '#0a7ea4',
   },
   meaning: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     fontStyle: 'italic',
     lineHeight: 22,
@@ -370,7 +386,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
   },
   quickActionActive: {
     borderColor: '#f59e0b',
@@ -384,7 +399,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   quickActionTextActive: {
     color: '#f59e0b',
@@ -399,18 +414,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#374151',
+    color: '#2D1B4E',
     marginBottom: 8,
   },
   notesInput: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     padding: 14,
     fontSize: 15,
     fontFamily: Fonts?.sans,
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     minHeight: 100,
   },
   rankContainer: {
@@ -419,14 +432,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rankInput: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     padding: 14,
     fontSize: 18,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     width: 60,
     textAlign: 'center',
   },
@@ -434,7 +445,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
   },
   buttons: {
     gap: 12,
@@ -444,7 +455,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0a7ea4',
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
@@ -465,13 +475,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: '#FFD4E0',
     gap: 8,
   },
   removeButtonText: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#ef4444',
+    color: '#FF6B6B',
   },
 });

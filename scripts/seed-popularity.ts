@@ -1,5 +1,7 @@
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '../convex/_generated/api';
+import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import popularityData from '../data/popularity.json';
 
 const BATCH_SIZE = 100;
@@ -13,15 +15,6 @@ interface PopularityRecord {
 }
 
 async function seedPopularity() {
-  const deploymentUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-
-  if (!deploymentUrl) {
-    console.error('Error: EXPO_PUBLIC_CONVEX_URL environment variable is not set.');
-    console.error('Please set it in your .env.local file.');
-    process.exit(1);
-  }
-
-  const client = new ConvexHttpClient(deploymentUrl);
   const records = popularityData as PopularityRecord[];
 
   console.log(`Starting seed with ${records.length} popularity records...`);
@@ -37,14 +30,27 @@ async function seedPopularity() {
 
     console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} records)...`);
 
+    const tmpFile = join(tmpdir(), `bambino-seed-popularity-${batchNumber}.json`);
+
     try {
-      const result = await client.mutation(api.popularity.seedPopularity, { records: batch });
-      totalInserted += result.inserted;
-      totalSkipped += result.skipped;
-      console.log(`  Inserted: ${result.inserted}, Skipped: ${result.skipped}`);
+      writeFileSync(tmpFile, JSON.stringify({ records: batch }));
+      const output = execSync(`npx convex run popularity:seedPopularity "$(cat ${tmpFile})"`, {
+        encoding: 'utf-8',
+        cwd: process.cwd(),
+      });
+      const parsed = JSON.parse(output.trim());
+      totalInserted += parsed.inserted;
+      totalSkipped += parsed.skipped;
+      console.log(`  Inserted: ${parsed.inserted}, Skipped: ${parsed.skipped}`);
     } catch (error) {
       console.error(`Error processing batch ${batchNumber}:`, error);
       process.exit(1);
+    } finally {
+      try {
+        unlinkSync(tmpFile);
+      } catch {
+        // ignore cleanup errors
+      }
     }
   }
 
@@ -55,9 +61,11 @@ async function seedPopularity() {
   // Now update names with current rank
   console.log('\nUpdating names with current rank for 2023...');
   try {
-    const rankResult = await client.mutation(api.popularity.updateNamesWithCurrentRank, {
-      year: 2023,
-    });
+    const output = execSync(
+      'npx convex run popularity:updateNamesWithCurrentRank \'{"year": 2023}\'',
+      { encoding: 'utf-8', cwd: process.cwd() },
+    );
+    const rankResult = JSON.parse(output.trim());
     console.log(`Updated ${rankResult.updated} of ${rankResult.total} names with current rank`);
   } catch (error) {
     console.error('Error updating names with current rank:', error);

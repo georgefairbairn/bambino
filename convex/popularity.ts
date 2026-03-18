@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { internalMutation, query } from './_generated/server';
 
 const popularityRecordValidator = v.object({
   name: v.string(),
@@ -9,7 +9,7 @@ const popularityRecordValidator = v.object({
   count: v.number(),
 });
 
-export const seedPopularity = mutation({
+export const seedPopularity = internalMutation({
   args: { records: v.array(popularityRecordValidator) },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -44,7 +44,7 @@ export const seedPopularity = mutation({
   },
 });
 
-export const updateNamesWithCurrentRank = mutation({
+export const updateNamesWithCurrentRank = internalMutation({
   args: { year: v.number() },
   handler: async (ctx, args) => {
     const names = await ctx.db.query('names').collect();

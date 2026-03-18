@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import { Doc } from '@/convex/_generated/dataModel';
 
 interface RejectedNameCardProps {
@@ -72,6 +73,7 @@ export function RejectedNameCard({
   onHide,
   onPress,
 }: RejectedNameCardProps) {
+  const { colors } = useTheme();
   const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
   const relativeTime = getRelativeTime(rejectedAt);
 
@@ -98,7 +100,7 @@ export function RejectedNameCard({
   };
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable style={[styles.card, { shadowColor: colors.secondary }]} onPress={onPress}>
       <View style={styles.mainContent}>
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
@@ -106,8 +108,8 @@ export function RejectedNameCard({
         </View>
 
         <View style={styles.metaRow}>
-          <View style={styles.originBadge}>
-            <Text style={styles.originText}>
+          <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
+            <Text style={[styles.originText, { color: colors.primary }]}>
               {ORIGIN_FLAGS[name.origin] || '🌍'} {name.origin}
             </Text>
           </View>
@@ -121,14 +123,14 @@ export function RejectedNameCard({
           onPress={handleRestore}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="refresh-outline" size={20} color="#0a7ea4" />
+          <Ionicons name="refresh-outline" size={20} color={colors.primary} />
         </Pressable>
         <Pressable
           style={styles.hideButton}
           onPress={handleHide}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="eye-off-outline" size={20} color="#ef4444" />
+          <Ionicons name="eye-off-outline" size={20} color="#FF6B6B" />
         </Pressable>
       </View>
     </Pressable>
@@ -137,14 +139,13 @@ export function RejectedNameCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFBF5',
+    backgroundColor: '#FFF8FA',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
   },
   metaRow: {
     flexDirection: 'row',
@@ -173,7 +174,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   originBadge: {
-    backgroundColor: '#e0f2fe',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -181,12 +181,11 @@ const styles = StyleSheet.create({
   originText: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#0a7ea4',
   },
   timestamp: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: '#9ca3af',
+    color: '#A89BB5',
   },
   actionButtons: {
     flexDirection: 'row',

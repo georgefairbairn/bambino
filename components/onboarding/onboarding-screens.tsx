@@ -1,7 +1,11 @@
 import { useState, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions, FlatList, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Fonts } from '@/constants/theme';
+import { Fonts, THEME_META } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { GradientButton } from '@/components/ui/gradient-button';
 
 const { width } = Dimensions.get('window');
 
@@ -16,14 +20,15 @@ interface OnboardingSlide {
   iconBg: string;
   title: string;
   description: string;
+  type?: 'default' | 'theme';
 }
 
 const SLIDES: OnboardingSlide[] = [
   {
     id: '1',
     icon: 'heart',
-    iconColor: '#ef4444',
-    iconBg: '#fef2f2',
+    iconColor: '#FF5C8A',
+    iconBg: '#FFE4EC',
     title: 'Welcome to Bambino',
     description:
       'Find the perfect baby name together with your partner through our fun swipe-based interface.',
@@ -31,8 +36,8 @@ const SLIDES: OnboardingSlide[] = [
   {
     id: '2',
     icon: 'swap-horizontal',
-    iconColor: '#0a7ea4',
-    iconBg: '#e0f2fe',
+    iconColor: '#A78BFA',
+    iconBg: '#F3E8FF',
     title: 'Swipe to Decide',
     description:
       "Swipe right on names you love, left on names you don't. Skip any name to come back later.",
@@ -55,7 +60,43 @@ const SLIDES: OnboardingSlide[] = [
     description:
       'Review your matches, add notes, rank favorites, and choose the perfect name together.',
   },
+  {
+    id: '5',
+    icon: 'color-palette',
+    iconColor: '#FF5C8A',
+    iconBg: '#FFE4EC',
+    title: 'Choose Your Style',
+    description: 'Pick a color theme that feels like you.',
+    type: 'theme',
+  },
 ];
+
+function ThemeGrid() {
+  const { themeKey, setTheme } = useTheme();
+
+  return (
+    <View style={styles.themeGrid}>
+      {THEME_META.map((meta) => {
+        const isSelected = meta.key === themeKey;
+        return (
+          <Pressable key={meta.key} style={styles.themeGridItem} onPress={() => setTheme(meta.key)}>
+            <LinearGradient
+              colors={[...meta.previewColors]}
+              style={[styles.themeGridSwatch, isSelected && styles.themeGridSwatchSelected]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {isSelected && <Ionicons name="checkmark" size={28} color="#fff" />}
+            </LinearGradient>
+            <Text style={[styles.themeGridLabel, isSelected && styles.themeGridLabelSelected]}>
+              {meta.emoji} {meta.name}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -82,6 +123,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
       </View>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.description}>{item.description}</Text>
+      {item.type === 'theme' && <ThemeGrid />}
     </View>
   );
 
@@ -110,7 +152,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
   const isLastSlide = currentIndex === SLIDES.length - 1;
 
   return (
-    <View style={styles.container}>
+    <GradientBackground>
       {/* Skip button */}
       <Pressable style={styles.skipButton} onPress={handleSkip}>
         <Text style={styles.skipText}>Skip</Text>
@@ -140,19 +182,19 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
       {renderDots()}
 
       {/* Next/Get Started button */}
-      <Pressable style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextText}>{isLastSlide ? 'Get Started' : 'Next'}</Text>
-        {!isLastSlide && <Ionicons name="arrow-forward" size={20} color="#fff" />}
-      </Pressable>
-    </View>
+      <View style={styles.nextButtonContainer}>
+        <GradientButton
+          title={isLastSlide ? 'Get Started' : 'Next'}
+          onPress={handleNext}
+          variant="primary"
+          icon={isLastSlide ? undefined : 'arrow-forward'}
+        />
+      </View>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#C6E7F5',
-  },
   skipButton: {
     position: 'absolute',
     top: 60,
@@ -163,7 +205,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
   },
   slide: {
     width,
@@ -184,14 +226,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#1a1a1a',
+    color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 16,
   },
   description: {
     fontSize: 17,
     fontFamily: Fonts?.sans,
-    color: '#6b7280',
+    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 26,
   },
@@ -205,23 +247,45 @@ const styles = StyleSheet.create({
   dot: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#0a7ea4',
+    backgroundColor: '#2D1B4E',
   },
-  nextButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0a7ea4',
+  nextButtonContainer: {
     marginHorizontal: 40,
     marginBottom: 50,
-    paddingVertical: 16,
-    borderRadius: 12,
+  },
+  themeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 24,
+    width: '100%',
+  },
+  themeGridItem: {
+    alignItems: 'center',
+    width: '40%',
     gap: 8,
   },
-  nextText: {
-    fontSize: 18,
+  themeGridSwatch: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: 'transparent',
+  },
+  themeGridSwatchSelected: {
+    borderColor: '#2D1B4E',
+  },
+  themeGridLabel: {
+    fontSize: 15,
     fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: '500',
+    color: '#6B5B7B',
+  },
+  themeGridLabelSelected: {
+    color: '#2D1B4E',
+    fontWeight: '700',
   },
 });

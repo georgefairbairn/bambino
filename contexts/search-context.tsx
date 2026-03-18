@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 import { Id } from '@/convex/_generated/dataModel';
 
 const STORAGE_KEY = 'bambino_active_search';
@@ -30,7 +31,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
           setActiveSearchId(stored as Id<'searches'>);
         }
       } catch (error) {
-        console.error('Failed to load active search:', error);
+        Sentry.captureException(error);
       } finally {
         setIsLoading(false);
       }
@@ -43,7 +44,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEY, searchId);
       setActiveSearchId(searchId);
     } catch (error) {
-      console.error('Failed to save active search:', error);
+      Sentry.captureException(error);
       throw error;
     }
   }, []);
@@ -53,7 +54,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
       await AsyncStorage.removeItem(STORAGE_KEY);
       setActiveSearchId(null);
     } catch (error) {
-      console.error('Failed to clear active search:', error);
+      Sentry.captureException(error);
       throw error;
     }
   }, []);

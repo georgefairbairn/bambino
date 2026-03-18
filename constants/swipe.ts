@@ -24,19 +24,20 @@ export const MAX_ROTATION = 12; // max degrees rotation
 
 // Screen boundaries for exit animations
 export const EXIT_X = SCREEN_WIDTH + 100;
+export const EXIT_Y = -200; // Upward exit distance
 
-// Swipe action colors (softer, more pleasant tones)
+// Swipe action colors (candy palette)
 export const SWIPE_COLORS = {
-  like: '#34d399', // emerald-400 - softer green
-  nope: '#fb7185', // rose-400 - softer coral/pink
-  skip: '#6b7280', // gray-500
+  like: '#6DD5A0', // mint green
+  nope: '#FF8FAB', // candy pink
+  skip: '#B8A9C8', // muted lavender
 };
 
 // Card styling
 export const CARD_STYLES = {
   borderRadius: 24,
-  backgroundColor: '#FFFBF5', // warm cream/off-white
-  shadowColor: '#000',
+  backgroundColor: '#FFFBF5',
+  shadowColor: '#A78BFA', // violet shadow
   shadowOpacity: 0.15,
   shadowRadius: 12,
   shadowOffset: { width: 0, height: 4 },
