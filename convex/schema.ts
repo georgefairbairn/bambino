@@ -9,11 +9,17 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     isPremium: v.optional(v.boolean()),
     purchasedAt: v.optional(v.number()),
+    shareCode: v.optional(v.string()),
+    partnerId: v.optional(v.id('users')),
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
+    originFilter: v.optional(v.array(v.string())),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_clerk_id', ['clerkId'])
-    .index('by_email', ['email']),
+    .index('by_email', ['email'])
+    .index('by_share_code', ['shareCode'])
+    .index('by_partner_id', ['partnerId']),
 
   names: defineTable({
     name: v.string(),
@@ -43,37 +49,7 @@ export default defineSchema({
     .index('by_year_gender', ['year', 'gender'])
     .index('by_name_gender_year', ['name', 'gender', 'year']),
 
-  searches: defineTable({
-    name: v.string(),
-    genderFilter: v.union(v.literal('boy'), v.literal('girl'), v.literal('both')),
-    shareCode: v.string(),
-    status: v.union(v.literal('active'), v.literal('archived')),
-    ownerId: v.id('users'),
-    originFilter: v.optional(v.array(v.string())),
-    // Legacy filter fields (kept for backward compatibility)
-    minLength: v.optional(v.number()),
-    maxLength: v.optional(v.number()),
-    startingLetters: v.optional(v.array(v.string())),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index('by_share_code', ['shareCode'])
-    .index('by_owner_id', ['ownerId'])
-    .index('by_status', ['status']),
-
-  searchMembers: defineTable({
-    searchId: v.id('searches'),
-    userId: v.id('users'),
-    role: v.union(v.literal('owner'), v.literal('partner')),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index('by_search_id', ['searchId'])
-    .index('by_user_id', ['userId'])
-    .index('by_search_and_user', ['searchId', 'userId']),
-
   selections: defineTable({
-    searchId: v.id('searches'),
     userId: v.id('users'),
     nameId: v.id('names'),
     selectionType: v.union(
@@ -85,13 +61,11 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index('by_search_id', ['searchId'])
-    .index('by_user_search', ['userId', 'searchId'])
-    .index('by_search_name', ['searchId', 'nameId'])
-    .index('by_user_search_type', ['userId', 'searchId', 'selectionType']),
+    .index('by_user', ['userId'])
+    .index('by_user_name', ['userId', 'nameId'])
+    .index('by_user_type', ['userId', 'selectionType']),
 
   matches: defineTable({
-    searchId: v.id('searches'),
     nameId: v.id('names'),
     user1Id: v.id('users'),
     user2Id: v.id('users'),
@@ -103,8 +77,7 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index('by_search_id', ['searchId'])
-    .index('by_search_name', ['searchId', 'nameId'])
-    .index('by_search_favorite', ['searchId', 'isFavorite'])
-    .index('by_search_chosen', ['searchId', 'isChosen']),
+    .index('by_user1', ['user1Id'])
+    .index('by_user2', ['user2Id'])
+    .index('by_name_users', ['nameId', 'user1Id', 'user2Id']),
 });

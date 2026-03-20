@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
-import { useActiveSearch } from '@/hooks/use-active-search';
 import { LikedNamesHeader, SortOption } from '@/components/dashboard/liked-names-header';
 import {
   RejectedNamesHeader,
@@ -27,13 +26,6 @@ type TabType = 'liked' | 'rejected';
 
 export default function Dashboard() {
   const { colors } = useTheme();
-  const searches = useQuery(api.searches.getUserSearches);
-  const {
-    activeSearchId,
-    setActiveSearch,
-    clearActiveSearch,
-    isLoading: isSearchLoading,
-  } = useActiveSearch();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<TabType>('liked');
@@ -42,6 +34,10 @@ export default function Dashboard() {
   const [likedSortBy, setLikedSortBy] = useState<SortOption>('liked_newest');
   const [rejectedSortBy, setRejectedSortBy] = useState<RejectedSortOption>('rejected_newest');
 
+  // Multi-select state
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   // Modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
@@ -49,65 +45,38 @@ export default function Dashboard() {
     selectionId: Id<'selections'>;
   } | null>(null);
 
-  // Find active search from context, fallback to first search
-  const activeSearch = searches?.find((s) => s._id === activeSearchId) ?? searches?.[0];
-
-  // Clear stale activeSearchId when it doesn't match any search
-  useEffect(() => {
-    if (searches && activeSearchId && !isSearchLoading) {
-      const searchExists = searches.some((s) => s._id === activeSearchId);
-      if (!searchExists) {
-        clearActiveSearch();
-      }
-    }
-  }, [searches, activeSearchId, isSearchLoading, clearActiveSearch]);
-
-  // If no active search is set but we have searches, set the first one as active
-  useEffect(() => {
-    if (searches && searches.length > 0 && !activeSearchId && !isSearchLoading) {
-      setActiveSearch(searches[0]._id);
-    }
-  }, [searches, activeSearchId, isSearchLoading, setActiveSearch]);
-
-  // Reset search when switching tabs
+  // Reset search and select mode when switching tabs
   useEffect(() => {
     setSearchInput('');
     setSubmittedSearch('');
+    setSelectMode(false);
+    setSelectedIds(new Set());
   }, [activeTab]);
 
-  // Handle search submission (when user presses Enter)
   const handleSearchSubmit = () => {
     setSubmittedSearch(searchInput);
   };
 
-  // Handle search clear (when user presses X)
   const handleSearchClear = () => {
     setSubmittedSearch('');
   };
 
-  const likedNames = useQuery(
-    api.selections.getLikedNames,
-    activeSearch?._id
-      ? { searchId: activeSearch._id, search: submittedSearch || undefined, sortBy: likedSortBy }
-      : 'skip',
-  );
+  const likedNames = useQuery(api.selections.getLikedNames, {
+    search: submittedSearch || undefined,
+    sortBy: likedSortBy,
+  });
 
-  const rejectedNames = useQuery(
-    api.selections.getRejectedNames,
-    activeSearch?._id
-      ? {
-          searchId: activeSearch._id,
-          search: submittedSearch || undefined,
-          sortBy: rejectedSortBy,
-        }
-      : 'skip',
-  );
+  const rejectedNames = useQuery(api.selections.getRejectedNames, {
+    search: submittedSearch || undefined,
+    sortBy: rejectedSortBy,
+  });
 
   const removeFromLiked = useMutation(api.selections.removeFromLiked);
   const restoreToQueue = useMutation(api.selections.restoreToQueue);
   const hidePermanently = useMutation(api.selections.hidePermanently);
+  const bulkDelete = useMutation(api.selections.bulkDeleteSelections);
+  const bulkHide = useMutation(api.selections.bulkHideSelections);
 
-  // Modal handlers
   const handleCardPress = (name: Doc<'names'>, selectionId: Id<'selections'>) => {
     setSelectedItem({ name, selectionId });
     setDetailModalVisible(true);
@@ -134,40 +103,91 @@ export default function Dashboard() {
     setSelectedItem(null);
   };
 
-  const { showLoading, loadingProps } = useGracefulLoading(searches !== undefined);
+  const toggleSelectMode = useCallback(() => {
+    setSelectMode((prev) => !prev);
+    setSelectedIds(new Set());
+  }, []);
 
-  // Loading state
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    const data = activeTab === 'liked' ? likedNames : rejectedNames;
+    if (!data) return;
+    const allIds = data.map((item) => item.selectionId);
+    const allSelected = allIds.every((id) => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allIds));
+    }
+  }, [selectedIds, activeTab, likedNames, rejectedNames]);
+
+  const handleBulkDelete = useCallback(() => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+
+    const action = activeTab === 'liked' ? 'remove' : 'restore to queue';
+    Alert.alert(
+      `${activeTab === 'liked' ? 'Remove' : 'Restore'} ${count} Names`,
+      `Are you sure you want to ${action} ${count} name${count > 1 ? 's' : ''}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: activeTab === 'liked' ? 'Remove' : 'Restore',
+          style: activeTab === 'liked' ? 'destructive' : 'default',
+          onPress: async () => {
+            await bulkDelete({
+              selectionIds: [...selectedIds] as Id<'selections'>[],
+            });
+            setSelectMode(false);
+            setSelectedIds(new Set());
+          },
+        },
+      ],
+    );
+  }, [selectedIds, activeTab, bulkDelete]);
+
+  const handleBulkHide = useCallback(() => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+
+    Alert.alert(
+      `Hide ${count} Names`,
+      `Are you sure you want to permanently hide ${count} name${count > 1 ? 's' : ''}? They will never appear in your swipe queue again.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Hide',
+          style: 'destructive',
+          onPress: async () => {
+            await bulkHide({
+              selectionIds: [...selectedIds] as Id<'selections'>[],
+            });
+            setSelectMode(false);
+            setSelectedIds(new Set());
+          },
+        },
+      ],
+    );
+  }, [selectedIds, bulkHide]);
+
+  const currentData = activeTab === 'liked' ? likedNames : rejectedNames;
+
+  const { showLoading, loadingProps } = useGracefulLoading(currentData !== undefined);
+
   if (showLoading) {
     return <LoadingScreen {...loadingProps} />;
   }
-
-  // No searches state
-  if (!searches || searches.length === 0 || !activeSearch) {
-    return (
-      <GradientBackground>
-        <SafeAreaView style={styles.flexContainer} edges={['top']}>
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="heart-outline" size={64} color="#A89BB5" />
-            </View>
-            <Text style={styles.emptyTitle}>No Search Selected</Text>
-            <Text style={styles.emptyDescription}>
-              Create or select a search to view your liked names.
-            </Text>
-            <Pressable
-              style={[styles.createButton, { backgroundColor: colors.primary }]}
-              onPress={() => router.push('/(tabs)/explore')}
-            >
-              <Ionicons name="compass" size={24} color="#fff" />
-              <Text style={styles.createButtonText}>Go to Explore</Text>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </GradientBackground>
-    );
-  }
-
-  const currentData = activeTab === 'liked' ? likedNames : rejectedNames;
 
   // Data loading state
   if (currentData === undefined) {
@@ -280,13 +300,20 @@ export default function Dashboard() {
                 count={likedNames?.length ?? 0}
                 sortBy={likedSortBy}
                 onSortChange={setLikedSortBy}
+                selectMode={selectMode}
+                onToggleSelectMode={toggleSelectMode}
+                selectedCount={selectedIds.size}
+                totalCount={likedNames?.length ?? 0}
+                onSelectAll={handleSelectAll}
               />
-              <SearchInput
-                value={searchInput}
-                onChangeText={setSearchInput}
-                onSubmit={handleSearchSubmit}
-                onClear={handleSearchClear}
-              />
+              {!selectMode && (
+                <SearchInput
+                  value={searchInput}
+                  onChangeText={setSearchInput}
+                  onSubmit={handleSearchSubmit}
+                  onClear={handleSearchClear}
+                />
+              )}
             </Animated.View>
             <FlatList
               data={likedNames}
@@ -302,6 +329,9 @@ export default function Dashboard() {
                     likedAt={item.likedAt}
                     onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
                     onPress={() => handleCardPress(item.name, item.selectionId)}
+                    selectMode={selectMode}
+                    selected={selectedIds.has(item.selectionId)}
+                    onToggleSelect={() => toggleSelect(item.selectionId)}
                   />
                 </Animated.View>
               )}
@@ -318,13 +348,20 @@ export default function Dashboard() {
                 count={rejectedNames?.length ?? 0}
                 sortBy={rejectedSortBy}
                 onSortChange={setRejectedSortBy}
+                selectMode={selectMode}
+                onToggleSelectMode={toggleSelectMode}
+                selectedCount={selectedIds.size}
+                totalCount={rejectedNames?.length ?? 0}
+                onSelectAll={handleSelectAll}
               />
-              <SearchInput
-                value={searchInput}
-                onChangeText={setSearchInput}
-                onSubmit={handleSearchSubmit}
-                onClear={handleSearchClear}
-              />
+              {!selectMode && (
+                <SearchInput
+                  value={searchInput}
+                  onChangeText={setSearchInput}
+                  onSubmit={handleSearchSubmit}
+                  onClear={handleSearchClear}
+                />
+              )}
             </Animated.View>
             <FlatList
               data={rejectedNames}
@@ -341,6 +378,9 @@ export default function Dashboard() {
                     onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
                     onHide={() => hidePermanently({ selectionId: item.selectionId })}
                     onPress={() => handleCardPress(item.name, item.selectionId)}
+                    selectMode={selectMode}
+                    selected={selectedIds.has(item.selectionId)}
+                    onToggleSelect={() => toggleSelect(item.selectionId)}
                   />
                 </Animated.View>
               )}
@@ -350,6 +390,41 @@ export default function Dashboard() {
               keyboardDismissMode="on-drag"
             />
           </>
+        )}
+
+        {/* Floating bulk action bar */}
+        {selectMode && selectedIds.size > 0 && (
+          <Animated.View
+            entering={FadeInDown.duration(300).springify()}
+            style={styles.bulkActionBar}
+          >
+            {activeTab === 'liked' ? (
+              <Pressable
+                style={[styles.bulkActionButton, { backgroundColor: '#FF6B6B' }]}
+                onPress={handleBulkDelete}
+              >
+                <Ionicons name="trash-outline" size={20} color="#fff" />
+                <Text style={styles.bulkActionText}>Remove {selectedIds.size}</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.bulkActionRow}>
+                <Pressable
+                  style={[styles.bulkActionButton, { backgroundColor: colors.primary, flex: 1 }]}
+                  onPress={handleBulkDelete}
+                >
+                  <Ionicons name="refresh-outline" size={20} color="#fff" />
+                  <Text style={styles.bulkActionText}>Restore {selectedIds.size}</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.bulkActionButton, { backgroundColor: '#FF6B6B', flex: 1 }]}
+                  onPress={handleBulkHide}
+                >
+                  <Ionicons name="eye-off-outline" size={20} color="#fff" />
+                  <Text style={styles.bulkActionText}>Hide {selectedIds.size}</Text>
+                </Pressable>
+              </View>
+            )}
+          </Animated.View>
         )}
 
         {/* Name detail modal */}
@@ -502,5 +577,34 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 100,
+  },
+  bulkActionBar: {
+    position: 'absolute',
+    bottom: 100,
+    left: 16,
+    right: 16,
+  },
+  bulkActionRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  bulkActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  bulkActionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

@@ -9,7 +9,10 @@ import Animated, {
   withTiming,
   withDelay,
   withSpring,
+  withRepeat,
+  withSequence,
   Extrapolation,
+  cancelAnimation,
 } from 'react-native-reanimated';
 import { GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +33,8 @@ export interface SwipeCardRef {
 interface SwipeCardProps {
   name: Doc<'names'>;
   isTop: boolean;
+  showSwipeHint?: boolean;
+  onSwipeHintShown?: () => void;
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeComplete?: (direction: 'left' | 'right') => void;
@@ -62,7 +67,15 @@ const ORIGIN_FLAGS: Record<string, string> = {
 };
 
 export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function SwipeCard(
-  { name, isTop, onSwipeLeft, onSwipeRight, onSwipeComplete },
+  {
+    name,
+    isTop,
+    showSwipeHint = true,
+    onSwipeHintShown,
+    onSwipeLeft,
+    onSwipeRight,
+    onSwipeComplete,
+  },
   ref,
 ) {
   const { colors } = useTheme();
@@ -109,7 +122,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   const likeOverlayStyle = useAnimatedStyle(() => {
     const progress = translateX.value / SWIPE_THRESHOLD;
     return {
-      opacity: interpolate(progress, [0, 0.15, 0.4, 1], [0, 0.4, 0.85, 1], Extrapolation.CLAMP),
+      opacity: interpolate(progress, [0, 0.1, 0.25], [0, 0.5, 1], Extrapolation.CLAMP),
     };
   });
 
@@ -133,7 +146,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   const dislikeOverlayStyle = useAnimatedStyle(() => {
     const progress = -translateX.value / SWIPE_THRESHOLD;
     return {
-      opacity: interpolate(progress, [0, 0.15, 0.4, 1], [0, 0.4, 0.85, 1], Extrapolation.CLAMP),
+      opacity: interpolate(progress, [0, 0.1, 0.25], [0, 0.5, 1], Extrapolation.CLAMP),
     };
   });
 
@@ -159,6 +172,17 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       borderWidth: interpolate(progress, [0, 0.5], [5, 0], Extrapolation.CLAMP),
       borderColor: interpolateColor(progress, [0, 0.5], [colors.primary, 'transparent']),
     };
+  });
+
+  // Card background color: white -> green (right) or white -> red (left)
+  const cardBackgroundStyle = useAnimatedStyle(() => {
+    const progress = translateX.value / SWIPE_THRESHOLD;
+    const backgroundColor = interpolateColor(
+      progress,
+      [-1, 0, 1],
+      [SWIPE_COLORS.nope, '#FFFFFF', SWIPE_COLORS.like],
+    );
+    return { backgroundColor };
   });
 
   const underlineColor =
@@ -212,6 +236,48 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     transform: [{ translateY: meaningTranslateY.value }],
   }));
 
+  // Swipe hint animation — appears after 10s of idle on top card
+  const hintOpacity = useSharedValue(0);
+  const hintTranslateX = useSharedValue(0);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hintActivatedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isTop || !showSwipeHint || hintActivatedRef.current) return;
+
+    hintTimerRef.current = setTimeout(() => {
+      hintActivatedRef.current = true;
+      hintOpacity.value = withTiming(1, { duration: 400 });
+      hintTranslateX.value = withRepeat(
+        withSequence(withTiming(-14, { duration: 600 }), withTiming(14, { duration: 600 })),
+        -1,
+        true,
+      );
+      onSwipeHintShown?.();
+    }, 10000);
+
+    return () => {
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+      if (!hintActivatedRef.current) return;
+      cancelAnimation(hintOpacity);
+      cancelAnimation(hintTranslateX);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTop]);
+
+  // Hide hint as soon as user starts swiping
+  const hintContainerStyle = useAnimatedStyle(() => {
+    const swipeProgress = Math.abs(translateX.value) / SWIPE_THRESHOLD;
+    return {
+      opacity: interpolate(swipeProgress, [0, 0.05], [hintOpacity.value, 0], Extrapolation.CLAMP),
+    };
+  });
+
+  const hintArrowStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: hintTranslateX.value }],
+  }));
+
   // Text-to-speech state and handler
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { getBestVoice } = useVoiceSettings();
@@ -249,6 +315,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           { borderColor: colors.primary },
           isTop && cardAnimatedStyle,
           isTop && cardBorderStyle,
+          isTop && cardBackgroundStyle,
           { zIndex: isTop ? 2 : 1 },
         ]}
       >
@@ -258,7 +325,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           pointerEvents="none"
         >
           <Animated.View style={[styles.likeStamp, likeStampStyle]}>
-            <Ionicons name="heart" size={24} color="#6DD5A0" />
+            <Ionicons name="heart" size={24} color="#34C77B" />
             <Text style={styles.likeStampText}>LIKE</Text>
           </Animated.View>
         </Animated.View>
@@ -269,7 +336,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           pointerEvents="none"
         >
           <Animated.View style={[styles.dislikeStamp, dislikeStampStyle]}>
-            <Ionicons name="heart-dislike" size={24} color="#FF8FAB" />
+            <Ionicons name="heart-dislike" size={24} color="#FF5C8A" />
             <Text style={styles.dislikeStampText}>NOPE</Text>
           </Animated.View>
         </Animated.View>
@@ -322,6 +389,17 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
               <Text style={styles.meaningText}>{name.meaning}</Text>
             </Animated.View>
           )}
+
+          {/* Swipe hint — appears after 10s idle, once per session */}
+          {isTop && (
+            <Animated.View style={[styles.swipeHint, hintContainerStyle]} pointerEvents="none">
+              <Animated.View style={[styles.swipeHintInner, hintArrowStyle]}>
+                <Ionicons name="chevron-back" size={18} color="#A89BB5" />
+                <Text style={styles.swipeHintText}>swipe</Text>
+                <Ionicons name="chevron-forward" size={18} color="#A89BB5" />
+              </Animated.View>
+            </Animated.View>
+          )}
         </Animated.View>
       </Animated.View>
     </GestureDetector>
@@ -361,7 +439,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 4,
-    borderColor: '#6DD5A0',
+    borderColor: '#34C77B',
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
@@ -373,20 +451,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 4,
-    borderColor: '#FF8FAB',
+    borderColor: '#FF5C8A',
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   likeStampText: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#6DD5A0',
+    color: '#34C77B',
     letterSpacing: 3,
   },
   dislikeStampText: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#FF8FAB',
+    color: '#FF5C8A',
     letterSpacing: 3,
   },
   content: {
@@ -441,5 +519,25 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     color: '#2D1B4E',
     fontFamily: Fonts?.sans,
+  },
+  swipeHint: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  swipeHintInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  swipeHintText: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    color: '#A89BB5',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
 });

@@ -9,6 +9,9 @@ interface LikedNameCardProps {
   likedAt: number;
   onRemove: () => void;
   onPress: () => void;
+  selectMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 const GENDER_EMOJI: Record<string, string> = {
@@ -65,7 +68,15 @@ function getRelativeTime(timestamp: number): string {
   return 'Just now';
 }
 
-export function LikedNameCard({ name, likedAt, onRemove, onPress }: LikedNameCardProps) {
+export function LikedNameCard({
+  name,
+  likedAt,
+  onRemove,
+  onPress,
+  selectMode,
+  selected,
+  onToggleSelect,
+}: LikedNameCardProps) {
   const { colors } = useTheme();
   const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
   const relativeTime = getRelativeTime(likedAt);
@@ -82,7 +93,23 @@ export function LikedNameCard({ name, likedAt, onRemove, onPress }: LikedNameCar
   };
 
   return (
-    <Pressable style={[styles.card, { shadowColor: colors.secondary }]} onPress={onPress}>
+    <Pressable
+      style={[
+        styles.card,
+        { shadowColor: colors.secondary },
+        selectMode && selected && { borderWidth: 2, borderColor: colors.primary },
+      ]}
+      onPress={selectMode ? onToggleSelect : onPress}
+    >
+      {selectMode && (
+        <View style={styles.checkboxContainer}>
+          <Ionicons
+            name={selected ? 'checkbox' : 'square-outline'}
+            size={24}
+            color={selected ? colors.primary : '#A89BB5'}
+          />
+        </View>
+      )}
       <View style={styles.mainContent}>
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
@@ -99,18 +126,23 @@ export function LikedNameCard({ name, likedAt, onRemove, onPress }: LikedNameCar
         </View>
       </View>
 
-      <Pressable
-        style={styles.removeButton}
-        onPress={handleRemove}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
-      </Pressable>
+      {!selectMode && (
+        <Pressable
+          style={styles.removeButton}
+          onPress={handleRemove}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
+        </Pressable>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  checkboxContainer: {
+    marginRight: 12,
+  },
   card: {
     backgroundColor: '#FFF8FA',
     borderRadius: 16,

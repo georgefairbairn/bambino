@@ -10,6 +10,11 @@ interface RejectedNamesHeaderProps {
   count: number;
   sortBy: RejectedSortOption;
   onSortChange: (sort: RejectedSortOption) => void;
+  selectMode?: boolean;
+  onToggleSelectMode?: () => void;
+  selectedCount?: number;
+  totalCount?: number;
+  onSelectAll?: () => void;
 }
 
 const SORT_OPTIONS: { value: RejectedSortOption; label: string }[] = [
@@ -19,26 +24,69 @@ const SORT_OPTIONS: { value: RejectedSortOption; label: string }[] = [
   { value: 'name_desc', label: 'Name Z-A' },
 ];
 
-export function RejectedNamesHeader({ count, sortBy, onSortChange }: RejectedNamesHeaderProps) {
+export function RejectedNamesHeader({
+  count,
+  sortBy,
+  onSortChange,
+  selectMode,
+  onToggleSelectMode,
+  selectedCount = 0,
+  totalCount = 0,
+  onSelectAll,
+}: RejectedNamesHeaderProps) {
   const { colors } = useTheme();
   const [showSortPicker, setShowSortPicker] = useState(false);
 
   const currentSortLabel = SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label ?? 'Sort';
+  const allSelected = selectedCount > 0 && selectedCount === totalCount;
 
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <Text style={styles.title}>Rejected</Text>
-        <Pressable style={styles.sortButton} onPress={() => setShowSortPicker(true)}>
-          <Ionicons name="swap-vertical" size={16} color="#6B5B7B" />
-          <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
-          <Ionicons name="chevron-down" size={14} color="#6B5B7B" />
-        </Pressable>
+        <Text style={styles.title}>{selectMode ? `${selectedCount} Selected` : 'Rejected'}</Text>
+        <View style={styles.headerActions}>
+          {selectMode && totalCount > 0 && (
+            <Pressable style={styles.selectAllButton} onPress={onSelectAll}>
+              <Ionicons
+                name={allSelected ? 'checkbox' : 'square-outline'}
+                size={18}
+                color={allSelected ? colors.primary : '#6B5B7B'}
+              />
+              <Text style={[styles.sortButtonText, allSelected && { color: colors.primary }]}>
+                All
+              </Text>
+            </Pressable>
+          )}
+          {!selectMode && (
+            <Pressable style={styles.sortButton} onPress={() => setShowSortPicker(true)}>
+              <Ionicons name="swap-vertical" size={16} color="#6B5B7B" />
+              <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
+              <Ionicons name="chevron-down" size={14} color="#6B5B7B" />
+            </Pressable>
+          )}
+          {count > 0 && (
+            <Pressable
+              style={[styles.selectButton, selectMode && { backgroundColor: colors.primaryLight }]}
+              onPress={onToggleSelectMode}
+            >
+              <Ionicons
+                name={selectMode ? 'close' : 'checkmark-circle-outline'}
+                size={16}
+                color={selectMode ? colors.primary : '#6B5B7B'}
+              />
+              <Text style={[styles.sortButtonText, selectMode && { color: colors.primary }]}>
+                {selectMode ? 'Cancel' : 'Select'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      <View style={styles.countRow}>
-        <Text style={styles.countText}>{count} names</Text>
-      </View>
+      {!selectMode && (
+        <View style={styles.countRow}>
+          <Text style={styles.countText}>{count} names</Text>
+        </View>
+      )}
 
       <Modal
         visible={showSortPicker}
@@ -94,6 +142,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  selectAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
   title: {
     fontSize: 24,

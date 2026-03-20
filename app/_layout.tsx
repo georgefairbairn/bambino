@@ -14,7 +14,6 @@ import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SearchProvider } from '@/contexts/search-context';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { VoiceSettingsProvider } from '@/contexts/voice-settings-context';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -69,21 +68,19 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ErrorBoundary>
-        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-          <ThemeProvider>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <ThemeProvider>
+          <ErrorBoundary>
             <AuthGate>
               <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
                 <VoiceSettingsProvider>
-                  <SearchProvider>
-                    <Slot />
-                  </SearchProvider>
+                  <Slot />
                 </VoiceSettingsProvider>
               </ConvexProviderWithClerk>
             </AuthGate>
-          </ThemeProvider>
-        </ClerkProvider>
-      </ErrorBoundary>
+          </ErrorBoundary>
+        </ThemeProvider>
+      </ClerkProvider>
     </GestureHandlerRootView>
   );
 }
