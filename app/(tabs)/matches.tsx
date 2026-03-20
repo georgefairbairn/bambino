@@ -6,11 +6,9 @@ import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
-import { useActiveSearch } from '@/hooks/use-active-search';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { MatchCard, MatchDetailModal } from '@/components/matches';
-import { JoinSearchModal } from '@/components/search/join-search-modal';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { Doc, Id } from '@/convex/_generated/dataModel';
@@ -20,7 +18,6 @@ type SortOption = 'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'rank';
 
 type MatchWithName = {
   _id: Id<'matches'>;
-  searchId: Id<'searches'>;
   nameId: Id<'names'>;
   user1Id: Id<'users'>;
   user2Id: Id<'users'>;
@@ -44,22 +41,15 @@ const SORT_OPTIONS: { value: SortOption; label: string; icon: string }[] = [
 
 export default function Matches() {
   const { colors } = useTheme();
-  const { activeSearchId, isLoading: isSearchLoading, setActiveSearch } = useActiveSearch();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const matches = useQuery(
-    api.matches.getMatches,
-    activeSearchId ? { searchId: activeSearchId, sortBy } : 'skip',
-  );
+  const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
 
-  const chosenName = useQuery(
-    api.matches.getChosenName,
-    activeSearchId ? { searchId: activeSearchId } : 'skip',
-  );
-
+  const matches = useQuery(api.matches.getMatches, { sortBy });
+  const chosenName = useQuery(api.matches.getChosenName);
   const updateMatch = useMutation(api.matches.updateMatch);
 
   const handleToggleFavorite = useCallback(
@@ -150,26 +140,14 @@ export default function Matches() {
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
 
-  const handleJoinSuccess = useCallback(
-    async (searchId: string) => {
-      await setActiveSearch(searchId as Id<'searches'>);
-    },
-    [setActiveSearch],
-  );
+  const { showLoading, loadingProps } = useGracefulLoading(matches !== undefined);
 
-  const { showLoading: showSearchLoading, loadingProps: searchLoadingProps } =
-    useGracefulLoading(!isSearchLoading);
-  const { showLoading: showDataLoading, loadingProps: dataLoadingProps } = useGracefulLoading(
-    matches !== undefined || !activeSearchId,
-  );
-
-  // Loading state (only while checking search context)
-  if (showSearchLoading) {
-    return <LoadingScreen {...searchLoadingProps} />;
+  if (showLoading) {
+    return <LoadingScreen {...loadingProps} />;
   }
 
-  // No search selected
-  if (!activeSearchId) {
+  // No partner or empty matches state
+  if (!hasPartner || !matches || matches.length === 0) {
     return (
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
@@ -179,59 +157,11 @@ export default function Matches() {
             </View>
             <Text style={styles.emptyTitle}>No Matches Yet</Text>
             <Text style={styles.emptyDescription}>
-              Join your partner&apos;s search using their share code. When you both like the same
-              name, it will appear here!
+              {!hasPartner
+                ? 'Link your partner in the Profile tab using your share code. When you both like the same name, it will appear here!'
+                : "When you and your partner both like the same name, it's a match! Keep swiping to find names you both love."}
             </Text>
-            <Pressable
-              style={[styles.joinButton, { backgroundColor: colors.primary }]}
-              onPress={() => setShowJoinModal(true)}
-            >
-              <Ionicons name="enter-outline" size={20} color="#fff" />
-              <Text style={styles.joinButtonText}>Join a Search</Text>
-            </Pressable>
           </View>
-          <JoinSearchModal
-            visible={showJoinModal}
-            onClose={() => setShowJoinModal(false)}
-            onSuccess={handleJoinSuccess}
-          />
-        </SafeAreaView>
-      </GradientBackground>
-    );
-  }
-
-  // Data loading state
-  if (showDataLoading) {
-    return <LoadingScreen {...dataLoadingProps} />;
-  }
-
-  // Empty matches state
-  if (!matches || matches.length === 0) {
-    return (
-      <GradientBackground>
-        <SafeAreaView style={styles.flexContainer} edges={['top']}>
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="people-outline" size={64} color="#A89BB5" />
-            </View>
-            <Text style={styles.emptyTitle}>No Matches Yet</Text>
-            <Text style={styles.emptyDescription}>
-              Join your partner&apos;s search using their share code. When you both like the same
-              name, it will appear here!
-            </Text>
-            <Pressable
-              style={[styles.joinButton, { backgroundColor: colors.primary }]}
-              onPress={() => setShowJoinModal(true)}
-            >
-              <Ionicons name="enter-outline" size={20} color="#fff" />
-              <Text style={styles.joinButtonText}>Join a Search</Text>
-            </Pressable>
-          </View>
-          <JoinSearchModal
-            visible={showJoinModal}
-            onClose={() => setShowJoinModal(false)}
-            onSuccess={handleJoinSuccess}
-          />
         </SafeAreaView>
       </GradientBackground>
     );
@@ -509,21 +439,6 @@ const styles = StyleSheet.create({
     color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
-  },
-  joinButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 8,
-  },
-  joinButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    color: '#fff',
   },
   listContent: {
     paddingTop: 4,

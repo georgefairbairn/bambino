@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
-import { Id } from './_generated/dataModel';
+import { generateUniqueShareCode } from './partners';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -66,11 +66,15 @@ export const createOrUpdateUser = mutation({
       return existingUser._id;
     }
 
+    const shareCode = await generateUniqueShareCode(ctx);
+
     const userId = await ctx.db.insert('users', {
       clerkId: identity.subject,
       email: args.email,
       name: args.name,
       imageUrl: args.imageUrl,
+      shareCode,
+      genderFilter: 'both',
       createdAt: now,
       updatedAt: now,
     });
@@ -96,15 +100,51 @@ export const updatePremiumStatus = mutation({
   },
 });
 
+export const updateFilters = mutation({
+  args: {
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
+    originFilter: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const updates: {
+      genderFilter?: 'boy' | 'girl' | 'both';
+      originFilter?: string[];
+      updatedAt: number;
+    } = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.genderFilter !== undefined) updates.genderFilter = args.genderFilter;
+    if (args.originFilter !== undefined) updates.originFilter = args.originFilter;
+
+    await ctx.db.patch(user._id, updates);
+
+    return { success: true };
+  },
+});
+
 export const deleteAccount = mutation({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
 
+    // Unlink partner
+    if (user.partnerId) {
+      const partner = await ctx.db.get(user.partnerId);
+      if (partner) {
+        await ctx.db.patch(partner._id, {
+          partnerId: undefined,
+          updatedAt: Date.now(),
+        });
+      }
+    }
+
     // Delete all selections by this user
     const selections = await ctx.db
       .query('selections')
-      .withIndex('by_user_search', (q) => q.eq('userId', user._id))
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
       .collect();
 
     for (const selection of selections) {
@@ -112,58 +152,22 @@ export const deleteAccount = mutation({
     }
 
     // Delete all matches involving this user
-    const allMatches = await ctx.db.query('matches').collect();
-    const userMatches = allMatches.filter(
-      (m) => m.user1Id === user._id || m.user2Id === user._id,
-    );
+    const matchesAsUser1 = await ctx.db
+      .query('matches')
+      .withIndex('by_user1', (q) => q.eq('user1Id', user._id))
+      .collect();
 
-    for (const match of userMatches) {
+    for (const match of matchesAsUser1) {
       await ctx.db.delete(match._id);
     }
 
-    // Delete all search memberships
-    const memberships = await ctx.db
-      .query('searchMembers')
-      .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+    const matchesAsUser2 = await ctx.db
+      .query('matches')
+      .withIndex('by_user2', (q) => q.eq('user2Id', user._id))
       .collect();
 
-    for (const membership of memberships) {
-      await ctx.db.delete(membership._id);
-    }
-
-    // Delete searches owned by this user
-    const ownedSearches = await ctx.db
-      .query('searches')
-      .withIndex('by_owner_id', (q) => q.eq('ownerId', user._id))
-      .collect();
-
-    for (const search of ownedSearches) {
-      // Clean up remaining members, selections, and matches for owned searches
-      const searchMembers = await ctx.db
-        .query('searchMembers')
-        .withIndex('by_search_id', (q) => q.eq('searchId', search._id))
-        .collect();
-      for (const member of searchMembers) {
-        await ctx.db.delete(member._id);
-      }
-
-      const searchSelections = await ctx.db
-        .query('selections')
-        .withIndex('by_search_id', (q) => q.eq('searchId', search._id))
-        .collect();
-      for (const sel of searchSelections) {
-        await ctx.db.delete(sel._id);
-      }
-
-      const searchMatches = await ctx.db
-        .query('matches')
-        .withIndex('by_search_id', (q) => q.eq('searchId', search._id))
-        .collect();
-      for (const m of searchMatches) {
-        await ctx.db.delete(m._id);
-      }
-
-      await ctx.db.delete(search._id);
+    for (const match of matchesAsUser2) {
+      await ctx.db.delete(match._id);
     }
 
     // Delete the user record itself

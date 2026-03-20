@@ -28,8 +28,8 @@ export const EXIT_Y = -200; // Upward exit distance
 
 // Swipe action colors (candy palette)
 export const SWIPE_COLORS = {
-  like: '#6DD5A0', // mint green
-  nope: '#FF8FAB', // candy pink
+  like: '#34C77B', // vivid green
+  nope: '#FF5C8A', // vivid pink
   skip: '#B8A9C8', // muted lavender
 };
 

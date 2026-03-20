@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
-import { Id } from './_generated/dataModel';
+import { Doc, Id } from './_generated/dataModel';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -20,23 +20,44 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
-async function isSearchMember(
-  ctx: QueryCtx | MutationCtx,
-  searchId: Id<'searches'>,
-  userId: Id<'users'>,
-) {
-  const membership = await ctx.db
-    .query('searchMembers')
-    .withIndex('by_search_and_user', (q) => q.eq('searchId', searchId).eq('userId', userId))
-    .unique();
+async function getCurrentUserOrNull(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
 
-  return membership;
+  return await ctx.db
+    .query('users')
+    .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+    .unique();
 }
 
-// Get all matches for a search
+// Get all matches involving the user and their partner
+async function getPartnershipMatches(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<'users'>,
+  partnerId: Id<'users'>,
+) {
+  const matchesAsUser1 = await ctx.db
+    .query('matches')
+    .withIndex('by_user1', (q) => q.eq('user1Id', userId))
+    .collect();
+
+  const matchesAsUser2 = await ctx.db
+    .query('matches')
+    .withIndex('by_user2', (q) => q.eq('user2Id', userId))
+    .collect();
+
+  const allMatches = [...matchesAsUser1, ...matchesAsUser2];
+
+  // Filter to only matches between this user and their partner
+  return allMatches.filter(
+    (m) =>
+      (m.user1Id === userId && m.user2Id === partnerId) ||
+      (m.user1Id === partnerId && m.user2Id === userId),
+  );
+}
+
 export const getMatches = query({
   args: {
-    searchId: v.id('searches'),
     sortBy: v.optional(
       v.union(
         v.literal('newest'),
@@ -48,44 +69,29 @@ export const getMatches = query({
     ),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return [];
 
-    // Check if search exists and user is a member
-    const search = await ctx.db.get(args.searchId);
-    if (!search) {
+    if (!user.partnerId) {
       return [];
     }
 
-    const membership = await isSearchMember(ctx, args.searchId, user._id);
-    if (!membership) {
-      return [];
-    }
-
-    // Get all matches for this search
-    const matches = await ctx.db
-      .query('matches')
-      .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
-      .collect();
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
 
     // Batch load all name documents
     const uniqueNameIds = [...new Set(matches.map((m) => m.nameId))];
     const nameDocsArray = await Promise.all(uniqueNameIds.map((id) => ctx.db.get(id)));
-    const nameMap = new Map(
-      uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]),
-    );
+    const nameMap = new Map(uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]));
 
-    // Join with name details
     const matchesWithDetails = matches.map((match) => ({
       ...match,
       name: nameMap.get(match.nameId) ?? null,
     }));
 
-    // Filter out any with null names
     let results = matchesWithDetails.filter(
       (m): m is typeof m & { name: NonNullable<typeof m.name> } => m.name !== null,
     );
 
-    // Apply sorting
     const sortBy = args.sortBy ?? 'newest';
     switch (sortBy) {
       case 'newest':
@@ -113,35 +119,21 @@ export const getMatches = query({
   },
 });
 
-// Get match count for a search
 export const getMatchCount = query({
-  args: {
-    searchId: v.id('searches'),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return 0;
 
-    // Check if search exists and user is a member
-    const search = await ctx.db.get(args.searchId);
-    if (!search) {
+    if (!user.partnerId) {
       return 0;
     }
 
-    const membership = await isSearchMember(ctx, args.searchId, user._id);
-    if (!membership) {
-      return 0;
-    }
-
-    const matches = await ctx.db
-      .query('matches')
-      .withIndex('by_search_id', (q) => q.eq('searchId', args.searchId))
-      .collect();
-
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
     return matches.length;
   },
 });
 
-// Update a match (favorite, notes, rank, chosen)
 export const updateMatch = mutation({
   args: {
     matchId: v.id('matches'),
@@ -157,30 +149,22 @@ export const updateMatch = mutation({
 
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Get the match
     const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error('Match not found');
     }
 
-    // Verify user is a member of the search
-    const membership = await isSearchMember(ctx, match.searchId, user._id);
-    if (!membership) {
+    // Verify user is part of this match
+    if (match.user1Id !== user._id && match.user2Id !== user._id) {
       throw new Error('Not authorized to update this match');
     }
 
-    // If marking as chosen, unmark any other chosen name in the search
-    if (args.isChosen === true) {
-      const existingChosen = await ctx.db
-        .query('matches')
-        .withIndex('by_search_chosen', (q) =>
-          q.eq('searchId', match.searchId).eq('isChosen', true),
-        )
-        .collect();
-
-      for (const chosen of existingChosen) {
-        if (chosen._id !== args.matchId) {
-          await ctx.db.patch(chosen._id, {
+    // If marking as chosen, unmark any other chosen name for this partnership
+    if (args.isChosen === true && user.partnerId) {
+      const partnerMatches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+      for (const m of partnerMatches) {
+        if (m._id !== args.matchId && m.isChosen) {
+          await ctx.db.patch(m._id, {
             isChosen: false,
             updatedAt: Date.now(),
           });
@@ -188,7 +172,6 @@ export const updateMatch = mutation({
       }
     }
 
-    // Build update object
     const updates: {
       isFavorite?: boolean;
       notes?: string;
@@ -210,7 +193,6 @@ export const updateMatch = mutation({
   },
 });
 
-// Delete a match
 export const deleteMatch = mutation({
   args: {
     matchId: v.id('matches'),
@@ -218,15 +200,12 @@ export const deleteMatch = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Get the match
     const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error('Match not found');
     }
 
-    // Verify user is a member of the search
-    const membership = await isSearchMember(ctx, match.searchId, user._id);
-    if (!membership) {
+    if (match.user1Id !== user._id && match.user2Id !== user._id) {
       throw new Error('Not authorized to delete this match');
     }
 
@@ -236,29 +215,18 @@ export const deleteMatch = mutation({
   },
 });
 
-// Get the chosen name for a search
 export const getChosenName = query({
-  args: {
-    searchId: v.id('searches'),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return null;
 
-    // Check if search exists and user is a member
-    const search = await ctx.db.get(args.searchId);
-    if (!search) {
+    if (!user.partnerId) {
       return null;
     }
 
-    const membership = await isSearchMember(ctx, args.searchId, user._id);
-    if (!membership) {
-      return null;
-    }
-
-    const chosenMatch = await ctx.db
-      .query('matches')
-      .withIndex('by_search_chosen', (q) => q.eq('searchId', args.searchId).eq('isChosen', true))
-      .first();
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+    const chosenMatch = matches.find((m) => m.isChosen);
 
     if (!chosenMatch) {
       return null;

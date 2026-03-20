@@ -5,27 +5,24 @@ import { useRouter } from 'expo-router';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
-interface SearchHeaderProps {
-  searchName: string;
+interface ExploreHeaderProps {
   liked: number;
+  onFilterPress: () => void;
 }
 
-export function SearchHeader({ searchName, liked }: SearchHeaderProps) {
+export function ExploreHeader({ liked, onFilterPress }: ExploreHeaderProps) {
   const router = useRouter();
   const { colors } = useTheme();
 
   return (
     <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.container}>
       <Pressable
-        style={[styles.backButton, { shadowColor: colors.secondary }]}
-        onPress={() => router.back()}
+        style={[styles.filterPill, { shadowColor: colors.secondary }]}
+        onPress={onFilterPress}
       >
-        <Ionicons name="arrow-back" size={24} color="#2D1B4E" />
+        <Ionicons name="options-outline" size={16} color="#2D1B4E" />
+        <Text style={styles.filterLabel}>Filters</Text>
       </Pressable>
-
-      <Text style={styles.title} numberOfLines={1}>
-        {searchName}
-      </Text>
 
       <Pressable
         style={[styles.likedButton, { shadowColor: colors.secondary }]}
@@ -46,23 +43,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff',
+  filterPill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  title: {
-    fontFamily: Fonts?.display,
-    fontSize: 20,
+  filterLabel: {
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
     color: '#2D1B4E',
-    maxWidth: 180,
   },
   likedButton: {
     flexDirection: 'row',

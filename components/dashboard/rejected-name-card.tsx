@@ -10,6 +10,9 @@ interface RejectedNameCardProps {
   onRestore: () => void;
   onHide: () => void;
   onPress: () => void;
+  selectMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 const GENDER_EMOJI: Record<string, string> = {
@@ -72,6 +75,9 @@ export function RejectedNameCard({
   onRestore,
   onHide,
   onPress,
+  selectMode,
+  selected,
+  onToggleSelect,
 }: RejectedNameCardProps) {
   const { colors } = useTheme();
   const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
@@ -100,7 +106,23 @@ export function RejectedNameCard({
   };
 
   return (
-    <Pressable style={[styles.card, { shadowColor: colors.secondary }]} onPress={onPress}>
+    <Pressable
+      style={[
+        styles.card,
+        { shadowColor: colors.secondary },
+        selectMode && selected && { borderWidth: 2, borderColor: colors.primary },
+      ]}
+      onPress={selectMode ? onToggleSelect : onPress}
+    >
+      {selectMode && (
+        <View style={styles.checkboxContainer}>
+          <Ionicons
+            name={selected ? 'checkbox' : 'square-outline'}
+            size={24}
+            color={selected ? colors.primary : '#A89BB5'}
+          />
+        </View>
+      )}
       <View style={styles.mainContent}>
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
@@ -117,27 +139,32 @@ export function RejectedNameCard({
         </View>
       </View>
 
-      <View style={styles.actionButtons}>
-        <Pressable
-          style={styles.restoreButton}
-          onPress={handleRestore}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="refresh-outline" size={20} color={colors.primary} />
-        </Pressable>
-        <Pressable
-          style={styles.hideButton}
-          onPress={handleHide}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="eye-off-outline" size={20} color="#FF6B6B" />
-        </Pressable>
-      </View>
+      {!selectMode && (
+        <View style={styles.actionButtons}>
+          <Pressable
+            style={styles.restoreButton}
+            onPress={handleRestore}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="refresh-outline" size={20} color={colors.primary} />
+          </Pressable>
+          <Pressable
+            style={styles.hideButton}
+            onPress={handleHide}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="eye-off-outline" size={20} color="#FF6B6B" />
+          </Pressable>
+        </View>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  checkboxContainer: {
+    marginRight: 12,
+  },
   card: {
     backgroundColor: '#FFF8FA',
     borderRadius: 16,

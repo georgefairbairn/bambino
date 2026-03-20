@@ -13,7 +13,10 @@ export async function initAnalytics() {
   });
 }
 
-export function identifyUser(userId: string, properties?: Record<string, string | number | boolean>) {
+export function identifyUser(
+  userId: string,
+  properties?: Record<string, string | number | boolean>,
+) {
   posthog?.identify(userId, properties);
 }
 

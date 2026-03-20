@@ -105,11 +105,7 @@ function AnimatedLetter({
     };
   });
 
-  return (
-    <Animated.Text style={[styles.letter, { color }, animatedStyle]}>
-      {letter}
-    </Animated.Text>
-  );
+  return <Animated.Text style={[styles.letter, { color }, animatedStyle]}>{letter}</Animated.Text>;
 }
 
 interface LoadingScreenProps {

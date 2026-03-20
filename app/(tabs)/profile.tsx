@@ -2,15 +2,17 @@ import { useClerk, useUser } from '@clerk/clerk-expo';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sentry from '@sentry/react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View, StyleSheet, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useMutation } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
+import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { ThemePickerSection, VoiceSettingsSection } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -23,8 +25,11 @@ export default function Profile() {
   const { colors } = useTheme();
   const { isPremium, restorePurchases } = usePurchases();
   const deleteAccount = useMutation(api.users.deleteAccount);
+  const unlinkPartner = useMutation(api.partners.unlinkPartner);
+  const partnerInfo = useQuery(api.partners.getPartnerInfo);
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
   const insets = useSafeAreaInsets();
 
   const handleSignOut = useCallback(async () => {
@@ -39,7 +44,7 @@ export default function Profile() {
   const handleDeleteAccount = useCallback(() => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete your account and all associated data (searches, matches, selections). This cannot be undone.',
+      'This will permanently delete your account and all associated data (selections, matches). This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -70,6 +75,47 @@ export default function Profile() {
       Alert.alert('No Purchase Found', 'No previous purchase was found to restore.');
     }
   }, [restorePurchases]);
+
+  const handleCopyCode = useCallback(async () => {
+    if (partnerInfo?.shareCode) {
+      await Clipboard.setStringAsync(partnerInfo.shareCode);
+      Alert.alert('Copied', 'Share code copied to clipboard!');
+    }
+  }, [partnerInfo?.shareCode]);
+
+  const handleShareCode = useCallback(async () => {
+    if (partnerInfo?.shareCode) {
+      try {
+        await Share.share({
+          message: `Join me on Bambino! Use my partner code: ${partnerInfo.shareCode}`,
+        });
+      } catch (error) {
+        Sentry.captureException(error);
+      }
+    }
+  }, [partnerInfo?.shareCode]);
+
+  const handleUnlinkPartner = useCallback(() => {
+    Alert.alert(
+      'Unlink Partner',
+      'Are you sure you want to unlink your partner? Your selections and existing matches will be kept.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unlink',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await unlinkPartner();
+            } catch (error) {
+              Sentry.captureException(error);
+              Alert.alert('Error', 'Failed to unlink partner. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }, [unlinkPartner]);
 
   return (
     <GradientBackground>
@@ -103,10 +149,10 @@ export default function Profile() {
         {/* Subscription Section */}
         <Animated.View
           entering={FadeInUp.delay(100).duration(400).springify()}
-          style={styles.subscriptionSection}
+          style={styles.section}
         >
           <Text style={styles.sectionTitle}>Subscription</Text>
-          <View style={styles.subscriptionCard}>
+          <View style={styles.card}>
             <View style={styles.subscriptionHeader}>
               <Ionicons
                 name={isPremium ? 'star' : 'star-outline'}
@@ -128,10 +174,92 @@ export default function Profile() {
           </View>
         </Animated.View>
 
+        {/* Partner Section */}
+        <Animated.View
+          entering={FadeInUp.delay(150).duration(400).springify()}
+          style={styles.section}
+        >
+          <Text style={styles.sectionTitle}>Partner</Text>
+          <View style={styles.card}>
+            {partnerInfo?.partner ? (
+              // Has partner
+              <View style={styles.partnerInfo}>
+                <View style={styles.partnerRow}>
+                  {partnerInfo.partner.imageUrl ? (
+                    <Image
+                      source={{ uri: partnerInfo.partner.imageUrl }}
+                      style={styles.partnerAvatar}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.partnerAvatarPlaceholder, { backgroundColor: colors.border }]}
+                    >
+                      <Text style={styles.partnerAvatarInitial}>
+                        {partnerInfo.partner.name?.[0]?.toUpperCase() ||
+                          partnerInfo.partner.email[0]?.toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.partnerDetails}>
+                    <Text style={styles.partnerName}>
+                      {partnerInfo.partner.name || partnerInfo.partner.email}
+                    </Text>
+                    {partnerInfo.partner.name && (
+                      <Text style={styles.partnerEmail}>{partnerInfo.partner.email}</Text>
+                    )}
+                  </View>
+                </View>
+                <Pressable style={styles.unlinkButton} onPress={handleUnlinkPartner}>
+                  <Ionicons name="close-circle-outline" size={18} color="#ef4444" />
+                  <Text style={styles.unlinkButtonText}>Unlink Partner</Text>
+                </Pressable>
+              </View>
+            ) : (
+              // No partner
+              <View style={styles.noPartner}>
+                {partnerInfo?.shareCode && (
+                  <>
+                    <Text style={styles.shareCodeLabel}>Your Share Code</Text>
+                    <Text style={[styles.shareCode, { color: colors.primary }]}>
+                      {partnerInfo.shareCode}
+                    </Text>
+                    <View style={styles.shareActions}>
+                      <Pressable
+                        style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={handleCopyCode}
+                      >
+                        <Ionicons name="copy-outline" size={18} color={colors.primary} />
+                        <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                          Copy
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={handleShareCode}
+                      >
+                        <Ionicons name="share-outline" size={18} color={colors.primary} />
+                        <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                          Share
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </>
+                )}
+                <GradientButton
+                  title="Link Partner"
+                  onPress={() => setShowPartnerModal(true)}
+                  variant="primary"
+                  icon="people"
+                />
+              </View>
+            )}
+          </View>
+        </Animated.View>
+
         {/* Settings Section */}
         <Animated.View
           entering={FadeInUp.delay(200).duration(400).springify()}
-          style={styles.settingsSection}
+          style={styles.section}
         >
           <Text style={styles.sectionTitle}>Settings</Text>
           <ThemePickerSection />
@@ -142,7 +270,7 @@ export default function Profile() {
         {/* Legal Section */}
         <Animated.View
           entering={FadeInUp.delay(300).duration(400).springify()}
-          style={styles.legalSection}
+          style={styles.section}
         >
           <Text style={styles.sectionTitle}>Legal</Text>
           <Pressable
@@ -194,6 +322,8 @@ export default function Profile() {
           onClose={() => setShowPaywall(false)}
           trigger="search_limit"
         />
+
+        <PartnerLinkModal visible={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
       </ScrollView>
     </GradientBackground>
   );
@@ -237,10 +367,16 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
   },
-  subscriptionSection: {
+  section: {
     marginBottom: 32,
   },
-  subscriptionCard: {
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    color: '#2D1B4E',
+    marginBottom: 16,
+  },
+  card: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
@@ -266,17 +402,93 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
   },
-  settingsSection: {
-    marginBottom: 32,
+  partnerInfo: {
+    gap: 16,
   },
-  sectionTitle: {
+  partnerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  partnerAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  partnerAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  partnerAvatarInitial: {
     fontSize: 18,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#2D1B4E',
-    marginBottom: 16,
+    color: '#6B5B7B',
   },
-  legalSection: {
-    marginBottom: 32,
+  partnerDetails: {
+    flex: 1,
+  },
+  partnerName: {
+    fontSize: 16,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#2D1B4E',
+  },
+  partnerEmail: {
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    color: '#6B5B7B',
+    marginTop: 2,
+  },
+  unlinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+  },
+  unlinkButtonText: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#ef4444',
+  },
+  noPartner: {
+    gap: 16,
+    alignItems: 'center',
+  },
+  shareCodeLabel: {
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    color: '#6B5B7B',
+  },
+  shareCode: {
+    fontSize: 32,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    letterSpacing: 6,
+  },
+  shareActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  shareActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  shareActionText: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
   },
   legalButton: {
     flexDirection: 'row',
@@ -303,8 +515,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts?.sans,
     color: '#A89BB5',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
 });

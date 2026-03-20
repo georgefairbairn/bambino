@@ -4,7 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
-import { Doc, Id } from '@/convex/_generated/dataModel';
+import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard, SwipeCardRef } from './swipe-card';
 import { SwipeActionButtons } from './swipe-action-buttons';
 import { EmptyState } from './empty-state';
@@ -14,18 +14,12 @@ import * as Haptics from 'expo-haptics';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
 
-interface SwipeCardStackProps {
-  searchId: Id<'searches'>;
-  onEmpty?: () => void;
-}
-
-export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
+export function SwipeCardStack() {
   const router = useRouter();
   const { colors } = useTheme();
 
   // Fetch initial queue from backend
   const serverQueue = useQuery(api.selections.getSwipeQueue, {
-    searchId,
     limit: 50,
   });
 
@@ -38,6 +32,7 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
   const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [hintEligible, setHintEligible] = useState(true);
 
   // Ref to the top card for triggering programmatic swipes
   const topCardRef = useRef<SwipeCardRef>(null);
@@ -66,7 +61,6 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
       // Record to backend
       try {
         const result = await recordSelection({
-          searchId,
           nameId: currentName._id,
           selectionType,
         });
@@ -89,7 +83,7 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
         setLocalQueue((prev) => [currentName, ...prev]);
       }
     },
-    [localQueue, searchId, recordSelection],
+    [localQueue, recordSelection],
   );
 
   // Button handlers that trigger card animations (selection deferred until animation completes)
@@ -142,6 +136,8 @@ export function SwipeCardStack({ searchId }: SwipeCardStackProps) {
             ref={index === 0 ? topCardRef : null}
             name={name}
             isTop={index === 0}
+            showSwipeHint={hintEligible}
+            onSwipeHintShown={() => setHintEligible(false)}
             onSwipeLeft={() => handleSelection('reject')}
             onSwipeRight={() => handleSelection('like')}
             onSwipeComplete={() => {

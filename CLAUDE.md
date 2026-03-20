@@ -21,6 +21,7 @@ npm run process:ssa      # Process raw SSA data files
 **Bambino** is an Expo React Native app for baby name discovery. Partners swipe on names (Tinder-style), and mutual likes become matches.
 
 ### Tech Stack
+
 - **Expo SDK 54** with React Native 0.81 (new architecture enabled)
 - **Convex** - Backend (database, server functions, real-time sync)
 - **Clerk** - Authentication (email/password + Google SSO)
@@ -29,6 +30,7 @@ npm run process:ssa      # Process raw SSA data files
 - **react-native-reanimated** + **react-native-gesture-handler** - Swipe card animations
 
 ### Project Structure
+
 ```
 app/
   _layout.tsx              # Root layout (providers, fonts, cssInterop)
@@ -72,6 +74,7 @@ scripts/                   # Data processing and seeding (seed-names, seed-popul
 ```
 
 ### Provider Stack (root layout)
+
 ```
 GestureHandlerRootView
   ErrorBoundary
@@ -88,6 +91,7 @@ GestureHandlerRootView
 **Schema tables:** `users`, `names`, `namePopularity`, `searches`, `searchMembers`, `selections`, `matches`
 
 **Data fetching pattern:** Use `useQuery` and `useMutation` from `convex/react` with function references from `@/convex/_generated/api`:
+
 ```ts
 const searches = useQuery(api.searches.getUserSearches);
 const createSearch = useMutation(api.searches.createSearch);
@@ -96,17 +100,21 @@ const createSearch = useMutation(api.searches.createSearch);
 Auth is handled via Clerk JWT tokens passed to Convex automatically by `ConvexProviderWithClerk`. Server functions access the authenticated user via `ctx.auth.getUserIdentity()`.
 
 ### State Management
+
 - **Convex** - All persistent data (names, searches, selections, matches)
 - **AsyncStorage** - Local preferences (active search ID, voice settings)
 - **React Context** - `SearchContext` (active search), `VoiceSettingsContext` (TTS voice)
 
 ### Styling Pattern
+
 NativeWind enables `className` on RN components. `cssInterop` is configured in `app/_layout.tsx` for `ExpoImage`, `Animated.Text`, and `Animated.View`.
 
 ### Path Aliases
+
 `@/*` maps to the project root (e.g., `@/components/swipe/swipe-card`).
 
 ### Environment Variables
+
 - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk authentication
 - `EXPO_PUBLIC_CONVEX_URL` - Convex backend URL
 - `CLERK_JWT_ISSUER_DOMAIN` - Set in Convex dashboard for JWT validation
@@ -114,12 +122,15 @@ NativeWind enables `className` on RN components. `cssInterop` is configured in `
 ## Workflow
 
 ### PR Strategy
+
 - One PR per Notion task (1:1 mapping)
 
 ### After Merging a PR
+
 1. Update the associated Notion task status to complete
 2. Add the GitHub PR URL to the Notion task
 3. Update `PLAN.md` to mark the completed task(s)
 
 ### Planning Reference
+
 Always refer to `PLAN.md` for the current development roadmap and task status.

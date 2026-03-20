@@ -1,10 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
-import Purchases, {
-  PurchasesPackage,
-  CustomerInfo,
-  LOG_LEVEL,
-} from 'react-native-purchases';
+import Purchases, { PurchasesPackage, CustomerInfo, LOG_LEVEL } from 'react-native-purchases';
 import { useMutation } from 'convex/react';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
@@ -54,22 +50,17 @@ export function usePurchases() {
     init();
   }, []);
 
-  const checkEntitlement = useCallback(
-    (customerInfo: CustomerInfo) => {
-      const hasPremium =
-        customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
-      setIsPremium(hasPremium);
-    },
-    [],
-  );
+  const checkEntitlement = useCallback((customerInfo: CustomerInfo) => {
+    const hasPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    setIsPremium(hasPremium);
+  }, []);
 
   const purchasePremium = useCallback(async () => {
     if (packages.length === 0) return false;
 
     try {
       const { customerInfo } = await Purchases.purchasePackage(packages[0]);
-      const hasPremium =
-        customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+      const hasPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
 
       if (hasPremium) {
         setIsPremium(true);
@@ -89,8 +80,7 @@ export function usePurchases() {
   const restorePurchases = useCallback(async () => {
     try {
       const customerInfo = await Purchases.restorePurchases();
-      const hasPremium =
-        customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+      const hasPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
 
       setIsPremium(hasPremium);
       await updatePremiumStatus({ isPremium: hasPremium });

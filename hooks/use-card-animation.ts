@@ -127,11 +127,7 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
   const textColorStyle = useAnimatedStyle(() => {
     const progress = Math.abs(translateX.value) / SWIPE_THRESHOLD;
     return {
-      color: interpolateColor(
-        Math.min(progress, 1),
-        [0, 1],
-        ['#1a1a1a', '#ffffff'],
-      ),
+      color: interpolateColor(Math.min(progress, 1), [0, 1], ['#1a1a1a', '#ffffff']),
     };
   });
 

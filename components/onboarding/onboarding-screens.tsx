@@ -49,7 +49,7 @@ const SLIDES: OnboardingSlide[] = [
     iconBg: '#f3e8ff',
     title: 'Sync with Partner',
     description:
-      "Share your session code with your partner. When you both like the same name, it's a match!",
+      "Link your accounts in Profile using your share code. When you both like the same name, it's a match!",
   },
   {
     id: '4',

@@ -11,43 +11,42 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation } from 'convex/react';
+import { Image } from 'expo-image';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Paywall } from '@/components/paywall';
 import { useTheme } from '@/contexts/theme-context';
 
-interface JoinSearchModalProps {
+interface PartnerLinkModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess: (searchId: string) => void;
 }
 
-type SearchPreview = {
-  searchId: string;
+type PartnerPreview = {
+  userId: string;
   name: string;
-  ownerName: string;
-  genderFilter: 'boy' | 'girl' | 'both';
+  email: string;
+  imageUrl?: string;
 };
 
-export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModalProps) {
+export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   const { colors } = useTheme();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLookingUp, setIsLookingUp] = useState(false);
-  const [isJoining, setIsJoining] = useState(false);
-  const [preview, setPreview] = useState<SearchPreview | null>(null);
+  const [isLinking, setIsLinking] = useState(false);
+  const [preview, setPreview] = useState<PartnerPreview | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
 
-  const searchPreview = useQuery(
-    api.searches.getSearchByShareCode,
+  const partnerPreview = useQuery(
+    api.partners.getUserByShareCode,
     code.length === 6 && isLookingUp ? { code } : 'skip',
   );
 
-  const joinSearch = useMutation(api.searches.joinSearchByCode);
+  const linkPartner = useMutation(api.partners.linkPartner);
 
   const handleCodeChange = (text: string) => {
-    // Only allow alphanumeric characters
     const cleaned = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
     setCode(cleaned);
     setError(null);
@@ -59,7 +58,6 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
       setError('Please enter a valid 6-character code');
       return;
     }
-
     setIsLookingUp(true);
     setError(null);
   };
@@ -69,61 +67,57 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
       case 'invalid_format':
         return 'Please enter a valid 6-character code';
       case 'not_found':
-        return 'Search not found. Please check the code.';
-      case 'own_search':
-        return 'This is your own search';
-      case 'already_member':
-        return "You're already a member of this search";
+        return 'User not found. Please check the code.';
+      case 'own_code':
+        return 'This is your own share code';
+      case 'already_has_partner':
+        return 'You already have a partner linked';
+      case 'target_has_partner':
+        return 'This user already has a partner linked';
       default:
         return 'An error occurred. Please try again.';
     }
   };
 
-  // Effect to handle query result changes
-  const handleQueryResult = () => {
-    if (!isLookingUp) return;
-
-    if (searchPreview && 'error' in searchPreview && searchPreview.error) {
-      setError(getErrorMessage(searchPreview.error));
-      setIsLookingUp(false);
-    } else if (searchPreview && 'searchId' in searchPreview) {
+  // Handle query result
+  if (isLookingUp && partnerPreview) {
+    if ('error' in partnerPreview && partnerPreview.error) {
+      if (error === null) {
+        setError(getErrorMessage(partnerPreview.error));
+        setIsLookingUp(false);
+      }
+    } else if ('userId' in partnerPreview && preview === null) {
       setPreview({
-        searchId: searchPreview.searchId,
-        name: searchPreview.name,
-        ownerName: searchPreview.ownerName,
-        genderFilter: searchPreview.genderFilter,
+        userId: partnerPreview.userId,
+        name: partnerPreview.name,
+        email: partnerPreview.email,
+        imageUrl: partnerPreview.imageUrl,
       });
       setIsLookingUp(false);
     }
-  };
-
-  // Call the handler when searchPreview changes
-  if (isLookingUp && searchPreview) {
-    handleQueryResult();
   }
 
-  const handleJoin = async () => {
-    setIsJoining(true);
+  const handleLink = async () => {
+    setIsLinking(true);
     setError(null);
 
     try {
-      const result = await joinSearch({ code });
+      const result = await linkPartner({ code });
 
       if (result && typeof result === 'object' && 'error' in result) {
         if (result.error === 'FREE_TIER_PARTNER_LIMIT') {
           setShowPaywall(true);
         } else {
-          setError('Failed to join search');
+          setError('Failed to link partner');
         }
-        setIsJoining(false);
+        setIsLinking(false);
         return;
       }
 
       handleClose();
-      onSuccess(result as string);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join search');
-      setIsJoining(false);
+      setError(err instanceof Error ? err.message : 'Failed to link partner');
+      setIsLinking(false);
     }
   };
 
@@ -132,7 +126,7 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
     setError(null);
     setPreview(null);
     setIsLookingUp(false);
-    setIsJoining(false);
+    setIsLinking(false);
     setShowPaywall(false);
     onClose();
   };
@@ -140,17 +134,6 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
   const handleBack = () => {
     setPreview(null);
     setError(null);
-  };
-
-  const getGenderFilterLabel = (filter: 'boy' | 'girl' | 'both') => {
-    switch (filter) {
-      case 'boy':
-        return 'Boy names only';
-      case 'girl':
-        return 'Girl names only';
-      case 'both':
-        return 'All names';
-    }
   };
 
   return (
@@ -161,27 +144,24 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
       >
         <Pressable style={styles.backdrop} onPress={handleClose} />
         <View style={styles.sheet}>
-          {/* Handle bar */}
           <View style={styles.handleBar} />
 
-          {/* Header */}
           <View style={styles.header}>
             {preview && (
               <Pressable onPress={handleBack} style={styles.backButton}>
                 <Ionicons name="arrow-back" size={24} color="#6B5B7B" />
               </Pressable>
             )}
-            <Text style={styles.title}>{preview ? 'Join Search' : 'Enter Code'}</Text>
+            <Text style={styles.title}>{preview ? 'Link Partner' : 'Enter Code'}</Text>
             <Pressable onPress={handleClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#6B5B7B" />
             </Pressable>
           </View>
 
           {!preview ? (
-            // Code Input State
             <View style={styles.content}>
               <Text style={styles.description}>
-                Enter the 6-character code shared by your partner to join their search
+                Enter your partner&apos;s 6-character share code to link your accounts
               </Text>
 
               <TextInput
@@ -216,12 +196,11 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
                 {isLookingUp ? (
                   <LoadingIndicator size="small" />
                 ) : (
-                  <Text style={styles.primaryButtonText}>Join</Text>
+                  <Text style={styles.primaryButtonText}>Find Partner</Text>
                 )}
               </Pressable>
             </View>
           ) : (
-            // Preview State
             <View style={styles.content}>
               <View
                 style={[
@@ -229,16 +208,22 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
                   { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
                 ]}
               >
-                <Text style={styles.previewName}>{preview.name}</Text>
-                <View style={styles.previewMeta}>
-                  <Ionicons name="person-outline" size={16} color="#6B5B7B" />
-                  <Text style={styles.previewMetaText}>Created by {preview.ownerName}</Text>
-                </View>
-                <View style={styles.previewMeta}>
-                  <Ionicons name="filter-outline" size={16} color="#6B5B7B" />
-                  <Text style={styles.previewMetaText}>
-                    {getGenderFilterLabel(preview.genderFilter)}
-                  </Text>
+                <View style={styles.previewRow}>
+                  {preview.imageUrl ? (
+                    <Image source={{ uri: preview.imageUrl }} style={styles.previewAvatar} />
+                  ) : (
+                    <View
+                      style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.border }]}
+                    >
+                      <Text style={styles.previewAvatarInitial}>
+                        {preview.name[0]?.toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <View>
+                    <Text style={styles.previewName}>{preview.name}</Text>
+                    <Text style={styles.previewEmail}>{preview.email}</Text>
+                  </View>
                 </View>
               </View>
 
@@ -249,18 +234,18 @@ export function JoinSearchModal({ visible, onClose, onSuccess }: JoinSearchModal
                   style={[
                     styles.primaryButton,
                     { backgroundColor: colors.primary },
-                    isJoining && styles.buttonDisabled,
+                    isLinking && styles.buttonDisabled,
                   ]}
-                  onPress={handleJoin}
-                  disabled={isJoining}
+                  onPress={handleLink}
+                  disabled={isLinking}
                 >
-                  {isJoining ? (
+                  {isLinking ? (
                     <LoadingIndicator size="small" />
                   ) : (
-                    <Text style={styles.primaryButtonText}>Join Search</Text>
+                    <Text style={styles.primaryButtonText}>Link Partner</Text>
                   )}
                 </Pressable>
-                <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isJoining}>
+                <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isLinking}>
                   <Text style={styles.secondaryButtonText}>Cancel</Text>
                 </Pressable>
               </View>
@@ -369,22 +354,39 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: 20,
+  },
+  previewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
+  previewAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  previewAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewAvatarInitial: {
+    fontSize: 18,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    color: '#6B5B7B',
+  },
   previewName: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#2D1B4E',
   },
-  previewMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  previewMetaText: {
-    fontSize: 14,
+  previewEmail: {
+    fontSize: 13,
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
+    marginTop: 2,
   },
   previewActions: {
     gap: 12,
