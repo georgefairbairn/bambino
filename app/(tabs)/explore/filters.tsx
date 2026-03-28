@@ -6,7 +6,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { GenderFilterSelector } from '@/components/search/gender-filter-selector';
-import { OriginPicker } from '@/components/search/origin-picker';
+import { OriginToggleList } from '@/components/search/origin-toggle-list';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Fonts } from '@/constants/theme';
@@ -23,6 +23,12 @@ export default function Filters() {
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('both');
   const [originFilter, setOriginFilter] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Live names count based on current filter state
+  const nameCount = useQuery(api.names.getFilteredNameCount, {
+    genderFilter,
+    originFilter,
+  });
 
   useEffect(() => {
     if (user) {
@@ -41,6 +47,12 @@ export default function Filters() {
     }
   };
 
+  // Counter sublabel
+  const isAllOrigins = originFilter.length === 0;
+  const counterSub = isAllOrigins
+    ? 'All origins'
+    : `${originFilter.length} origin${originFilter.length !== 1 ? 's' : ''} selected`;
+
   return (
     <GradientBackground>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
@@ -56,21 +68,39 @@ export default function Filters() {
           <View style={styles.spacer} />
         </View>
 
+        {/* Scrollable content */}
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {/* Names counter card */}
+          <View
+            style={[
+              styles.counterCard,
+              {
+                backgroundColor: colors.surfaceSubtle,
+                borderColor: colors.border,
+                shadowColor: colors.secondary,
+              },
+            ]}
+          >
+            <View>
+              <Text style={styles.counterLabel}>Names available</Text>
+              <Text style={styles.counterSub}>{counterSub}</Text>
+            </View>
+            <Text style={[styles.counterNum, { color: colors.primary }]}>
+              {nameCount !== undefined ? nameCount.toLocaleString() : '—'}
+            </Text>
+          </View>
+
           {/* Gender filter */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Gender</Text>
             <GenderFilterSelector value={genderFilter} onChange={setGenderFilter} />
           </View>
 
-          {/* Origin filter */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Origin</Text>
-            <OriginPicker value={originFilter} onChange={setOriginFilter} />
-          </View>
+          {/* Origin filter — toggle list handles its own section title */}
+          <OriginToggleList value={originFilter} onChange={setOriginFilter} />
         </ScrollView>
 
-        {/* Save button */}
+        {/* Pinned footer */}
         <View style={styles.footer}>
           <GradientButton
             title="Save Filters"
@@ -124,6 +154,32 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
     gap: 28,
+  },
+  counterCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  counterLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2D1B4E',
+  },
+  counterSub: {
+    fontSize: 11,
+    color: '#6B5B7B',
+    marginTop: 2,
+  },
+  counterNum: {
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontSize: 28,
   },
   section: {
     gap: 12,
