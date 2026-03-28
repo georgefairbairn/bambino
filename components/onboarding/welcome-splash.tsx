@@ -59,7 +59,6 @@ interface PillConfig {
 }
 
 function BubblePill({ config, onComplete }: { config: PillConfig; onComplete: () => void }) {
-
   // Rise: from bottom of screen to above branding
   const translateY = useSharedValue(0);
   // Sway: subtle side-to-side sine wave
@@ -153,9 +152,6 @@ function BubblePill({ config, onComplete }: { config: PillConfig; onComplete: ()
 export function WelcomeSplash() {
   const { colors } = useTheme();
 
-  // Phase tracking: 1 = entrance, 2 = slide up, 3 = bubbles
-  const phase = useSharedValue(1);
-
   // Phase 1: Emoji entrance — fade up + scale bounce
   const emojiOpacity = useSharedValue(0);
   const emojiScale = useSharedValue(0);
@@ -168,6 +164,40 @@ export function WelcomeSplash() {
   // Phase 2: Branding group position + scale (wired in Task 3)
   const brandingTranslateY = useSharedValue(0);
   const brandingScale = useSharedValue(1);
+
+  // Phase 3: Pill spawning
+  const [pills, setPills] = useState<PillConfig[]>([]);
+  const nextId = useRef(0);
+  const spawnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const removePill = useCallback((id: number) => {
+    setPills((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  const spawnPill = useCallback(() => {
+    setPills((prev) => {
+      if (prev.length >= MAX_PILLS) return prev; // cap at 8
+
+      const id = nextId.current++;
+      const name = NAME_POOL[Math.floor(Math.random() * NAME_POOL.length)];
+      // Random X: leave 20px margin on each side, account for pill width (~100px)
+      const startX = 20 + Math.random() * (SCREEN_WIDTH - 140);
+      const rotation = (Math.random() - 0.5) * 12; // -6 to +6 degrees
+      const isLike = Math.random() > 0.5;
+      const isSmall = Math.random() > 0.65; // ~35% chance of small variant
+
+      return [...prev, { id, name, startX, rotation, isLike, isSmall }];
+    });
+  }, []);
+
+  // Schedule next spawn with jitter
+  const scheduleNextSpawn = useCallback(() => {
+    const delay = PILL_SPAWN_MIN + Math.random() * (PILL_SPAWN_MAX - PILL_SPAWN_MIN);
+    spawnTimer.current = setTimeout(() => {
+      spawnPill();
+      scheduleNextSpawn();
+    }, delay);
+  }, [spawnPill]);
 
   useEffect(() => {
     // Phase 1 sequence
@@ -193,11 +223,20 @@ export function WelcomeSplash() {
 
     brandingTranslateY.value = withDelay(900, withSpring(targetY, SPRING_CONFIG));
     brandingScale.value = withDelay(900, withSpring(0.8, SPRING_CONFIG));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Mark Phase 3 ready after slide-up settles (~1.4s)
-    setTimeout(() => {
-      phase.value = 3;
+  // Start pill spawning when Phase 3 begins
+  useEffect(() => {
+    // Phase 3 starts at ~1.4s (set by setTimeout in Phase 2)
+    const startDelay = setTimeout(() => {
+      spawnPill(); // First pill immediately
+      scheduleNextSpawn(); // Then continuous spawning
     }, 1400);
+
+    return () => {
+      clearTimeout(startDelay);
+      if (spawnTimer.current) clearTimeout(spawnTimer.current);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const emojiStyle = useAnimatedStyle(() => ({
@@ -228,6 +267,11 @@ export function WelcomeSplash() {
           Find the perfect name, together.
         </Animated.Text>
       </Animated.View>
+
+      {/* Phase 3: Bubbling pills */}
+      {pills.map((pill) => (
+        <BubblePill key={pill.id} config={pill} onComplete={() => removePill(pill.id)} />
+      ))}
     </View>
   );
 }
