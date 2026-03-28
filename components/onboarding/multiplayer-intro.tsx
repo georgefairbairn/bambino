@@ -35,13 +35,13 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
     const translateX = interpolate(
       p,
       [0, 0.10, 0.76, 0.86, 1.0],
-      [-30, 0, 0, -30, -30],
+      [-70, 0, 0, -70, -70],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
       [0, 0.10, 0.76, 0.86, 1.0],
-      [-3, 0, 0, -3, -3],
+      [-6, 0, 0, -6, -6],
       Extrapolation.CLAMP,
     );
     return {
@@ -54,13 +54,13 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
     const translateX = interpolate(
       p,
       [0, 0.10, 0.76, 0.86, 1.0],
-      [30, 0, 0, 30, 30],
+      [70, 0, 0, 70, 70],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
       [0, 0.10, 0.76, 0.86, 1.0],
-      [3, 0, 0, 3, 3],
+      [6, 0, 0, 6, 6],
       Extrapolation.CLAMP,
     );
     return {
@@ -240,10 +240,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardYou: {
-    left: width / 2 - 128,
+    left: (width - 116) / 2,
   },
   cardPartner: {
-    right: width / 2 - 128,
+    left: (width - 116) / 2,
   },
   miniCardLabel: {
     fontSize: 10,
