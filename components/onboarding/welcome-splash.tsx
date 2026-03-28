@@ -92,6 +92,26 @@ export function WelcomeSplash() {
 
     // 0.5s — tagline fades in
     taglineOpacity.value = withDelay(500, withTiming(1, { duration: 400 }));
+
+    // Phase 2 at ~0.9s — branding slides up + scales down
+    // Calculate how far to move: from center to near top (paddingTop ~55px)
+    // The branding is centered (flex:1 + justifyContent:center), so we need
+    // to move it up by roughly half the screen minus the target top position
+    const targetY = -(SCREEN_HEIGHT / 2) + 120; // lands ~55px from top after scale
+
+    brandingTranslateY.value = withDelay(
+      900,
+      withSpring(targetY, SPRING_CONFIG),
+    );
+    brandingScale.value = withDelay(
+      900,
+      withSpring(0.8, SPRING_CONFIG),
+    );
+
+    // Mark Phase 3 ready after slide-up settles (~1.4s)
+    setTimeout(() => {
+      phase.value = 3;
+    }, 1400);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const emojiStyle = useAnimatedStyle(() => ({
