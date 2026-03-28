@@ -26,13 +26,14 @@ export function MultiplayerIntro() {
 
   // ── Card animations ──────────────────────────────────────────────
   // Timeline (8s): Slide together 0-12% | Fade out 12-16% |
-  //   Banner hold 16-62% | Banner dismiss 62-72% | Cards return 72-82% | Rest 82-100%
+  //   Banner hold 16-62% | Banner dismiss 62-72% | Cards return apart 72-82% | Rest 82-100%
+  // Cards start APART (tilted, offset) and slide TOGETHER (straight, centered)
   const youCardStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const translateX = interpolate(
       p,
       [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [0, 30, 30, 30, 0, 0],
+      [-30, 0, 0, 0, -30, -30],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
@@ -58,7 +59,7 @@ export function MultiplayerIntro() {
     const translateX = interpolate(
       p,
       [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [0, -30, -30, -30, 0, 0],
+      [30, 0, 0, 0, 30, 30],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
