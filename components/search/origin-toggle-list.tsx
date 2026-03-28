@@ -99,17 +99,17 @@ export function OriginToggleList({ value, onChange }: OriginToggleListProps) {
       {!collapsed && (
         <View style={styles.body}>
           {/* All Origins master row */}
-          <View style={[styles.allRow, { backgroundColor: colors.primary, shadowColor: colors.secondary }]}>
+          <View style={[styles.allRow, { shadowColor: colors.secondary }]}>
             <View>
-              <Text style={[styles.allRowLabel, { color: '#FFFFFF' }]}>All Origins</Text>
-              <Text style={[styles.allRowSub, { color: 'rgba(255,255,255,0.6)' }]}>Include every origin</Text>
+              <Text style={styles.allRowLabel}>All Origins</Text>
+              <Text style={styles.allRowSub}>Include every origin</Text>
             </View>
             <Switch
               value={isAllSelected}
               onValueChange={handleToggleAll}
-              trackColor={{ false: 'rgba(255,255,255,0.3)', true: '#FFFFFF' }}
+              trackColor={{ false: '#E5DDD0', true: colors.primary }}
               thumbColor="#FFFFFF"
-              ios_backgroundColor="rgba(255,255,255,0.3)"
+              ios_backgroundColor="#E5DDD0"
             />
           </View>
 
@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: '#FFF8FA',
     borderRadius: 16,
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -179,9 +180,11 @@ const styles = StyleSheet.create({
   allRowLabel: {
     fontSize: 13,
     fontWeight: '700',
+    color: '#2D1B4E',
   },
   allRowSub: {
     fontSize: 10,
+    color: '#A89BB5',
     marginTop: 2,
   },
 });

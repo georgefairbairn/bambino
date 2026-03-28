@@ -17,10 +17,7 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
       onPress={onToggle}
       style={[
         styles.row,
-        {
-          backgroundColor: isActive ? colors.primaryLight : colors.surfaceSubtle,
-          shadowColor: colors.secondary,
-        },
+        { shadowColor: colors.secondary },
       ]}
     >
       <View style={styles.textContainer}>
@@ -44,6 +41,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: '#FFF8FA',
     borderRadius: 16,
     shadowOpacity: 0.1,
     shadowRadius: 8,
