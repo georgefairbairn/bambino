@@ -156,7 +156,7 @@ function BubblePill({
           badgeStyle,
         ]}
       >
-        <Ionicons name={badgeIcon} size={10} color={badgeColor} />
+        <Ionicons name={badgeIcon} size={8} color={badgeColor} />
         <Text style={[styles.badgeText, { color: badgeColor }]}>{badgeText}</Text>
       </Animated.View>
     </Animated.View>
@@ -238,7 +238,7 @@ export function WelcomeSplash() {
     // Calculate how far to move: from center to near top (paddingTop ~55px)
     // The branding is centered (flex:1 + justifyContent:center), so we need
     // to move it up by roughly half the screen minus the target top position
-    const targetY = -(SCREEN_HEIGHT / 2) + 120; // lands ~55px from top after scale
+    const targetY = -(SCREEN_HEIGHT / 2) + 200; // lands below status bar after scale
 
     brandingTranslateY.value = withDelay(900, withSpring(targetY, SPRING_CONFIG));
     brandingScale.value = withDelay(900, withSpring(0.8, SPRING_CONFIG));
@@ -306,6 +306,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 80,
+    zIndex: 10,
   },
   emoji: {
     fontSize: 48,
@@ -349,19 +350,19 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: -11,
+    top: -8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    borderWidth: 2,
+    gap: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+    borderWidth: 1.5,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   badgeText: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 0.8,
   },
 });
