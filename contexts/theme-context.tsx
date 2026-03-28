@@ -27,7 +27,7 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [themeKey, setThemeKey] = useState<ThemeKey>('pink');
+  const [themeKey, setThemeKey] = useState<ThemeKey>('mint');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

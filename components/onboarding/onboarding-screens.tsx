@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import { WelcomeSplash } from './welcome-splash';
 import { SwipeDemo } from './swipe-demo';
 import { MultiplayerIntro } from './multiplayer-intro';
@@ -21,6 +22,7 @@ const SCREENS = [
 ];
 
 export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
+  const { gradients } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -48,7 +50,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
     <View style={styles.container}>
       {/* Background gradient */}
       <LinearGradient
-        colors={['#F0FDF4', '#D1FAE5', '#ECFDF5']}
+        colors={[...gradients.screenBg]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.8, y: 1 }}
@@ -83,7 +85,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
         {/* Next / Get Started button */}
         <Pressable onPress={handleNext}>
           <LinearGradient
-            colors={['#6EE7B7', '#34D399']}
+            colors={[...gradients.buttonPrimary]}
             style={styles.ctaButton}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
