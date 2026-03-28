@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
-import { SWIPE_COLORS, SPRING_CONFIG } from '@/constants/swipe';
+import { SWIPE_COLORS } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -72,8 +72,8 @@ function BubblePill({
   const swayX = useSharedValue(0);
   // Fade: start near full opacity, fade to 0
   const opacity = useSharedValue(0.95);
-  // Badge scale: pops in after delay
-  const badgeScale = useSharedValue(0);
+  // Badge opacity: fades in after delay
+  const badgeOpacity = useSharedValue(0);
 
   useEffect(() => {
     // Rise from bottom to top over PILL_RISE_DURATION
@@ -106,29 +106,24 @@ function BubblePill({
       -1, // infinite
     );
 
-    // Badge pops in after BADGE_DELAY
-    badgeScale.value = withDelay(BADGE_DELAY, withSpring(1, { ...SPRING_CONFIG, stiffness: 200 }));
+    // Badge fades in after BADGE_DELAY
+    badgeOpacity.value = withDelay(BADGE_DELAY, withTiming(1, { duration: 250 }));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pillStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-      transform: [
-        { translateY: translateY.value },
-        { translateX: swayX.value },
-        { rotate: `${config.rotation}deg` },
-      ],
-      // Apply glow once badge is visible
-      shadowColor:
-        badgeScale.value > 0.5 ? (config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope) : '#000',
-      shadowOpacity: badgeScale.value > 0.5 ? 0.45 : 0.08,
-      shadowRadius: badgeScale.value > 0.5 ? 14 : 8,
-    };
-  });
+  // Static glow color based on like/nope — no per-frame shadow recalculation
+  const glowColor = config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope;
+
+  const pillStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { translateY: translateY.value },
+      { translateX: swayX.value },
+      { rotate: `${config.rotation}deg` },
+    ],
+  }));
 
   const badgeStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: badgeScale.value }],
-    opacity: badgeScale.value,
+    opacity: badgeOpacity.value,
   }));
 
   const badgeColor = config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope;
@@ -140,8 +135,8 @@ function BubblePill({
       style={[
         styles.pill,
         config.isSmall && styles.pillSmall,
-        { left: config.startX },
-        { bottom: BOTTOM_ZONE },
+        { left: config.startX, bottom: BOTTOM_ZONE },
+        { shadowColor: glowColor, shadowOpacity: 0.35, shadowRadius: 12 },
         pillStyle,
       ]}
     >
