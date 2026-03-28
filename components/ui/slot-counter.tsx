@@ -17,37 +17,32 @@ interface SlotCounterProps {
 
 export function SlotCounter({ value, fontSize = 28, textStyle }: SlotCounterProps) {
   const formatted = value.toLocaleString();
-  const prevFormatted = useRef(formatted);
-  const digitHeight = fontSize * 1.3;
+  const digitHeight = fontSize * 1.4;
 
-  const maxLen = Math.max(formatted.length, prevFormatted.current.length);
-  const chars = formatted.padStart(maxLen).split('');
-  const prevChars = prevFormatted.current.padStart(maxLen).split('');
-
-  useEffect(() => {
-    prevFormatted.current = formatted;
-  }, [formatted]);
+  // Pad to consistent length so digit positions stay stable
+  const chars = formatted.split('');
 
   return (
     <View style={styles.row}>
       {chars.map((char, i) => {
         const isDigit = DIGITS.includes(char);
-        const changed = prevChars[i] !== char;
 
-        if (!isDigit || !changed) {
+        if (!isDigit) {
+          // Render commas and other separators as static text
           return (
-            <Text key={`${i}-${char}`} style={[styles.char, textStyle]}>
-              {char === ' ' ? '' : char}
+            <Text key={`sep-${i}`} style={[styles.char, { fontSize }, textStyle]}>
+              {char}
             </Text>
           );
         }
 
+        // Always render an animated slot for digit positions
         return (
           <SlotDigit
-            key={`${i}-slot`}
-            digit={char}
-            prevDigit={prevChars[i]}
+            key={`digit-${chars.length}-${i}`}
+            digit={Number(char)}
             digitHeight={digitHeight}
+            fontSize={fontSize}
             textStyle={textStyle}
           />
         );
@@ -57,26 +52,29 @@ export function SlotCounter({ value, fontSize = 28, textStyle }: SlotCounterProp
 }
 
 interface SlotDigitProps {
-  digit: string;
-  prevDigit: string;
+  digit: number;
   digitHeight: number;
+  fontSize: number;
   textStyle?: StyleProp<TextStyle>;
 }
 
-function SlotDigit({ digit, prevDigit, digitHeight, textStyle }: SlotDigitProps) {
-  const fromIndex = DIGITS.indexOf(prevDigit);
-  const toIndex = DIGITS.indexOf(digit);
-
-  const translateY = useSharedValue(
-    fromIndex >= 0 ? -fromIndex * digitHeight : -toIndex * digitHeight,
-  );
+function SlotDigit({ digit, digitHeight, fontSize, textStyle }: SlotDigitProps) {
+  const translateY = useSharedValue(-digit * digitHeight);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    translateY.value = withTiming(-toIndex * digitHeight, {
-      duration: 400,
+    if (isFirstRender.current) {
+      // Jump to position on first render (no animation)
+      isFirstRender.current = false;
+      translateY.value = -digit * digitHeight;
+      return;
+    }
+
+    translateY.value = withTiming(-digit * digitHeight, {
+      duration: 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [toIndex, digitHeight]);
+  }, [digit, digitHeight]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -88,7 +86,11 @@ function SlotDigit({ digit, prevDigit, digitHeight, textStyle }: SlotDigitProps)
         {DIGITS.map((d) => (
           <Text
             key={d}
-            style={[styles.char, textStyle, { height: digitHeight, lineHeight: digitHeight }]}
+            style={[
+              styles.char,
+              { fontSize, height: digitHeight, lineHeight: digitHeight },
+              textStyle,
+            ]}
           >
             {d}
           </Text>
@@ -102,13 +104,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    overflow: 'hidden',
   },
   digitContainer: {
     overflow: 'hidden',
   },
   char: {
-    fontSize: 28,
     textAlign: 'center',
   },
 });

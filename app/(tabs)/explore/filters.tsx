@@ -104,7 +104,7 @@ export default function Filters() {
           </View>
 
           {/* Origin filter — toggle list handles its own section title */}
-          <OriginToggleList value={originFilter} onChange={setOriginFilter} />
+          <OriginToggleList value={originFilter} onChange={setOriginFilter} genderFilter={genderFilter} />
         </ScrollView>
 
         {/* Pinned footer */}

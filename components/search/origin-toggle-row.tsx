@@ -22,7 +22,7 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
     >
       <View style={styles.textContainer}>
         <Text style={[styles.name, isActive && styles.nameActive]}>{origin}</Text>
-        <Text style={styles.count}>{count.toLocaleString()} names</Text>
+        <Text style={styles.count}>{count.toLocaleString()} {count === 1 ? 'name' : 'names'}</Text>
       </View>
       <Switch
         value={isActive}

@@ -12,12 +12,15 @@ import { OriginToggleRow } from '@/components/search/origin-toggle-row';
 interface OriginToggleListProps {
   value: string[];
   onChange: (origins: string[]) => void;
+  genderFilter?: 'boy' | 'girl' | 'both';
 }
 
-export function OriginToggleList({ value, onChange }: OriginToggleListProps) {
+export function OriginToggleList({ value, onChange, genderFilter }: OriginToggleListProps) {
   const { colors } = useTheme();
   const availableOrigins = useQuery(api.names.getAvailableOrigins);
-  const originCounts = useQuery(api.names.getOriginCounts);
+  const originCounts = useQuery(api.names.getOriginCounts, {
+    genderFilter: genderFilter ?? 'both',
+  });
   const [collapsed, setCollapsed] = useState(false);
 
   const isAllSelected = value.length === 0;

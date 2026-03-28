@@ -110,10 +110,23 @@ export const getFilteredNameCount = query({
 });
 
 export const getOriginCounts = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
+  },
+  handler: async (ctx, args) => {
+    const genderFilter = args.genderFilter ?? 'both';
+    const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
+
     const actionedIds = await getActionedNameIds(ctx);
-    const allNames = await ctx.db.query('names').collect();
+
+    const allNames =
+      genderValue !== null
+        ? await ctx.db
+            .query('names')
+            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
+            .collect()
+        : await ctx.db.query('names').collect();
+
     const counts: Record<string, number> = {};
     for (const name of allNames) {
       if (actionedIds.has(name._id as string)) continue;
