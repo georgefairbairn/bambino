@@ -49,7 +49,7 @@ function FloatingNameCard({ card }: { card: FloatingName }) {
         true, // reverse
       ),
     );
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- shared value assigned once on mount
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }, { rotate: `${card.rotation}deg` }],
@@ -78,7 +78,7 @@ export function WelcomeSplash() {
 
   useEffect(() => {
     emojiScale.value = withSpring(1, { damping: 8, stiffness: 100 });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- shared value assigned once on mount
 
   const emojiStyle = useAnimatedStyle(() => ({
     transform: [{ scale: emojiScale.value }],

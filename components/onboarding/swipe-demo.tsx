@@ -31,7 +31,7 @@ export function SwipeDemo() {
       -1, // infinite
       false, // don't reverse — loop from 0
     );
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- shared value assigned once on mount
 
   // Card translateX and rotation based on progress
   const cardStyle = useAnimatedStyle(() => {
@@ -97,7 +97,7 @@ export function SwipeDemo() {
     const backgroundColor = interpolateColor(
       greenOpacity > pinkOpacity ? greenOpacity : -pinkOpacity,
       [-0.55, 0, 0.55],
-      ['#FF5C8A', 'transparent', '#34C77B'],
+      ['#FF5C8A', 'rgba(0,0,0,0)', '#34C77B'],
     );
     const opacity = Math.max(greenOpacity, pinkOpacity);
 

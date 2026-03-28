@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, Dimensions, FlatList } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
@@ -7,7 +7,6 @@ import { WelcomeSplash } from './welcome-splash';
 import { SwipeDemo } from './swipe-demo';
 import { ThemePicker } from './theme-picker';
 
-const { width } = Dimensions.get('window');
 const TOTAL_SCREENS = 3;
 
 interface OnboardingScreensProps {
@@ -68,10 +67,6 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
         bounces={false}
         scrollEnabled={false}
         scrollEventThrottle={16}
-        onMomentumScrollEnd={(e) => {
-          const index = Math.round(e.nativeEvent.contentOffset.x / width);
-          setCurrentIndex(index);
-        }}
       />
 
       {/* Bottom area: dots + button */}
