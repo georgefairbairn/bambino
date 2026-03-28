@@ -19,9 +19,26 @@ import { useTheme } from '@/contexts/theme-context';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const NAME_POOL = [
-  'Luna', 'Olivia', 'Liam', 'Emma', 'Noah', 'Sophia', 'Milo', 'Aria',
-  'Leo', 'Isla', 'Finn', 'Ella', 'Rex', 'Ivy', 'Hugo', 'Lily',
-  'Ezra', 'Nora', 'Theo', 'Ruby',
+  'Luna',
+  'Olivia',
+  'Liam',
+  'Emma',
+  'Noah',
+  'Sophia',
+  'Milo',
+  'Aria',
+  'Leo',
+  'Isla',
+  'Finn',
+  'Ella',
+  'Rex',
+  'Ivy',
+  'Hugo',
+  'Lily',
+  'Ezra',
+  'Nora',
+  'Theo',
+  'Ruby',
 ];
 
 const MAX_PILLS = 8;
@@ -44,14 +61,67 @@ interface PillConfig {
 export function WelcomeSplash() {
   const { colors } = useTheme();
 
+  // Phase tracking: 1 = entrance, 2 = slide up, 3 = bubbles
+  const phase = useSharedValue(1);
+
+  // Phase 1: Emoji entrance — fade up + scale bounce
+  const emojiOpacity = useSharedValue(0);
+  const emojiScale = useSharedValue(0);
+  const emojiTranslateY = useSharedValue(30);
+
+  // Phase 1: Title + tagline fade-in
+  const titleOpacity = useSharedValue(0);
+  const taglineOpacity = useSharedValue(0);
+
+  // Phase 2: Branding group position + scale (wired in Task 3)
+  const brandingTranslateY = useSharedValue(0);
+  const brandingScale = useSharedValue(1);
+
+  useEffect(() => {
+    // Phase 1 sequence
+    // 0.0s — emoji fades up + scale bounce
+    emojiOpacity.value = withTiming(1, { duration: 400 });
+    emojiTranslateY.value = withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) });
+    emojiScale.value = withSequence(
+      withTiming(1.1, { duration: 400, easing: Easing.out(Easing.cubic) }),
+      withSpring(1, { damping: 8, stiffness: 120 }),
+    );
+
+    // 0.3s — title fades in
+    titleOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
+
+    // 0.5s — tagline fades in
+    taglineOpacity.value = withDelay(500, withTiming(1, { duration: 400 }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const emojiStyle = useAnimatedStyle(() => ({
+    opacity: emojiOpacity.value,
+    transform: [{ translateY: emojiTranslateY.value }, { scale: emojiScale.value }],
+  }));
+
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+  }));
+
+  const taglineStyle = useAnimatedStyle(() => ({
+    opacity: taglineOpacity.value,
+  }));
+
+  const brandingGroupStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: brandingTranslateY.value }, { scale: brandingScale.value }],
+  }));
+
   return (
     <View style={styles.container}>
-      {/* Branding group — will animate in Task 2 */}
-      <View style={styles.brandingCenter}>
-        <Text style={styles.emoji}>{'\u{1F476}'}</Text>
-        <Text style={[styles.brandName, { color: colors.primary }]}>bambino</Text>
-        <Text style={styles.tagline}>Find the perfect name, together.</Text>
-      </View>
+      <Animated.View style={[styles.brandingCenter, brandingGroupStyle]}>
+        <Animated.Text style={[styles.emoji, emojiStyle]}>{'\u{1F476}'}</Animated.Text>
+        <Animated.Text style={[styles.brandName, { color: colors.primary }, titleStyle]}>
+          bambino
+        </Animated.Text>
+        <Animated.Text style={[styles.tagline, taglineStyle]}>
+          Find the perfect name, together.
+        </Animated.Text>
+      </Animated.View>
     </View>
   );
 }
