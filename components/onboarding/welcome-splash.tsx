@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Fonts } from '@/constants/theme';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface FloatingName {
   name: string;
@@ -52,10 +52,7 @@ function FloatingNameCard({ card }: { card: FloatingName }) {
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { rotate: `${card.rotation}deg` },
-    ],
+    transform: [{ translateY: translateY.value }, { rotate: `${card.rotation}deg` }],
   }));
 
   return (
@@ -96,21 +93,13 @@ export function WelcomeSplash() {
 
       {/* Center content */}
       <View style={styles.centerContent}>
-        <Animated.Text style={[styles.emoji, emojiStyle]}>
-          {'\u{1F476}'}
-        </Animated.Text>
+        <Animated.Text style={[styles.emoji, emojiStyle]}>{'\u{1F476}'}</Animated.Text>
 
-        <Animated.Text
-          entering={FadeIn.delay(300).duration(400)}
-          style={styles.brandName}
-        >
+        <Animated.Text entering={FadeIn.delay(300).duration(400)} style={styles.brandName}>
           bambino
         </Animated.Text>
 
-        <Animated.Text
-          entering={FadeIn.delay(500).duration(400)}
-          style={styles.tagline}
-        >
+        <Animated.Text entering={FadeIn.delay(500).duration(400)} style={styles.tagline}>
           Find the perfect name, together.
         </Animated.Text>
       </View>

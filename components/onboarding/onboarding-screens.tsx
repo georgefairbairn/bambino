@@ -36,13 +36,10 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
 
   const isLastScreen = currentIndex === TOTAL_SCREENS - 1;
 
-  const renderScreen = useCallback(
-    ({ item }: { item: (typeof SCREENS)[number] }) => {
-      const Screen = item.component;
-      return <Screen />;
-    },
-    [],
-  );
+  const renderScreen = useCallback(({ item }: { item: (typeof SCREENS)[number] }) => {
+    const Screen = item.component;
+    return <Screen />;
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -84,10 +81,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
           {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
             <View
               key={i}
-              style={[
-                styles.dot,
-                i === currentIndex ? styles.dotActive : styles.dotInactive,
-              ]}
+              style={[styles.dot, i === currentIndex ? styles.dotActive : styles.dotInactive]}
             />
           ))}
         </View>
@@ -100,9 +94,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={styles.ctaText}>
-              {isLastScreen ? 'Get Started' : 'Next'}
-            </Text>
+            <Text style={styles.ctaText}>{isLastScreen ? 'Get Started' : 'Next'}</Text>
           </LinearGradient>
         </Pressable>
       </View>

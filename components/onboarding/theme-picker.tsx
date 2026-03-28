@@ -7,14 +7,6 @@ import { useTheme } from '@/contexts/theme-context';
 
 const { width } = Dimensions.get('window');
 
-// Onboarding-specific gradient backgrounds per theme (lighter/softer than app screenBg)
-const ONBOARDING_BG: Record<ThemeKey, readonly [string, string, string]> = {
-  pink: ['#FFF0F5', '#FFE4EC', '#F5E6FF'],
-  mint: ['#F0FFF4', '#E4FFED', '#E6F5FF'],
-  blue: ['#F0F5FF', '#E4ECFF', '#F5E6FF'],
-  yellow: ['#FFFDF0', '#FFF8E1', '#FFF5E6'],
-};
-
 function ThemeCard({
   themeKey,
   isSelected,
@@ -29,10 +21,7 @@ function ThemeCard({
 
   return (
     <Pressable
-      style={[
-        styles.themeCard,
-        isSelected && { borderColor: theme.primary },
-      ]}
+      style={[styles.themeCard, isSelected && { borderColor: theme.primary }]}
       onPress={onSelect}
     >
       <View style={styles.swatchWrap}>
@@ -77,18 +66,12 @@ export function ThemePicker() {
   return (
     <View style={styles.container}>
       {/* Title */}
-      <Animated.Text
-        entering={FadeIn.delay(200).duration(400)}
-        style={styles.title}
-      >
+      <Animated.Text entering={FadeIn.delay(200).duration(400)} style={styles.title}>
         Pick Your Vibe
       </Animated.Text>
 
       {/* 2x2 theme grid */}
-      <Animated.View
-        entering={FadeIn.delay(300).duration(500)}
-        style={styles.grid}
-      >
+      <Animated.View entering={FadeIn.delay(300).duration(500)} style={styles.grid}>
         {(['pink', 'mint', 'blue', 'yellow'] as ThemeKey[]).map((key) => (
           <ThemeCard
             key={key}
@@ -100,10 +83,7 @@ export function ThemePicker() {
       </Animated.View>
 
       {/* Preview mini-card */}
-      <Animated.View
-        entering={FadeIn.delay(500).duration(400)}
-        style={styles.previewArea}
-      >
+      <Animated.View entering={FadeIn.delay(500).duration(400)} style={styles.previewArea}>
         <PreviewCard themeKey={themeKey} />
       </Animated.View>
     </View>

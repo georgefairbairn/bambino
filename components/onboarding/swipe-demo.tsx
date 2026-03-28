@@ -39,13 +39,13 @@ export function SwipeDemo() {
     // Keyframes: rest -> right -> rest -> left -> rest
     const translateX = interpolate(
       p,
-      [0, 0.16, 0.28, 0.40, 0.56, 0.68, 0.80, 1.0],
+      [0, 0.16, 0.28, 0.4, 0.56, 0.68, 0.8, 1.0],
       [0, 0, 50, 0, 0, -50, 0, 0],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.16, 0.28, 0.40, 0.56, 0.68, 0.80, 1.0],
+      [0, 0.16, 0.28, 0.4, 0.56, 0.68, 0.8, 1.0],
       [0, 0, 6, 0, 0, -6, 0, 0],
       Extrapolation.CLAMP,
     );
@@ -57,18 +57,8 @@ export function SwipeDemo() {
   // LIKE stamp opacity and scale
   const likeStampStyle = useAnimatedStyle(() => {
     const p = progress.value;
-    const opacity = interpolate(
-      p,
-      [0.18, 0.24, 0.28, 0.36],
-      [0, 1, 1, 0],
-      Extrapolation.CLAMP,
-    );
-    const scale = interpolate(
-      p,
-      [0.18, 0.22, 0.26],
-      [0.6, 1.15, 1],
-      Extrapolation.CLAMP,
-    );
+    const opacity = interpolate(p, [0.18, 0.24, 0.28, 0.36], [0, 1, 1, 0], Extrapolation.CLAMP);
+    const scale = interpolate(p, [0.18, 0.22, 0.26], [0.6, 1.15, 1], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [{ rotate: '-12deg' }, { scale }],
@@ -78,18 +68,8 @@ export function SwipeDemo() {
   // NOPE stamp opacity and scale
   const nopeStampStyle = useAnimatedStyle(() => {
     const p = progress.value;
-    const opacity = interpolate(
-      p,
-      [0.58, 0.64, 0.68, 0.76],
-      [0, 1, 1, 0],
-      Extrapolation.CLAMP,
-    );
-    const scale = interpolate(
-      p,
-      [0.58, 0.62, 0.66],
-      [0.6, 1.15, 1],
-      Extrapolation.CLAMP,
-    );
+    const opacity = interpolate(p, [0.58, 0.64, 0.68, 0.76], [0, 1, 1, 0], Extrapolation.CLAMP);
+    const scale = interpolate(p, [0.58, 0.62, 0.66], [0.6, 1.15, 1], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [{ rotate: '12deg' }, { scale }],
@@ -102,14 +82,14 @@ export function SwipeDemo() {
     // Green flash during right swipe (0.18 - 0.36)
     const greenOpacity = interpolate(
       p,
-      [0.18, 0.24, 0.34, 0.40],
+      [0.18, 0.24, 0.34, 0.4],
       [0, 0.55, 0.55, 0],
       Extrapolation.CLAMP,
     );
     // Pink flash during left swipe (0.58 - 0.76)
     const pinkOpacity = interpolate(
       p,
-      [0.58, 0.64, 0.74, 0.80],
+      [0.58, 0.64, 0.74, 0.8],
       [0, 0.55, 0.55, 0],
       Extrapolation.CLAMP,
     );
@@ -127,10 +107,7 @@ export function SwipeDemo() {
   return (
     <View style={styles.container}>
       {/* Title */}
-      <Animated.Text
-        entering={FadeIn.delay(200).duration(400)}
-        style={styles.title}
-      >
+      <Animated.Text entering={FadeIn.delay(200).duration(400)} style={styles.title}>
         Swipe to Decide
       </Animated.Text>
 
@@ -140,24 +117,18 @@ export function SwipeDemo() {
         <View style={[styles.peekCard, { borderColor: colors.primary }]} />
 
         {/* Main animated card */}
-        <Animated.View
-          style={[styles.demoCard, { borderColor: colors.primary }, cardStyle]}
-        >
+        <Animated.View style={[styles.demoCard, { borderColor: colors.primary }, cardStyle]}>
           {/* Background color flash */}
           <Animated.View style={[styles.bgFlash, bgFlashStyle]} />
 
           {/* LIKE stamp */}
-          <Animated.View
-            style={[styles.stamp, styles.likeStamp, likeStampStyle]}
-          >
+          <Animated.View style={[styles.stamp, styles.likeStamp, likeStampStyle]}>
             <Ionicons name="heart" size={18} color="#34C77B" />
             <Text style={styles.likeStampText}>LIKE</Text>
           </Animated.View>
 
           {/* NOPE stamp */}
-          <Animated.View
-            style={[styles.stamp, styles.nopeStamp, nopeStampStyle]}
-          >
+          <Animated.View style={[styles.stamp, styles.nopeStamp, nopeStampStyle]}>
             <Ionicons name="heart-dislike" size={18} color="#FF5C8A" />
             <Text style={styles.nopeStampText}>NOPE</Text>
           </Animated.View>
@@ -168,35 +139,17 @@ export function SwipeDemo() {
             <View style={styles.cardUnderline} />
 
             <View style={styles.originRow}>
-              <View
-                style={[
-                  styles.originPill,
-                  { backgroundColor: colors.surfaceSubtle },
-                ]}
-              >
-                <Text style={styles.originText}>
-                  {'\u{1F1EE}\u{1F1F9}'} Latin
-                </Text>
+              <View style={[styles.originPill, { backgroundColor: colors.surfaceSubtle }]}>
+                <Text style={styles.originText}>{'\u{1F1EE}\u{1F1F9}'} Latin</Text>
               </View>
-              <View
-                style={[
-                  styles.speakBtn,
-                  { backgroundColor: colors.surfaceSubtle },
-                ]}
-              >
+              <View style={[styles.speakBtn, { backgroundColor: colors.surfaceSubtle }]}>
                 <Ionicons name="volume-high" size={14} color="#6B5B7B" />
               </View>
             </View>
 
-            <View
-              style={[
-                styles.meaningBox,
-                { backgroundColor: colors.surfaceSubtle },
-              ]}
-            >
+            <View style={[styles.meaningBox, { backgroundColor: colors.surfaceSubtle }]}>
               <Text style={styles.meaningText}>
-                {'\u201C'}Moon{'\u201D'} {'\u2014'} associated with the Roman
-                goddess of the moon
+                {'\u201C'}Moon{'\u201D'} {'\u2014'} associated with the Roman goddess of the moon
               </Text>
             </View>
 
@@ -211,10 +164,7 @@ export function SwipeDemo() {
       </View>
 
       {/* Instruction text */}
-      <Animated.View
-        entering={FadeIn.delay(400).duration(400)}
-        style={styles.instruction}
-      >
+      <Animated.View entering={FadeIn.delay(400).duration(400)} style={styles.instruction}>
         <Text style={styles.instructionText}>
           Swipe <Text style={styles.likeColor}>right</Text> to like,{' '}
           <Text style={styles.nopeColor}>left</Text> to pass
