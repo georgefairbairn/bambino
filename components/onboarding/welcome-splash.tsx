@@ -58,7 +58,13 @@ interface PillConfig {
   isSmall: boolean;
 }
 
-function BubblePill({ config, onComplete }: { config: PillConfig; onComplete: () => void }) {
+function BubblePill({
+  config,
+  onComplete,
+}: {
+  config: PillConfig;
+  onComplete: (id: number) => void;
+}) {
   // Rise: from bottom of screen to above branding
   const translateY = useSharedValue(0);
   // Sway: subtle side-to-side sine wave
@@ -79,7 +85,7 @@ function BubblePill({ config, onComplete }: { config: PillConfig; onComplete: ()
       },
       (finished) => {
         if (finished) {
-          runOnJS(onComplete)();
+          runOnJS(onComplete)(config.id);
         }
       },
     );
@@ -175,10 +181,10 @@ export function WelcomeSplash() {
   }, []);
 
   const spawnPill = useCallback(() => {
+    const id = nextId.current++;
     setPills((prev) => {
       if (prev.length >= MAX_PILLS) return prev; // cap at 8
 
-      const id = nextId.current++;
       const name = NAME_POOL[Math.floor(Math.random() * NAME_POOL.length)];
       // Random X: leave 20px margin on each side, account for pill width (~100px)
       const startX = 20 + Math.random() * (SCREEN_WIDTH - 140);
@@ -270,7 +276,7 @@ export function WelcomeSplash() {
 
       {/* Phase 3: Bubbling pills */}
       {pills.map((pill) => (
-        <BubblePill key={pill.id} config={pill} onComplete={() => removePill(pill.id)} />
+        <BubblePill key={pill.id} config={pill} onComplete={removePill} />
       ))}
     </View>
   );
