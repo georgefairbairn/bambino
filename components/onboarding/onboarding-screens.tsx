@@ -1,13 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { WelcomeSplash } from './welcome-splash';
