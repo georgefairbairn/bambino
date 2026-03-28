@@ -110,6 +110,18 @@ export function SwipeDemo() {
     return { backgroundColor, opacity };
   });
 
+  // Card text fades out during swipes, returns at rest
+  const contentFadeStyle = useAnimatedStyle(() => {
+    const p = progress.value;
+    const fade = interpolate(
+      p,
+      [0, 0.04, 0.12, 0.20, 0.24, 0.40, 0.44, 0.52, 0.60, 0.64, 1.0],
+      [1, 0.3, 0.3, 0.3, 1, 1, 0.3, 0.3, 0.3, 1, 1],
+      Extrapolation.CLAMP,
+    );
+    return { opacity: fade };
+  });
+
   return (
     <View style={styles.container}>
       {/* Title */}
@@ -139,8 +151,8 @@ export function SwipeDemo() {
             <Text style={styles.nopeStampText}>NOPE</Text>
           </Animated.View>
 
-          {/* Card content */}
-          <View style={styles.cardContent}>
+          {/* Card content — fades during swipes */}
+          <Animated.View style={[styles.cardContent, contentFadeStyle]}>
             <Text style={styles.cardName}>Aurora</Text>
             <View style={styles.cardUnderline} />
 
@@ -165,7 +177,7 @@ export function SwipeDemo() {
               <Text style={styles.swipeHintText}>swipe</Text>
               <Ionicons name="chevron-forward" size={12} color="#A89BB5" />
             </View>
-          </View>
+          </Animated.View>
         </Animated.View>
       </View>
 
