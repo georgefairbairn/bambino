@@ -5,7 +5,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withDelay,
-  withRepeat,
   withSequence,
   withTiming,
   Easing,
@@ -41,10 +40,11 @@ const NAME_POOL = [
   'Ruby',
 ];
 
-const MAX_PILLS = 8;
-const PILL_SPAWN_MIN = 1500; // ms
-const PILL_SPAWN_MAX = 2000; // ms
+const MAX_PILLS = 14;
+const PILL_SPAWN_MIN = 600; // ms
+const PILL_SPAWN_MAX = 1000; // ms
 const PILL_RISE_DURATION = 8000; // ms for full rise from bottom to top
+const PILL_FADE_DURATION = 2800; // ms — pills fade out well before reaching branding
 const BADGE_DELAY = 300; // ms after pill enters before badge pops
 // Bottom area of parent (dots + CTA) occupies ~90px from bottom: 50
 const BOTTOM_ZONE = 140; // start pills above parent's bottom controls
@@ -66,60 +66,31 @@ function BubblePill({
   config: PillConfig;
   onComplete: (id: number) => void;
 }) {
-  // Rise: from bottom of screen to above branding
   const translateY = useSharedValue(0);
-  // Sway: subtle side-to-side sine wave
-  const swayX = useSharedValue(0);
-  // Fade: start near full opacity, fade to 0
   const opacity = useSharedValue(0.95);
-  // Badge opacity: fades in after delay
   const badgeOpacity = useSharedValue(0);
 
   useEffect(() => {
-    // Rise from bottom to top over PILL_RISE_DURATION
     const riseDistance = SCREEN_HEIGHT - BOTTOM_ZONE;
     translateY.value = withTiming(
       -riseDistance,
-      {
-        duration: PILL_RISE_DURATION,
-        easing: Easing.linear,
-      },
+      { duration: PILL_RISE_DURATION, easing: Easing.linear },
       (finished) => {
-        if (finished) {
-          runOnJS(onComplete)(config.id);
-        }
+        if (finished) runOnJS(onComplete)(config.id);
       },
     );
 
-    // Fade out as pill rises
     opacity.value = withTiming(0, {
-      duration: PILL_RISE_DURATION,
+      duration: PILL_FADE_DURATION,
       easing: Easing.in(Easing.quad),
     });
 
-    // Sway: gentle side-to-side oscillation
-    swayX.value = withRepeat(
-      withSequence(
-        withTiming(10, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
-        withTiming(-10, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
-      ),
-      -1, // infinite
-    );
-
-    // Badge fades in after BADGE_DELAY
     badgeOpacity.value = withDelay(BADGE_DELAY, withTiming(1, { duration: 250 }));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Static glow color based on like/nope — no per-frame shadow recalculation
-  const glowColor = config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope;
-
   const pillStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { translateX: swayX.value },
-      { rotate: `${config.rotation}deg` },
-    ],
+    transform: [{ translateY: translateY.value }, { rotate: `${config.rotation}deg` }],
   }));
 
   const badgeStyle = useAnimatedStyle(() => ({
@@ -128,37 +99,47 @@ function BubblePill({
 
   const badgeColor = config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope;
   const badgeIcon = config.isLike ? 'heart' : 'heart-dislike';
-  const badgeText = config.isLike ? 'LIKE' : 'NOPE';
+  const badgeLabel = config.isLike ? 'LIKE' : 'NOPE';
 
   return (
     <Animated.View
       style={[
         styles.pill,
         config.isSmall && styles.pillSmall,
-        { left: config.startX, bottom: BOTTOM_ZONE },
-        { shadowColor: glowColor, shadowOpacity: 0.35, shadowRadius: 12 },
+        {
+          left: config.startX,
+          bottom: BOTTOM_ZONE,
+          borderColor: badgeColor,
+          borderWidth: 1,
+          shadowColor: badgeColor,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.45,
+          shadowRadius: 7,
+        },
         pillStyle,
       ]}
     >
       <Text style={[styles.pillText, config.isSmall && styles.pillTextSmall]}>{config.name}</Text>
 
-      {/* Badge */}
+      {/* Badge: miniature LIKE/NOPE stamp */}
       <Animated.View
         style={[
           styles.badge,
           { borderColor: badgeColor },
-          config.badgeOnLeft ? { left: -4, right: undefined } : { right: -4, left: undefined },
+          config.badgeOnLeft ? { left: -8 } : { right: -8 },
           badgeStyle,
         ]}
       >
-        <Ionicons name={badgeIcon} size={8} color={badgeColor} />
-        <Text style={[styles.badgeText, { color: badgeColor }]}>{badgeText}</Text>
+        <Ionicons name={badgeIcon} size={10} color={badgeColor} />
+        <Text numberOfLines={1} style={[styles.badgeText, { color: badgeColor }]}>
+          {badgeLabel}
+        </Text>
       </Animated.View>
     </Animated.View>
   );
 }
 
-export function WelcomeSplash() {
+export function WelcomeSplash({ isActive }: { isActive: boolean }) {
   const { colors } = useTheme();
 
   // Phase 1: Emoji entrance — fade up + scale bounce
@@ -283,7 +264,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 80,
+    paddingBottom: 200,
     zIndex: 10,
   },
   emoji: {
@@ -303,44 +284,39 @@ const styles = StyleSheet.create({
   pill: {
     position: 'absolute',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 22,
   },
   pillSmall: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 18,
   },
   pillText: {
-    fontSize: 15,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
+    fontSize: 17,
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#2D1B4E',
   },
   pillTextSmall: {
-    fontSize: 13,
+    fontSize: 14,
   },
   badge: {
     position: 'absolute',
-    top: -8,
+    top: -13,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
-    borderWidth: 1.5,
+    gap: 3,
+    minWidth: 50,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderWidth: 2.5,
+    borderRadius: 5,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   badgeText: {
-    fontSize: 7,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8,
+    letterSpacing: 1.5,
   },
 });

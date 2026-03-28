@@ -37,14 +37,17 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
 
   const isLastScreen = currentIndex === TOTAL_SCREENS - 1;
 
-  const renderScreen = useCallback(({ item }: { item: (typeof SCREENS)[number] }) => {
-    const Screen = item.component;
-    return (
-      <View style={styles.screenWrapper}>
-        <Screen />
-      </View>
-    );
-  }, []);
+  const renderScreen = useCallback(
+    ({ item, index }: { item: (typeof SCREENS)[number]; index: number }) => {
+      const Screen = item.component;
+      return (
+        <View style={styles.screenWrapper}>
+          <Screen isActive={index === currentIndex} />
+        </View>
+      );
+    },
+    [currentIndex],
+  );
 
   return (
     <View style={styles.container}>

@@ -17,12 +17,14 @@ const { width } = Dimensions.get('window');
 
 const LOOP_DURATION = 5000;
 
-export function MultiplayerIntro() {
+export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
+    if (!isActive) return;
+    progress.value = 0;
     progress.value = withRepeat(withTiming(1, { duration: LOOP_DURATION }), -1, false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Card animations ──────────────────────────────────────────────
   // Timeline (5s): Slide together 0-10% | Banner pop 10-16% |

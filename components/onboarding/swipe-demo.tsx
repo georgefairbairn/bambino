@@ -26,18 +26,19 @@ const CARD_HEIGHT = height - 310;
 // 0-0.8s: swipe right, 0.8-1.6s: rest, 1.6-2.4s: swipe left, 2.4-3.2s: rest, 3.2-5s: rest
 const LOOP_DURATION = 5000;
 
-export function SwipeDemo() {
+export function SwipeDemo({ isActive }: { isActive: boolean }) {
   const { colors } = useTheme();
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    // Progress goes 0 -> 1 over LOOP_DURATION, then repeats
+    if (!isActive) return;
+    progress.value = 0;
     progress.value = withRepeat(
       withTiming(1, { duration: LOOP_DURATION }),
       -1, // infinite
       false, // don't reverse — loop from 0
     );
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- shared value assigned once on mount
+  }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Card translateX and rotation based on progress
   // Starts swiping right immediately (no leading rest phase)
