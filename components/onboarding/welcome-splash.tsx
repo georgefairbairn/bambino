@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -8,100 +8,49 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
-  FadeIn,
+  Easing,
+  runOnJS,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { SWIPE_COLORS, SPRING_CONFIG } from '@/constants/swipe';
+import { useTheme } from '@/contexts/theme-context';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-interface FloatingName {
-  name: string;
-  x: number; // % from left (0-100)
-  y: number; // % from top (0-100)
-  rotation: number; // degrees
-  delay: number; // ms entrance delay
-  bobDuration: number; // ms per bob cycle
-  bobAmount: number; // px bob distance
-}
-
-const FLOATING_NAMES: FloatingName[] = [
-  { name: 'Olivia', x: 8, y: 12, rotation: -6, delay: 0, bobDuration: 3000, bobAmount: 8 },
-  { name: 'Liam', x: 65, y: 8, rotation: 4, delay: 200, bobDuration: 3500, bobAmount: 10 },
-  { name: 'Emma', x: 5, y: 35, rotation: 3, delay: 400, bobDuration: 3200, bobAmount: 7 },
-  { name: 'Noah', x: 70, y: 32, rotation: -5, delay: 600, bobDuration: 3800, bobAmount: 9 },
-  { name: 'Sophia', x: 55, y: 58, rotation: 5, delay: 800, bobDuration: 3400, bobAmount: 8 },
-  { name: 'Milo', x: 10, y: 62, rotation: -4, delay: 1000, bobDuration: 3600, bobAmount: 10 },
-  { name: 'Aria', x: 60, y: 78, rotation: 3, delay: 1200, bobDuration: 3100, bobAmount: 7 },
+const NAME_POOL = [
+  'Luna', 'Olivia', 'Liam', 'Emma', 'Noah', 'Sophia', 'Milo', 'Aria',
+  'Leo', 'Isla', 'Finn', 'Ella', 'Rex', 'Ivy', 'Hugo', 'Lily',
+  'Ezra', 'Nora', 'Theo', 'Ruby',
 ];
 
-function FloatingNameCard({ card }: { card: FloatingName }) {
-  const translateY = useSharedValue(0);
+const MAX_PILLS = 8;
+const PILL_SPAWN_MIN = 1500; // ms
+const PILL_SPAWN_MAX = 2000; // ms
+const PILL_RISE_DURATION = 8000; // ms for full rise from bottom to top
+const BADGE_DELAY = 300; // ms after pill enters before badge pops
+// Bottom area of parent (dots + CTA) occupies ~90px from bottom: 50
+const BOTTOM_ZONE = 140; // start pills above parent's bottom controls
 
-  useEffect(() => {
-    translateY.value = withDelay(
-      card.delay,
-      withRepeat(
-        withSequence(
-          withTiming(card.bobAmount, { duration: card.bobDuration / 2 }),
-          withTiming(-card.bobAmount, { duration: card.bobDuration / 2 }),
-        ),
-        -1, // infinite
-        true, // reverse
-      ),
-    );
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- shared value assigned once on mount
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }, { rotate: `${card.rotation}deg` }],
-  }));
-
-  return (
-    <Animated.View
-      entering={FadeIn.delay(card.delay).duration(600).springify()}
-      style={[
-        styles.nameCard,
-        {
-          left: `${card.x}%`,
-          top: `${card.y}%`,
-        },
-        animatedStyle,
-      ]}
-    >
-      <Text style={styles.nameCardText}>{card.name}</Text>
-    </Animated.View>
-  );
+interface PillConfig {
+  id: number;
+  name: string;
+  startX: number; // px from left
+  rotation: number; // degrees (-6 to +6)
+  isLike: boolean;
+  isSmall: boolean;
 }
 
 export function WelcomeSplash() {
-  // Baby emoji scale-in spring
-  const emojiScale = useSharedValue(0);
-
-  useEffect(() => {
-    emojiScale.value = withSpring(1, { damping: 8, stiffness: 100 });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- shared value assigned once on mount
-
-  const emojiStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: emojiScale.value }],
-  }));
+  const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
-      {/* Floating name cards */}
-      {FLOATING_NAMES.map((card) => (
-        <FloatingNameCard key={card.name} card={card} />
-      ))}
-
-      {/* Center content */}
-      <View style={styles.centerContent}>
-        <Animated.Text style={[styles.emoji, emojiStyle]}>{'\u{1F476}'}</Animated.Text>
-
-        <Animated.Text entering={FadeIn.delay(300).duration(400)} style={styles.brandName}>
-          bambino
-        </Animated.Text>
-
-        <Animated.Text entering={FadeIn.delay(500).duration(400)} style={styles.tagline}>
-          Find the perfect name, together.
-        </Animated.Text>
+      {/* Branding group — will animate in Task 2 */}
+      <View style={styles.brandingCenter}>
+        <Text style={styles.emoji}>{'\u{1F476}'}</Text>
+        <Text style={[styles.brandName, { color: colors.primary }]}>bambino</Text>
+        <Text style={styles.tagline}>Find the perfect name, together.</Text>
       </View>
     </View>
   );
@@ -109,32 +58,15 @@ export function WelcomeSplash() {
 
 const styles = StyleSheet.create({
   container: {
-    width,
+    width: SCREEN_WIDTH,
     flex: 1,
+    overflow: 'hidden',
   },
-  nameCard: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  nameCardText: {
-    fontSize: 15,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    color: '#2D1B4E',
-  },
-  centerContent: {
+  brandingCenter: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 80, // offset slightly above center
+    paddingBottom: 80,
   },
   emoji: {
     fontSize: 48,
@@ -143,7 +75,6 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: 38,
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    color: '#2D1B4E',
     marginBottom: 8,
   },
   tagline: {
