@@ -56,6 +56,7 @@ interface PillConfig {
   rotation: number; // degrees (-6 to +6)
   isLike: boolean;
   isSmall: boolean;
+  badgeOnLeft: boolean;
 }
 
 function BubblePill({
@@ -99,8 +100,8 @@ function BubblePill({
     // Sway: gentle side-to-side oscillation
     swayX.value = withRepeat(
       withSequence(
-        withTiming(10, { duration: 1500, easing: Easing.inOut(Easing.sine) }),
-        withTiming(-10, { duration: 1500, easing: Easing.inOut(Easing.sine) }),
+        withTiming(10, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-10, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
       ),
       -1, // infinite
     );
@@ -147,7 +148,14 @@ function BubblePill({
       <Text style={[styles.pillText, config.isSmall && styles.pillTextSmall]}>{config.name}</Text>
 
       {/* Badge */}
-      <Animated.View style={[styles.badge, { borderColor: badgeColor }, badgeStyle]}>
+      <Animated.View
+        style={[
+          styles.badge,
+          { borderColor: badgeColor },
+          config.badgeOnLeft ? { left: -4, right: undefined } : { right: -4, left: undefined },
+          badgeStyle,
+        ]}
+      >
         <Ionicons name={badgeIcon} size={10} color={badgeColor} />
         <Text style={[styles.badgeText, { color: badgeColor }]}>{badgeText}</Text>
       </Animated.View>
@@ -185,14 +193,19 @@ export function WelcomeSplash() {
     setPills((prev) => {
       if (prev.length >= MAX_PILLS) return prev; // cap at 8
 
-      const name = NAME_POOL[Math.floor(Math.random() * NAME_POOL.length)];
+      // Avoid names already visible on screen
+      const usedNames = new Set(prev.map((p) => p.name));
+      const available = NAME_POOL.filter((n) => !usedNames.has(n));
+      const pool = available.length > 0 ? available : NAME_POOL;
+      const name = pool[Math.floor(Math.random() * pool.length)];
       // Random X: leave 20px margin on each side, account for pill width (~100px)
       const startX = 20 + Math.random() * (SCREEN_WIDTH - 140);
       const rotation = (Math.random() - 0.5) * 12; // -6 to +6 degrees
       const isLike = Math.random() > 0.5;
       const isSmall = Math.random() > 0.65; // ~35% chance of small variant
+      const badgeOnLeft = Math.random() > 0.5;
 
-      return [...prev, { id, name, startX, rotation, isLike, isSmall }];
+      return [...prev, { id, name, startX, rotation, isLike, isSmall, badgeOnLeft }];
     });
   }, []);
 
@@ -337,7 +350,6 @@ const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
     top: -11,
-    right: -4,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
