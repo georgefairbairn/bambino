@@ -9,6 +9,7 @@ import { GenderFilterSelector } from '@/components/search/gender-filter-selector
 import { OriginToggleList } from '@/components/search/origin-toggle-list';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
+import { SlotCounter } from '@/components/ui/slot-counter';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -85,9 +86,15 @@ export default function Filters() {
               <Text style={styles.counterLabel}>Names available</Text>
               <Text style={styles.counterSub}>{counterSub}</Text>
             </View>
-            <Text style={[styles.counterNum, { color: colors.primary }]}>
-              {nameCount !== undefined ? nameCount.toLocaleString() : '—'}
-            </Text>
+            {nameCount !== undefined ? (
+              <SlotCounter
+                value={nameCount}
+                fontSize={28}
+                textStyle={[styles.counterNum, { color: colors.primary }]}
+              />
+            ) : (
+              <Text style={[styles.counterNum, { color: colors.primary }]}>—</Text>
+            )}
           </View>
 
           {/* Gender filter */}
