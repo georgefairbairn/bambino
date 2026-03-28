@@ -58,6 +58,98 @@ interface PillConfig {
   isSmall: boolean;
 }
 
+function BubblePill({ config, onComplete }: { config: PillConfig; onComplete: () => void }) {
+
+  // Rise: from bottom of screen to above branding
+  const translateY = useSharedValue(0);
+  // Sway: subtle side-to-side sine wave
+  const swayX = useSharedValue(0);
+  // Fade: start near full opacity, fade to 0
+  const opacity = useSharedValue(0.95);
+  // Badge scale: pops in after delay
+  const badgeScale = useSharedValue(0);
+
+  useEffect(() => {
+    // Rise from bottom to top over PILL_RISE_DURATION
+    const riseDistance = SCREEN_HEIGHT - BOTTOM_ZONE;
+    translateY.value = withTiming(
+      -riseDistance,
+      {
+        duration: PILL_RISE_DURATION,
+        easing: Easing.linear,
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(onComplete)();
+        }
+      },
+    );
+
+    // Fade out as pill rises
+    opacity.value = withTiming(0, {
+      duration: PILL_RISE_DURATION,
+      easing: Easing.in(Easing.quad),
+    });
+
+    // Sway: gentle side-to-side oscillation
+    swayX.value = withRepeat(
+      withSequence(
+        withTiming(10, { duration: 1500, easing: Easing.inOut(Easing.sine) }),
+        withTiming(-10, { duration: 1500, easing: Easing.inOut(Easing.sine) }),
+      ),
+      -1, // infinite
+    );
+
+    // Badge pops in after BADGE_DELAY
+    badgeScale.value = withDelay(BADGE_DELAY, withSpring(1, { ...SPRING_CONFIG, stiffness: 200 }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pillStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [
+        { translateY: translateY.value },
+        { translateX: swayX.value },
+        { rotate: `${config.rotation}deg` },
+      ],
+      // Apply glow once badge is visible
+      shadowColor:
+        badgeScale.value > 0.5 ? (config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope) : '#000',
+      shadowOpacity: badgeScale.value > 0.5 ? 0.45 : 0.08,
+      shadowRadius: badgeScale.value > 0.5 ? 14 : 8,
+    };
+  });
+
+  const badgeStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: badgeScale.value }],
+    opacity: badgeScale.value,
+  }));
+
+  const badgeColor = config.isLike ? SWIPE_COLORS.like : SWIPE_COLORS.nope;
+  const badgeIcon = config.isLike ? 'heart' : 'heart-dislike';
+  const badgeText = config.isLike ? 'LIKE' : 'NOPE';
+
+  return (
+    <Animated.View
+      style={[
+        styles.pill,
+        config.isSmall && styles.pillSmall,
+        { left: config.startX },
+        { bottom: BOTTOM_ZONE },
+        pillStyle,
+      ]}
+    >
+      <Text style={[styles.pillText, config.isSmall && styles.pillTextSmall]}>{config.name}</Text>
+
+      {/* Badge */}
+      <Animated.View style={[styles.badge, { borderColor: badgeColor }, badgeStyle]}>
+        <Ionicons name={badgeIcon} size={10} color={badgeColor} />
+        <Text style={[styles.badgeText, { color: badgeColor }]}>{badgeText}</Text>
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
 export function WelcomeSplash() {
   const { colors } = useTheme();
 
@@ -99,14 +191,8 @@ export function WelcomeSplash() {
     // to move it up by roughly half the screen minus the target top position
     const targetY = -(SCREEN_HEIGHT / 2) + 120; // lands ~55px from top after scale
 
-    brandingTranslateY.value = withDelay(
-      900,
-      withSpring(targetY, SPRING_CONFIG),
-    );
-    brandingScale.value = withDelay(
-      900,
-      withSpring(0.8, SPRING_CONFIG),
-    );
+    brandingTranslateY.value = withDelay(900, withSpring(targetY, SPRING_CONFIG));
+    brandingScale.value = withDelay(900, withSpring(0.8, SPRING_CONFIG));
 
     // Mark Phase 3 ready after slide-up settles (~1.4s)
     setTimeout(() => {
@@ -171,5 +257,49 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
+  },
+  pill: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  pillSmall: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  pillText: {
+    fontSize: 15,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#2D1B4E',
+  },
+  pillTextSmall: {
+    fontSize: 13,
+  },
+  badge: {
+    position: 'absolute',
+    top: -11,
+    right: -4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  },
+  badgeText: {
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 1.5,
   },
 });
