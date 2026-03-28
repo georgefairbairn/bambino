@@ -15,7 +15,7 @@ import { Fonts } from '@/constants/theme';
 
 const { width } = Dimensions.get('window');
 
-const LOOP_DURATION = 6000;
+const LOOP_DURATION = 8000;
 
 export function MultiplayerIntro() {
   const progress = useSharedValue(0);
@@ -25,23 +25,25 @@ export function MultiplayerIntro() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Card animations ──────────────────────────────────────────────
+  // Timeline (8s): Rest 0-15% | Slide together 15-28% | Fade out 28-32% |
+  //   Banner hold 32-70% | Banner dismiss 70-80% | Cards return 80-90% | Rest 90-100%
   const youCardStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.22, 0.38, 0.42, 0.85, 1.0],
-      [0, 0, 24, 24, 0, 0],
+      [0, 0.15, 0.28, 0.32, 0.80, 0.90, 1.0],
+      [0, 0, 30, 30, 30, 0, 0],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.22, 0.38, 0.42, 0.85, 1.0],
-      [-3, -3, 0, 0, -3, -3],
+      [0, 0.15, 0.28, 0.32, 0.80, 0.90, 1.0],
+      [-3, -3, 0, 0, 0, -3, -3],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.38, 0.42, 0.72, 0.85, 1.0],
+      [0, 0.28, 0.32, 0.80, 0.90, 1.0],
       [1, 1, 0, 0, 1, 1],
       Extrapolation.CLAMP,
     );
@@ -55,19 +57,19 @@ export function MultiplayerIntro() {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.22, 0.38, 0.42, 0.85, 1.0],
-      [0, 0, -24, -24, 0, 0],
+      [0, 0.15, 0.28, 0.32, 0.80, 0.90, 1.0],
+      [0, 0, -30, -30, -30, 0, 0],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.22, 0.38, 0.42, 0.85, 1.0],
-      [3, 3, 0, 0, 3, 3],
+      [0, 0.15, 0.28, 0.32, 0.80, 0.90, 1.0],
+      [3, 3, 0, 0, 0, 3, 3],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.38, 0.42, 0.72, 0.85, 1.0],
+      [0, 0.28, 0.32, 0.80, 0.90, 1.0],
       [1, 1, 0, 0, 1, 1],
       Extrapolation.CLAMP,
     );
@@ -78,17 +80,18 @@ export function MultiplayerIntro() {
   });
 
   // ── Match banner animation ───────────────────────────────────────
+  // Longer hold on "It's a Match!" (32-70% = ~3s visible at 8s loop)
   const bannerStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const scale = interpolate(
       p,
-      [0, 0.36, 0.44, 0.48, 0.72, 0.82, 0.85, 1.0],
+      [0, 0.28, 0.34, 0.38, 0.70, 0.78, 0.80, 1.0],
       [0, 0, 1.06, 1, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.36, 0.44, 0.72, 0.82, 0.85, 1.0],
+      [0, 0.28, 0.34, 0.70, 0.78, 0.80, 1.0],
       [0, 0, 1, 1, 0, 0, 0],
       Extrapolation.CLAMP,
     );
@@ -124,7 +127,7 @@ export function MultiplayerIntro() {
           <Text style={styles.miniCardLabel}>YOU</Text>
           <Text style={styles.miniCardName}>Luna</Text>
           <View style={styles.stamp}>
-            <Ionicons name="heart" size={13} color="#34C77B" />
+            <Ionicons name="heart" size={14} color="#34C77B" />
             <Text style={styles.stampText}>LIKE</Text>
           </View>
         </Animated.View>
@@ -134,7 +137,7 @@ export function MultiplayerIntro() {
           <Text style={styles.miniCardLabel}>PARTNER</Text>
           <Text style={styles.miniCardName}>Luna</Text>
           <View style={styles.stamp}>
-            <Ionicons name="heart" size={13} color="#34C77B" />
+            <Ionicons name="heart" size={14} color="#34C77B" />
             <Text style={styles.stampText}>LIKE</Text>
           </View>
         </Animated.View>
@@ -198,7 +201,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    fontSize: 20,
+    fontSize: 24,
     color: '#2D1B4E',
     textAlign: 'center',
     marginTop: 76,
@@ -226,20 +229,20 @@ const styles = StyleSheet.create({
   // ── Match animation stage ──
   matchStage: {
     width: '100%',
-    height: 140,
-    marginTop: 16,
+    height: 180,
+    marginTop: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   miniCard: {
     position: 'absolute',
-    width: 96,
+    width: 116,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 4,
     borderColor: '#34D399',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.06,
@@ -248,13 +251,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardYou: {
-    left: width / 2 - 108,
+    left: width / 2 - 128,
   },
   cardPartner: {
-    right: width / 2 - 108,
+    right: width / 2 - 128,
   },
   miniCardLabel: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#A89BB5',
     fontWeight: '700',
     letterSpacing: 1,
@@ -262,9 +265,9 @@ const styles = StyleSheet.create({
   },
   miniCardName: {
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    fontSize: 18,
+    fontSize: 22,
     color: '#2D1B4E',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   stamp: {
     flexDirection: 'row',
@@ -273,12 +276,12 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#34C77B',
     borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     backgroundColor: 'rgba(255,255,255,0.95)',
   },
   stampText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: '#34C77B',
     letterSpacing: 2,
@@ -289,12 +292,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    borderRadius: 14,
+    gap: 8,
+    borderRadius: 16,
     borderWidth: 3,
     borderColor: '#F59E0B',
-    paddingHorizontal: 22,
-    paddingVertical: 10,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
     zIndex: 10,
     shadowColor: '#F59E0B',
     shadowOpacity: 0.25,
@@ -304,11 +307,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFBEB',
   },
   matchEmoji: {
-    fontSize: 16,
+    fontSize: 20,
   },
   matchText: {
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    fontSize: 14,
+    fontSize: 18,
     color: '#D97706',
   },
 
@@ -316,29 +319,29 @@ const styles = StyleSheet.create({
   explainer: {
     width: '100%',
     paddingHorizontal: 28,
-    marginTop: 14,
+    marginTop: 24,
   },
   step: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
-    paddingVertical: 9,
+    gap: 12,
+    paddingVertical: 12,
   },
   stepDivider: {
     height: 1,
     backgroundColor: 'rgba(45, 27, 78, 0.06)',
   },
   stepNum: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: 'rgba(52, 211, 153, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
   },
   stepNumText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
     color: '#059669',
   },
@@ -346,16 +349,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepTitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: '#2D1B4E',
-    lineHeight: 17,
+    lineHeight: 20,
   },
   stepDesc: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '400',
     color: '#6B5B7B',
-    lineHeight: 17,
+    lineHeight: 19,
     marginTop: 2,
     fontFamily: Fonts?.sans,
   },
