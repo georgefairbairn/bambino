@@ -175,10 +175,6 @@ export function WelcomeSplash() {
   const titleOpacity = useSharedValue(0);
   const taglineOpacity = useSharedValue(0);
 
-  // Phase 2: Branding group position + scale (wired in Task 3)
-  const brandingTranslateY = useSharedValue(0);
-  const brandingScale = useSharedValue(1);
-
   // Phase 3: Pill spawning
   const [pills, setPills] = useState<PillConfig[]>([]);
   const nextId = useRef(0);
@@ -233,24 +229,15 @@ export function WelcomeSplash() {
 
     // 0.5s — tagline fades in
     taglineOpacity.value = withDelay(500, withTiming(1, { duration: 400 }));
-
-    // Phase 2 at ~0.9s — branding slides up + scales down
-    // Calculate how far to move: from center to near top (paddingTop ~55px)
-    // The branding is centered (flex:1 + justifyContent:center), so we need
-    // to move it up by roughly half the screen minus the target top position
-    const targetY = -(SCREEN_HEIGHT / 2) + 200; // lands below status bar after scale
-
-    brandingTranslateY.value = withDelay(900, withSpring(targetY, SPRING_CONFIG));
-    brandingScale.value = withDelay(900, withSpring(0.8, SPRING_CONFIG));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Start pill spawning when Phase 3 begins
   useEffect(() => {
-    // Phase 3 starts at ~1.4s (set by setTimeout in Phase 2)
+    // Pills start after Phase 1 entrance completes (~0.9s)
     const startDelay = setTimeout(() => {
       spawnPill(); // First pill immediately
       scheduleNextSpawn(); // Then continuous spawning
-    }, 1400);
+    }, 900);
 
     return () => {
       clearTimeout(startDelay);
@@ -271,13 +258,9 @@ export function WelcomeSplash() {
     opacity: taglineOpacity.value,
   }));
 
-  const brandingGroupStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: brandingTranslateY.value }, { scale: brandingScale.value }],
-  }));
-
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.brandingCenter, brandingGroupStyle]}>
+      <View style={styles.brandingCenter}>
         <Animated.Text style={[styles.emoji, emojiStyle]}>{'\u{1F476}'}</Animated.Text>
         <Animated.Text style={[styles.brandName, { color: colors.primary }, titleStyle]}>
           bambino
@@ -285,9 +268,9 @@ export function WelcomeSplash() {
         <Animated.Text style={[styles.tagline, taglineStyle]}>
           Find the perfect name, together.
         </Animated.Text>
-      </Animated.View>
+      </View>
 
-      {/* Phase 3: Bubbling pills */}
+      {/* Bubbling pills */}
       {pills.map((pill) => (
         <BubblePill key={pill.id} config={pill} onComplete={removePill} />
       ))}
