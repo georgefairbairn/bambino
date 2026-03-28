@@ -60,6 +60,45 @@ export const getAvailableOrigins = query({
   },
 });
 
+export const getFilteredNameCount = query({
+  args: {
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
+    originFilter: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const genderFilter = args.genderFilter ?? 'both';
+    const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
+
+    let names =
+      genderValue !== null
+        ? await ctx.db
+            .query('names')
+            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
+            .collect()
+        : await ctx.db.query('names').collect();
+
+    const hasOriginFilter = args.originFilter !== undefined && args.originFilter.length > 0;
+    if (hasOriginFilter) {
+      const originSet = new Set(args.originFilter);
+      names = names.filter((n) => originSet.has(n.origin));
+    }
+
+    return names.length;
+  },
+});
+
+export const getOriginCounts = query({
+  args: {},
+  handler: async (ctx) => {
+    const allNames = await ctx.db.query('names').collect();
+    const counts: Record<string, number> = {};
+    for (const name of allNames) {
+      counts[name.origin] = (counts[name.origin] ?? 0) + 1;
+    }
+    return counts;
+  },
+});
+
 export const searchNames = query({
   args: {
     search: v.optional(v.string()),
