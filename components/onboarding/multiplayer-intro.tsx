@@ -36,7 +36,7 @@ export function MultiplayerIntro() {
     const rotate = interpolate(
       p,
       [0, 0.22, 0.38, 0.42, 0.85, 1.0],
-      [-3, -3, -1, -1, -3, -3],
+      [-3, -3, 0, 0, -3, -3],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
@@ -62,7 +62,7 @@ export function MultiplayerIntro() {
     const rotate = interpolate(
       p,
       [0, 0.22, 0.38, 0.42, 0.85, 1.0],
-      [3, 3, 1, 1, 3, 3],
+      [3, 3, 0, 0, 3, 3],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
-    backgroundColor: '#FEF9E7',
+    backgroundColor: '#FFFBEB',
   },
   matchEmoji: {
     fontSize: 16,
