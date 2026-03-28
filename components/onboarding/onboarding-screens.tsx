@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';
-import { useTheme } from '@/contexts/theme-context';
 import { WelcomeSplash } from './welcome-splash';
 import { SwipeDemo } from './swipe-demo';
-import { ThemePicker } from './theme-picker';
+import { MultiplayerIntro } from './multiplayer-intro';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const TOTAL_SCREENS = 3;
 
@@ -16,13 +17,12 @@ interface OnboardingScreensProps {
 const SCREENS = [
   { id: '1', component: WelcomeSplash },
   { id: '2', component: SwipeDemo },
-  { id: '3', component: ThemePicker },
+  { id: '3', component: MultiplayerIntro },
 ];
 
 export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const { gradients } = useTheme();
 
   const handleNext = useCallback(() => {
     if (currentIndex < TOTAL_SCREENS - 1) {
@@ -37,23 +37,22 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
 
   const renderScreen = useCallback(({ item }: { item: (typeof SCREENS)[number] }) => {
     const Screen = item.component;
-    return <Screen />;
+    return (
+      <View style={styles.screenWrapper}>
+        <Screen />
+      </View>
+    );
   }, []);
 
   return (
     <View style={styles.container}>
-      {/* Background gradient — uses current theme */}
+      {/* Background gradient */}
       <LinearGradient
-        colors={[...gradients.screenBg]}
+        colors={['#F0FDF4', '#D1FAE5', '#ECFDF5']}
         style={StyleSheet.absoluteFill}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.8, y: 1 }}
       />
-
-      {/* Skip button */}
-      <Pressable style={styles.skipButton} onPress={onComplete} hitSlop={12}>
-        <Text style={styles.skipText}>Skip</Text>
-      </Pressable>
 
       {/* Screen carousel */}
       <FlatList
@@ -84,7 +83,7 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
         {/* Next / Get Started button */}
         <Pressable onPress={handleNext}>
           <LinearGradient
-            colors={[...gradients.buttonPrimary]}
+            colors={['#6EE7B7', '#34D399']}
             style={styles.ctaButton}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -101,17 +100,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  skipButton: {
-    position: 'absolute',
-    top: 60,
-    right: 20,
-    zIndex: 10,
-    padding: 8,
-  },
-  skipText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
+  screenWrapper: {
+    width: SCREEN_WIDTH,
+    flex: 1,
+    overflow: 'hidden',
   },
   bottomArea: {
     position: 'absolute',
