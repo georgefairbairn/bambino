@@ -15,7 +15,7 @@ import { Fonts } from '@/constants/theme';
 
 const { width } = Dimensions.get('window');
 
-const LOOP_DURATION = 8000;
+const LOOP_DURATION = 5000;
 
 export function MultiplayerIntro() {
   const progress = useSharedValue(0);
@@ -25,32 +25,25 @@ export function MultiplayerIntro() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Card animations ──────────────────────────────────────────────
-  // Timeline (8s): Slide together 0-12% | Fade out 12-16% |
-  //   Banner hold 16-62% | Banner dismiss 62-72% | Cards return apart 72-82% | Rest 82-100%
-  // Cards start APART (tilted, offset) and slide TOGETHER (straight, centered)
+  // Timeline (5s): Slide together 0-10% | Banner pop 10-16% |
+  //   Hold 3s 16-76% | Dismiss + apart 76-86% | Rest 86-100%
+  // Cards stay visible the whole time (no fade out/in)
   const youCardStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [-30, 0, 0, 0, -30, -30],
+      [0, 0.10, 0.76, 0.86, 1.0],
+      [-30, 0, 0, -30, -30],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [-3, 0, 0, 0, -3, -3],
-      Extrapolation.CLAMP,
-    );
-    const opacity = interpolate(
-      p,
-      [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [1, 1, 0, 0, 1, 1],
+      [0, 0.10, 0.76, 0.86, 1.0],
+      [-3, 0, 0, -3, -3],
       Extrapolation.CLAMP,
     );
     return {
       transform: [{ rotate: `${rotate}deg` }, { translateX }],
-      opacity,
     };
   });
 
@@ -58,42 +51,35 @@ export function MultiplayerIntro() {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [30, 0, 0, 0, 30, 30],
+      [0, 0.10, 0.76, 0.86, 1.0],
+      [30, 0, 0, 30, 30],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [3, 0, 0, 0, 3, 3],
-      Extrapolation.CLAMP,
-    );
-    const opacity = interpolate(
-      p,
-      [0, 0.12, 0.16, 0.72, 0.82, 1.0],
-      [1, 1, 0, 0, 1, 1],
+      [0, 0.10, 0.76, 0.86, 1.0],
+      [3, 0, 0, 3, 3],
       Extrapolation.CLAMP,
     );
     return {
       transform: [{ rotate: `${rotate}deg` }, { translateX }],
-      opacity,
     };
   });
 
   // ── Match banner animation ───────────────────────────────────────
-  // Longer hold on "It's a Match!" (18-62% = ~3.5s visible at 8s loop)
+  // Appears after cards meet, holds for ~3s (16-76% of 5s = 3s)
   const bannerStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const scale = interpolate(
       p,
-      [0, 0.14, 0.20, 0.24, 0.62, 0.70, 0.72, 1.0],
-      [0, 0, 1.06, 1, 1, 1, 0, 0],
+      [0, 0.10, 0.14, 0.16, 0.76, 0.84, 1.0],
+      [0, 0, 1.08, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.14, 0.20, 0.62, 0.70, 0.72, 1.0],
-      [0, 0, 1, 1, 0, 0, 0],
+      [0, 0.10, 0.14, 0.76, 0.84, 1.0],
+      [0, 0, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
     return {
