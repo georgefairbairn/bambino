@@ -16,7 +16,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from 'convex/react';
 import { Doc } from '@/convex/_generated/dataModel';
+import { api } from '@/convex/_generated/api';
+import { LineChart } from 'react-native-gifted-charts';
 import { useCardAnimation } from '@/hooks/use-card-animation';
 import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
@@ -55,6 +58,12 @@ const GENDER_MAP: Record<string, 'boy' | 'girl' | 'unisex'> = {
   neutral: 'unisex',
 };
 
+const TREND_CONFIG = {
+  rising: { label: 'Rising', arrow: '↑', color: '#4ADE80' },
+  falling: { label: 'Falling', arrow: '↓', color: '#FF6B6B' },
+  steady: { label: 'Steady', arrow: '→', color: '#A89BB5' },
+};
+
 function getNameFontSize(name: string): number {
   const len = name.length;
   if (len <= 8) return 56;
@@ -77,6 +86,13 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   ref,
 ) {
   const { colors } = useTheme();
+
+  // Fetch popularity summary only for the top (visible) card
+  const popularitySummary = useQuery(
+    api.popularity.getNamePopularitySummary,
+    isTop ? { name: name.name, gender: name.gender } : 'skip',
+  );
+
   const {
     translateX,
     translateY,
@@ -202,6 +218,8 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   const originTranslateY = useSharedValue(12);
   const meaningOpacity = useSharedValue(0);
   const meaningTranslateY = useSharedValue(12);
+  const popularityOpacity = useSharedValue(0);
+  const popularityTranslateY = useSharedValue(12);
 
   useEffect(() => {
     if (isTop && nameWidth > 0 && !hasAnimated.current) {
@@ -216,6 +234,10 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       // Stagger meaning box entrance
       meaningOpacity.value = withDelay(400, withTiming(1, { duration: 350 }));
       meaningTranslateY.value = withDelay(400, withSpring(0, { damping: 15, stiffness: 150 }));
+
+      // Stagger popularity row entrance
+      popularityOpacity.value = withDelay(550, withTiming(1, { duration: 350 }));
+      popularityTranslateY.value = withDelay(550, withSpring(0, { damping: 15, stiffness: 150 }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTop, nameWidth]);
@@ -232,6 +254,11 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
   const meaningAnimatedStyle = useAnimatedStyle(() => ({
     opacity: meaningOpacity.value,
     transform: [{ translateY: meaningTranslateY.value }],
+  }));
+
+  const popularityAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: popularityOpacity.value,
+    transform: [{ translateY: popularityTranslateY.value }],
   }));
 
   // Swipe hint animation — appears after 10s of idle on top card
@@ -393,6 +420,85 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
             </Animated.View>
           )}
 
+          {/* Popularity row — fills dead space at bottom */}
+          <Animated.View
+            style={[
+              styles.popularityRow,
+              isTop && popularityAnimatedStyle,
+            ]}
+          >
+            {/* Rank tile */}
+            <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+              <Text style={styles.statLabel}>RANK</Text>
+              {name.currentRank ? (
+                <Text style={styles.statValueRank}>#{name.currentRank}</Text>
+              ) : (
+                <Text style={styles.statValueMuted}>Unranked</Text>
+              )}
+            </View>
+
+            {name.meaning ? (
+              // Two-tile layout: rank + sparkline
+              <View style={[styles.sparklineTile, { backgroundColor: colors.surfaceSubtle }]}>
+                <Text style={styles.statLabel}>10YR TREND</Text>
+                <View style={styles.sparklineRow}>
+                  {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
+                    <>
+                      <View style={styles.sparklineChart}>
+                        <LineChart
+                          data={popularitySummary.sparklinePoints.map((value) => ({ value }))}
+                          width={80}
+                          height={28}
+                          hideDataPoints
+                          hideYAxisText
+                          hideAxesAndRules
+                          color={underlineColor}
+                          thickness={2}
+                          curved
+                          initialSpacing={0}
+                          endSpacing={0}
+                          spacing={80 / Math.max(popularitySummary.sparklinePoints.length - 1, 1)}
+                          disableScroll
+                          adjustToWidth
+                          isAnimated={false}
+                        />
+                      </View>
+                      {popularitySummary.trend && (
+                        <Text style={[styles.trendArrow, { color: TREND_CONFIG[popularitySummary.trend].color }]}>
+                          {TREND_CONFIG[popularitySummary.trend].arrow}
+                        </Text>
+                      )}
+                    </>
+                  ) : (
+                    <Text style={styles.noTrendText}>No trend data</Text>
+                  )}
+                </View>
+              </View>
+            ) : (
+              // Three-tile fallback: rank + trend + peak (no meaning box shown)
+              <>
+                <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.statLabel}>TREND</Text>
+                  {popularitySummary?.trend ? (
+                    <Text style={[styles.statValueTrend, { color: TREND_CONFIG[popularitySummary.trend].color }]}>
+                      {TREND_CONFIG[popularitySummary.trend].label}
+                    </Text>
+                  ) : (
+                    <Text style={styles.statValueMuted}>—</Text>
+                  )}
+                </View>
+                <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.statLabel}>PEAK</Text>
+                  {popularitySummary?.peakYear ? (
+                    <Text style={styles.statValuePeak}>{popularitySummary.peakYear}</Text>
+                  ) : (
+                    <Text style={styles.statValueMuted}>—</Text>
+                  )}
+                </View>
+              </>
+            )}
+          </Animated.View>
+
           {/* Swipe hint — appears after 10s idle, once per session */}
           {isTop && (
             <Animated.View style={[styles.swipeHint, hintContainerStyle]} pointerEvents="none">
@@ -528,10 +634,74 @@ const styles = StyleSheet.create({
   },
   swipeHint: {
     position: 'absolute',
-    bottom: 24,
+    top: '45%',
     left: 0,
     right: 0,
     alignItems: 'center',
+  },
+  popularityRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 'auto',
+  },
+  statTile: {
+    flex: 1,
+    borderRadius: 10,
+    padding: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+  sparklineTile: {
+    flex: 2,
+    borderRadius: 10,
+    padding: 10,
+    paddingHorizontal: 12,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#A89BB5',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  statValueRank: {
+    fontSize: 17,
+    fontFamily: 'AlfaSlabOne_400Regular',
+    color: '#2D1B4E',
+  },
+  statValueMuted: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#A89BB5',
+  },
+  statValueTrend: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  statValuePeak: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2D1B4E',
+  },
+  sparklineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  sparklineChart: {
+    flex: 1,
+    height: 28,
+  },
+  trendArrow: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  noTrendText: {
+    fontSize: 10,
+    color: '#A89BB5',
+    marginTop: 2,
   },
   swipeHintInner: {
     flexDirection: 'row',
