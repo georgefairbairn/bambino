@@ -667,11 +667,12 @@ const styles = StyleSheet.create({
   },
   statValueRank: {
     fontSize: 17,
-    fontFamily: 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     color: '#2D1B4E',
   },
   statValueMuted: {
     fontSize: 14,
+    fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#A89BB5',
   },
@@ -700,6 +701,7 @@ const styles = StyleSheet.create({
   },
   noTrendText: {
     fontSize: 10,
+    fontFamily: Fonts?.sans,
     color: '#A89BB5',
     marginTop: 2,
   },
