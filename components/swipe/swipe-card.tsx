@@ -22,7 +22,9 @@ import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
 import { CARD_WIDTH, CARD_HEIGHT_FULL, SWIPE_THRESHOLD, SWIPE_COLORS } from '@/constants/swipe';
 import { Fonts } from '@/constants/theme';
+import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
+import { GenderBadge } from '@/components/name-detail/gender-badge';
 import * as Sentry from '@sentry/react-native';
 
 export interface SwipeCardRef {
@@ -47,24 +49,20 @@ const UNDERLINE_COLORS = {
   neutral: '#C4A7E7', // soft purple
 };
 
-// Origin to country flag emoji mapping
-const ORIGIN_FLAGS: Record<string, string> = {
-  Hebrew: '🇮🇱',
-  English: '🇬🇧',
-  Latin: '🇮🇹',
-  Greek: '🇬🇷',
-  Germanic: '🇩🇪',
-  Irish: '🇮🇪',
-  French: '🇫🇷',
-  Welsh: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-  Scottish: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  Italian: '🇮🇹',
-  Spanish: '🇪🇸',
-  Scandinavian: '🇸🇪',
-  Dutch: '🇳🇱',
-  Aramaic: '🇸🇾',
-  Arabic: '🇸🇦',
+const GENDER_MAP: Record<string, 'boy' | 'girl' | 'unisex'> = {
+  male: 'boy',
+  female: 'girl',
+  neutral: 'unisex',
 };
+
+function getNameFontSize(name: string): number {
+  const len = name.length;
+  if (len <= 8) return 56;
+  if (len <= 11) return 46;
+  if (len <= 14) return 42;
+  return 32;
+}
+
 
 export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function SwipeCard(
   {
@@ -343,8 +341,13 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
 
         {/* Card content - fades out during swipe */}
         <Animated.View style={[styles.content, isTop && contentOpacityStyle]}>
+          {/* Gender badge */}
+          <View style={styles.genderBadgeRow}>
+            <GenderBadge gender={GENDER_MAP[name.gender] ?? 'unisex'} size="large" />
+          </View>
+
           {/* Name */}
-          <Text style={styles.name} onLayout={handleNameLayout}>
+          <Text style={[styles.name, { fontSize: getNameFontSize(name.name) }]} onLayout={handleNameLayout}>
             {name.name}
           </Text>
 
@@ -358,7 +361,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
             {name.origin && (
               <View style={[styles.originPill, { backgroundColor: colors.surfaceSubtle }]}>
                 <Text style={styles.originText}>
-                  {ORIGIN_FLAGS[name.origin] || '🌍'} {name.origin}
+                  {getOriginFlag(name.origin)} {name.origin}
                 </Text>
               </View>
             )}
@@ -472,6 +475,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 48,
     paddingBottom: 24,
+  },
+  genderBadgeRow: {
+    marginBottom: 12,
   },
   name: {
     alignSelf: 'flex-start',
