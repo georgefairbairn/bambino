@@ -149,3 +149,70 @@ export const getPopularNamesForYear = query({
     }));
   },
 });
+
+export const getNamePopularitySummary = query({
+  args: {
+    name: v.string(),
+    gender: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Map app gender to SSA gender format
+    const ssaGender = args.gender === 'male' ? 'M' : args.gender === 'female' ? 'F' : null;
+
+    if (!ssaGender) {
+      return {
+        currentRank: null,
+        trend: null as 'rising' | 'falling' | 'steady' | null,
+        peakYear: null as number | null,
+        sparklinePoints: [] as number[],
+      };
+    }
+
+    const records = await ctx.db
+      .query('namePopularity')
+      .withIndex('by_name_gender', (q) => q.eq('name', args.name).eq('gender', ssaGender))
+      .collect();
+
+    if (records.length === 0) {
+      return {
+        currentRank: null,
+        trend: null as 'rising' | 'falling' | 'steady' | null,
+        peakYear: null as number | null,
+        sparklinePoints: [] as number[],
+      };
+    }
+
+    // Sort by year ascending
+    records.sort((a, b) => a.year - b.year);
+
+    // Current rank: most recent year's rank
+    const mostRecent = records[records.length - 1];
+    const currentRank = mostRecent.rank;
+
+    // Peak year: year with lowest (best) rank
+    const peak = records.reduce((best, r) => (r.rank < best.rank ? r : best), records[0]);
+    const peakYear = peak.year;
+
+    // Trend: compare most recent rank to rank 5 years prior
+    const fiveYearsAgo = records.find((r) => r.year === mostRecent.year - 5);
+    let trend: 'rising' | 'falling' | 'steady' | null = null;
+    if (fiveYearsAgo) {
+      const diff = mostRecent.rank - fiveYearsAgo.rank;
+      if (diff <= -10) trend = 'rising'; // rank number decreased = improved
+      else if (diff >= 10) trend = 'falling'; // rank number increased = worsened
+      else trend = 'steady';
+    }
+
+    // Sparkline: last 10 years of data, inverted so lower rank = higher point
+    const last10 = records.filter((r) => r.year > mostRecent.year - 10);
+    const maxRank = Math.max(...last10.map((r) => r.rank));
+    const sparklinePoints = last10.map((r) => maxRank - r.rank + 1);
+
+    return {
+      currentRank,
+      trend,
+      peakYear,
+      sparklinePoints,
+    };
+  },
+});
