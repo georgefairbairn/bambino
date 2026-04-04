@@ -1,4 +1,4 @@
-import { Text, StyleSheet, Pressable } from 'react-native';
+import { Text, StyleSheet, Pressable, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -7,10 +7,11 @@ import { useTheme } from '@/contexts/theme-context';
 
 interface ExploreHeaderProps {
   liked: number;
+  activeFilterCount: number;
   onFilterPress: () => void;
 }
 
-export function ExploreHeader({ liked, onFilterPress }: ExploreHeaderProps) {
+export function ExploreHeader({ liked, activeFilterCount, onFilterPress }: ExploreHeaderProps) {
   const router = useRouter();
   const { colors } = useTheme();
 
@@ -22,6 +23,11 @@ export function ExploreHeader({ liked, onFilterPress }: ExploreHeaderProps) {
       >
         <Ionicons name="options-outline" size={16} color="#2D1B4E" />
         <Text style={styles.filterLabel}>Filters</Text>
+        {activeFilterCount > 0 && (
+          <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
+            <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+          </View>
+        )}
       </Pressable>
 
       <Pressable
@@ -61,6 +67,18 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#2D1B4E',
+  },
+  filterBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
   },
   likedButton: {
     flexDirection: 'row',

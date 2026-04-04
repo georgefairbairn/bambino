@@ -10,22 +10,25 @@ import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { OriginToggleRow } from '@/components/search/origin-toggle-row';
 
 interface OriginToggleListProps {
-  value: string[];
-  onChange: (origins: string[]) => void;
+  // null = all origins, [] = none, [...] = specific origins
+  value: string[] | null;
+  onChange: (origins: string[] | null) => void;
   genderFilter?: 'boy' | 'girl' | 'both';
 }
 
 export function OriginToggleList({ value, onChange, genderFilter }: OriginToggleListProps) {
   const { colors } = useTheme();
-  const availableOrigins = useQuery(api.names.getAvailableOrigins);
   const originCounts = useQuery(api.names.getOriginCounts, {
     genderFilter: genderFilter ?? 'both',
   });
   const [collapsed, setCollapsed] = useState(false);
 
-  const isAllSelected = value.length === 0;
-  const selectedSet = new Set(value);
-  const selectedCount = value.length;
+  // Derive available origins from counts — guarantees list and numbers are in sync
+  const availableOrigins = originCounts ? Object.keys(originCounts).sort() : undefined;
+
+  const isAllSelected = value === null;
+  const selectedSet = new Set(value ?? []);
+  const selectedCount = value?.length ?? 0;
 
   const chevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: withTiming(collapsed ? '0deg' : '180deg', { duration: 250 }) }],
@@ -39,34 +42,22 @@ export function OriginToggleList({ value, onChange, genderFilter }: OriginToggle
     );
   }
 
-  // All ON → OFF: enter explicit mode (all origins listed individually).
-  // All OFF → ON: back to [] (implicit all).
+  // All ON → OFF: deselect everything. All OFF → ON: select all.
   const handleToggleAll = () => {
-    if (isAllSelected) {
-      onChange([...availableOrigins]);
-    } else {
-      onChange([]);
-    }
+    onChange(isAllSelected ? [] : null);
   };
 
   const handleToggleOrigin = (origin: string) => {
     if (isAllSelected) {
       // From "all" state: select all EXCEPT this one
-      const allExcept = availableOrigins.filter((o) => o !== origin);
-      onChange(allExcept);
+      onChange(availableOrigins.filter((o) => o !== origin));
     } else if (selectedSet.has(origin)) {
-      // Remove this origin — but prevent deselecting the last one ([] = all in backend)
-      const next = value.filter((o) => o !== origin);
-      if (next.length === 0) return;
-      onChange(next);
+      // Deselect this origin
+      onChange(value!.filter((o) => o !== origin));
     } else {
-      // Add this origin — if all are now selected, switch back to implicit all
-      const next = [...value, origin].sort();
-      if (next.length === availableOrigins.length) {
-        onChange([]);
-      } else {
-        onChange(next);
-      }
+      // Select this origin — if all are now selected, collapse to null (all)
+      const next = [...value!, origin].sort();
+      onChange(next.length === availableOrigins.length ? null : next);
     }
   };
 

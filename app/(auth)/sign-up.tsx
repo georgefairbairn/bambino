@@ -1,5 +1,5 @@
 import { useSignUp, useSSO } from '@clerk/clerk-expo';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -8,6 +8,8 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { StyledInput } from '@/components/ui/styled-input';
+import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -16,6 +18,7 @@ export default function SignUp() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
 
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -93,9 +96,16 @@ export default function SignUp() {
         <View className="flex-1 justify-center px-8">
           <Animated.Text
             entering={FadeInDown.duration(500).springify()}
-            className="mb-4 text-center text-3xl font-bold"
+            className="mb-2 text-center text-4xl"
+            style={{ fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular', color: colors.primary }}
           >
-            Verify Email
+            bambino
+          </Animated.Text>
+          <Animated.Text
+            entering={FadeInDown.delay(100).duration(400)}
+            className="mb-4 text-center text-base text-gray-500"
+          >
+            Verify your email
           </Animated.Text>
           <Animated.Text
             entering={FadeInDown.delay(100).duration(400)}
@@ -127,6 +137,20 @@ export default function SignUp() {
               disabled={isLoading}
             />
           </Animated.View>
+
+          <Animated.View entering={FadeInUp.delay(400).duration(400)} className="mt-4 flex-row justify-center">
+            <Pressable
+              onPress={() => {
+                setPendingVerification(false);
+                setCode('');
+                setError('');
+              }}
+            >
+              <Text className="font-semibold" style={{ color: colors.primary }}>
+                Back to Sign Up
+              </Text>
+            </Pressable>
+          </Animated.View>
         </View>
       </GradientBackground>
     );
@@ -137,9 +161,16 @@ export default function SignUp() {
       <View className="flex-1 justify-center px-8">
         <Animated.Text
           entering={FadeInDown.duration(500).springify()}
-          className="mb-8 text-center text-3xl font-bold"
+          className="mb-2 text-center text-4xl"
+          style={{ fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular', color: colors.primary }}
         >
-          Create Account
+          bambino
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeInDown.delay(100).duration(400)}
+          className="mb-8 text-center text-base text-gray-500"
+        >
+          Create your account
         </Animated.Text>
 
         {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
@@ -199,11 +230,9 @@ export default function SignUp() {
           className="flex-row justify-center"
         >
           <Text className="text-gray-600">Already have an account? </Text>
-          <Link href="/(auth)/sign-in" asChild>
-            <Pressable>
-              <Text className="font-semibold text-pink-500">Sign In</Text>
-            </Pressable>
-          </Link>
+          <Pressable onPress={() => router.replace('/(auth)/sign-in')}>
+            <Text className="font-semibold text-pink-500">Sign In</Text>
+          </Pressable>
         </Animated.View>
 
         <Text className="mt-6 text-center text-xs text-gray-400">

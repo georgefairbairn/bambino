@@ -51,15 +51,6 @@ export const getNameById = query({
   },
 });
 
-export const getAvailableOrigins = query({
-  args: {},
-  handler: async (ctx) => {
-    const allNames = await ctx.db.query('names').collect();
-    const origins = new Set(allNames.map((n) => n.origin));
-    return Array.from(origins).sort();
-  },
-});
-
 async function getActionedNameIds(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return new Set<string>();
@@ -97,8 +88,8 @@ export const getFilteredNameCount = query({
             .collect()
         : await ctx.db.query('names').collect();
 
-    const hasOriginFilter = args.originFilter !== undefined && args.originFilter.length > 0;
-    if (hasOriginFilter) {
+    // undefined = no filter (all origins), [] = no origins (0 results), [...] = specific origins
+    if (args.originFilter !== undefined) {
       const originSet = new Set(args.originFilter);
       names = names.filter((n) => originSet.has(n.origin));
     }

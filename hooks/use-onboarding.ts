@@ -4,6 +4,9 @@ import * as Sentry from '@sentry/react-native';
 
 const ONBOARDING_KEY = 'bambino_onboarding_completed';
 
+// TODO: Set to false once onboarding development is complete
+const ALWAYS_SHOW_ONBOARDING = true;
+
 export function useOnboarding() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,6 +17,10 @@ export function useOnboarding() {
 
   const loadOnboardingStatus = async () => {
     try {
+      if (ALWAYS_SHOW_ONBOARDING) {
+        setHasCompletedOnboarding(false);
+        return;
+      }
       const value = await AsyncStorage.getItem(ONBOARDING_KEY);
       setHasCompletedOnboarding(value === 'true');
     } catch (error) {

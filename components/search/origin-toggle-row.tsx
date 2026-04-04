@@ -1,5 +1,6 @@
 import { View, Text, Switch, Pressable, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
+import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
 
 interface OriginToggleRowProps {
@@ -21,7 +22,7 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
       ]}
     >
       <View style={styles.textContainer}>
-        <Text style={[styles.name, isActive && styles.nameActive]}>{origin}</Text>
+        <Text style={[styles.name, isActive && styles.nameActive]}>{getOriginFlag(origin)} {origin}</Text>
         <Text style={styles.count}>{count.toLocaleString()} {count === 1 ? 'name' : 'names'}</Text>
       </View>
       <Switch

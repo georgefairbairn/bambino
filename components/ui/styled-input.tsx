@@ -1,11 +1,11 @@
-import { TextInput, StyleSheet, type TextInputProps } from 'react-native';
+import { TextInput, StyleSheet, View, type TextInputProps } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   interpolateColor,
 } from 'react-native-reanimated';
-import { Fonts, CandyColors } from '@/constants/theme';
+import { CandyColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 interface StyledInputProps extends TextInputProps {
@@ -14,7 +14,7 @@ interface StyledInputProps extends TextInputProps {
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-export function StyledInput({ error, style, onFocus, onBlur, ...props }: StyledInputProps) {
+export function StyledInput({ error, style, onFocus, onBlur, className, ...props }: StyledInputProps) {
   const focused = useSharedValue(0);
   const { colors } = useTheme();
 
@@ -36,19 +36,21 @@ export function StyledInput({ error, style, onFocus, onBlur, ...props }: StyledI
   });
 
   return (
-    <AnimatedTextInput
-      style={[styles.input, { backgroundColor: colors.surfaceSubtle }, animatedStyle, style]}
-      placeholderTextColor={CandyColors.textMuted}
-      onFocus={(e) => {
-        focused.value = withTiming(error ? 2 : 1, { duration: 200 });
-        onFocus?.(e);
-      }}
-      onBlur={(e) => {
-        focused.value = withTiming(error ? 2 : 0, { duration: 200 });
-        onBlur?.(e);
-      }}
-      {...props}
-    />
+    <View className={className}>
+      <AnimatedTextInput
+        style={[styles.input, { backgroundColor: colors.surfaceSubtle }, animatedStyle, style]}
+        placeholderTextColor={CandyColors.textMuted}
+        onFocus={(e) => {
+          focused.value = withTiming(error ? 2 : 1, { duration: 200 });
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          focused.value = withTiming(error ? 2 : 0, { duration: 200 });
+          onBlur?.(e);
+        }}
+        {...props}
+      />
+    </View>
   );
 }
 
@@ -59,7 +61,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    fontFamily: Fonts?.sans,
     color: CandyColors.textPrimary,
   },
 });

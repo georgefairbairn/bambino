@@ -36,10 +36,12 @@ export function SlotCounter({ value, fontSize = 28, textStyle }: SlotCounterProp
           );
         }
 
-        // Always render an animated slot for digit positions
+        // Use position from the right so digit slots stay stable across
+        // length changes (e.g. 999 → 1,000 keeps the ones/tens/hundreds slots)
+        const digitIndex = chars.length - 1 - i;
         return (
           <SlotDigit
-            key={`digit-${chars.length}-${i}`}
+            key={`digit-${digitIndex}`}
             digit={Number(char)}
             digitHeight={digitHeight}
             fontSize={fontSize}

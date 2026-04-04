@@ -20,6 +20,14 @@ export default function ExploreView() {
     return `${user.genderFilter ?? 'both'}-${originKey}-${user.updatedAt}`;
   }, [user]);
 
+  const activeFilterCount = useMemo(() => {
+    if (!user) return 0;
+    let count = 0;
+    if (user.genderFilter && user.genderFilter !== 'both') count += 1;
+    if (user.originFilter) count += user.originFilter.length;
+    return count;
+  }, [user]);
+
   const { showLoading, loadingProps } = useGracefulLoading(user !== undefined);
 
   if (showLoading) {
@@ -35,6 +43,7 @@ export default function ExploreView() {
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
         <ExploreHeader
           liked={stats?.liked ?? 0}
+          activeFilterCount={activeFilterCount}
           onFilterPress={() => router.push('/(tabs)/explore/filters')}
         />
         <SwipeCardStack key={swipeQueueKey} />

@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
 import { Doc } from '@/convex/_generated/dataModel';
 
@@ -20,24 +21,6 @@ const GENDER_EMOJI: Record<string, string> = {
   neutral: '👶',
 };
 
-// Origin to country flag emoji mapping
-const ORIGIN_FLAGS: Record<string, string> = {
-  Hebrew: '🇮🇱',
-  English: '🇬🇧',
-  Latin: '🇮🇹',
-  Greek: '🇬🇷',
-  Germanic: '🇩🇪',
-  Irish: '🇮🇪',
-  French: '🇫🇷',
-  Welsh: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-  Scottish: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  Italian: '🇮🇹',
-  Spanish: '🇪🇸',
-  Scandinavian: '🇸🇪',
-  Dutch: '🇳🇱',
-  Aramaic: '🇸🇾',
-  Arabic: '🇸🇦',
-};
 
 function getRelativeTime(timestamp: number): string {
   const now = Date.now();
@@ -119,7 +102,7 @@ export function LikedNameCard({
         <View style={styles.metaRow}>
           <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
             <Text style={[styles.originText, { color: colors.primary }]}>
-              {ORIGIN_FLAGS[name.origin] || '🌍'} {name.origin}
+              {getOriginFlag(name.origin)} {name.origin}
             </Text>
           </View>
           <Text style={styles.timestamp}>Liked {relativeTime}</Text>
