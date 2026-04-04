@@ -164,6 +164,7 @@ export const getNamePopularitySummary = query({
         currentRank: null,
         trend: null as 'rising' | 'falling' | 'steady' | null,
         peakYear: null as number | null,
+        peakRank: null as number | null,
         sparklinePoints: [] as number[],
       };
     }
@@ -178,6 +179,7 @@ export const getNamePopularitySummary = query({
         currentRank: null,
         trend: null as 'rising' | 'falling' | 'steady' | null,
         peakYear: null as number | null,
+        peakRank: null as number | null,
         sparklinePoints: [] as number[],
       };
     }
@@ -198,8 +200,10 @@ export const getNamePopularitySummary = query({
     let trend: 'rising' | 'falling' | 'steady' | null = null;
     if (fiveYearsAgo) {
       const diff = mostRecent.rank - fiveYearsAgo.rank;
-      if (diff <= -10) trend = 'rising'; // rank number decreased = improved
-      else if (diff >= 10) trend = 'falling'; // rank number increased = worsened
+      if (diff <= -10)
+        trend = 'rising'; // rank number decreased = improved
+      else if (diff >= 10)
+        trend = 'falling'; // rank number increased = worsened
       else trend = 'steady';
     }
 
@@ -212,6 +216,7 @@ export const getNamePopularitySummary = query({
       currentRank,
       trend,
       peakYear,
+      peakRank: peak.rank,
       sparklinePoints,
     };
   },
