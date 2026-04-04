@@ -8,6 +8,7 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
 import { EmptyState } from './empty-state';
 import { MatchCelebrationModal } from '@/components/matches';
+import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
@@ -29,6 +30,7 @@ export function SwipeCardStack() {
   const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [hintEligible, setHintEligible] = useState(true);
 
   // Sync server queue to local state (only when server data arrives)
@@ -77,7 +79,6 @@ export function SwipeCardStack() {
     [localQueue, recordSelection],
   );
 
-
   // Check for empty state
   const isEmpty = localQueue.length === 0 && serverQueue !== undefined;
 
@@ -111,9 +112,11 @@ export function SwipeCardStack() {
             name={name}
             isTop={index === 0}
             showSwipeHint={hintEligible}
+            swipeEnabled={!showDetailModal}
             onSwipeHintShown={() => setHintEligible(false)}
             onSwipeLeft={() => handleSelection('reject')}
             onSwipeRight={() => handleSelection('like')}
+            onDetailPress={() => setShowDetailModal(true)}
           />
         ))}
       </View>
@@ -131,6 +134,14 @@ export function SwipeCardStack() {
           setMatchedName(null);
           router.push('/matches' as const);
         }}
+      />
+
+      {/* Name detail modal — opened by tapping popularity row */}
+      <NameDetailModal
+        visible={showDetailModal}
+        name={localQueue[0] ?? null}
+        context="swipe"
+        onClose={() => setShowDetailModal(false)}
       />
 
       {/* Swipe limit paywall */}
