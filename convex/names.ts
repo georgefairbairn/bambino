@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { internalMutation, query } from './_generated/server';
+import { internalMutation, query, QueryCtx } from './_generated/server';
 
 const nameValidator = v.object({
   name: v.string(),
@@ -51,12 +51,79 @@ export const getNameById = query({
   },
 });
 
-export const getAvailableOrigins = query({
-  args: {},
-  handler: async (ctx) => {
-    const allNames = await ctx.db.query('names').collect();
-    const origins = new Set(allNames.map((n) => n.origin));
-    return Array.from(origins).sort();
+async function getActionedNameIds(ctx: QueryCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return new Set<string>();
+
+  const user = await ctx.db
+    .query('users')
+    .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+    .unique();
+  if (!user) return new Set<string>();
+
+  const selections = await ctx.db
+    .query('selections')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+
+  return new Set(selections.map((s) => s.nameId as string));
+}
+
+export const getFilteredNameCount = query({
+  args: {
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
+    originFilter: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const genderFilter = args.genderFilter ?? 'both';
+    const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
+
+    const actionedIds = await getActionedNameIds(ctx);
+
+    let names =
+      genderValue !== null
+        ? await ctx.db
+            .query('names')
+            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
+            .collect()
+        : await ctx.db.query('names').collect();
+
+    // undefined = no filter (all origins), [] = no origins (0 results), [...] = specific origins
+    if (args.originFilter !== undefined) {
+      const originSet = new Set(args.originFilter);
+      names = names.filter((n) => originSet.has(n.origin));
+    }
+
+    names = names.filter((n) => !actionedIds.has(n._id as string));
+
+    return names.length;
+  },
+});
+
+export const getOriginCounts = query({
+  args: {
+    genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
+  },
+  handler: async (ctx, args) => {
+    const genderFilter = args.genderFilter ?? 'both';
+    const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
+
+    const actionedIds = await getActionedNameIds(ctx);
+
+    const allNames =
+      genderValue !== null
+        ? await ctx.db
+            .query('names')
+            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
+            .collect()
+        : await ctx.db.query('names').collect();
+
+    const counts: Record<string, number> = {};
+    for (const name of allNames) {
+      if (actionedIds.has(name._id as string)) continue;
+      counts[name.origin] = (counts[name.origin] ?? 0) + 1;
+    }
+    return counts;
   },
 });
 

@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ThemeProvider } from '@/contexts/theme-context';
+import { ThemeProvider, useTheme } from '@/contexts/theme-context';
 import { VoiceSettingsProvider } from '@/contexts/voice-settings-context';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LoadingScreen } from '@/components/ui/loading-screen';
@@ -53,12 +53,6 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  useEffect(() => {
     initAnalytics();
   }, []);
 
@@ -87,7 +81,17 @@ export default function RootLayout() {
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoaded } = useAuth();
+  const { isLoading: themeLoading } = useTheme();
   const [animationDone, setAnimationDone] = useState(false);
+
+  // Keep splash screen visible until theme loads from AsyncStorage
+  useEffect(() => {
+    if (!themeLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [themeLoading]);
+
+  if (themeLoading) return null;
 
   // Always show at least one full animation cycle on app launch
   if (!animationDone) {

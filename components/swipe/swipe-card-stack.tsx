@@ -1,16 +1,14 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
-import { SwipeCard, SwipeCardRef } from './swipe-card';
-import { SwipeActionButtons } from './swipe-action-buttons';
+import { SwipeCard } from './swipe-card';
 import { EmptyState } from './empty-state';
 import { MatchCelebrationModal } from '@/components/matches';
 import { Paywall } from '@/components/paywall';
-import * as Haptics from 'expo-haptics';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -28,17 +26,10 @@ export function SwipeCardStack() {
 
   // Local state for optimistic updates
   const [localQueue, setLocalQueue] = useState<Doc<'names'>[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [hintEligible, setHintEligible] = useState(true);
-
-  // Ref to the top card for triggering programmatic swipes
-  const topCardRef = useRef<SwipeCardRef>(null);
-
-  // Track pending selection from button press (to be executed after animation)
-  const pendingSelectionRef = useRef<'like' | 'reject' | null>(null);
 
   // Sync server queue to local state (only when server data arrives)
   useEffect(() => {
@@ -86,22 +77,6 @@ export function SwipeCardStack() {
     [localQueue, recordSelection],
   );
 
-  // Button handlers that trigger card animations (selection deferred until animation completes)
-  const handleLikeButton = useCallback(() => {
-    if (localQueue.length === 0 || isAnimating) return;
-    setIsAnimating(true);
-    pendingSelectionRef.current = 'like';
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    topCardRef.current?.swipeRight();
-  }, [localQueue, isAnimating]);
-
-  const handleNopeButton = useCallback(() => {
-    if (localQueue.length === 0 || isAnimating) return;
-    setIsAnimating(true);
-    pendingSelectionRef.current = 'reject';
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    topCardRef.current?.swipeLeft();
-  }, [localQueue, isAnimating]);
 
   // Check for empty state
   const isEmpty = localQueue.length === 0 && serverQueue !== undefined;
@@ -133,31 +108,15 @@ export function SwipeCardStack() {
         {localQueue.slice(0, 2).map((name, index) => (
           <SwipeCard
             key={name._id}
-            ref={index === 0 ? topCardRef : null}
             name={name}
             isTop={index === 0}
             showSwipeHint={hintEligible}
             onSwipeHintShown={() => setHintEligible(false)}
             onSwipeLeft={() => handleSelection('reject')}
             onSwipeRight={() => handleSelection('like')}
-            onSwipeComplete={() => {
-              // Handle pending selection from button press
-              if (pendingSelectionRef.current) {
-                handleSelection(pendingSelectionRef.current);
-                pendingSelectionRef.current = null;
-              }
-              setIsAnimating(false);
-            }}
           />
         ))}
       </View>
-
-      {/* Action buttons */}
-      <SwipeActionButtons
-        onLike={handleLikeButton}
-        onNope={handleNopeButton}
-        disabled={isAnimating || localQueue.length === 0}
-      />
 
       {/* Match celebration modal */}
       <MatchCelebrationModal
@@ -184,6 +143,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    paddingBottom: 85, // Account for absolutely-positioned tab bar
   },
   cardContainer: {
     flex: 1,

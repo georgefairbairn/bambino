@@ -1,5 +1,5 @@
 import { useSignIn, useSSO } from '@clerk/clerk-expo';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -8,6 +8,8 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { StyledInput } from '@/components/ui/styled-input';
+import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -16,6 +18,7 @@ export default function SignIn() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
 
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -71,9 +74,16 @@ export default function SignIn() {
       <View className="flex-1 justify-center px-8">
         <Animated.Text
           entering={FadeInDown.duration(500).springify()}
-          className="mb-8 text-center text-3xl font-bold"
+          className="mb-2 text-center text-4xl"
+          style={{ fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular', color: colors.primary }}
         >
-          Welcome Back
+          bambino
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeInDown.delay(100).duration(400)}
+          className="mb-8 text-center text-base text-gray-500"
+        >
+          Sign in to your account
         </Animated.Text>
 
         {error ? <Text className="mb-4 text-center text-red-600">{error}</Text> : null}
@@ -133,11 +143,9 @@ export default function SignIn() {
           className="flex-row justify-center"
         >
           <Text className="text-gray-600">Don&apos;t have an account? </Text>
-          <Link href="/(auth)/sign-up" asChild>
-            <Pressable>
-              <Text className="font-semibold text-pink-500">Sign Up</Text>
-            </Pressable>
-          </Link>
+          <Pressable onPress={() => router.replace('/(auth)/sign-up')}>
+            <Text className="font-semibold text-pink-500">Sign Up</Text>
+          </Pressable>
         </Animated.View>
       </View>
     </GradientBackground>

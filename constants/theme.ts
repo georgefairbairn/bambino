@@ -103,10 +103,10 @@ export interface ThemeMeta {
 }
 
 export const THEME_META: ThemeMeta[] = [
-  { key: 'pink', name: 'Rose', emoji: '🌸', previewColors: ['#FF7EB3', '#FF5C8A'] },
+  { key: 'pink', name: 'Blossom', emoji: '🌸', previewColors: ['#FF7EB3', '#FF5C8A'] },
   { key: 'mint', name: 'Mint', emoji: '🌿', previewColors: ['#6EE7B7', '#34D399'] },
-  { key: 'blue', name: 'Sky', emoji: '🦋', previewColors: ['#93C5FD', '#60A5FA'] },
-  { key: 'yellow', name: 'Honey', emoji: '🍯', previewColors: ['#FCD34D', '#FBBF24'] },
+  { key: 'blue', name: 'Lagoon', emoji: '💧', previewColors: ['#93C5FD', '#60A5FA'] },
+  { key: 'yellow', name: 'Honeycomb', emoji: '🍯', previewColors: ['#FCD34D', '#FBBF24'] },
 ];
 
 // Shared (non-themed) color values

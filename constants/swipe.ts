@@ -6,9 +6,8 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const SWIPE_THRESHOLD = 120; // px to trigger action
 export const SWIPE_VELOCITY = 800; // velocity threshold for quick swipes
 
-// Layout heights (approximate safe area + header + tab bar + buttons)
+// Layout heights (approximate safe area + header + tab bar)
 export const HEADER_HEIGHT = 64; // Compact header row
-export const BUTTON_AREA_HEIGHT = 80; // Action buttons
 export const TAB_BAR_HEIGHT = 80; // Bottom tab bar
 export const SAFE_AREA_TOP = 50; // Approximate safe area (status bar)
 
@@ -16,7 +15,7 @@ export const SAFE_AREA_TOP = 50; // Approximate safe area (status bar)
 export const CARD_WIDTH = SCREEN_WIDTH - 32; // Almost full width with 16px margins
 export const CARD_HEIGHT = 420;
 export const CARD_HEIGHT_FULL =
-  SCREEN_HEIGHT - SAFE_AREA_TOP - HEADER_HEIGHT - BUTTON_AREA_HEIGHT - TAB_BAR_HEIGHT - 16;
+  SCREEN_HEIGHT - SAFE_AREA_TOP - HEADER_HEIGHT - TAB_BAR_HEIGHT - 32;
 
 // Animation constants
 export const ROTATION_FACTOR = 0.08; // rotation per px of horizontal movement
