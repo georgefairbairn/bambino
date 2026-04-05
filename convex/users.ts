@@ -100,6 +100,28 @@ export const updatePremiumStatus = mutation({
   },
 });
 
+export const confirmName = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const fullName = args.lastName
+      ? `${args.firstName.trim()} ${args.lastName.trim()}`
+      : args.firstName.trim();
+
+    await ctx.db.patch(user._id, {
+      name: fullName,
+      nameConfirmed: true,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
 export const updateFilters = mutation({
   args: {
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
