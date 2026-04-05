@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
-import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useState } from 'react';
 import {
   Alert,
@@ -30,6 +29,7 @@ import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useProfilePhoto } from '@/hooks/use-profile-photo';
 
 export default function Profile() {
   const { user } = useUser();
@@ -42,7 +42,7 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
   const insets = useSafeAreaInsets();
 
   const handleSignOut = useCallback(async () => {
@@ -107,65 +107,6 @@ export default function Profile() {
       }
     }
   }, [partnerInfo?.shareCode]);
-
-  const pickAndUploadImage = useCallback(async () => {
-    if (!user) return;
-
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please allow photo library access in your device settings to update your profile photo.',
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-      base64: true,
-    });
-
-    if (result.canceled) return;
-
-    setIsUploading(true);
-    try {
-      const asset = result.assets[0];
-      const mimeType = asset.mimeType || 'image/jpeg';
-      await user.setProfileImage({
-        file: `data:${mimeType};base64,${asset.base64!}`,
-      });
-    } catch (error: any) {
-      Sentry.captureException(error);
-      console.error('Profile photo upload failed:', {
-        message: error?.message,
-        status: error?.status,
-        code: error?.errors?.[0]?.code,
-        longMessage: error?.errors?.[0]?.longMessage,
-        clerkError: error?.clerkError,
-        raw: JSON.stringify(error, null, 2),
-      });
-      Alert.alert('Error', 'Failed to update profile photo. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [user]);
-
-  const handleRemovePhoto = useCallback(async () => {
-    if (!user) return;
-
-    setIsUploading(true);
-    try {
-      await user.setProfileImage({ file: null });
-    } catch (error: any) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to remove profile photo. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [user]);
 
   const handleAvatarPress = useCallback(() => {
     if (!user) return;
