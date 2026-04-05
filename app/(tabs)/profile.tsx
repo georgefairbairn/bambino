@@ -169,20 +169,41 @@ export default function Profile() {
           entering={FadeInDown.duration(500).springify()}
           style={styles.userInfoSection}
         >
-          {user?.hasImage ? (
-            <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
-              <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
-            </View>
-          ) : (
-            <LinearGradient
-              colors={gradients.buttonPrimary as [string, string]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.avatarGradient}
-            >
-              <Ionicons name="camera" size={32} color="rgba(255,255,255,0.9)" />
-            </LinearGradient>
-          )}
+          <Pressable onPress={handlePickImage} disabled={isUploading}>
+            {user?.hasImage ? (
+              <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
+                <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
+                {isUploading && (
+                  <View style={styles.avatarUploadingOverlay}>
+                    <ActivityIndicator color={colors.primary} size="small" />
+                  </View>
+                )}
+                {!isUploading && (
+                  <View style={[styles.avatarEditBadge, { backgroundColor: colors.primary }]}>
+                    <Ionicons name="camera" size={12} color="#fff" />
+                  </View>
+                )}
+              </View>
+            ) : (
+              <View>
+                <LinearGradient
+                  colors={gradients.buttonPrimary as [string, string]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.avatarGradient}
+                >
+                  {isUploading ? (
+                    <ActivityIndicator color="rgba(255,255,255,0.9)" size="small" />
+                  ) : (
+                    <Ionicons name="camera" size={32} color="rgba(255,255,255,0.9)" />
+                  )}
+                </LinearGradient>
+                {!isUploading && (
+                  <Text style={[styles.addPhotoLabel, { color: colors.primary }]}>Add Photo</Text>
+                )}
+              </View>
+            )}
+          </Pressable>
 
           <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
           <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
@@ -438,6 +459,33 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#fff',
+  },
+  avatarUploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  addPhotoLabel: {
+    fontSize: 12,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: -8,
+    marginBottom: 8,
   },
   userName: {
     fontSize: 24,
