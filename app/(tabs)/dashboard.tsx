@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -18,6 +18,7 @@ import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { GradientBackground } from '@/components/ui/gradient-background';
+import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
@@ -37,6 +38,12 @@ export default function Dashboard() {
   // Multi-select state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Track initial mount so header animations only play once
+  const hasAnimated = useRef(false);
+  useEffect(() => {
+    hasAnimated.current = true;
+  }, []);
 
   // Modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -241,19 +248,7 @@ export default function Dashboard() {
             onClear={handleSearchClear}
           />
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons
-                name={
-                  isSearching
-                    ? 'search'
-                    : activeTab === 'liked'
-                      ? 'heart-outline'
-                      : 'heart-dislike-outline'
-                }
-                size={64}
-                color="#A89BB5"
-              />
-            </View>
+            <BubblePillsBackground />
             <Text style={styles.emptyTitle}>
               {isSearching
                 ? 'No Results Found'
@@ -265,20 +260,17 @@ export default function Dashboard() {
               {isSearching
                 ? `No names match "${submittedSearch}"`
                 : activeTab === 'liked'
-                  ? 'Start swiping to add names to your liked list!'
-                  : 'Names you swipe left on will appear here.'}
+                  ? 'Swipe right on names you love — they\'ll land right here!'
+                  : 'Names you swipe left on will drift over here.'}
             </Text>
             {!isSearching && (
               <Pressable
                 style={[styles.createButton, { backgroundColor: colors.primary }]}
                 onPress={() => router.push('/(tabs)/explore')}
               >
-                <Ionicons
-                  name={activeTab === 'liked' ? 'heart' : 'compass'}
-                  size={24}
-                  color="#fff"
-                />
-                <Text style={styles.createButtonText}>Start Swiping</Text>
+                <Text style={styles.createButtonText}>
+                  {activeTab === 'liked' ? 'Start Swiping' : 'Start Exploring'}
+                </Text>
               </Pressable>
             )}
           </View>
@@ -290,12 +282,12 @@ export default function Dashboard() {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
-        <Animated.View entering={FadeInDown.duration(400).springify()}>
+        <Animated.View entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}>
           <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
         </Animated.View>
         {activeTab === 'liked' ? (
           <>
-            <Animated.View entering={FadeInDown.delay(100).duration(400).springify()}>
+            <Animated.View entering={!hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined}>
               <LikedNamesHeader
                 count={likedNames?.length ?? 0}
                 sortBy={likedSortBy}
@@ -343,7 +335,7 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            <Animated.View entering={FadeInDown.delay(100).duration(400).springify()}>
+            <Animated.View entering={!hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined}>
               <RejectedNamesHeader
                 count={rejectedNames?.length ?? 0}
                 sortBy={rejectedSortBy}
@@ -535,24 +527,17 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: 32,
+    paddingTop: 60,
     gap: 16,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
   },
   emptyTitle: {
     fontSize: 24,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     textAlign: 'center',
+    zIndex: 10,
   },
   emptyDescription: {
     fontSize: 16,
@@ -560,6 +545,7 @@ const styles = StyleSheet.create({
     color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
+    zIndex: 10,
   },
   createButton: {
     flexDirection: 'row',
@@ -569,6 +555,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
     marginTop: 8,
+    zIndex: 10,
   },
   createButtonText: {
     fontSize: 16,

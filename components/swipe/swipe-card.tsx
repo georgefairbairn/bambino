@@ -16,6 +16,7 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -41,11 +42,13 @@ interface SwipeCardProps {
   isTop: boolean;
   showSwipeHint?: boolean;
   onSwipeHintShown?: () => void;
+  onSwipeHintReset?: () => void;
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeComplete?: (direction: 'left' | 'right') => void;
   onDetailPress?: () => void;
   swipeEnabled?: boolean;
+  detailOpen?: boolean;
 }
 
 // Gender-based underline colors
@@ -81,11 +84,13 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     isTop,
     showSwipeHint = true,
     onSwipeHintShown,
+    onSwipeHintReset,
     onSwipeLeft,
     onSwipeRight,
     onSwipeComplete,
     onDetailPress,
     swipeEnabled = true,
+    detailOpen = false,
   },
   ref,
 ) {
@@ -192,15 +197,19 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     };
   });
 
-  // Card background color: white -> green (right) or white -> red (left)
-  const cardBackgroundStyle = useAnimatedStyle(() => {
+  // Gradient backgrounds: fade in a top-to-bottom gradient based on swipe direction
+  const likeGradientStyle = useAnimatedStyle(() => {
     const progress = translateX.value / SWIPE_THRESHOLD;
-    const backgroundColor = interpolateColor(
-      progress,
-      [-1, 0, 1],
-      [SWIPE_COLORS.nope, '#FFFFFF', SWIPE_COLORS.like],
-    );
-    return { backgroundColor };
+    return {
+      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.5, 1], Extrapolation.CLAMP),
+    };
+  });
+
+  const nopeGradientStyle = useAnimatedStyle(() => {
+    const progress = -translateX.value / SWIPE_THRESHOLD;
+    return {
+      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.5, 1], Extrapolation.CLAMP),
+    };
   });
 
   const underlineColor =
@@ -272,8 +281,21 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
 
   const hintActivatedRef = useRef(false);
 
+  // Reset hint when detail view opens so it doesn't show statically behind the modal
   useEffect(() => {
-    if (!isTop || !showSwipeHint || hintActivatedRef.current) return;
+    if (detailOpen && hintActivatedRef.current) {
+      cancelAnimation(hintOpacity);
+      cancelAnimation(hintTranslateX);
+      hintOpacity.value = 0;
+      hintTranslateX.value = 0;
+      hintActivatedRef.current = false;
+      onSwipeHintReset?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailOpen]);
+
+  useEffect(() => {
+    if (!isTop || !showSwipeHint || hintActivatedRef.current || detailOpen) return;
 
     hintTimerRef.current = setTimeout(() => {
       hintActivatedRef.current = true;
@@ -293,7 +315,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       cancelAnimation(hintTranslateX);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTop]);
+  }, [isTop, detailOpen]);
 
   // Hide hint as soon as user starts swiping
   const hintContainerStyle = useAnimatedStyle(() => {
@@ -344,10 +366,27 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           { borderColor: colors.primary },
           isTop && cardAnimatedStyle,
           isTop && cardBorderStyle,
-          isTop && cardBackgroundStyle,
           { zIndex: isTop ? 2 : 1 },
         ]}
       >
+        {/* Gradient backgrounds — top-to-bottom color wash on swipe */}
+        {isTop && (
+          <Animated.View style={[StyleSheet.absoluteFill, likeGradientStyle]} pointerEvents="none">
+            <LinearGradient
+              colors={[SWIPE_COLORS.like, '#A3E4C4']}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        )}
+        {isTop && (
+          <Animated.View style={[StyleSheet.absoluteFill, nopeGradientStyle]} pointerEvents="none">
+            <LinearGradient
+              colors={[SWIPE_COLORS.nope, '#FFB3C6']}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        )}
+
         {/* LIKE overlay - shows when swiping right */}
         <Animated.View
           style={[styles.overlay, styles.likeOverlay, likeOverlayStyle]}
@@ -427,7 +466,18 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
             </Animated.View>
           )}
 
-          {/* Popularity row — fills dead space at bottom; tappable to open detail */}
+          {/* Swipe hint — vertically centered in the whitespace between content and rank row */}
+          {isTop && (
+            <Animated.View style={[styles.swipeHint, hintContainerStyle]} pointerEvents="none">
+              <Animated.View style={[styles.swipeHintInner, hintArrowStyle]}>
+                <Ionicons name="chevron-back" size={18} color="#A89BB5" />
+                <Text style={styles.swipeHintText}>swipe</Text>
+                <Ionicons name="chevron-forward" size={18} color="#A89BB5" />
+              </Animated.View>
+            </Animated.View>
+          )}
+
+          {/* Popularity row — pinned to bottom; tappable to open detail */}
           <GestureDetector
             gesture={Gesture.Tap().onEnd(() => {
               'worklet';
@@ -517,17 +567,6 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
               )}
             </Animated.View>
           </GestureDetector>
-
-          {/* Swipe hint — appears after 10s idle, once per session */}
-          {isTop && (
-            <Animated.View style={[styles.swipeHint, hintContainerStyle]} pointerEvents="none">
-              <Animated.View style={[styles.swipeHintInner, hintArrowStyle]}>
-                <Ionicons name="chevron-back" size={18} color="#A89BB5" />
-                <Text style={styles.swipeHintText}>swipe</Text>
-                <Ionicons name="chevron-forward" size={18} color="#A89BB5" />
-              </Animated.View>
-            </Animated.View>
-          )}
         </Animated.View>
       </Animated.View>
     </GestureDetector>
@@ -550,12 +589,12 @@ const styles = StyleSheet.create({
     borderRadius: 13,
   },
   likeOverlay: {
-    backgroundColor: SWIPE_COLORS.like,
+    backgroundColor: 'transparent',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   dislikeOverlay: {
-    backgroundColor: SWIPE_COLORS.nope,
+    backgroundColor: 'transparent',
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
   },
@@ -652,10 +691,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
   },
   swipeHint: {
-    position: 'absolute',
-    top: '45%',
-    left: 0,
-    right: 0,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   popularityRow: {

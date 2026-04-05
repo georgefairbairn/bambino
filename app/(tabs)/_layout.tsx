@@ -57,7 +57,7 @@ export default function TabsLayout() {
           borderTopRightRadius: 24,
           position: 'absolute',
           height: 85,
-          shadowColor: '#A78BFA',
+          shadowColor: colors.secondary,
           shadowOpacity: 0.1,
           shadowRadius: 20,
           shadowOffset: { width: 0, height: -4 },

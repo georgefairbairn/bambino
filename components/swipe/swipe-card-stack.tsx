@@ -113,7 +113,9 @@ export function SwipeCardStack() {
             isTop={index === 0}
             showSwipeHint={hintEligible}
             swipeEnabled={!showDetailModal}
+            detailOpen={showDetailModal}
             onSwipeHintShown={() => setHintEligible(false)}
+            onSwipeHintReset={() => setHintEligible(true)}
             onSwipeLeft={() => handleSelection('reject')}
             onSwipeRight={() => handleSelection('like')}
             onDetailPress={() => setShowDetailModal(true)}

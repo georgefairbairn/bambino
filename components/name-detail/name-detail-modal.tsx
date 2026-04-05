@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
@@ -6,10 +7,69 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
-import { getPopularityTier, TOTAL_RANKED_NAMES } from '@/constants/popularity';
+import { getPopularityTier } from '@/constants/popularity';
 import { GenderBadge } from './gender-badge';
 import { QuickActionButtons } from './quick-action-buttons';
 import { RankBadge, PopularityChart } from '@/components/popularity';
+
+function ordinalSuffix(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return 'th';
+  switch (n % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+}
+
+const GENDER_TOGGLE_CONFIG = {
+  male: { emoji: '👦', activeBg: '#E3F0FF', text: '#7CB9E8', label: 'Boy' },
+  female: { emoji: '👧', activeBg: '#FFE4EC', text: '#FF8FAB', label: 'Girl' },
+} as const;
+
+function GenderPillToggle({
+  selected,
+  onSelect,
+}: {
+  selected: 'male' | 'female';
+  onSelect: (g: 'male' | 'female') => void;
+}) {
+  return (
+    <View style={swipeStyles.genderToggle}>
+      {(['male', 'female'] as const).map((g) => {
+        const config = GENDER_TOGGLE_CONFIG[g];
+        const isActive = selected === g;
+        return (
+          <Pressable
+            key={g}
+            style={[
+              swipeStyles.genderPill,
+              { backgroundColor: isActive ? config.activeBg : '#F0EDF3' },
+              !isActive && { opacity: 0.5 },
+            ]}
+            onPress={() => onSelect(g)}
+          >
+            <Text style={swipeStyles.genderPillEmoji}>{config.emoji}</Text>
+            <Text
+              style={[
+                swipeStyles.genderPillText,
+                { color: isActive ? config.text : '#A89BB5' },
+                isActive && { fontWeight: '700' },
+              ]}
+            >
+              {config.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 const TREND_CONFIG = {
   rising: { label: 'Rising', arrow: '↑', color: '#4ADE80' },
@@ -33,31 +93,46 @@ interface NameDetailModalProps {
 
 function PopularityDetailContent({ name }: { name: Doc<'names'> }) {
   const { colors } = useTheme();
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(
+    name.primaryGender ?? 'male',
+  );
+  const displayGender: 'male' | 'female' =
+    name.gender === 'neutral' ? selectedGender : (name.gender as 'male' | 'female');
 
-  const popularitySummary = useQuery(api.popularity.getNamePopularitySummary, {
+  const rawPopularitySummary = useQuery(api.popularity.getNamePopularitySummary, {
     name: name.name,
-    gender: name.gender,
+    gender: displayGender,
   });
 
-  const tier = getPopularityTier(name.currentRank);
-  const hasRank = name.currentRank != null;
+  // Cache last valid summary to prevent flash of empty state during gender transitions
+  const cachedSummary = useRef(rawPopularitySummary);
+  if (rawPopularitySummary !== undefined) {
+    cachedSummary.current = rawPopularitySummary;
+  }
+  const popularitySummary = rawPopularitySummary ?? cachedSummary.current;
+
+  const currentRank = popularitySummary?.currentRank ?? null;
+  const tier = getPopularityTier(currentRank);
+  const hasRank = currentRank != null;
 
   return (
     <>
+      {name.gender === 'neutral' && (
+        <GenderPillToggle selected={selectedGender} onSelect={setSelectedGender} />
+      )}
+
       {/* Headline card */}
       <View style={[swipeStyles.headlineCard, { backgroundColor: colors.surfaceSubtle }]}>
         {/* Left: rank with context */}
         <View style={swipeStyles.rankSection}>
-          <Text style={swipeStyles.rankNumber}>{hasRank ? `#${name.currentRank}` : '—'}</Text>
-          <Text style={swipeStyles.rankContext}>
-            {hasRank ? `out of ${TOTAL_RANKED_NAMES.toLocaleString()}` : 'Unranked'}
-          </Text>
+          <Text style={swipeStyles.rankSectionLabel}>RANK</Text>
+          <Text style={swipeStyles.rankNumber}>{hasRank ? `#${currentRank}` : '—'}</Text>
         </View>
 
         {/* Divider */}
         <View style={swipeStyles.divider} />
 
-        {/* Right: tier badge + percentile */}
+        {/* Right: tier badge + description */}
         <View style={swipeStyles.tierSection}>
           <LinearGradient
             colors={tier.gradientColors}
@@ -67,7 +142,13 @@ function PopularityDetailContent({ name }: { name: Doc<'names'> }) {
           >
             <Text style={swipeStyles.tierLabel}>{tier.label}</Text>
           </LinearGradient>
-          <Text style={swipeStyles.percentileText}>{tier.percentileText}</Text>
+          {hasRank && popularitySummary?.totalRankedNames ? (
+            <Text style={swipeStyles.tierDescription}>
+              Ranked {currentRank}
+              {ordinalSuffix(currentRank!)} out of{' '}
+              {popularitySummary.totalRankedNames.toLocaleString()} names
+            </Text>
+          ) : null}
         </View>
       </View>
 
@@ -85,7 +166,7 @@ function PopularityDetailContent({ name }: { name: Doc<'names'> }) {
           )}
         </View>
         <View style={[swipeStyles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-          <Text style={swipeStyles.statLabel}>5YR TREND</Text>
+          <Text style={swipeStyles.statLabel}>5 YEAR TREND</Text>
           {popularitySummary?.trend ? (
             <Text
               style={[
@@ -103,9 +184,7 @@ function PopularityDetailContent({ name }: { name: Doc<'names'> }) {
       </View>
 
       {/* Popularity chart */}
-      {name.gender !== 'neutral' && (
-        <PopularityChart name={name.name} gender={name.gender as 'male' | 'female' | 'neutral'} />
-      )}
+      <PopularityChart name={name.name} gender={displayGender} />
     </>
   );
 }
@@ -122,6 +201,11 @@ export function NameDetailModal({
   onHide,
 }: NameDetailModalProps) {
   const { colors } = useTheme();
+  const [listSelectedGender, setListSelectedGender] = useState<'male' | 'female'>(
+    name?.primaryGender ?? 'male',
+  );
+  const listDisplayGender: 'male' | 'female' =
+    name?.gender === 'neutral' ? listSelectedGender : (name?.gender as 'male' | 'female');
 
   if (!name) return null;
 
@@ -183,13 +267,12 @@ export function NameDetailModal({
                   )}
                 </View>
 
-                {/* Popularity chart */}
-                {name.gender !== 'neutral' && (
-                  <PopularityChart
-                    name={name.name}
-                    gender={name.gender as 'male' | 'female' | 'neutral'}
-                  />
+                {name.gender === 'neutral' && (
+                  <GenderPillToggle selected={listSelectedGender} onSelect={setListSelectedGender} />
                 )}
+
+                {/* Popularity chart */}
+                <PopularityChart name={name.name} gender={listDisplayGender} />
 
                 {/* Quick action buttons */}
                 <QuickActionButtons
@@ -290,12 +373,35 @@ const styles = StyleSheet.create({
 });
 
 const swipeStyles = StyleSheet.create({
+  genderToggle: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  genderPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 14,
+    gap: 5,
+  },
+  genderPillEmoji: {
+    fontSize: 13,
+  },
+  genderPillText: {
+    fontSize: 12,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+  },
   headlineCard: {
     borderRadius: 16,
     padding: 16,
     paddingHorizontal: 20,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: 16,
     marginBottom: 16,
   },
@@ -303,33 +409,43 @@ const swipeStyles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 80,
   },
+  rankSectionLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#A89BB5',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
   rankNumber: {
     fontSize: 36,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     lineHeight: 40,
   },
-  rankContext: {
-    fontSize: 11,
-    fontFamily: Fonts?.sans,
-    color: '#A89BB5',
-    fontWeight: '500',
-    marginTop: 4,
-  },
   divider: {
     width: 1,
+    alignSelf: 'center',
     height: 48,
     backgroundColor: '#E0D8E8',
   },
   tierSection: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: 2,
   },
   tierBadge: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  tierDescription: {
+    fontSize: 11,
+    fontFamily: Fonts?.sans,
+    color: '#6B5B7B',
+    textAlign: 'center',
   },
   tierLabel: {
     fontSize: 11,
@@ -337,12 +453,6 @@ const swipeStyles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
-  },
-  percentileText: {
-    fontSize: 12,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    lineHeight: 17,
   },
   statRow: {
     flexDirection: 'row',

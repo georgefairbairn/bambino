@@ -23,8 +23,35 @@ export default function Filters() {
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('both');
   // null = all origins, [] = none, [...] = specific
   const [originFilter, setOriginFilter] = useState<string[] | null>(null);
-  // Track whether initial state has loaded from DB to avoid saving on mount
-  const initialized = useRef(false);
+  // Load saved filters from DB exactly once (not on every user query update)
+  const loaded = useRef(false);
+  useEffect(() => {
+    if (loaded.current || !user) return;
+    loaded.current = true;
+    setGenderFilter((user.genderFilter as GenderFilter) ?? 'both');
+    setOriginFilter(user.originFilter ?? null);
+  }, [user]);
+
+  // Refs track latest state so saveFilters can read current values
+  const genderRef = useRef(genderFilter);
+  const originRef = useRef(originFilter);
+  genderRef.current = genderFilter;
+  originRef.current = originFilter;
+
+  // Save explicitly — called by interaction handlers, never by effects
+  const saveFilters = useCallback((gender: GenderFilter, origin: string[] | null) => {
+    updateFilters({ genderFilter: gender, originFilter: origin ?? [] });
+  }, [updateFilters]);
+
+  const handleGenderChange = useCallback((value: GenderFilter) => {
+    setGenderFilter(value);
+    saveFilters(value, originRef.current);
+  }, [saveFilters]);
+
+  const handleOriginChange = useCallback((value: string[] | null) => {
+    setOriginFilter(value);
+    saveFilters(genderRef.current, value);
+  }, [saveFilters]);
 
   // Live names count based on current filter state
   // null → omit originFilter (all origins), array → pass it
@@ -40,27 +67,6 @@ export default function Filters() {
     lastCount.current = nameCount;
   }
   const displayCount = nameCount ?? lastCount.current;
-
-  // Load saved filters from DB
-  useEffect(() => {
-    if (user) {
-      setGenderFilter((user.genderFilter as GenderFilter) ?? 'both');
-      const saved = user.originFilter;
-      setOriginFilter(!saved || saved.length === 0 ? null : saved);
-      // Mark initialized after a tick so the auto-save effect doesn't fire
-      setTimeout(() => { initialized.current = true; }, 0);
-    }
-  }, [user]);
-
-  // Auto-save whenever filters change (after initial load)
-  const save = useCallback(() => {
-    if (!initialized.current) return;
-    updateFilters({ genderFilter, originFilter: originFilter ?? [] });
-  }, [genderFilter, originFilter, updateFilters]);
-
-  useEffect(() => {
-    save();
-  }, [save]);
 
   // Counter sublabel
   const isAllOrigins = originFilter === null;
@@ -115,11 +121,11 @@ export default function Filters() {
           {/* Gender filter */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Gender</Text>
-            <GenderFilterSelector value={genderFilter} onChange={setGenderFilter} />
+            <GenderFilterSelector value={genderFilter} onChange={handleGenderChange} />
           </View>
 
           {/* Origin filter — toggle list handles its own section title */}
-          <OriginToggleList value={originFilter} onChange={setOriginFilter} genderFilter={genderFilter} />
+          <OriginToggleList value={originFilter} onChange={handleOriginChange} genderFilter={genderFilter} />
         </ScrollView>
 
       </SafeAreaView>

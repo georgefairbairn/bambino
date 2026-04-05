@@ -36,13 +36,11 @@ export function GenderBadge({ gender, size = 'large' }: GenderBadgeProps) {
   const config = GENDER_CONFIG[gender] ?? GENDER_CONFIG.unisex;
   const isLarge = size === 'large';
 
-  // Use theme colors for girl/unisex backgrounds, keep boy bg fixed
+  // Use theme color for unisex background, keep boy/girl bg fixed
   const bgColor =
-    gender === 'girl'
-      ? colors.primaryLight
-      : gender === 'unisex'
-        ? colors.secondaryLight
-        : config.bg;
+    gender === 'unisex'
+      ? colors.secondaryLight
+      : config.bg;
 
   return (
     <View style={[styles.badge, { backgroundColor: bgColor }, isLarge && styles.badgeLarge]}>
@@ -58,6 +56,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
