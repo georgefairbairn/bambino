@@ -26,7 +26,6 @@ interface PartnerLinkModalProps {
 type PartnerPreview = {
   userId: string;
   name: string;
-  email: string;
   imageUrl?: string;
 };
 
@@ -90,7 +89,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       setPreview({
         userId: partnerPreview.userId,
         name: partnerPreview.name,
-        email: partnerPreview.email,
         imageUrl: partnerPreview.imageUrl,
       });
       setIsLookingUp(false);
@@ -222,7 +220,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
                   )}
                   <View>
                     <Text style={styles.previewName}>{preview.name}</Text>
-                    <Text style={styles.previewEmail}>{preview.email}</Text>
                   </View>
                 </View>
               </View>
@@ -381,12 +378,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
-  },
-  previewEmail: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    marginTop: 2,
   },
   previewActions: {
     gap: 12,
