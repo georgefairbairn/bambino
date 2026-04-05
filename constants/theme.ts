@@ -175,19 +175,23 @@ export const Fonts = Platform.select({
     rounded: 'ui-rounded',
     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
-    /** Brand display font */
+    /** Brand display font (Alfa Slab One) — "bambino" wordmark only */
     display: 'AlfaSlabOne_400Regular',
+    /** Title font (Gabarito) — baby names, section headings, UI titles */
+    title: 'Gabarito_800ExtraBold',
   },
   default: {
     sans: undefined,
     rounded: 'normal',
     mono: 'monospace',
     display: 'AlfaSlabOne_400Regular',
+    title: 'Gabarito_800ExtraBold',
   },
   web: {
     sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
     display: 'AlfaSlabOne_400Regular',
+    title: 'Gabarito_800ExtraBold',
   },
 });
