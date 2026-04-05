@@ -14,6 +14,7 @@ import {
   StyleSheet,
   Share,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -107,7 +108,7 @@ export default function Profile() {
     }
   }, [partnerInfo?.shareCode]);
 
-  const handlePickImage = useCallback(async () => {
+  const pickAndUploadImage = useCallback(async () => {
     if (!user) return;
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -124,20 +125,119 @@ export default function Profile() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
+      base64: true,
     });
 
     if (result.canceled) return;
 
     setIsUploading(true);
     try {
-      const response = await fetch(result.assets[0].uri);
-      const blob = await response.blob();
-      await user.setProfileImage({ file: blob });
-    } catch (error) {
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      await user.setProfileImage({
+        file: `data:${mimeType};base64,${asset.base64!}`,
+      });
+    } catch (error: any) {
       Sentry.captureException(error);
+      console.error('Profile photo upload failed:', {
+        message: error?.message,
+        status: error?.status,
+        code: error?.errors?.[0]?.code,
+        longMessage: error?.errors?.[0]?.longMessage,
+        clerkError: error?.clerkError,
+        raw: JSON.stringify(error, null, 2),
+      });
       Alert.alert('Error', 'Failed to update profile photo. Please try again.');
     } finally {
       setIsUploading(false);
+    }
+  }, [user]);
+
+  const handleRemovePhoto = useCallback(async () => {
+    if (!user) return;
+
+    setIsUploading(true);
+    try {
+      await user.setProfileImage({ file: null });
+    } catch (error: any) {
+      Sentry.captureException(error);
+      Alert.alert('Error', 'Failed to remove profile photo. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  }, [user]);
+
+  const handleAvatarPress = useCallback(() => {
+    if (!user) return;
+
+    if (user.hasImage) {
+      Alert.alert('Profile Photo', undefined, [
+        { text: 'Change Photo', onPress: pickAndUploadImage },
+        {
+          text: 'Remove Photo',
+          style: 'destructive',
+          onPress: handleRemovePhoto,
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    } else {
+      pickAndUploadImage();
+    }
+  }, [user, pickAndUploadImage, handleRemovePhoto]);
+
+  const handleEditName = useCallback(() => {
+    if (!user) return;
+
+    const currentFirst = user.firstName || '';
+    const currentLast = user.lastName || '';
+
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        'Edit Name',
+        'Enter your first name',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Next',
+            onPress: (firstName) => {
+              if (!firstName?.trim()) {
+                Alert.alert('Error', 'First name is required');
+                return;
+              }
+              Alert.prompt(
+                'Edit Name',
+                'Enter your last name (optional)',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Save',
+                    onPress: async (lastName) => {
+                      try {
+                        await user.update({
+                          firstName: firstName.trim(),
+                          lastName: lastName?.trim() || '',
+                        });
+                      } catch (error) {
+                        Sentry.captureException(error);
+                        Alert.alert('Error', 'Failed to update name. Please try again.');
+                      }
+                    },
+                  },
+                ],
+                'plain-text',
+                currentLast,
+              );
+            },
+          },
+        ],
+        'plain-text',
+        currentFirst,
+      );
+    } else {
+      Alert.alert(
+        'Edit Name',
+        'Name editing on Android coming soon. You can update your name in your account settings.',
+      );
     }
   }, [user]);
 
@@ -178,7 +278,7 @@ export default function Profile() {
           entering={FadeInDown.duration(500).springify()}
           style={styles.userInfoSection}
         >
-          <Pressable onPress={handlePickImage} disabled={isUploading}>
+          <Pressable onPress={handleAvatarPress} disabled={isUploading}>
             {user?.hasImage ? (
               <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
                 <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
@@ -209,7 +309,10 @@ export default function Profile() {
             )}
           </Pressable>
 
-          <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
+          <Pressable onPress={handleEditName} style={styles.nameRow}>
+            <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
+            <Ionicons name="pencil" size={16} color="#A89BB5" />
+          </Pressable>
           <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
         </Animated.View>
 
@@ -282,18 +385,14 @@ export default function Profile() {
                       ]}
                     >
                       <Text style={[styles.partnerAvatarInitial, { color: colors.primary }]}>
-                        {partnerInfo.partner.name?.[0]?.toUpperCase() ||
-                          partnerInfo.partner.email[0]?.toUpperCase()}
+                        {partnerInfo.partner.name?.[0]?.toUpperCase() || 'B'}
                       </Text>
                     </View>
                   )}
                   <View style={styles.partnerDetails}>
                     <Text style={styles.partnerName}>
-                      {partnerInfo.partner.name || partnerInfo.partner.email}
+                      {partnerInfo.partner.name || 'Bambino User'}
                     </Text>
-                    {partnerInfo.partner.name && (
-                      <Text style={styles.partnerEmail}>{partnerInfo.partner.email}</Text>
-                    )}
                   </View>
                 </View>
                 <Pressable style={styles.unlinkButton} onPress={handleUnlinkPartner}>
@@ -489,6 +588,11 @@ const styles = StyleSheet.create({
     color: '#2D1B4E',
     marginBottom: 4,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   userEmail: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
@@ -624,12 +728,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#2D1B4E',
-  },
-  partnerEmail: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    marginTop: 2,
   },
   unlinkButton: {
     flexDirection: 'row',
