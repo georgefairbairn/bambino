@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   counterNum: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 28,
   },
   section: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
 });
