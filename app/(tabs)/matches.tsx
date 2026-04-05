@@ -5,9 +5,12 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
+import { useRouter } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { usePurchases } from '@/hooks/use-purchases';
+import { Paywall } from '@/components/paywall';
 import { MatchCard, MatchDetailModal } from '@/components/matches';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
@@ -43,9 +46,12 @@ const SORT_OPTIONS: { value: SortOption; label: string; icon: string }[] = [
 
 export default function Matches() {
   const { colors } = useTheme();
+  const { isPremium, restorePurchases } = usePurchases();
+  const router = useRouter();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
   const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
@@ -148,23 +154,78 @@ export default function Matches() {
     return <LoadingScreen {...loadingProps} />;
   }
 
-  // No partner or empty matches state
-  if (!hasPartner || !matches || matches.length === 0) {
+  // Three empty states based on user status
+  if (!isPremium || !hasPartner || !matches || matches.length === 0) {
+    const isFreeUser = !isPremium;
+    const isPremiumNoPartner = isPremium && !hasPartner;
+
     return (
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
           <View style={styles.emptyContainer}>
-            {hasPartner ? <BubblePillsBackground /> : null}
+            <BubblePillsBackground />
+
+            {/* Title */}
             <Text style={styles.emptyTitle}>
-              {!hasPartner ? 'Link Your Partner' : 'No Matches Yet'}
+              {isFreeUser
+                ? 'Match With Your Partner'
+                : isPremiumNoPartner
+                  ? 'Invite Your Partner'
+                  : 'No Matches Yet'}
             </Text>
+
+            {/* Description */}
             <Text style={styles.emptyDescription}>
-              {!hasPartner
-                ? 'Share your code in the Profile tab to connect. Matches appear when you both love the same name!'
-                : "When you and your partner both love the same name — it's a match!"}
+              {isFreeUser
+                ? 'Upgrade to connect with your partner and discover the baby names you both love.'
+                : isPremiumNoPartner
+                  ? 'Share your partner code and start discovering the names you both love. Matches appear when you both swipe right!'
+                  : "When you and your partner both love the same name — it's a match! Keep swiping to find your favourites."}
             </Text>
-            {!hasPartner ? <MatchAnimation /> : null}
+
+            {/* Animation */}
+            <MatchAnimation />
+
+            {/* CTAs */}
+            {isFreeUser && (
+              <View style={styles.ctaContainer}>
+                <Pressable
+                  style={[styles.ctaButton, { backgroundColor: colors.primary }]}
+                  onPress={() => setShowPaywall(true)}
+                >
+                  <Text style={styles.ctaButtonText}>Upgrade to Premium</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.restoreButton}
+                  onPress={async () => {
+                    const success = await restorePurchases();
+                    if (success) {
+                      Alert.alert('Restored', 'Your premium purchase has been restored!');
+                    } else {
+                      Alert.alert('No Purchase Found', 'No previous purchase was found to restore.');
+                    }
+                  }}
+                >
+                  <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {isPremiumNoPartner && (
+              <Pressable
+                style={[styles.ctaButton, { backgroundColor: colors.primary }]}
+                onPress={() => router.push('/(tabs)/profile')}
+              >
+                <Text style={styles.ctaButtonText}>Share Your Code</Text>
+              </Pressable>
+            )}
           </View>
+
+          <Paywall
+            visible={showPaywall}
+            onClose={() => setShowPaywall(false)}
+            trigger="partner_limit"
+          />
         </SafeAreaView>
       </GradientBackground>
     );
@@ -440,5 +501,35 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 4,
     paddingBottom: 100,
+  },
+  ctaContainer: {
+    alignItems: 'center',
+    gap: 8,
+    zIndex: 10,
+  },
+  ctaButton: {
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+    zIndex: 10,
+  },
+  ctaButtonText: {
+    fontSize: 15,
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
+    color: '#fff',
+  },
+  restoreButton: {
+    paddingVertical: 8,
+    zIndex: 10,
+  },
+  restoreButtonText: {
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    color: '#A89BB5',
   },
 });
