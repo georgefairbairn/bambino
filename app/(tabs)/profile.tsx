@@ -24,6 +24,7 @@ import { api } from '@/convex/_generated/api';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
+import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
 import { ThemePickerSection, VoiceSettingsSection } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -39,9 +40,12 @@ export default function Profile() {
   const deleteAccount = useMutation(api.users.deleteAccount);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const convexUser = useQuery(api.users.getCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
+  const [showNameConfirmation, setShowNameConfirmation] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'copy' | 'share' | 'link' | null>(null);
   const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
   const insets = useSafeAreaInsets();
 
@@ -107,6 +111,52 @@ export default function Profile() {
       }
     }
   }, [partnerInfo?.shareCode]);
+
+  const handlePartnerAction = useCallback(
+    (action: 'copy' | 'share' | 'link') => {
+      // Gate 1: Premium check
+      if (!isPremium) {
+        setShowPaywall(true);
+        return;
+      }
+
+      // Gate 2: Name confirmation check
+      if (convexUser?.nameConfirmed !== true) {
+        setPendingAction(action);
+        setShowNameConfirmation(true);
+        return;
+      }
+
+      // Gate 3: Execute action
+      executePartnerAction(action);
+    },
+    [isPremium, convexUser?.nameConfirmed],
+  );
+
+  const executePartnerAction = useCallback(
+    (action: 'copy' | 'share' | 'link') => {
+      switch (action) {
+        case 'copy':
+          handleCopyCode();
+          break;
+        case 'share':
+          handleShareCode();
+          break;
+        case 'link':
+          setShowPartnerModal(true);
+          break;
+      }
+    },
+    [handleCopyCode, handleShareCode],
+  );
+
+  const handleNameConfirmed = useCallback(() => {
+    setShowNameConfirmation(false);
+    if (pendingAction) {
+      executePartnerAction(pendingAction);
+      setPendingAction(null);
+    }
+  }, [pendingAction, executePartnerAction]);
 
   const handleAvatarPress = useCallback(() => {
     if (!user) return;
@@ -352,18 +402,26 @@ export default function Profile() {
                     <View style={styles.shareActions}>
                       <Pressable
                         style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                        onPress={handleCopyCode}
+                        onPress={() => handlePartnerAction('copy')}
                       >
-                        <Ionicons name="copy-outline" size={16} color={colors.primary} />
+                        <Ionicons
+                          name={isPremium ? 'copy-outline' : 'lock-closed'}
+                          size={16}
+                          color={colors.primary}
+                        />
                         <Text style={[styles.shareActionText, { color: colors.primary }]}>
                           Copy
                         </Text>
                       </Pressable>
                       <Pressable
                         style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                        onPress={handleShareCode}
+                        onPress={() => handlePartnerAction('share')}
                       >
-                        <Ionicons name="share-outline" size={16} color={colors.primary} />
+                        <Ionicons
+                          name={isPremium ? 'share-outline' : 'lock-closed'}
+                          size={16}
+                          color={colors.primary}
+                        />
                         <Text style={[styles.shareActionText, { color: colors.primary }]}>
                           Share
                         </Text>
@@ -374,7 +432,7 @@ export default function Profile() {
                 <View style={styles.linkPartnerWrap}>
                   <GradientButton
                     title="Link Partner"
-                    onPress={() => setShowPartnerModal(true)}
+                    onPress={() => handlePartnerAction('link')}
                     variant="primary"
                     icon="people"
                   />
@@ -453,10 +511,19 @@ export default function Profile() {
         <Paywall
           visible={showPaywall}
           onClose={() => setShowPaywall(false)}
-          trigger="search_limit"
+          trigger="partner_limit"
         />
 
         <PartnerLinkModal visible={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
+
+        <NameConfirmationModal
+          visible={showNameConfirmation}
+          onClose={() => {
+            setShowNameConfirmation(false);
+            setPendingAction(null);
+          }}
+          onConfirmed={handleNameConfirmed}
+        />
       </ScrollView>
     </GradientBackground>
   );
