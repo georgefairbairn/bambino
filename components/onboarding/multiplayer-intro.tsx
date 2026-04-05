@@ -12,12 +12,14 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
 const { width } = Dimensions.get('window');
 
 const LOOP_DURATION = 5000;
 
 export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
+  const { colors } = useTheme();
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -100,12 +102,12 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
       {/* PRO pill */}
       <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.proPillWrap}>
         <LinearGradient
-          colors={['#FEF3C7', '#FFFBEB']}
-          style={styles.proPill}
+          colors={[colors.primaryLight, colors.secondaryLight]}
+          style={[styles.proPill, { borderColor: colors.border }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Text style={styles.proPillText}>{'\u2B50'} PRO</Text>
+          <Text style={[styles.proPillText, { color: colors.tabActive }]}>{'\u2B50'} PRO</Text>
         </LinearGradient>
       </Animated.View>
 
@@ -132,17 +134,17 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
         </Animated.View>
 
         {/* Match banner */}
-        <Animated.View style={[styles.matchBanner, bannerStyle]}>
+        <Animated.View style={[styles.matchBanner, { borderColor: colors.primary, shadowColor: colors.primary, backgroundColor: colors.secondaryLight }, bannerStyle]}>
           <Text style={styles.matchEmoji}>{'\uD83C\uDF89'}</Text>
-          <Text style={styles.matchText}>It&apos;s a Match!</Text>
+          <Text style={[styles.matchText, { color: colors.tabActive }]}>It&apos;s a Match!</Text>
         </Animated.View>
       </View>
 
       {/* Three-step explainer */}
       <Animated.View entering={FadeIn.delay(500).duration(400)} style={styles.explainer}>
         <View style={styles.step}>
-          <View style={styles.stepNum}>
-            <Text style={styles.stepNumText}>1</Text>
+          <View style={[styles.stepNum, { backgroundColor: `${colors.primary}26` }]}>
+            <Text style={[styles.stepNumText, { color: colors.tabActive }]}>1</Text>
           </View>
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Swipe at your own pace</Text>
@@ -153,8 +155,8 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
         <View style={styles.stepDivider} />
 
         <View style={styles.step}>
-          <View style={styles.stepNum}>
-            <Text style={styles.stepNumText}>2</Text>
+          <View style={[styles.stepNum, { backgroundColor: `${colors.primary}26` }]}>
+            <Text style={[styles.stepNumText, { color: colors.tabActive }]}>2</Text>
           </View>
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Find common ground</Text>
@@ -167,8 +169,8 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
         <View style={styles.stepDivider} />
 
         <View style={styles.step}>
-          <View style={styles.stepNum}>
-            <Text style={styles.stepNumText}>3</Text>
+          <View style={[styles.stepNum, { backgroundColor: `${colors.primary}26` }]}>
+            <Text style={[styles.stepNumText, { color: colors.tabActive }]}>3</Text>
           </View>
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Pick the one</Text>
@@ -189,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 24,
     color: '#2D1B4E',
     textAlign: 'center',
@@ -204,14 +206,14 @@ const styles = StyleSheet.create({
     gap: 4,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#FDE68A',
+    // borderColor set dynamically via inline style
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
   proPillText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#D97706',
+    // color set dynamically via inline style
     letterSpacing: 0.8,
   },
 
@@ -253,7 +255,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   miniCardName: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 22,
     color: '#2D1B4E',
     marginBottom: 8,
@@ -284,24 +286,22 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 16,
     borderWidth: 3,
-    borderColor: '#F59E0B',
+    // borderColor, shadowColor, backgroundColor set dynamically via inline style
     paddingHorizontal: 28,
     paddingVertical: 14,
     zIndex: 10,
-    shadowColor: '#F59E0B',
     shadowOpacity: 0.25,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
-    backgroundColor: '#FFFBEB',
   },
   matchEmoji: {
     fontSize: 20,
   },
   matchText: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 18,
-    color: '#D97706',
+    // color set dynamically via inline style
   },
 
   // ── Three-step explainer ──
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: 'rgba(52, 211, 153, 0.15)',
+    // backgroundColor set dynamically via inline style
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   stepNumText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#059669',
+    // color set dynamically via inline style
   },
   stepContent: {
     flex: 1,

@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 20,
     color: '#2D1B4E',
     textAlign: 'center',
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   cardName: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 52,
     color: '#2D1B4E',
     lineHeight: 58,
