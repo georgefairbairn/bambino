@@ -158,6 +158,11 @@ export const linkPartner = mutation({
       throw new Error('This user already has a partner linked');
     }
 
+    // Calling user must have confirmed their name
+    if (user.nameConfirmed !== true) {
+      return { error: 'NAME_NOT_CONFIRMED' as const };
+    }
+
     // At least one user must be premium
     const userIsPremium = user.isPremium === true;
     const targetIsPremium = targetUser.isPremium === true;
