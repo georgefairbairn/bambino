@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 17,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
   pillTextSmall: {

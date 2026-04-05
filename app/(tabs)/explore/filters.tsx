@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   title: {
-    fontFamily: Fonts?.display,
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 20,
     color: '#2D1B4E',
   },
