@@ -4,6 +4,11 @@ import * as Sentry from '@sentry/react-native';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { AlfaSlabOne_400Regular } from '@expo-google-fonts/alfa-slab-one';
+import {
+  Gabarito_700Bold,
+  Gabarito_800ExtraBold,
+  Gabarito_900Black,
+} from '@expo-google-fonts/gabarito';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { ConvexReactClient } from 'convex/react';
 import { useFonts } from 'expo-font';
@@ -50,6 +55,9 @@ const convex = new ConvexReactClient(convexUrl);
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     AlfaSlabOne_400Regular,
+    Gabarito_700Bold,
+    Gabarito_800ExtraBold,
+    Gabarito_900Black,
   });
 
   useEffect(() => {
