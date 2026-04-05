@@ -11,10 +11,11 @@ import Animated, {
   withSpring,
   withRepeat,
   withSequence,
+  runOnJS,
   Extrapolation,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -43,6 +44,8 @@ interface SwipeCardProps {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeComplete?: (direction: 'left' | 'right') => void;
+  onDetailPress?: () => void;
+  swipeEnabled?: boolean;
 }
 
 // Gender-based underline colors
@@ -72,7 +75,6 @@ function getNameFontSize(name: string): number {
   return 32;
 }
 
-
 export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function SwipeCard(
   {
     name,
@@ -82,6 +84,8 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     onSwipeLeft,
     onSwipeRight,
     onSwipeComplete,
+    onDetailPress,
+    swipeEnabled = true,
   },
   ref,
 ) {
@@ -120,7 +124,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     swipeRight,
     onSwipeLeft,
     onSwipeRight,
-    enabled: isTop,
+    enabled: isTop && swipeEnabled,
   });
 
   // Animated style to fade content during swipe
@@ -374,7 +378,10 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           </View>
 
           {/* Name */}
-          <Text style={[styles.name, { fontSize: getNameFontSize(name.name) }]} onLayout={handleNameLayout}>
+          <Text
+            style={[styles.name, { fontSize: getNameFontSize(name.name) }]}
+            onLayout={handleNameLayout}
+          >
             {name.name}
           </Text>
 
@@ -420,84 +427,96 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
             </Animated.View>
           )}
 
-          {/* Popularity row — fills dead space at bottom */}
-          <Animated.View
-            style={[
-              styles.popularityRow,
-              isTop && popularityAnimatedStyle,
-            ]}
+          {/* Popularity row — fills dead space at bottom; tappable to open detail */}
+          <GestureDetector
+            gesture={Gesture.Tap().onEnd(() => {
+              'worklet';
+              if (onDetailPress) runOnJS(onDetailPress)();
+            })}
           >
-            {/* Rank tile */}
-            <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-              <Text style={styles.statLabel}>RANK</Text>
-              {name.currentRank ? (
-                <Text style={styles.statValueRank}>#{name.currentRank}</Text>
-              ) : (
-                <Text style={styles.statValueMuted}>Unranked</Text>
-              )}
-            </View>
-
-            {name.meaning ? (
-              // Two-tile layout: rank + sparkline
-              <View style={[styles.sparklineTile, { backgroundColor: colors.surfaceSubtle }]}>
-                <Text style={styles.statLabel}>10YR TREND</Text>
-                <View style={styles.sparklineRow}>
-                  {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
-                    <>
-                      <View style={styles.sparklineChart}>
-                        <LineChart
-                          data={popularitySummary.sparklinePoints.map((value) => ({ value }))}
-                          width={80}
-                          height={28}
-                          hideDataPoints
-                          hideYAxisText
-                          hideAxesAndRules
-                          color={underlineColor}
-                          thickness={2}
-                          curved
-                          initialSpacing={0}
-                          endSpacing={0}
-                          spacing={80 / Math.max(popularitySummary.sparklinePoints.length - 1, 1)}
-                          disableScroll
-                          adjustToWidth
-                          isAnimated={false}
-                        />
-                      </View>
-                      {popularitySummary.trend && (
-                        <Text style={[styles.trendArrow, { color: TREND_CONFIG[popularitySummary.trend].color }]}>
-                          {TREND_CONFIG[popularitySummary.trend].arrow}
-                        </Text>
-                      )}
-                    </>
-                  ) : (
-                    <Text style={styles.noTrendText}>No trend data</Text>
-                  )}
-                </View>
+            <Animated.View style={[styles.popularityRow, isTop && popularityAnimatedStyle]}>
+              {/* Rank tile */}
+              <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                <Text style={styles.statLabel}>RANK</Text>
+                {name.currentRank ? (
+                  <Text style={styles.statValueRank}>#{name.currentRank}</Text>
+                ) : (
+                  <Text style={styles.statValueMuted}>Unranked</Text>
+                )}
               </View>
-            ) : (
-              // Three-tile fallback: rank + trend + peak (no meaning box shown)
-              <>
-                <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-                  <Text style={styles.statLabel}>TREND</Text>
-                  {popularitySummary?.trend ? (
-                    <Text style={[styles.statValueTrend, { color: TREND_CONFIG[popularitySummary.trend].color }]}>
-                      {TREND_CONFIG[popularitySummary.trend].label}
-                    </Text>
-                  ) : (
-                    <Text style={styles.statValueMuted}>—</Text>
-                  )}
+
+              {name.meaning ? (
+                // Two-tile layout: rank + sparkline
+                <View style={[styles.sparklineTile, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.statLabel}>10YR TREND</Text>
+                  <View style={styles.sparklineRow}>
+                    {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
+                      <>
+                        <View style={styles.sparklineChart}>
+                          <LineChart
+                            data={popularitySummary.sparklinePoints.map((value) => ({ value }))}
+                            width={80}
+                            height={28}
+                            hideDataPoints
+                            hideYAxisText
+                            hideAxesAndRules
+                            color={underlineColor}
+                            thickness={2}
+                            curved
+                            initialSpacing={0}
+                            endSpacing={0}
+                            spacing={80 / Math.max(popularitySummary.sparklinePoints.length - 1, 1)}
+                            disableScroll
+                            adjustToWidth
+                            isAnimated={false}
+                          />
+                        </View>
+                        {popularitySummary.trend && (
+                          <Text
+                            style={[
+                              styles.trendArrow,
+                              { color: TREND_CONFIG[popularitySummary.trend].color },
+                            ]}
+                          >
+                            {TREND_CONFIG[popularitySummary.trend].arrow}
+                          </Text>
+                        )}
+                      </>
+                    ) : (
+                      <Text style={styles.noTrendText}>No trend data</Text>
+                    )}
+                  </View>
                 </View>
-                <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-                  <Text style={styles.statLabel}>PEAK</Text>
-                  {popularitySummary?.peakYear ? (
-                    <Text style={styles.statValuePeak}>{popularitySummary.peakYear}</Text>
-                  ) : (
-                    <Text style={styles.statValueMuted}>—</Text>
-                  )}
-                </View>
-              </>
-            )}
-          </Animated.View>
+              ) : (
+                // Three-tile fallback: rank + trend + peak (no meaning box shown)
+                <>
+                  <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                    <Text style={styles.statLabel}>TREND</Text>
+                    {popularitySummary?.trend ? (
+                      <Text
+                        style={[
+                          styles.statValueTrend,
+                          { color: TREND_CONFIG[popularitySummary.trend].color },
+                        ]}
+                      >
+                        {TREND_CONFIG[popularitySummary.trend].label}
+                      </Text>
+                    ) : (
+                      <Text style={styles.statValueMuted}>—</Text>
+                    )}
+                  </View>
+                  <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                    <Text style={styles.statLabel}>PEAK</Text>
+                    {popularitySummary?.peakYear ? (
+                      <Text style={styles.statValuePeak}>{popularitySummary.peakYear}</Text>
+                    ) : (
+                      <Text style={styles.statValueMuted}>—</Text>
+                    )}
+                  </View>
+                </>
+              )}
+            </Animated.View>
+          </GestureDetector>
 
           {/* Swipe hint — appears after 10s idle, once per session */}
           {isTop && (
@@ -588,7 +607,7 @@ const styles = StyleSheet.create({
   name: {
     alignSelf: 'flex-start',
     fontSize: 56,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     marginBottom: 12,
   },
@@ -667,7 +686,7 @@ const styles = StyleSheet.create({
   },
   statValueRank: {
     fontSize: 17,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
   statValueMuted: {

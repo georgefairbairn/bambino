@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 48,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 24,
@@ -305,7 +305,7 @@ const swipeStyles = StyleSheet.create({
   },
   rankNumber: {
     fontSize: 36,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     lineHeight: 40,
   },
