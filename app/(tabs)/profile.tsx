@@ -194,23 +194,18 @@ export default function Profile() {
                 )}
               </View>
             ) : (
-              <View>
-                <LinearGradient
-                  colors={gradients.buttonPrimary as [string, string]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.avatarGradient}
-                >
-                  {isUploading ? (
-                    <ActivityIndicator color="rgba(255,255,255,0.9)" size="small" />
-                  ) : (
-                    <Ionicons name="camera" size={32} color="rgba(255,255,255,0.9)" />
-                  )}
-                </LinearGradient>
-                {!isUploading && (
-                  <Text style={[styles.addPhotoLabel, { color: colors.primary }]}>Add Photo</Text>
+              <LinearGradient
+                colors={gradients.buttonPrimary as [string, string]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatarGradient}
+              >
+                {isUploading ? (
+                  <ActivityIndicator color="rgba(255,255,255,0.9)" size="small" />
+                ) : (
+                  <Ionicons name="camera" size={32} color="rgba(255,255,255,0.9)" />
                 )}
-              </View>
+              </LinearGradient>
             )}
           </Pressable>
 
@@ -487,14 +482,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
-  },
-  addPhotoLabel: {
-    fontSize: 12,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: -8,
-    marginBottom: 8,
   },
   userName: {
     fontSize: 24,
