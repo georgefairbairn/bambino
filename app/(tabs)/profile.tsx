@@ -130,7 +130,7 @@ export default function Profile() {
       // Gate 3: Execute action
       executePartnerAction(action);
     },
-    [isPremium, convexUser?.nameConfirmed],
+    [isPremium, convexUser?.nameConfirmed, executePartnerAction],
   );
 
   const executePartnerAction = useCallback(

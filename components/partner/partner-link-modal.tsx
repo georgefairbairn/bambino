@@ -156,115 +156,113 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       onClose={handleClose}
       style={{ paddingHorizontal: 24, paddingBottom: 40 }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-          <View style={styles.handleBar} />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={styles.handleBar} />
 
-          <View style={styles.header}>
-            {preview && (
-              <Pressable onPress={handleBack} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#6B5B7B" />
-              </Pressable>
-            )}
-            <Text style={styles.title}>{preview ? 'Link Partner' : 'Enter Code'}</Text>
-            <Pressable onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#6B5B7B" />
+        <View style={styles.header}>
+          {preview && (
+            <Pressable onPress={handleBack} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#6B5B7B" />
+            </Pressable>
+          )}
+          <Text style={styles.title}>{preview ? 'Link Partner' : 'Enter Code'}</Text>
+          <Pressable onPress={handleClose} style={styles.closeButton}>
+            <Ionicons name="close" size={24} color="#6B5B7B" />
+          </Pressable>
+        </View>
+
+        {!preview ? (
+          <View style={styles.content}>
+            <Text style={styles.description}>
+              Enter your partner&apos;s 6-character share code to link your accounts
+            </Text>
+
+            <TextInput
+              style={[
+                styles.codeInput,
+                {
+                  backgroundColor: colors.surfaceSubtle,
+                  borderColor: error ? '#FF6B6B' : colors.border,
+                },
+              ]}
+              value={code}
+              onChangeText={handleCodeChange}
+              placeholder="ABC123"
+              placeholderTextColor="#A89BB5"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={6}
+              autoFocus
+            />
+
+            {error && <Text style={styles.errorText}>{error}</Text>}
+
+            <Pressable
+              style={[
+                styles.primaryButton,
+                { backgroundColor: colors.primary },
+                (isLookingUp || code.length !== 6) && styles.buttonDisabled,
+              ]}
+              onPress={handlePreview}
+              disabled={isLookingUp || code.length !== 6}
+            >
+              {isLookingUp ? (
+                <LoadingIndicator size="small" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Find Partner</Text>
+              )}
             </Pressable>
           </View>
+        ) : (
+          <View style={styles.content}>
+            <View
+              style={[
+                styles.previewCard,
+                { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.previewRow}>
+                {preview.imageUrl ? (
+                  <Image source={{ uri: preview.imageUrl }} style={styles.previewAvatar} />
+                ) : (
+                  <View
+                    style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.border }]}
+                  >
+                    <Text style={styles.previewAvatarInitial}>
+                      {preview.name[0]?.toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View>
+                  <Text style={styles.previewName}>{preview.name}</Text>
+                </View>
+              </View>
+            </View>
 
-          {!preview ? (
-            <View style={styles.content}>
-              <Text style={styles.description}>
-                Enter your partner&apos;s 6-character share code to link your accounts
-              </Text>
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
-              <TextInput
-                style={[
-                  styles.codeInput,
-                  {
-                    backgroundColor: colors.surfaceSubtle,
-                    borderColor: error ? '#FF6B6B' : colors.border,
-                  },
-                ]}
-                value={code}
-                onChangeText={handleCodeChange}
-                placeholder="ABC123"
-                placeholderTextColor="#A89BB5"
-                autoCapitalize="characters"
-                autoCorrect={false}
-                maxLength={6}
-                autoFocus
-              />
-
-              {error && <Text style={styles.errorText}>{error}</Text>}
-
+            <View style={styles.previewActions}>
               <Pressable
                 style={[
                   styles.primaryButton,
                   { backgroundColor: colors.primary },
-                  (isLookingUp || code.length !== 6) && styles.buttonDisabled,
+                  isLinking && styles.buttonDisabled,
                 ]}
-                onPress={handlePreview}
-                disabled={isLookingUp || code.length !== 6}
+                onPress={handleLink}
+                disabled={isLinking}
               >
-                {isLookingUp ? (
+                {isLinking ? (
                   <LoadingIndicator size="small" />
                 ) : (
-                  <Text style={styles.primaryButtonText}>Find Partner</Text>
+                  <Text style={styles.primaryButtonText}>Link Partner</Text>
                 )}
               </Pressable>
+              <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isLinking}>
+                <Text style={styles.secondaryButtonText}>Cancel</Text>
+              </Pressable>
             </View>
-          ) : (
-            <View style={styles.content}>
-              <View
-                style={[
-                  styles.previewCard,
-                  { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
-                ]}
-              >
-                <View style={styles.previewRow}>
-                  {preview.imageUrl ? (
-                    <Image source={{ uri: preview.imageUrl }} style={styles.previewAvatar} />
-                  ) : (
-                    <View
-                      style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.border }]}
-                    >
-                      <Text style={styles.previewAvatarInitial}>
-                        {preview.name[0]?.toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
-                  <View>
-                    <Text style={styles.previewName}>{preview.name}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {error && <Text style={styles.errorText}>{error}</Text>}
-
-              <View style={styles.previewActions}>
-                <Pressable
-                  style={[
-                    styles.primaryButton,
-                    { backgroundColor: colors.primary },
-                    isLinking && styles.buttonDisabled,
-                  ]}
-                  onPress={handleLink}
-                  disabled={isLinking}
-                >
-                  {isLinking ? (
-                    <LoadingIndicator size="small" />
-                  ) : (
-                    <Text style={styles.primaryButtonText}>Link Partner</Text>
-                  )}
-                </Pressable>
-                <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isLinking}>
-                  <Text style={styles.secondaryButtonText}>Cancel</Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
+          </View>
+        )}
       </KeyboardAvoidingView>
 
       <Paywall

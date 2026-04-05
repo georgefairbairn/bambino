@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -43,10 +43,14 @@ export function NameConfirmationModal({
   const [error, setError] = useState<string | null>(null);
 
   // Reset state when modal becomes visible
-  if (visible && firstName === '' && user?.firstName) {
-    setFirstName(user.firstName);
-    setLastName(user.lastName || '');
-  }
+  useEffect(() => {
+    if (visible && user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setError(null);
+      setIsConfirming(false);
+    }
+  }, [visible, user?.firstName, user?.lastName]);
 
   const handleConfirm = async () => {
     const trimmedFirst = firstName.trim();

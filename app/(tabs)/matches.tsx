@@ -202,7 +202,10 @@ export default function Matches() {
                     if (success) {
                       Alert.alert('Restored', 'Your premium purchase has been restored!');
                     } else {
-                      Alert.alert('No Purchase Found', 'No previous purchase was found to restore.');
+                      Alert.alert(
+                        'No Purchase Found',
+                        'No previous purchase was found to restore.',
+                      );
                     }
                   }}
                 >
@@ -253,10 +256,18 @@ export default function Matches() {
 
         {/* Chosen name banner */}
         {chosenName && chosenName.name && (
-          <View style={[styles.chosenBanner, { backgroundColor: colors.secondaryLight, borderColor: colors.secondary }]}>
+          <View
+            style={[
+              styles.chosenBanner,
+              { backgroundColor: colors.secondaryLight, borderColor: colors.secondary },
+            ]}
+          >
             <Ionicons name="trophy" size={20} color={colors.primary} />
             <Text style={[styles.chosenBannerText, { color: colors.tabActive }]}>
-              Chosen: <Text style={[styles.chosenName, { color: colors.tabActive }]}>{chosenName.name.name}</Text>
+              Chosen:{' '}
+              <Text style={[styles.chosenName, { color: colors.tabActive }]}>
+                {chosenName.name.name}
+              </Text>
             </Text>
           </View>
         )}
