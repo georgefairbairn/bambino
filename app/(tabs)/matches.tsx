@@ -13,7 +13,6 @@ import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import { MatchCard, MatchDetailModal } from '@/components/matches';
 import { GradientBackground } from '@/components/ui/gradient-background';
-import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
 import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { Doc, Id } from '@/convex/_generated/dataModel';
@@ -163,8 +162,6 @@ export default function Matches() {
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
           <View style={styles.emptyContainer}>
-            <BubblePillsBackground />
-
             {/* Title */}
             <Text style={styles.emptyTitle}>
               {isFreeUser
