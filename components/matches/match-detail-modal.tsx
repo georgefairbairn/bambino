@@ -178,16 +178,16 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
                 style={[
                   styles.quickAction,
                   { borderColor: colors.border },
-                  isFavorite && styles.quickActionActive,
+                  isFavorite && { borderColor: colors.primary, backgroundColor: colors.secondaryLight },
                 ]}
                 onPress={handleToggleFavorite}
               >
                 <Ionicons
                   name={isFavorite ? 'star' : 'star-outline'}
                   size={24}
-                  color={isFavorite ? '#f59e0b' : '#6B5B7B'}
+                  color={isFavorite ? colors.primary : '#6B5B7B'}
                 />
-                <Text style={[styles.quickActionText, isFavorite && styles.quickActionTextActive]}>
+                <Text style={[styles.quickActionText, isFavorite && { color: colors.primary }]}>
                   {isFavorite ? 'Favorited' : 'Favorite'}
                 </Text>
               </Pressable>
@@ -196,7 +196,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
                 style={[
                   styles.quickAction,
                   { borderColor: colors.border },
-                  isChosen && styles.quickActionChosen,
+                  isChosen && { borderColor: colors.primary, backgroundColor: colors.primary },
                 ]}
                 onPress={isChosen ? undefined : handleChoose}
                 disabled={isChosen}
@@ -204,7 +204,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
                 <Ionicons
                   name={isChosen ? 'trophy' : 'trophy-outline'}
                   size={24}
-                  color={isChosen ? '#f59e0b' : '#6B5B7B'}
+                  color={isChosen ? '#fff' : '#6B5B7B'}
                 />
                 <Text style={[styles.quickActionText, isChosen && styles.quickActionTextChosen]}>
                   {isChosen ? 'Chosen!' : 'Choose'}
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 42,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 12,
@@ -387,22 +387,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
   },
-  quickActionActive: {
-    borderColor: '#f59e0b',
-    backgroundColor: '#fffbeb',
-  },
-  quickActionChosen: {
-    borderColor: '#f59e0b',
-    backgroundColor: '#f59e0b',
-  },
   quickActionText: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
     color: '#6B5B7B',
-  },
-  quickActionTextActive: {
-    color: '#f59e0b',
   },
   quickActionTextChosen: {
     color: '#fff',
@@ -436,7 +425,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 14,
     fontSize: 18,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     width: 60,
     textAlign: 'center',

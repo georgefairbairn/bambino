@@ -72,7 +72,7 @@ export function Paywall({ visible, onClose, trigger = 'search_limit' }: PaywallP
           {/* Header */}
           <View style={styles.header}>
             <View style={[styles.iconBadge, { backgroundColor: colors.secondaryLight }]}>
-              <Ionicons name="star" size={32} color="#f59e0b" />
+              <Ionicons name="star" size={32} color={colors.primary} />
             </View>
             <Text style={styles.title}>Bambino Premium</Text>
             <Text style={styles.subtitle}>{TRIGGER_MESSAGES[trigger]}</Text>
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     marginBottom: 4,
   },

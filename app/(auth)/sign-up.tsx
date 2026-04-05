@@ -231,14 +231,15 @@ export default function SignUp() {
         >
           <Text className="text-gray-600">Already have an account? </Text>
           <Pressable onPress={() => router.replace('/(auth)/sign-in')}>
-            <Text className="font-semibold text-pink-500">Sign In</Text>
+            <Text className="font-semibold" style={{ color: colors.primary }}>Sign In</Text>
           </Pressable>
         </Animated.View>
 
         <Text className="mt-6 text-center text-xs text-gray-400">
           By signing up, you agree to our{' '}
           <Text
-            className="text-pink-500 underline"
+            className="underline"
+            style={{ color: colors.primary }}
             onPress={() =>
               WebBrowser.openBrowserAsync(
                 'https://bambino-baby.notion.site/325d3b58308281768597f8bd57581eb7',
@@ -249,7 +250,8 @@ export default function SignUp() {
           </Text>{' '}
           and{' '}
           <Text
-            className="text-pink-500 underline"
+            className="underline"
+            style={{ color: colors.primary }}
             onPress={() =>
               WebBrowser.openBrowserAsync(
                 'https://bambino-baby.notion.site/325d3b58308281158ce6c6cbdd562734',

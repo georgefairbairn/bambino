@@ -30,6 +30,7 @@ export default defineSchema({
     length: v.number(),
     firstLetter: v.string(),
     currentRank: v.optional(v.number()),
+    primaryGender: v.optional(v.union(v.literal('male'), v.literal('female'))),
     createdAt: v.number(),
   })
     .index('by_name', ['name'])
@@ -47,7 +48,8 @@ export default defineSchema({
   })
     .index('by_name_gender', ['name', 'gender'])
     .index('by_year_gender', ['year', 'gender'])
-    .index('by_name_gender_year', ['name', 'gender', 'year']),
+    .index('by_name_gender_year', ['name', 'gender', 'year'])
+    .index('by_year_gender_rank', ['year', 'gender', 'rank']),
 
   selections: defineTable({
     userId: v.id('users'),

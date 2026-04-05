@@ -51,13 +51,37 @@ export const updateNamesWithCurrentRank = internalMutation({
     let updated = 0;
 
     for (const name of names) {
-      // Map app gender to SSA gender format
-      const ssaGender = name.gender === 'male' ? 'M' : name.gender === 'female' ? 'F' : null;
+      if (name.gender === 'neutral') {
+        // For unisex names, check both genders and pick the better (lower) rank
+        const maleRecord = await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender_year', (q) =>
+            q.eq('name', name.name).eq('gender', 'M').eq('year', args.year),
+          )
+          .first();
+        const femaleRecord = await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender_year', (q) =>
+            q.eq('name', name.name).eq('gender', 'F').eq('year', args.year),
+          )
+          .first();
 
-      if (!ssaGender) {
-        // Skip neutral gender names
+        const maleRank = maleRecord?.rank ?? Infinity;
+        const femaleRank = femaleRecord?.rank ?? Infinity;
+
+        if (maleRecord || femaleRecord) {
+          const isMaleBetter = maleRank <= femaleRank;
+          await ctx.db.patch(name._id, {
+            currentRank: isMaleBetter ? maleRecord!.rank : femaleRecord!.rank,
+            primaryGender: isMaleBetter ? 'male' : 'female',
+          });
+          updated++;
+        }
         continue;
       }
+
+      // Map app gender to SSA gender format
+      const ssaGender = name.gender === 'male' ? 'M' : 'F';
 
       const popularityRecord = await ctx.db
         .query('namePopularity')
@@ -164,6 +188,7 @@ export const getNamePopularitySummary = query({
         currentRank: null,
         trend: null as 'rising' | 'falling' | 'steady' | null,
         peakYear: null as number | null,
+        peakRank: null as number | null,
         sparklinePoints: [] as number[],
       };
     }
@@ -178,6 +203,7 @@ export const getNamePopularitySummary = query({
         currentRank: null,
         trend: null as 'rising' | 'falling' | 'steady' | null,
         peakYear: null as number | null,
+        peakRank: null as number | null,
         sparklinePoints: [] as number[],
       };
     }
@@ -198,8 +224,10 @@ export const getNamePopularitySummary = query({
     let trend: 'rising' | 'falling' | 'steady' | null = null;
     if (fiveYearsAgo) {
       const diff = mostRecent.rank - fiveYearsAgo.rank;
-      if (diff <= -10) trend = 'rising'; // rank number decreased = improved
-      else if (diff >= 10) trend = 'falling'; // rank number increased = worsened
+      if (diff <= -10)
+        trend = 'rising'; // rank number decreased = improved
+      else if (diff >= 10)
+        trend = 'falling'; // rank number increased = worsened
       else trend = 'steady';
     }
 
@@ -208,11 +236,23 @@ export const getNamePopularitySummary = query({
     const maxRank = Math.max(...last10.map((r) => r.rank));
     const sparklinePoints = last10.map((r) => maxRank - r.rank + 1);
 
+    // Get the highest rank for this gender in the most recent year (1 record via index)
+    const highestRankRecord = await ctx.db
+      .query('namePopularity')
+      .withIndex('by_year_gender_rank', (q) =>
+        q.eq('year', mostRecent.year).eq('gender', ssaGender),
+      )
+      .order('desc')
+      .first();
+    const totalRankedNames = highestRankRecord?.rank ?? 0;
+
     return {
       currentRank,
       trend,
       peakYear,
+      peakRank: peak.rank,
       sparklinePoints,
+      totalRankedNames,
     };
   },
 });

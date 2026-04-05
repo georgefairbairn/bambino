@@ -64,27 +64,30 @@ export function RejectedNamesHeader({
               <Ionicons name="chevron-down" size={14} color="#6B5B7B" />
             </Pressable>
           )}
-          {count > 0 && (
-            <Pressable
-              style={[styles.selectButton, selectMode && { backgroundColor: colors.primaryLight }]}
-              onPress={onToggleSelectMode}
-            >
-              <Ionicons
-                name={selectMode ? 'close' : 'checkmark-circle-outline'}
-                size={16}
-                color={selectMode ? colors.primary : '#6B5B7B'}
-              />
-              <Text style={[styles.sortButtonText, selectMode && { color: colors.primary }]}>
-                {selectMode ? 'Cancel' : 'Select'}
-              </Text>
-            </Pressable>
-          )}
+          <Pressable
+            style={[
+              styles.selectButton,
+              selectMode && { backgroundColor: colors.primaryLight },
+              count === 0 && { opacity: 0.4 },
+            ]}
+            onPress={onToggleSelectMode}
+            disabled={count === 0}
+          >
+            <Ionicons
+              name={selectMode ? 'close' : 'checkmark-circle-outline'}
+              size={16}
+              color={selectMode ? colors.primary : '#6B5B7B'}
+            />
+            <Text style={[styles.sortButtonText, selectMode && { color: colors.primary }]}>
+              {selectMode ? 'Cancel' : 'Select'}
+            </Text>
+          </Pressable>
         </View>
       </View>
 
       {!selectMode && (
         <View style={styles.countRow}>
-          <Text style={styles.countText}>{count} names</Text>
+          <Text style={[styles.countText, count === 0 && { opacity: 0 }]}>{count} names</Text>
         </View>
       )}
 
@@ -154,7 +157,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: '#fff',
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     borderRadius: 8,
     shadowColor: '#000',
     shadowOpacity: 0.05,
@@ -178,7 +181,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
   countRow: {
@@ -197,7 +200,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: '#fff',
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     borderRadius: 8,
     shadowColor: '#000',
     shadowOpacity: 0.05,
@@ -226,7 +229,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     marginBottom: 12,
     textAlign: 'center',

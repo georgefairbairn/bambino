@@ -3,9 +3,7 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withDelay,
-  withSequence,
   withTiming,
   Easing,
   runOnJS,
@@ -13,7 +11,6 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { SWIPE_COLORS } from '@/constants/swipe';
-import { useTheme } from '@/contexts/theme-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -41,19 +38,21 @@ const NAME_POOL = [
 ];
 
 const MAX_PILLS = 14;
-const PILL_SPAWN_MIN = 600; // ms
-const PILL_SPAWN_MAX = 1000; // ms
-const PILL_RISE_DURATION = 8000; // ms for full rise from bottom to top
-const PILL_FADE_DURATION = 2800; // ms — pills fade out well before reaching branding
-const BADGE_DELAY = 300; // ms after pill enters before badge pops
-// Bottom area of parent (dots + CTA) occupies ~90px from bottom: 50
-const BOTTOM_ZONE = 140; // start pills above parent's bottom controls
+const PILL_SPAWN_MIN = 600;
+const PILL_SPAWN_MAX = 1000;
+const INITIAL_SPAWN_MIN = 1200;
+const INITIAL_SPAWN_MAX = 1800;
+const INITIAL_PILL_COUNT = 5;
+const PILL_RISE_DURATION = 8000;
+const PILL_FADE_DURATION = 1800;
+const BADGE_DELAY = 300;
+const BOTTOM_ZONE = 140;
 
 interface PillConfig {
   id: number;
   name: string;
-  startX: number; // px from left
-  rotation: number; // degrees (-6 to +6)
+  startX: number;
+  rotation: number;
   isLike: boolean;
   isSmall: boolean;
   badgeOnLeft: boolean;
@@ -121,7 +120,6 @@ function BubblePill({
     >
       <Text style={[styles.pillText, config.isSmall && styles.pillTextSmall]}>{config.name}</Text>
 
-      {/* Badge: miniature LIKE/NOPE stamp */}
       <Animated.View
         style={[
           styles.badge,
@@ -139,19 +137,7 @@ function BubblePill({
   );
 }
 
-export function WelcomeSplash({ isActive }: { isActive: boolean }) {
-  const { colors } = useTheme();
-
-  // Phase 1: Emoji entrance — fade up + scale bounce
-  const emojiOpacity = useSharedValue(0);
-  const emojiScale = useSharedValue(0);
-  const emojiTranslateY = useSharedValue(30);
-
-  // Phase 1: Title + tagline fade-in
-  const titleOpacity = useSharedValue(0);
-  const taglineOpacity = useSharedValue(0);
-
-  // Phase 3: Pill spawning
+export function BubblePillsBackground() {
   const [pills, setPills] = useState<PillConfig[]>([]);
   const nextId = useRef(0);
   const spawnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,92 +147,50 @@ export function WelcomeSplash({ isActive }: { isActive: boolean }) {
   }, []);
 
   const spawnPill = useCallback(() => {
-    const id = nextId.current++;
     setPills((prev) => {
-      if (prev.length >= MAX_PILLS) return prev; // cap at 8
+      if (prev.length >= MAX_PILLS) return prev;
 
-      // Avoid names already visible on screen
       const usedNames = new Set(prev.map((p) => p.name));
       const available = NAME_POOL.filter((n) => !usedNames.has(n));
       const pool = available.length > 0 ? available : NAME_POOL;
       const name = pool[Math.floor(Math.random() * pool.length)];
-      // Random X: leave 20px margin on each side, account for pill width (~100px)
       const startX = 20 + Math.random() * (SCREEN_WIDTH - 140);
-      const rotation = (Math.random() - 0.5) * 12; // -6 to +6 degrees
+      const rotation = (Math.random() - 0.5) * 12;
       const isLike = Math.random() > 0.5;
-      const isSmall = Math.random() > 0.65; // ~35% chance of small variant
+      const isSmall = Math.random() > 0.65;
       const badgeOnLeft = Math.random() > 0.5;
+      const id = nextId.current++;
 
       return [...prev, { id, name, startX, rotation, isLike, isSmall, badgeOnLeft }];
     });
   }, []);
 
-  // Schedule next spawn with jitter
+  const spawnCount = useRef(0);
+
   const scheduleNextSpawn = useCallback(() => {
-    const delay = PILL_SPAWN_MIN + Math.random() * (PILL_SPAWN_MAX - PILL_SPAWN_MIN);
+    const isInitial = spawnCount.current < INITIAL_PILL_COUNT;
+    const min = isInitial ? INITIAL_SPAWN_MIN : PILL_SPAWN_MIN;
+    const max = isInitial ? INITIAL_SPAWN_MAX : PILL_SPAWN_MAX;
+    const delay = min + Math.random() * (max - min);
     spawnTimer.current = setTimeout(() => {
       spawnPill();
+      spawnCount.current++;
       scheduleNextSpawn();
     }, delay);
   }, [spawnPill]);
 
   useEffect(() => {
-    // Phase 1 sequence
-    // 0.0s — emoji fades up + scale bounce
-    emojiOpacity.value = withTiming(1, { duration: 400 });
-    emojiTranslateY.value = withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) });
-    emojiScale.value = withSequence(
-      withTiming(1.1, { duration: 400, easing: Easing.out(Easing.cubic) }),
-      withSpring(1, { damping: 8, stiffness: 120 }),
-    );
-
-    // 0.3s — title fades in
-    titleOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
-
-    // 0.5s — tagline fades in
-    taglineOpacity.value = withDelay(500, withTiming(1, { duration: 400 }));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Start pill spawning when Phase 3 begins
-  useEffect(() => {
-    // Pills start after Phase 1 entrance completes (~0.9s)
-    const startDelay = setTimeout(() => {
-      spawnPill(); // First pill immediately
-      scheduleNextSpawn(); // Then continuous spawning
-    }, 900);
+    spawnPill();
+    spawnCount.current = 1;
+    scheduleNextSpawn();
 
     return () => {
-      clearTimeout(startDelay);
       if (spawnTimer.current) clearTimeout(spawnTimer.current);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const emojiStyle = useAnimatedStyle(() => ({
-    opacity: emojiOpacity.value,
-    transform: [{ translateY: emojiTranslateY.value }, { scale: emojiScale.value }],
-  }));
-
-  const titleStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-  }));
-
-  const taglineStyle = useAnimatedStyle(() => ({
-    opacity: taglineOpacity.value,
-  }));
-
   return (
-    <View style={styles.container}>
-      <View style={styles.brandingCenter}>
-        <Animated.Text style={[styles.emoji, emojiStyle]}>{'\u{1F476}'}</Animated.Text>
-        <Animated.Text style={[styles.brandName, { color: colors.primary }, titleStyle]}>
-          bambino
-        </Animated.Text>
-        <Animated.Text style={[styles.tagline, taglineStyle]}>
-          Find the perfect name, together.
-        </Animated.Text>
-      </View>
-
-      {/* Bubbling pills */}
+    <View style={styles.container} pointerEvents="none">
       {pills.map((pill) => (
         <BubblePill key={pill.id} config={pill} onComplete={removePill} />
       ))}
@@ -256,30 +200,8 @@ export function WelcomeSplash({ isActive }: { isActive: boolean }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: SCREEN_WIDTH,
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
-  },
-  brandingCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 200,
-    zIndex: 10,
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  brandName: {
-    fontSize: 38,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
-    marginBottom: 8,
-  },
-  tagline: {
-    fontSize: 15,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
   },
   pill: {
     position: 'absolute',

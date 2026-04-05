@@ -10,9 +10,9 @@ interface YearRangeSelectorProps {
 }
 
 const OPTIONS: { value: YearRange; label: string }[] = [
-  { value: '20', label: '20 Years' },
-  { value: '50', label: '50 Years' },
-  { value: 'all', label: 'All Time' },
+  { value: '20', label: '20 YEARS' },
+  { value: '50', label: '50 YEARS' },
+  { value: 'all', label: 'ALL TIME' },
 ];
 
 export function YearRangeSelector({ selected, onSelect }: YearRangeSelectorProps) {

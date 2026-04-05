@@ -10,6 +10,8 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { MatchCard, MatchDetailModal } from '@/components/matches';
 import { GradientBackground } from '@/components/ui/gradient-background';
+import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
+import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import * as Haptics from 'expo-haptics';
@@ -152,15 +154,16 @@ export default function Matches() {
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="people-outline" size={64} color="#A89BB5" />
-            </View>
-            <Text style={styles.emptyTitle}>No Matches Yet</Text>
+            {hasPartner ? <BubblePillsBackground /> : null}
+            <Text style={styles.emptyTitle}>
+              {!hasPartner ? 'Link Your Partner' : 'No Matches Yet'}
+            </Text>
             <Text style={styles.emptyDescription}>
               {!hasPartner
-                ? 'Link your partner in the Profile tab using your share code. When you both like the same name, it will appear here!'
-                : "When you and your partner both like the same name, it's a match! Keep swiping to find names you both love."}
+                ? 'Share your code in the Profile tab to connect. Matches appear when you both love the same name!'
+                : "When you and your partner both love the same name — it's a match!"}
             </Text>
+            {!hasPartner ? <MatchAnimation /> : null}
           </View>
         </SafeAreaView>
       </GradientBackground>
@@ -189,10 +192,10 @@ export default function Matches() {
 
         {/* Chosen name banner */}
         {chosenName && chosenName.name && (
-          <View style={styles.chosenBanner}>
-            <Ionicons name="trophy" size={20} color="#f59e0b" />
-            <Text style={styles.chosenBannerText}>
-              Chosen: <Text style={styles.chosenName}>{chosenName.name.name}</Text>
+          <View style={[styles.chosenBanner, { backgroundColor: colors.secondaryLight, borderColor: colors.secondary }]}>
+            <Ionicons name="trophy" size={20} color={colors.primary} />
+            <Text style={[styles.chosenBannerText, { color: colors.tabActive }]}>
+              Chosen: <Text style={[styles.chosenName, { color: colors.tabActive }]}>{chosenName.name.name}</Text>
             </Text>
           </View>
         )}
@@ -216,8 +219,8 @@ export default function Matches() {
 
           {favoriteCount > 0 && (
             <View style={styles.favoriteIndicator}>
-              <Ionicons name="star" size={14} color="#f59e0b" />
-              <Text style={styles.favoriteCount}>
+              <Ionicons name="star" size={14} color={colors.primary} />
+              <Text style={[styles.favoriteCount, { color: colors.primary }]}>
                 {favoriteCount} favorite{favoriteCount !== 1 ? 's' : ''}
               </Text>
             </View>
@@ -309,7 +312,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
   countBadge: {
@@ -333,14 +336,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#fffbeb',
+    // backgroundColor set dynamically via inline style
     paddingVertical: 10,
     paddingHorizontal: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#fcd34d',
+    // borderColor set dynamically via inline style
   },
   chosenBannerText: {
     fontSize: 15,
@@ -348,7 +351,7 @@ const styles = StyleSheet.create({
     color: '#92400e',
   },
   chosenName: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#78350f',
   },
   filterBar: {
@@ -380,7 +383,7 @@ const styles = StyleSheet.create({
   favoriteCount: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#f59e0b',
+    // color set dynamically via inline style
   },
   sortMenu: {
     backgroundColor: '#fff',
@@ -416,22 +419,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
+    paddingBottom: 80,
     gap: 16,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
   },
   emptyTitle: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     textAlign: 'center',
+    zIndex: 10,
   },
   emptyDescription: {
     fontSize: 16,
@@ -439,6 +435,7 @@ const styles = StyleSheet.create({
     color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
+    zIndex: 10,
   },
   listContent: {
     paddingTop: 4,

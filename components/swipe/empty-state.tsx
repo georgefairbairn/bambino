@@ -1,8 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
 
 interface EmptyStateProps {
   onReviewSkipped?: () => void;
@@ -13,16 +13,14 @@ export function EmptyState({ onReviewSkipped, hasSkippedNames = false }: EmptySt
   const { colors } = useTheme();
   return (
     <View style={styles.container}>
-      <Animated.View entering={ZoomIn.duration(400).springify()} style={styles.iconContainer}>
-        <Ionicons name="checkmark-circle" size={80} color="#6DD5A0" />
-      </Animated.View>
+      <BubblePillsBackground />
 
       <Animated.Text entering={FadeInUp.delay(200).duration(400).springify()} style={styles.title}>
-        You&apos;ve reviewed all names!
+        You&apos;ve Reviewed All Names!
       </Animated.Text>
 
       <Animated.Text entering={FadeInUp.delay(300).duration(400)} style={styles.description}>
-        Check your liked names or adjust filters to see more.
+        Amazing work! Check your liked names or adjust filters to discover more.
       </Animated.Text>
 
       {hasSkippedNames && onReviewSkipped && (
@@ -38,7 +36,6 @@ export function EmptyState({ onReviewSkipped, hasSkippedNames = false }: EmptySt
               pressed && styles.buttonPressed,
             ]}
           >
-            <Ionicons name="refresh" size={20} color="#ffffff" />
             <Text style={styles.primaryButtonText}>Review Skipped Names</Text>
           </Pressable>
         </Animated.View>
@@ -51,15 +48,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: 32,
-  },
-  iconContainer: {
-    marginBottom: 24,
+    paddingTop: 100,
   },
   title: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 12,

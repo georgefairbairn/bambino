@@ -11,10 +11,12 @@ import Animated, {
   withSpring,
   withRepeat,
   withSequence,
+  runOnJS,
   Extrapolation,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -40,9 +42,13 @@ interface SwipeCardProps {
   isTop: boolean;
   showSwipeHint?: boolean;
   onSwipeHintShown?: () => void;
+  onSwipeHintReset?: () => void;
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeComplete?: (direction: 'left' | 'right') => void;
+  onDetailPress?: () => void;
+  swipeEnabled?: boolean;
+  detailOpen?: boolean;
 }
 
 // Gender-based underline colors
@@ -72,16 +78,19 @@ function getNameFontSize(name: string): number {
   return 32;
 }
 
-
 export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function SwipeCard(
   {
     name,
     isTop,
     showSwipeHint = true,
     onSwipeHintShown,
+    onSwipeHintReset,
     onSwipeLeft,
     onSwipeRight,
     onSwipeComplete,
+    onDetailPress,
+    swipeEnabled = true,
+    detailOpen = false,
   },
   ref,
 ) {
@@ -120,7 +129,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     swipeRight,
     onSwipeLeft,
     onSwipeRight,
-    enabled: isTop,
+    enabled: isTop && swipeEnabled,
   });
 
   // Animated style to fade content during swipe
@@ -188,15 +197,19 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     };
   });
 
-  // Card background color: white -> green (right) or white -> red (left)
-  const cardBackgroundStyle = useAnimatedStyle(() => {
+  // Gradient backgrounds: fade in a top-to-bottom gradient based on swipe direction
+  const likeGradientStyle = useAnimatedStyle(() => {
     const progress = translateX.value / SWIPE_THRESHOLD;
-    const backgroundColor = interpolateColor(
-      progress,
-      [-1, 0, 1],
-      [SWIPE_COLORS.nope, '#FFFFFF', SWIPE_COLORS.like],
-    );
-    return { backgroundColor };
+    return {
+      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.5, 1], Extrapolation.CLAMP),
+    };
+  });
+
+  const nopeGradientStyle = useAnimatedStyle(() => {
+    const progress = -translateX.value / SWIPE_THRESHOLD;
+    return {
+      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.5, 1], Extrapolation.CLAMP),
+    };
   });
 
   const underlineColor =
@@ -268,8 +281,21 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
 
   const hintActivatedRef = useRef(false);
 
+  // Reset hint when detail view opens so it doesn't show statically behind the modal
   useEffect(() => {
-    if (!isTop || !showSwipeHint || hintActivatedRef.current) return;
+    if (detailOpen && hintActivatedRef.current) {
+      cancelAnimation(hintOpacity);
+      cancelAnimation(hintTranslateX);
+      hintOpacity.value = 0;
+      hintTranslateX.value = 0;
+      hintActivatedRef.current = false;
+      onSwipeHintReset?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailOpen]);
+
+  useEffect(() => {
+    if (!isTop || !showSwipeHint || hintActivatedRef.current || detailOpen) return;
 
     hintTimerRef.current = setTimeout(() => {
       hintActivatedRef.current = true;
@@ -289,7 +315,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       cancelAnimation(hintTranslateX);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTop]);
+  }, [isTop, detailOpen]);
 
   // Hide hint as soon as user starts swiping
   const hintContainerStyle = useAnimatedStyle(() => {
@@ -340,10 +366,27 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           { borderColor: colors.primary },
           isTop && cardAnimatedStyle,
           isTop && cardBorderStyle,
-          isTop && cardBackgroundStyle,
           { zIndex: isTop ? 2 : 1 },
         ]}
       >
+        {/* Gradient backgrounds — top-to-bottom color wash on swipe */}
+        {isTop && (
+          <Animated.View style={[StyleSheet.absoluteFill, likeGradientStyle]} pointerEvents="none">
+            <LinearGradient
+              colors={[SWIPE_COLORS.like, '#A3E4C4']}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        )}
+        {isTop && (
+          <Animated.View style={[StyleSheet.absoluteFill, nopeGradientStyle]} pointerEvents="none">
+            <LinearGradient
+              colors={[SWIPE_COLORS.nope, '#FFB3C6']}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        )}
+
         {/* LIKE overlay - shows when swiping right */}
         <Animated.View
           style={[styles.overlay, styles.likeOverlay, likeOverlayStyle]}
@@ -374,7 +417,10 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
           </View>
 
           {/* Name */}
-          <Text style={[styles.name, { fontSize: getNameFontSize(name.name) }]} onLayout={handleNameLayout}>
+          <Text
+            style={[styles.name, { fontSize: getNameFontSize(name.name) }]}
+            onLayout={handleNameLayout}
+          >
             {name.name}
           </Text>
 
@@ -420,86 +466,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
             </Animated.View>
           )}
 
-          {/* Popularity row — fills dead space at bottom */}
-          <Animated.View
-            style={[
-              styles.popularityRow,
-              isTop && popularityAnimatedStyle,
-            ]}
-          >
-            {/* Rank tile */}
-            <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-              <Text style={styles.statLabel}>RANK</Text>
-              {name.currentRank ? (
-                <Text style={styles.statValueRank}>#{name.currentRank}</Text>
-              ) : (
-                <Text style={styles.statValueMuted}>Unranked</Text>
-              )}
-            </View>
-
-            {name.meaning ? (
-              // Two-tile layout: rank + sparkline
-              <View style={[styles.sparklineTile, { backgroundColor: colors.surfaceSubtle }]}>
-                <Text style={styles.statLabel}>10YR TREND</Text>
-                <View style={styles.sparklineRow}>
-                  {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
-                    <>
-                      <View style={styles.sparklineChart}>
-                        <LineChart
-                          data={popularitySummary.sparklinePoints.map((value) => ({ value }))}
-                          width={80}
-                          height={28}
-                          hideDataPoints
-                          hideYAxisText
-                          hideAxesAndRules
-                          color={underlineColor}
-                          thickness={2}
-                          curved
-                          initialSpacing={0}
-                          endSpacing={0}
-                          spacing={80 / Math.max(popularitySummary.sparklinePoints.length - 1, 1)}
-                          disableScroll
-                          adjustToWidth
-                          isAnimated={false}
-                        />
-                      </View>
-                      {popularitySummary.trend && (
-                        <Text style={[styles.trendArrow, { color: TREND_CONFIG[popularitySummary.trend].color }]}>
-                          {TREND_CONFIG[popularitySummary.trend].arrow}
-                        </Text>
-                      )}
-                    </>
-                  ) : (
-                    <Text style={styles.noTrendText}>No trend data</Text>
-                  )}
-                </View>
-              </View>
-            ) : (
-              // Three-tile fallback: rank + trend + peak (no meaning box shown)
-              <>
-                <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-                  <Text style={styles.statLabel}>TREND</Text>
-                  {popularitySummary?.trend ? (
-                    <Text style={[styles.statValueTrend, { color: TREND_CONFIG[popularitySummary.trend].color }]}>
-                      {TREND_CONFIG[popularitySummary.trend].label}
-                    </Text>
-                  ) : (
-                    <Text style={styles.statValueMuted}>—</Text>
-                  )}
-                </View>
-                <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
-                  <Text style={styles.statLabel}>PEAK</Text>
-                  {popularitySummary?.peakYear ? (
-                    <Text style={styles.statValuePeak}>{popularitySummary.peakYear}</Text>
-                  ) : (
-                    <Text style={styles.statValueMuted}>—</Text>
-                  )}
-                </View>
-              </>
-            )}
-          </Animated.View>
-
-          {/* Swipe hint — appears after 10s idle, once per session */}
+          {/* Swipe hint — vertically centered in the whitespace between content and rank row */}
           {isTop && (
             <Animated.View style={[styles.swipeHint, hintContainerStyle]} pointerEvents="none">
               <Animated.View style={[styles.swipeHintInner, hintArrowStyle]}>
@@ -509,6 +476,97 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
               </Animated.View>
             </Animated.View>
           )}
+
+          {/* Popularity row — pinned to bottom; tappable to open detail */}
+          <GestureDetector
+            gesture={Gesture.Tap().onEnd(() => {
+              'worklet';
+              if (onDetailPress) runOnJS(onDetailPress)();
+            })}
+          >
+            <Animated.View style={[styles.popularityRow, isTop && popularityAnimatedStyle]}>
+              {/* Rank tile */}
+              <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                <Text style={styles.statLabel}>RANK</Text>
+                {name.currentRank ? (
+                  <Text style={styles.statValueRank}>#{name.currentRank}</Text>
+                ) : (
+                  <Text style={styles.statValueMuted}>Unranked</Text>
+                )}
+              </View>
+
+              {name.meaning ? (
+                // Two-tile layout: rank + sparkline
+                <View style={[styles.sparklineTile, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.statLabel}>10YR TREND</Text>
+                  <View style={styles.sparklineRow}>
+                    {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
+                      <>
+                        <View style={styles.sparklineChart}>
+                          <LineChart
+                            data={popularitySummary.sparklinePoints.map((value) => ({ value }))}
+                            width={80}
+                            height={28}
+                            hideDataPoints
+                            hideYAxisText
+                            hideAxesAndRules
+                            color={underlineColor}
+                            thickness={2}
+                            curved
+                            initialSpacing={0}
+                            endSpacing={0}
+                            spacing={80 / Math.max(popularitySummary.sparklinePoints.length - 1, 1)}
+                            disableScroll
+                            adjustToWidth
+                            isAnimated={false}
+                          />
+                        </View>
+                        {popularitySummary.trend && (
+                          <Text
+                            style={[
+                              styles.trendArrow,
+                              { color: TREND_CONFIG[popularitySummary.trend].color },
+                            ]}
+                          >
+                            {TREND_CONFIG[popularitySummary.trend].arrow}
+                          </Text>
+                        )}
+                      </>
+                    ) : (
+                      <Text style={styles.noTrendText}>No trend data</Text>
+                    )}
+                  </View>
+                </View>
+              ) : (
+                // Three-tile fallback: rank + trend + peak (no meaning box shown)
+                <>
+                  <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                    <Text style={styles.statLabel}>TREND</Text>
+                    {popularitySummary?.trend ? (
+                      <Text
+                        style={[
+                          styles.statValueTrend,
+                          { color: TREND_CONFIG[popularitySummary.trend].color },
+                        ]}
+                      >
+                        {TREND_CONFIG[popularitySummary.trend].label}
+                      </Text>
+                    ) : (
+                      <Text style={styles.statValueMuted}>—</Text>
+                    )}
+                  </View>
+                  <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
+                    <Text style={styles.statLabel}>PEAK</Text>
+                    {popularitySummary?.peakYear ? (
+                      <Text style={styles.statValuePeak}>{popularitySummary.peakYear}</Text>
+                    ) : (
+                      <Text style={styles.statValueMuted}>—</Text>
+                    )}
+                  </View>
+                </>
+              )}
+            </Animated.View>
+          </GestureDetector>
         </Animated.View>
       </Animated.View>
     </GestureDetector>
@@ -531,12 +589,12 @@ const styles = StyleSheet.create({
     borderRadius: 13,
   },
   likeOverlay: {
-    backgroundColor: SWIPE_COLORS.like,
+    backgroundColor: 'transparent',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   dislikeOverlay: {
-    backgroundColor: SWIPE_COLORS.nope,
+    backgroundColor: 'transparent',
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
   },
@@ -588,7 +646,7 @@ const styles = StyleSheet.create({
   name: {
     alignSelf: 'flex-start',
     fontSize: 56,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     marginBottom: 12,
   },
@@ -633,10 +691,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
   },
   swipeHint: {
-    position: 'absolute',
-    top: '45%',
-    left: 0,
-    right: 0,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   popularityRow: {
@@ -667,7 +723,7 @@ const styles = StyleSheet.create({
   },
   statValueRank: {
     fontSize: 17,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
   statValueMuted: {

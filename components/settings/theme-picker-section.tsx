@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   previewName: {
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 24,
     color: '#2D1B4E',
     marginBottom: 4,
