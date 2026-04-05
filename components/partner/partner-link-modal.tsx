@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  Modal,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +16,8 @@ import { Fonts } from '@/constants/theme';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Paywall } from '@/components/paywall';
 import { useTheme } from '@/contexts/theme-context';
+import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { NameConfirmationModal } from './name-confirmation-modal';
 
 interface PartnerLinkModalProps {
   visible: boolean;
@@ -37,7 +38,9 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   const [isLinking, setIsLinking] = useState(false);
   const [preview, setPreview] = useState<PartnerPreview | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showNameConfirmation, setShowNameConfirmation] = useState(false);
 
+  const convexUser = useQuery(api.users.getCurrentUser);
   const partnerPreview = useQuery(
     api.partners.getUserByShareCode,
     code.length === 6 && isLookingUp ? { code } : 'skip',
@@ -96,6 +99,16 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   }
 
   const handleLink = async () => {
+    // Check name confirmation before linking
+    if (convexUser?.nameConfirmed !== true) {
+      setShowNameConfirmation(true);
+      return;
+    }
+
+    executeLinkPartner();
+  };
+
+  const executeLinkPartner = async () => {
     setIsLinking(true);
     setError(null);
 
@@ -105,6 +118,8 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       if (result && typeof result === 'object' && 'error' in result) {
         if (result.error === 'FREE_TIER_PARTNER_LIMIT') {
           setShowPaywall(true);
+        } else if (result.error === 'NAME_NOT_CONFIRMED') {
+          setShowNameConfirmation(true);
         } else {
           setError('Failed to link partner');
         }
@@ -126,6 +141,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
     setIsLookingUp(false);
     setIsLinking(false);
     setShowPaywall(false);
+    setShowNameConfirmation(false);
     onClose();
   };
 
@@ -135,13 +151,14 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+    <AnimatedBottomSheet
+      visible={visible}
+      onClose={handleClose}
+      style={{ paddingHorizontal: 24, paddingBottom: 40 }}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
       >
-        <Pressable style={styles.backdrop} onPress={handleClose} />
-        <View style={styles.sheet}>
           <View style={styles.handleBar} />
 
           <View style={styles.header}>
@@ -248,7 +265,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
               </View>
             </View>
           )}
-        </View>
       </KeyboardAvoidingView>
 
       <Paywall
@@ -256,26 +272,20 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
         onClose={() => setShowPaywall(false)}
         trigger="partner_limit"
       />
-    </Modal>
+
+      <NameConfirmationModal
+        visible={showNameConfirmation}
+        onClose={() => setShowNameConfirmation(false)}
+        onConfirmed={() => {
+          setShowNameConfirmation(false);
+          executeLinkPartner();
+        }}
+      />
+    </AnimatedBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheet: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
   handleBar: {
     width: 40,
     height: 4,
