@@ -6,6 +6,7 @@ import Animated, {
   withRepeat,
   withTiming,
   interpolate,
+  interpolateColor,
   Extrapolation,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,7 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 const LOOP_DURATION = 5000;
+const MATCH_GREEN = '#4ADE80';
 
 export function MatchAnimation() {
   const { colors } = useTheme();
@@ -23,51 +25,64 @@ export function MatchAnimation() {
     progress.value = withRepeat(withTiming(1, { duration: LOOP_DURATION }), -1, false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Timeline (5s): Slide together 0-10% | Border fades green 10-18% |
+  //   Banner pop 18-24% | Hold 24-70% | Dismiss 70-82% | Rest 82-100%
   const youCardStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.1, 0.76, 0.86, 1.0],
+      [0, 0.1, 0.70, 0.82, 1.0],
       [-70, 0, 0, -70, -70],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.1, 0.76, 0.86, 1.0],
+      [0, 0.1, 0.70, 0.82, 1.0],
       [-6, 0, 0, -6, -6],
       Extrapolation.CLAMP,
     );
-    return { transform: [{ rotate: `${rotate}deg` }, { translateX }] };
+    const borderColor = interpolateColor(
+      p,
+      [0, 0.10, 0.18, 0.70, 0.82, 1.0],
+      [colors.border, colors.border, MATCH_GREEN, MATCH_GREEN, colors.border, colors.border],
+    );
+    return { transform: [{ rotate: `${rotate}deg` }, { translateX }], borderColor };
   });
 
   const partnerCardStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.1, 0.76, 0.86, 1.0],
+      [0, 0.1, 0.70, 0.82, 1.0],
       [70, 0, 0, 70, 70],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.1, 0.76, 0.86, 1.0],
+      [0, 0.1, 0.70, 0.82, 1.0],
       [6, 0, 0, 6, 6],
       Extrapolation.CLAMP,
     );
-    return { transform: [{ rotate: `${rotate}deg` }, { translateX }] };
+    const borderColor = interpolateColor(
+      p,
+      [0, 0.10, 0.18, 0.70, 0.82, 1.0],
+      [colors.border, colors.border, MATCH_GREEN, MATCH_GREEN, colors.border, colors.border],
+    );
+    return { transform: [{ rotate: `${rotate}deg` }, { translateX }], borderColor };
   });
 
+  // Banner appears ~1s after cards meet (18% = 900ms after 10% = 500ms)
   const bannerStyle = useAnimatedStyle(() => {
     const p = progress.value;
     const scale = interpolate(
       p,
-      [0, 0.1, 0.14, 0.16, 0.76, 0.84, 1.0],
+      [0, 0.28, 0.32, 0.34, 0.70, 0.78, 1.0],
       [0, 0, 1.08, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.1, 0.14, 0.76, 0.84, 1.0],
+      [0, 0.28, 0.32, 0.70, 0.78, 1.0],
       [0, 0, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
@@ -125,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
     borderWidth: 4,
-    borderColor: '#34D399',
+    // borderColor animated via useAnimatedStyle
     paddingVertical: 14,
     paddingHorizontal: 10,
     alignItems: 'center',
