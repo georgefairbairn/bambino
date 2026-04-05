@@ -80,7 +80,7 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
 
       {/* Rank badge */}
       {rank !== undefined && rank > 0 && (
-        <View style={styles.rankBadge}>
+        <View style={[styles.rankBadge, { backgroundColor: colors.secondary }]}>
           <Text style={styles.rankText}>#{rank}</Text>
         </View>
       )}
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: 16,
-    backgroundColor: '#A78BFA',
+    // backgroundColor set dynamically via inline style
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     flex: 1,
   },
