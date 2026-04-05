@@ -157,7 +157,7 @@ export default function Profile() {
               <Ionicons
                 name={isPremium ? 'star' : 'star-outline'}
                 size={24}
-                color={isPremium ? '#f59e0b' : '#9ca3af'}
+                color={isPremium ? colors.primary : '#9ca3af'}
               />
               <Text style={styles.subscriptionStatus}>{isPremium ? 'Premium' : 'Free'}</Text>
             </View>
@@ -353,12 +353,12 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     fontSize: 30,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#6B5B7B',
   },
   userName: {
     fontSize: 24,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     marginBottom: 8,
   },
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     marginBottom: 16,
   },
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   partnerAvatarInitial: {
     fontSize: 18,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#6B5B7B',
   },
   partnerDetails: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   shareCode: {
     fontSize: 32,
-    fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     letterSpacing: 6,
   },
   shareActions: {
