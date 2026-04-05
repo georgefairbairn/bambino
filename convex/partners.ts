@@ -66,7 +66,6 @@ export const getPartnerInfo = query({
         partner = {
           _id: partnerDoc._id,
           name: partnerDoc.name,
-          email: partnerDoc.email,
           imageUrl: partnerDoc.imageUrl,
         };
       }
@@ -120,8 +119,7 @@ export const getUserByShareCode = query({
 
     return {
       userId: targetUser._id,
-      name: targetUser.name ?? 'Unknown',
-      email: targetUser.email,
+      name: targetUser.name ?? 'Bambino User',
       imageUrl: targetUser.imageUrl,
     };
   },
