@@ -145,23 +145,17 @@ export default function Profile() {
 
   const handlePartnerAction = useCallback(
     (action: 'copy' | 'share' | 'link') => {
-      // Gate 1: Premium check
-      if (!isPremium) {
-        setShowPaywall(true);
-        return;
-      }
-
-      // Gate 2: Name confirmation check
+      // Gate 1: Name confirmation check
       if (convexUser?.nameConfirmed !== true) {
         setPendingAction(action);
         setShowNameConfirmation(true);
         return;
       }
 
-      // Gate 3: Execute action
+      // Gate 2: Execute action (backend enforces premium requirement for linking)
       executePartnerAction(action);
     },
-    [isPremium, convexUser?.nameConfirmed, executePartnerAction],
+    [convexUser?.nameConfirmed, executePartnerAction],
   );
 
   const executePartnerAction = useCallback(
