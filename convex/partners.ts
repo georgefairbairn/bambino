@@ -184,6 +184,14 @@ export const linkPartner = mutation({
       updatedAt: now,
     });
 
+    // Clear grace period if linking to a premium partner
+    if (targetIsPremium && user.premiumRevokedAt) {
+      await ctx.db.patch(user._id, { premiumRevokedAt: undefined });
+    }
+    if (userIsPremium && targetUser.premiumRevokedAt) {
+      await ctx.db.patch(targetUser._id, { premiumRevokedAt: undefined });
+    }
+
     return { success: true };
   },
 });
