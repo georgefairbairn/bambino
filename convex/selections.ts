@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
+import { getEffectivePremiumStatusHelper } from './premium';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -85,8 +86,9 @@ export const recordSelection = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Free tier: limit to 25 swipes total
-    if (!user.isPremium) {
+    // Free tier: limit to 25 swipes total (check effective premium including partner sharing)
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    if (!premiumStatus.isPremium) {
       const allSelections = await ctx.db
         .query('selections')
         .withIndex('by_user', (q) => q.eq('userId', user._id))
