@@ -90,11 +90,36 @@ export const updatePremiumStatus = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    await ctx.db.patch(user._id, {
+    const updates: {
+      isPremium: boolean;
+      purchasedAt?: number;
+      premiumRevokedAt?: number;
+      updatedAt: number;
+    } = {
       isPremium: args.isPremium,
-      purchasedAt: args.isPremium ? Date.now() : undefined,
       updatedAt: Date.now(),
-    });
+    };
+
+    if (args.isPremium) {
+      updates.purchasedAt = Date.now();
+      // Clear own grace period since user now has their own premium
+      if (user.premiumRevokedAt) {
+        updates.premiumRevokedAt = undefined;
+      }
+    } else {
+      updates.purchasedAt = undefined;
+      // If losing premium and has a non-premium partner, set grace period on partner
+      if (user.partnerId) {
+        const partner = await ctx.db.get(user.partnerId);
+        if (partner && partner.isPremium !== true) {
+          await ctx.db.patch(partner._id, {
+            premiumRevokedAt: Date.now(),
+          });
+        }
+      }
+    }
+
+    await ctx.db.patch(user._id, updates);
 
     return { success: true };
   },
