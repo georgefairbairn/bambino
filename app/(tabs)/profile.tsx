@@ -14,7 +14,6 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -355,48 +354,31 @@ export default function Profile() {
                 {partnerInfo?.shareCode && (
                   <>
                     <Text style={styles.shareCodeLabel}>Your Share Code</Text>
-                    <Pressable
-                      style={styles.shareCodeWrap}
-                      onPress={!isPremium ? () => setShowPaywall(true) : undefined}
-                    >
+                    <View style={styles.shareCodeWrap}>
                       <Text style={[styles.shareCode, { color: colors.primary }]}>
                         {partnerInfo.shareCode}
                       </Text>
-                      {!isPremium && (
-                        <>
-                          <BlurView
-                            intensity={40}
-                            tint="default"
-                            style={StyleSheet.absoluteFill}
-                          />
-                          <View style={styles.blurOverlay}>
-                            <Ionicons name="lock-closed" size={18} color={colors.primary} />
-                          </View>
-                        </>
-                      )}
-                    </Pressable>
-                    {isPremium && (
-                      <View style={styles.shareActions}>
-                        <Pressable
-                          style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                          onPress={() => handlePartnerAction('copy')}
-                        >
-                          <Ionicons name="copy-outline" size={16} color={colors.primary} />
-                          <Text style={[styles.shareActionText, { color: colors.primary }]}>
-                            Copy
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                          onPress={() => handlePartnerAction('share')}
-                        >
-                          <Ionicons name="share-outline" size={16} color={colors.primary} />
-                          <Text style={[styles.shareActionText, { color: colors.primary }]}>
-                            Share
-                          </Text>
-                        </Pressable>
-                      </View>
-                    )}
+                    </View>
+                    <View style={styles.shareActions}>
+                      <Pressable
+                        style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={() => handlePartnerAction('copy')}
+                      >
+                        <Ionicons name="copy-outline" size={16} color={colors.primary} />
+                        <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                          Copy
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={() => handlePartnerAction('share')}
+                      >
+                        <Ionicons name="share-outline" size={16} color={colors.primary} />
+                        <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                          Share
+                        </Text>
+                      </Pressable>
+                    </View>
                   </>
                 )}
                 <View style={styles.linkPartnerWrap}>
@@ -757,12 +739,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  blurOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  shareActions: {
+shareActions: {
     flexDirection: 'row',
     gap: 10,
   },
