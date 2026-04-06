@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import { MatchCard, MatchDetailModal } from '@/components/matches';
@@ -45,7 +46,8 @@ const SORT_OPTIONS: { value: SortOption; label: string; icon: string }[] = [
 
 export default function Matches() {
   const { colors } = useTheme();
-  const { isPremium, restorePurchases } = usePurchases();
+  const { isPremium } = useEffectivePremium();
+  const { restorePurchases } = usePurchases();
   const router = useRouter();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
