@@ -9,6 +9,7 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     isPremium: v.optional(v.boolean()),
     purchasedAt: v.optional(v.number()),
+    premiumRevokedAt: v.optional(v.number()),
     nameConfirmed: v.optional(v.boolean()),
     shareCode: v.optional(v.string()),
     partnerId: v.optional(v.id('users')),
