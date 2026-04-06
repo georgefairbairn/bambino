@@ -13,15 +13,15 @@ import {
   StyleSheet,
   Share,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
-import { usePurchases } from '@/hooks/use-purchases';
+import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
@@ -32,11 +32,50 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
 
+function PremiumBanner({
+  colors,
+  gradients,
+  onPress,
+}: {
+  colors: ReturnType<typeof useTheme>['colors'];
+  gradients: ReturnType<typeof useTheme>['gradients'];
+  onPress: () => void;
+}) {
+  return (
+    <View style={styles.premiumBannerWrap}>
+      <LinearGradient
+        colors={[colors.primaryLight, colors.secondaryLight]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.premiumBannerGradient, { borderColor: `${colors.primary}40` }]}
+      >
+        <Pressable onPress={onPress} style={styles.premiumBannerContent}>
+          <View style={[styles.premiumIconWrap, { backgroundColor: colors.primary }]}>
+            <Ionicons name="star" size={18} color="#fff" />
+          </View>
+          <View style={styles.premiumTextWrap}>
+            <Text style={styles.premiumTitle}>Go Premium</Text>
+            <Text style={styles.premiumDesc}>Unlimited likes & partner linking</Text>
+          </View>
+          <LinearGradient
+            colors={gradients.buttonPrimary as [string, string]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.premiumUpgradeBtn}
+          >
+            <Text style={styles.premiumUpgradeText}>Upgrade</Text>
+          </LinearGradient>
+        </Pressable>
+      </LinearGradient>
+    </View>
+  );
+}
+
 export default function Profile() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { colors, gradients } = useTheme();
-  const { isPremium, restorePurchases } = usePurchases();
+  const { isPremium, isOwnPremium, isPartnerPremium, partnerName: premiumPartnerName } = useEffectivePremium();
   const deleteAccount = useMutation(api.users.deleteAccount);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
@@ -45,6 +84,7 @@ export default function Profile() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
+  const [showEditName, setShowEditName] = useState(false);
   const [pendingAction, setPendingAction] = useState<'copy' | 'share' | 'link' | null>(null);
   const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
   const insets = useSafeAreaInsets();
@@ -83,15 +123,6 @@ export default function Profile() {
       ],
     );
   }, [deleteAccount, signOut]);
-
-  const handleRestore = useCallback(async () => {
-    const success = await restorePurchases();
-    if (success) {
-      Alert.alert('Restored', 'Your premium purchase has been restored!');
-    } else {
-      Alert.alert('No Purchase Found', 'No previous purchase was found to restore.');
-    }
-  }, [restorePurchases]);
 
   const handleCopyCode = useCallback(async () => {
     if (partnerInfo?.shareCode) {
@@ -178,58 +209,7 @@ export default function Profile() {
 
   const handleEditName = useCallback(() => {
     if (!user) return;
-
-    const currentFirst = user.firstName || '';
-    const currentLast = user.lastName || '';
-
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        'Edit Name',
-        'Enter your first name',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Next',
-            onPress: (firstName) => {
-              if (!firstName?.trim()) {
-                Alert.alert('Error', 'First name is required');
-                return;
-              }
-              Alert.prompt(
-                'Edit Name',
-                'Enter your last name (optional)',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Save',
-                    onPress: async (lastName) => {
-                      try {
-                        await user.update({
-                          firstName: firstName.trim(),
-                          lastName: lastName?.trim() || '',
-                        });
-                      } catch (error) {
-                        Sentry.captureException(error);
-                        Alert.alert('Error', 'Failed to update name. Please try again.');
-                      }
-                    },
-                  },
-                ],
-                'plain-text',
-                currentLast,
-              );
-            },
-          },
-        ],
-        'plain-text',
-        currentFirst,
-      );
-    } else {
-      Alert.alert(
-        'Edit Name',
-        'Name editing on Android coming soon. You can update your name in your account settings.',
-      );
-    }
+    setShowEditName(true);
   }, [user]);
 
   const handleUnlinkPartner = useCallback(() => {
@@ -301,7 +281,7 @@ export default function Profile() {
           </Pressable>
 
           <Pressable onPress={handleEditName} style={styles.nameRow}>
-            <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
+            <Text style={styles.userName}>{convexUser?.name || user?.fullName || 'User'}</Text>
             <Ionicons name="pencil" size={16} color="#A89BB5" />
           </Pressable>
           <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
@@ -313,28 +293,11 @@ export default function Profile() {
             entering={FadeInUp.delay(100).duration(400).springify()}
             style={styles.premiumSection}
           >
-            <Pressable onPress={() => setShowPaywall(true)}>
-              <LinearGradient
-                colors={gradients.buttonPrimary as [string, string]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.premiumBanner}
-              >
-                <View style={styles.premiumIconWrap}>
-                  <Ionicons name="star" size={18} color="#fff" />
-                </View>
-                <View style={styles.premiumTextWrap}>
-                  <Text style={styles.premiumTitle}>Go Premium</Text>
-                  <Text style={styles.premiumDesc}>Unlimited likes & partner linking</Text>
-                </View>
-                <View style={styles.premiumUpgradeBtn}>
-                  <Text style={styles.premiumUpgradeText}>Upgrade</Text>
-                </View>
-              </LinearGradient>
-            </Pressable>
-            <Pressable style={styles.restoreBtn} onPress={handleRestore}>
-              <Text style={styles.restoreBtnText}>Restore Purchase</Text>
-            </Pressable>
+            <PremiumBanner
+              colors={colors}
+              gradients={gradients}
+              onPress={() => setShowPaywall(true)}
+            />
           </Animated.View>
         )}
 
@@ -347,7 +310,9 @@ export default function Profile() {
             <View style={[styles.premiumActiveRow, { backgroundColor: colors.primaryLight }]}>
               <Ionicons name="star" size={18} color={colors.primary} />
               <Text style={[styles.premiumActiveText, { color: colors.primary }]}>
-                Premium Active
+                {isPartnerPremium && !isOwnPremium
+                  ? `Premium via ${premiumPartnerName || 'Partner'}`
+                  : 'Premium Active'}
               </Text>
             </View>
           </Animated.View>
@@ -396,37 +361,48 @@ export default function Profile() {
                 {partnerInfo?.shareCode && (
                   <>
                     <Text style={styles.shareCodeLabel}>Your Share Code</Text>
-                    <Text style={[styles.shareCode, { color: colors.primary }]}>
-                      {partnerInfo.shareCode}
-                    </Text>
-                    <View style={styles.shareActions}>
-                      <Pressable
-                        style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                        onPress={() => handlePartnerAction('copy')}
-                      >
-                        <Ionicons
-                          name={isPremium ? 'copy-outline' : 'lock-closed'}
-                          size={16}
-                          color={colors.primary}
-                        />
-                        <Text style={[styles.shareActionText, { color: colors.primary }]}>
-                          Copy
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                        onPress={() => handlePartnerAction('share')}
-                      >
-                        <Ionicons
-                          name={isPremium ? 'share-outline' : 'lock-closed'}
-                          size={16}
-                          color={colors.primary}
-                        />
-                        <Text style={[styles.shareActionText, { color: colors.primary }]}>
-                          Share
-                        </Text>
-                      </Pressable>
-                    </View>
+                    <Pressable
+                      style={styles.shareCodeWrap}
+                      onPress={!isPremium ? () => setShowPaywall(true) : undefined}
+                    >
+                      <Text style={[styles.shareCode, { color: colors.primary }]}>
+                        {partnerInfo.shareCode}
+                      </Text>
+                      {!isPremium && (
+                        <>
+                          <BlurView
+                            intensity={40}
+                            tint="default"
+                            style={StyleSheet.absoluteFill}
+                          />
+                          <View style={styles.blurOverlay}>
+                            <Ionicons name="lock-closed" size={18} color={colors.primary} />
+                          </View>
+                        </>
+                      )}
+                    </Pressable>
+                    {isPremium && (
+                      <View style={styles.shareActions}>
+                        <Pressable
+                          style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
+                          onPress={() => handlePartnerAction('copy')}
+                        >
+                          <Ionicons name="copy-outline" size={16} color={colors.primary} />
+                          <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                            Copy
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
+                          onPress={() => handlePartnerAction('share')}
+                        >
+                          <Ionicons name="share-outline" size={16} color={colors.primary} />
+                          <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                            Share
+                          </Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </>
                 )}
                 <View style={styles.linkPartnerWrap}>
@@ -434,7 +410,6 @@ export default function Profile() {
                     title="Link Partner"
                     onPress={() => handlePartnerAction('link')}
                     variant="primary"
-                    icon="people"
                   />
                 </View>
               </View>
@@ -515,6 +490,13 @@ export default function Profile() {
         />
 
         <PartnerLinkModal visible={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
+
+        <NameConfirmationModal
+          visible={showEditName}
+          onClose={() => setShowEditName(false)}
+          onConfirmed={() => setShowEditName(false)}
+          mode="edit"
+        />
 
         <NameConfirmationModal
           visible={showNameConfirmation}
@@ -611,23 +593,29 @@ const styles = StyleSheet.create({
   premiumSection: {
     marginBottom: 24,
   },
-  premiumBanner: {
+  premiumBannerWrap: {
     borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  premiumBannerGradient: {
+    borderRadius: 16,
+    borderWidth: 2,
+    overflow: 'hidden',
+  },
+  premiumBannerContent: {
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
   premiumIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -637,16 +625,15 @@ const styles = StyleSheet.create({
   premiumTitle: {
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 16,
-    color: '#fff',
+    color: '#2D1B4E',
   },
   premiumDesc: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: 'rgba(255,255,255,0.85)',
+    color: '#6B5B7B',
     marginTop: 2,
   },
   premiumUpgradeBtn: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -658,7 +645,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   premiumActiveRow: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -669,38 +656,38 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     fontWeight: '600',
   },
-  restoreBtn: {
-    alignItems: 'center',
-    paddingTop: 8,
-  },
-  restoreBtnText: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#A89BB5',
-  },
-
   /* Sections — matches filters.tsx pattern */
   section: {
     gap: 12,
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 24,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
 
-  /* Card — matches settings container pattern: #fff, 12px radius, 16px padding */
+  /* Card — matches dashboard name card pattern: #fff, 16px radius, padding, shadow */
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   /* Legal card — no padding, rows handle their own */
   legalCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
 
   /* Partner */
@@ -769,6 +756,17 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     letterSpacing: 6,
+  },
+  shareCodeWrap: {
+    overflow: 'hidden',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  blurOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   shareActions: {
     flexDirection: 'row',
