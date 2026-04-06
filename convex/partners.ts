@@ -200,6 +200,18 @@ export const unlinkPartner = mutation({
     const partner = await ctx.db.get(user.partnerId);
     const now = Date.now();
 
+    // Set grace period on the non-premium user
+    if (partner) {
+      const userIsPremium = user.isPremium === true;
+      const partnerIsPremium = partner.isPremium === true;
+
+      if (userIsPremium && !partnerIsPremium) {
+        await ctx.db.patch(partner._id, { premiumRevokedAt: now });
+      } else if (partnerIsPremium && !userIsPremium) {
+        await ctx.db.patch(user._id, { premiumRevokedAt: now });
+      }
+    }
+
     await ctx.db.patch(user._id, {
       partnerId: undefined,
       updatedAt: now,
