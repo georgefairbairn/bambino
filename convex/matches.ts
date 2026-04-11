@@ -373,6 +373,37 @@ export const deleteMatch = mutation({
   },
 });
 
+export const getPendingProposal = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return null;
+
+    if (!user.partnerId) {
+      return null;
+    }
+
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+    const pendingMatch = matches.find((m) => m.proposalStatus === 'pending');
+
+    if (!pendingMatch) {
+      return null;
+    }
+
+    const name = await ctx.db.get(pendingMatch.nameId);
+    const proposer = pendingMatch.proposedBy
+      ? await ctx.db.get(pendingMatch.proposedBy)
+      : null;
+
+    return {
+      ...pendingMatch,
+      name,
+      proposerName: proposer?.name ?? 'Your partner',
+      isCurrentUserProposer: pendingMatch.proposedBy === user._id,
+    };
+  },
+});
+
 export const getChosenName = query({
   args: {},
   handler: async (ctx) => {
