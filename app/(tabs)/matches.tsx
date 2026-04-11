@@ -1,25 +1,28 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
-import { MatchCard, MatchDetailModal } from '@/components/matches';
+import { MatchCard, MatchesHeader, ProposalBanner, ProposeSheet, DeclineSheet, CelebrationModal } from '@/components/matches';
+import { SearchInput } from '@/components/dashboard/search-input';
+import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import * as Haptics from 'expo-haptics';
 
-type SortOption = 'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'rank';
+import type { MatchSortOption } from '@/components/matches/matches-header';
 
 type MatchWithName = {
   _id: Id<'matches'>;
@@ -30,36 +33,89 @@ type MatchWithName = {
   notes?: string;
   rank?: number;
   isChosen?: boolean;
+  proposedBy?: Id<'users'>;
+  proposedAt?: number;
+  proposalMessage?: string;
+  proposalStatus?: 'pending' | 'accepted' | 'declined';
+  respondedAt?: number;
+  declineMessage?: string;
   matchedAt: number;
   createdAt: number;
   updatedAt: number;
   name: Doc<'names'>;
 };
 
-const SORT_OPTIONS: { value: SortOption; label: string; icon: string }[] = [
-  { value: 'newest', label: 'Newest', icon: 'time-outline' },
-  { value: 'oldest', label: 'Oldest', icon: 'time' },
-  { value: 'name_asc', label: 'A-Z', icon: 'arrow-up' },
-  { value: 'name_desc', label: 'Z-A', icon: 'arrow-down' },
-  { value: 'rank', label: 'Rank', icon: 'trophy-outline' },
-];
-
 export default function Matches() {
   const { colors } = useTheme();
   const { isPremium } = useEffectivePremium();
   const { restorePurchases } = usePurchases();
   const router = useRouter();
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [sortBy, setSortBy] = useState<MatchSortOption>('newest');
+  const [searchInput, setSearchInput] = useState('');
+  const [submittedSearch, setSubmittedSearch] = useState('');
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
-  const [showSortMenu, setShowSortMenu] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [proposeTarget, setProposeTarget] = useState<MatchWithName | null>(null);
+  const [showDeclineSheet, setShowDeclineSheet] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationName, setCelebrationName] = useState('');
+
+  // Track initial mount so header animations only play once
+  const hasAnimated = useRef(false);
+  useEffect(() => {
+    hasAnimated.current = true;
+  }, []);
+
+  const lastSeenChosenId = useRef<string | null>(null);
+
+  // Clear search when returning to this tab
+  useFocusEffect(
+    useCallback(() => {
+      setSearchInput('');
+      setSubmittedSearch('');
+    }, []),
+  );
+
+  const handleSearchSubmit = () => {
+    setSubmittedSearch(searchInput);
+  };
+
+  const handleSearchClear = () => {
+    setSubmittedSearch('');
+  };
 
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
   const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
 
-  const matches = useQuery(api.matches.getMatches, { sortBy });
+  const matches = useQuery(api.matches.getMatches, {
+    sortBy,
+    search: submittedSearch || undefined,
+  });
   const chosenName = useQuery(api.matches.getChosenName);
   const updateMatch = useMutation(api.matches.updateMatch);
+  const currentUser = useQuery(api.users.getCurrentUser);
+  const pendingProposal = useQuery(api.matches.getPendingProposal);
+  const proposeNameMutation = useMutation(api.matches.proposeName);
+  const respondToProposalMutation = useMutation(api.matches.respondToProposal);
+  const withdrawProposalMutation = useMutation(api.matches.withdrawProposal);
+
+  // Task 13: Trigger celebration for proposer when partner accepts
+  useEffect(() => {
+    if (!chosenName || !chosenName.name) return;
+
+    const chosenId = chosenName._id;
+    if (chosenId !== lastSeenChosenId.current) {
+      if (
+        lastSeenChosenId.current !== null &&
+        chosenName.proposedBy === currentUser?._id &&
+        chosenName.proposalStatus === 'accepted'
+      ) {
+        setCelebrationName(chosenName.name.name);
+        setShowCelebration(true);
+      }
+      lastSeenChosenId.current = chosenId;
+    }
+  }, [chosenName, currentUser?._id]);
 
   const handleToggleFavorite = useCallback(
     async (matchId: Id<'matches'>, currentValue?: boolean) => {
@@ -76,33 +132,83 @@ export default function Matches() {
     [updateMatch],
   );
 
-  const handleChoose = useCallback(
-    async (match: MatchWithName) => {
-      Alert.alert(
-        'Choose This Name?',
-        `Are you sure you want to choose "${match.name.name}" as your final selection?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Choose',
-            onPress: async () => {
-              try {
-                await updateMatch({
-                  matchId: match._id,
-                  isChosen: true,
-                });
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              } catch (error) {
-                Sentry.captureException(error);
-                Alert.alert('Error', 'Failed to choose name. Please try again.');
-              }
-            },
-          },
-        ],
-      );
+  const handlePropose = useCallback(
+    async (message?: string) => {
+      if (!proposeTarget) return;
+      try {
+        await proposeNameMutation({
+          matchId: proposeTarget._id,
+          message,
+        });
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setProposeTarget(null);
+      } catch (error) {
+        Sentry.captureException(error);
+        Alert.alert('Error', 'Failed to propose name. Please try again.');
+      }
     },
-    [updateMatch],
+    [proposeTarget, proposeNameMutation],
   );
+
+  const handleAcceptProposal = useCallback(async () => {
+    if (!pendingProposal) return;
+    try {
+      await respondToProposalMutation({
+        matchId: pendingProposal._id,
+        accept: true,
+      });
+      setCelebrationName(pendingProposal.name?.name ?? '');
+      setShowCelebration(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      Sentry.captureException(error);
+      Alert.alert('Error', 'Failed to accept proposal. Please try again.');
+    }
+  }, [pendingProposal, respondToProposalMutation]);
+
+  const handleDeclineProposal = useCallback(
+    async (message?: string) => {
+      if (!pendingProposal) return;
+      try {
+        await respondToProposalMutation({
+          matchId: pendingProposal._id,
+          accept: false,
+          message,
+        });
+        setShowDeclineSheet(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        Sentry.captureException(error);
+        Alert.alert('Error', 'Failed to decline proposal. Please try again.');
+      }
+    },
+    [pendingProposal, respondToProposalMutation],
+  );
+
+  const handleWithdrawProposal = useCallback(async () => {
+    if (!pendingProposal) return;
+    Alert.alert(
+      'Withdraw Proposal?',
+      `Are you sure you want to withdraw your proposal for "${pendingProposal.name?.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Withdraw',
+          onPress: async () => {
+            try {
+              await withdrawProposalMutation({
+                matchId: pendingProposal._id,
+              });
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch (error) {
+              Sentry.captureException(error);
+              Alert.alert('Error', 'Failed to withdraw proposal. Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }, [pendingProposal, withdrawProposalMutation]);
 
   const handleShare = useCallback(async () => {
     if (!matches || matches.length === 0) return;
@@ -138,13 +244,23 @@ export default function Matches() {
       >
         <MatchCard
           match={item}
+          currentUserId={currentUser?._id}
           onPress={() => setSelectedMatch(item)}
           onToggleFavorite={() => handleToggleFavorite(item._id, item.isFavorite)}
-          onChoose={!item.isChosen ? () => handleChoose(item) : undefined}
+          onPropose={
+            !item.isChosen && item.proposalStatus !== 'pending'
+              ? () => setProposeTarget(item)
+              : undefined
+          }
+          onWithdraw={
+            item.proposalStatus === 'pending' && item.proposedBy === currentUser?._id
+              ? handleWithdrawProposal
+              : undefined
+          }
         />
       </Animated.View>
     ),
-    [handleToggleFavorite, handleChoose],
+    [handleToggleFavorite, handleWithdrawProposal, currentUser?._id],
   );
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
@@ -155,37 +271,23 @@ export default function Matches() {
     return <LoadingScreen {...loadingProps} />;
   }
 
-  // Three empty states based on user status
-  if (!isPremium || !hasPartner || !matches || matches.length === 0) {
+  // Empty states for free users or users without partners
+  if (!isPremium || !hasPartner) {
     const isFreeUser = !isPremium;
-    const isPremiumNoPartner = isPremium && !hasPartner;
 
     return (
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
           <View style={styles.emptyContainer}>
-            {/* Title */}
             <Text style={styles.emptyTitle}>
-              {isFreeUser
-                ? 'Match With Your Partner'
-                : isPremiumNoPartner
-                  ? 'Invite Your Partner'
-                  : 'No Matches Yet'}
+              {isFreeUser ? 'Match With Your Partner' : 'Invite Your Partner'}
             </Text>
-
-            {/* Description */}
             <Text style={styles.emptyDescription}>
               {isFreeUser
                 ? 'Upgrade to connect with your partner and discover the baby names you both love.'
-                : isPremiumNoPartner
-                  ? 'Share your partner code and start discovering the names you both love. Matches appear when you both swipe right!'
-                  : "When you and your partner both love the same name — it's a match! Keep swiping to find your favourites."}
+                : 'Share your partner code and start discovering the names you both love. Matches appear when you both swipe right!'}
             </Text>
-
-            {/* Animation */}
             <MatchAnimation />
-
-            {/* CTAs */}
             {isFreeUser && (
               <View style={styles.ctaContainer}>
                 <Pressable
@@ -212,8 +314,7 @@ export default function Matches() {
                 </Pressable>
               </View>
             )}
-
-            {isPremiumNoPartner && (
+            {!isFreeUser && (
               <Pressable
                 style={[styles.ctaButton, { backgroundColor: colors.primary }]}
                 onPress={() => router.push('/(tabs)/profile')}
@@ -222,7 +323,6 @@ export default function Matches() {
               </Pressable>
             )}
           </View>
-
           <Paywall
             visible={showPaywall}
             onClose={() => setShowPaywall(false)}
@@ -233,25 +333,111 @@ export default function Matches() {
     );
   }
 
+  // Data loading state
+  if (matches === undefined) {
+    return (
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <MatchesHeader
+            count={0}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onShare={handleShare}
+            favoriteCount={0}
+          />
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator size="small" />
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
+
+  // Empty matches state
+  if (matches.length === 0) {
+    const isSearching = submittedSearch.length > 0;
+    return (
+      <GradientBackground>
+        <SafeAreaView style={styles.flexContainer} edges={['top']}>
+          <MatchesHeader
+            count={0}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onShare={handleShare}
+            favoriteCount={0}
+          />
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>
+              {isSearching ? 'No Results Found' : 'No Matches Yet'}
+            </Text>
+            <Text style={styles.emptyDescription}>
+              {isSearching
+                ? `No names match "${submittedSearch}"`
+                : "When you and your partner both love the same name — it's a match! Keep swiping to find your favourites."}
+            </Text>
+            {!isSearching && (
+              <Pressable
+                style={[styles.ctaButton, { backgroundColor: colors.primary }]}
+                onPress={() => router.push('/(tabs)/explore')}
+              >
+                <Text style={styles.ctaButtonText}>Start Swiping</Text>
+              </Pressable>
+            )}
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
+
   const favoriteCount = matches.filter((m) => m.isFavorite).length;
 
   return (
     <GradientBackground>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
-        {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>Matches</Text>
-            <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
-              <Text style={styles.countText}>{matches.length}</Text>
-            </View>
-          </View>
-          <View style={styles.headerRight}>
-            <Pressable style={styles.headerButton} onPress={handleShare}>
-              <Ionicons name="share-outline" size={22} color={colors.primary} />
-            </Pressable>
-          </View>
+        <Animated.View
+          entering={
+            !hasAnimated.current ? FadeInDown.duration(400).springify() : undefined
+          }
+        >
+          <MatchesHeader
+            count={matches.length}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onShare={handleShare}
+            favoriteCount={favoriteCount}
+          />
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+          />
         </Animated.View>
+
+        {/* Proposal banner */}
+        {pendingProposal && pendingProposal.name && (
+          <ProposalBanner
+            proposerName={pendingProposal.proposerName}
+            nameName={pendingProposal.name.name}
+            message={pendingProposal.proposalMessage}
+            isCurrentUserProposer={pendingProposal.isCurrentUserProposer}
+            onAccept={handleAcceptProposal}
+            onDecline={() => setShowDeclineSheet(true)}
+            onWithdraw={handleWithdrawProposal}
+          />
+        )}
 
         {/* Chosen name banner */}
         {chosenName && chosenName.name && (
@@ -271,75 +457,6 @@ export default function Matches() {
           </View>
         )}
 
-        {/* Sort/filter bar */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400).springify()}
-          style={styles.filterBar}
-        >
-          <Pressable style={styles.sortButton} onPress={() => setShowSortMenu(!showSortMenu)}>
-            <Ionicons name="swap-vertical-outline" size={18} color="#6B5B7B" />
-            <Text style={styles.sortButtonText}>
-              {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
-            </Text>
-            <Ionicons
-              name={showSortMenu ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color="#6B5B7B"
-            />
-          </Pressable>
-
-          {favoriteCount > 0 && (
-            <View style={styles.favoriteIndicator}>
-              <Ionicons name="star" size={14} color={colors.primary} />
-              <Text style={[styles.favoriteCount, { color: colors.primary }]}>
-                {favoriteCount} favorite{favoriteCount !== 1 ? 's' : ''}
-              </Text>
-            </View>
-          )}
-        </Animated.View>
-
-        {/* Sort menu dropdown */}
-        {showSortMenu && (
-          <View style={[styles.sortMenu, { shadowColor: colors.secondary }]}>
-            {SORT_OPTIONS.map((option) => (
-              <Pressable
-                key={option.value}
-                style={[
-                  styles.sortOption,
-                  sortBy === option.value && [
-                    styles.sortOptionActive,
-                    { backgroundColor: colors.primaryLight },
-                  ],
-                ]}
-                onPress={() => {
-                  setSortBy(option.value);
-                  setShowSortMenu(false);
-                }}
-              >
-                <Ionicons
-                  name={option.icon as keyof typeof Ionicons.glyphMap}
-                  size={18}
-                  color={sortBy === option.value ? colors.primary : '#6B5B7B'}
-                />
-                <Text
-                  style={[
-                    styles.sortOptionText,
-                    sortBy === option.value && [
-                      styles.sortOptionTextActive,
-                      { color: colors.primary },
-                    ],
-                  ]}
-                >
-                  {option.label}
-                </Text>
-                {sortBy === option.value && (
-                  <Ionicons name="checkmark" size={18} color={colors.primary} />
-                )}
-              </Pressable>
-            ))}
-          </View>
-        )}
-
         {/* Match list */}
         <FlatList
           data={matches as MatchWithName[]}
@@ -347,13 +464,39 @@ export default function Matches() {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         />
 
-        {/* Match detail modal */}
-        <MatchDetailModal
+        {/* Name detail modal */}
+        <NameDetailModal
           visible={selectedMatch !== null}
-          match={selectedMatch}
+          name={selectedMatch?.name ?? null}
+          context="match"
           onClose={() => setSelectedMatch(null)}
+        />
+
+        {/* Propose sheet */}
+        <ProposeSheet
+          visible={proposeTarget !== null}
+          name={proposeTarget?.name ?? null}
+          onPropose={handlePropose}
+          onClose={() => setProposeTarget(null)}
+        />
+
+        {/* Decline sheet */}
+        <DeclineSheet
+          visible={showDeclineSheet}
+          nameName={pendingProposal?.name?.name ?? ''}
+          onDecline={handleDeclineProposal}
+          onClose={() => setShowDeclineSheet(false)}
+        />
+
+        {/* Celebration modal */}
+        <CelebrationModal
+          visible={showCelebration}
+          nameName={celebrationName}
+          onClose={() => setShowCelebration(false)}
         />
       </SafeAreaView>
     </GradientBackground>
@@ -364,126 +507,30 @@ const styles = StyleSheet.create({
   flexContainer: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
-    color: '#2D1B4E',
-  },
-  countBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  countText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  headerButton: {
-    padding: 8,
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    justifyContent: 'center',
+    gap: 16,
   },
   chosenBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    // backgroundColor set dynamically via inline style
     paddingVertical: 10,
     paddingHorizontal: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     borderRadius: 12,
     borderWidth: 1,
-    // borderColor set dynamically via inline style
   },
   chosenBannerText: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
-    color: '#92400e',
   },
   chosenName: {
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
-    color: '#78350f',
-  },
-  filterBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  sortButtonText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-  },
-  favoriteIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  favoriteCount: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    // color set dynamically via inline style
-  },
-  sortMenu: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 12,
-    padding: 4,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
-  },
-  sortOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  sortOptionActive: {},
-  sortOptionText: {
-    flex: 1,
-    fontSize: 15,
-    fontFamily: Fonts?.sans,
-    color: '#2D1B4E',
-  },
-  sortOptionTextActive: {
-    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
@@ -509,7 +556,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   listContent: {
-    paddingTop: 4,
     paddingBottom: 100,
   },
   ctaContainer: {
