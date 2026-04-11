@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Text, Pressable, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -25,19 +25,41 @@ export function MatchToast({ visible, name, onPress, onDismiss }: MatchToastProp
   const translateY = useSharedValue(-(MATCH_TOAST_HEIGHT + 20));
   const opacity = useSharedValue(0);
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+
+  const animateOut = useCallback(() => {
+    if (dismissTimer.current) {
+      clearTimeout(dismissTimer.current);
+      dismissTimer.current = null;
+    }
+
+    opacity.value = withTiming(0, { duration: 200 });
+    translateY.value = withTiming(
+      -(MATCH_TOAST_HEIGHT + 20),
+      {
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(onDismissRef.current)();
+        }
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (visible) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-      // Animate in from top
       translateY.value = withTiming(0, {
         duration: 400,
         easing: Easing.out(Easing.cubic),
       });
       opacity.value = withTiming(1, { duration: 300 });
 
-      // Auto-dismiss after 3s
       dismissTimer.current = setTimeout(() => {
         animateOut();
       }, 3000);
@@ -53,28 +75,7 @@ export function MatchToast({ visible, name, onPress, onDismiss }: MatchToastProp
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
-
-  const animateOut = () => {
-    if (dismissTimer.current) {
-      clearTimeout(dismissTimer.current);
-      dismissTimer.current = null;
-    }
-
-    opacity.value = withTiming(0, { duration: 200 });
-    translateY.value = withTiming(
-      -(MATCH_TOAST_HEIGHT + 20),
-      {
-        duration: 300,
-        easing: Easing.in(Easing.cubic),
-      },
-      (finished) => {
-        if (finished) {
-          runOnJS(onDismiss)();
-        }
-      },
-    );
-  };
+  }, [visible, animateOut]);
 
   const handlePress = () => {
     if (dismissTimer.current) {

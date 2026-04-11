@@ -315,7 +315,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       cancelAnimation(hintTranslateX);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTop, detailOpen]);
+  }, [isTop, showSwipeHint, detailOpen]);
 
   // Hide hint as soon as user starts swiping
   const hintContainerStyle = useAnimatedStyle(() => {

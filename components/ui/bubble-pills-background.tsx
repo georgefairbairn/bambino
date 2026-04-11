@@ -141,6 +141,7 @@ export function BubblePillsBackground() {
   const [pills, setPills] = useState<PillConfig[]>([]);
   const nextId = useRef(0);
   const spawnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   const removePill = useCallback((id: number) => {
     setPills((prev) => prev.filter((p) => p.id !== id));
@@ -173,6 +174,7 @@ export function BubblePillsBackground() {
     const max = isInitial ? INITIAL_SPAWN_MAX : PILL_SPAWN_MAX;
     const delay = min + Math.random() * (max - min);
     spawnTimer.current = setTimeout(() => {
+      if (!mountedRef.current) return;
       spawnPill();
       spawnCount.current++;
       scheduleNextSpawn();
@@ -180,11 +182,13 @@ export function BubblePillsBackground() {
   }, [spawnPill]);
 
   useEffect(() => {
+    mountedRef.current = true;
     spawnPill();
     spawnCount.current = 1;
     scheduleNextSpawn();
 
     return () => {
+      mountedRef.current = false;
       if (spawnTimer.current) clearTimeout(spawnTimer.current);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

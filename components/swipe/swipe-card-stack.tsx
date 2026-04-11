@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
@@ -27,6 +27,9 @@ export function SwipeCardStack() {
 
   // Local state for optimistic updates
   const [localQueue, setLocalQueue] = useState<Doc<'names'>[]>([]);
+  const localQueueRef = useRef(localQueue);
+  localQueueRef.current = localQueue;
+
   const [showMatchToast, setShowMatchToast] = useState(false);
   const [matchToastName, setMatchToastName] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -41,12 +44,13 @@ export function SwipeCardStack() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverQueue]);
 
-  // Handle recording a selection
+  // Handle recording a selection — uses ref to avoid recreating on every queue change
   const handleSelection = useCallback(
     async (selectionType: 'like' | 'reject') => {
-      if (localQueue.length === 0) return;
+      const queue = localQueueRef.current;
+      if (queue.length === 0) return;
 
-      const currentName = localQueue[0];
+      const currentName = queue[0];
 
       // Optimistic update - remove from queue
       setLocalQueue((prev) => prev.slice(1));
@@ -77,7 +81,7 @@ export function SwipeCardStack() {
         setLocalQueue((prev) => [currentName, ...prev]);
       }
     },
-    [localQueue, recordSelection],
+    [recordSelection],
   );
 
   // Check for empty state
