@@ -92,7 +92,6 @@ export default function Matches() {
     search: submittedSearch || undefined,
   });
   const chosenName = useQuery(api.matches.getChosenName);
-  const updateMatch = useMutation(api.matches.updateMatch);
   const currentUser = useQuery(api.users.getCurrentUser);
   const pendingProposal = useQuery(api.matches.getPendingProposal);
   const proposeNameMutation = useMutation(api.matches.proposeName);
@@ -116,21 +115,6 @@ export default function Matches() {
       lastSeenChosenId.current = chosenId;
     }
   }, [chosenName, currentUser?._id]);
-
-  const handleToggleFavorite = useCallback(
-    async (matchId: Id<'matches'>, currentValue?: boolean) => {
-      try {
-        await updateMatch({
-          matchId,
-          isFavorite: !currentValue,
-        });
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (error) {
-        Sentry.captureException(error);
-      }
-    },
-    [updateMatch],
-  );
 
   const handlePropose = useCallback(
     async (message?: string) => {
@@ -185,30 +169,30 @@ export default function Matches() {
     [pendingProposal, respondToProposalMutation],
   );
 
-  const handleWithdrawProposal = useCallback(async () => {
-    if (!pendingProposal) return;
-    Alert.alert(
-      'Withdraw Proposal?',
-      `Are you sure you want to withdraw your proposal for "${pendingProposal.name?.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Withdraw',
-          onPress: async () => {
-            try {
-              await withdrawProposalMutation({
-                matchId: pendingProposal._id,
-              });
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            } catch (error) {
-              Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to withdraw proposal. Please try again.');
-            }
+  const handleWithdrawProposal = useCallback(
+    async (matchId: Id<'matches'>, nameName: string) => {
+      Alert.alert(
+        'Withdraw Proposal?',
+        `Are you sure you want to withdraw your proposal for "${nameName}"?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Withdraw',
+            onPress: async () => {
+              try {
+                await withdrawProposalMutation({ matchId });
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              } catch (error) {
+                Sentry.captureException(error);
+                Alert.alert('Error', 'Failed to withdraw proposal. Please try again.');
+              }
+            },
           },
-        },
-      ],
-    );
-  }, [pendingProposal, withdrawProposalMutation]);
+        ],
+      );
+    },
+    [withdrawProposalMutation],
+  );
 
   const handleShare = useCallback(async () => {
     if (!matches || matches.length === 0) return;
@@ -246,21 +230,20 @@ export default function Matches() {
           match={item}
           currentUserId={currentUser?._id}
           onPress={() => setSelectedMatch(item)}
-          onToggleFavorite={() => handleToggleFavorite(item._id, item.isFavorite)}
           onPropose={
-            !item.isChosen && item.proposalStatus !== 'pending'
+            !item.isChosen && item.proposalStatus !== 'pending' && !pendingProposal
               ? () => setProposeTarget(item)
               : undefined
           }
           onWithdraw={
             item.proposalStatus === 'pending' && item.proposedBy === currentUser?._id
-              ? handleWithdrawProposal
+              ? () => handleWithdrawProposal(item._id, item.name.name)
               : undefined
           }
         />
       </Animated.View>
     ),
-    [handleToggleFavorite, handleWithdrawProposal, currentUser?._id],
+    [handleWithdrawProposal, currentUser?._id, pendingProposal],
   );
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
@@ -435,7 +418,7 @@ export default function Matches() {
             isCurrentUserProposer={pendingProposal.isCurrentUserProposer}
             onAccept={handleAcceptProposal}
             onDecline={() => setShowDeclineSheet(true)}
-            onWithdraw={handleWithdrawProposal}
+            onWithdraw={() => handleWithdrawProposal(pendingProposal._id, pendingProposal.name?.name ?? '')}
           />
         )}
 

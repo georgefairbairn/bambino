@@ -225,10 +225,6 @@ export const proposeName = mutation({
       throw new Error('Not authorized to propose on this match');
     }
 
-    if (match.isChosen && match.proposalStatus === 'accepted') {
-      throw new Error('This name is already chosen');
-    }
-
     const partnerMatches = await getPartnershipMatches(ctx, user._id, user.partnerId);
     for (const m of partnerMatches) {
       if (m.proposalStatus === 'pending') {
@@ -248,6 +244,8 @@ export const proposeName = mutation({
       proposedAt: now,
       proposalMessage: args.message,
       proposalStatus: 'pending',
+      respondedAt: undefined,
+      declineMessage: undefined,
       updatedAt: now,
     });
 
@@ -344,6 +342,8 @@ export const withdrawProposal = mutation({
       proposedAt: undefined,
       proposalMessage: undefined,
       proposalStatus: undefined,
+      respondedAt: undefined,
+      declineMessage: undefined,
       updatedAt: Date.now(),
     });
 

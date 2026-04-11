@@ -20,7 +20,6 @@ interface MatchCardProps {
   };
   currentUserId?: Id<'users'>;
   onPress: () => void;
-  onToggleFavorite: () => void;
   onPropose?: () => void;
   onWithdraw?: () => void;
 }
@@ -64,7 +63,6 @@ export function MatchCard({
   match,
   currentUserId,
   onPress,
-  onToggleFavorite,
   onPropose,
   onWithdraw,
 }: MatchCardProps) {
@@ -116,40 +114,24 @@ export function MatchCard({
         </View>
       </View>
 
-      <View style={styles.actions}>
-        {/* Propose/Withdraw button */}
-        {!isChosen && !isPending && onPropose && (
-          <Pressable
-            style={styles.actionButton}
-            onPress={onPropose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="hand-left-outline" size={20} color={colors.primary} />
-          </Pressable>
-        )}
-        {isPending && isCurrentUserProposer && onWithdraw && (
-          <Pressable
-            style={styles.actionButton}
-            onPress={onWithdraw}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="close-circle-outline" size={20} color="#A89BB5" />
-          </Pressable>
-        )}
-
-        {/* Favorite button */}
+      {/* Propose / Withdraw action */}
+      {isCurrentUserProposer && onWithdraw ? (
         <Pressable
           style={styles.actionButton}
-          onPress={onToggleFavorite}
+          onPress={onWithdraw}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons
-            name={isFavorite ? 'star' : 'star-outline'}
-            size={22}
-            color={isFavorite ? '#FFB86C' : '#A89BB5'}
-          />
+          <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
         </Pressable>
-      </View>
+      ) : !isChosen && !isPending && onPropose ? (
+        <Pressable
+          style={styles.actionButton}
+          onPress={onPropose}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="checkmark-circle-outline" size={24} color="#A89BB5" />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 }
@@ -227,11 +209,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: Fonts?.sans,
     color: '#A89BB5',
-  },
-  actions: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
   },
   actionButton: {
     padding: 8,

@@ -51,7 +51,7 @@ export function CelebrationModal({ visible, nameName, onClose }: CelebrationModa
             entering={FadeIn.delay(500).duration(400)}
             style={styles.subtitle}
           >
-            You both chose this name
+            You both chose {nameName}
           </Animated.Text>
 
           <Animated.View
