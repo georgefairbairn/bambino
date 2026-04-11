@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
+import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
@@ -12,19 +13,17 @@ interface MatchCardProps {
     notes?: string;
     rank?: number;
     isChosen?: boolean;
+    proposalStatus?: 'pending' | 'accepted' | 'declined';
+    proposedBy?: Id<'users'>;
     matchedAt: number;
     name: Doc<'names'>;
   };
+  currentUserId?: Id<'users'>;
   onPress: () => void;
   onToggleFavorite: () => void;
-  onChoose?: () => void;
+  onPropose?: () => void;
+  onWithdraw?: () => void;
 }
-
-const GENDER_EMOJI: Record<string, string> = {
-  boy: '👦',
-  girl: '👧',
-  unisex: '👶',
-};
 
 function getRelativeTime(timestamp: number): string {
   const now = Date.now();
@@ -55,22 +54,38 @@ function getRelativeTime(timestamp: number): string {
   return 'Just now';
 }
 
-export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchCardProps) {
+const GENDER_EMOJI: Record<string, string> = {
+  boy: '\u{1F466}',
+  girl: '\u{1F467}',
+  unisex: '\u{1F476}',
+};
+
+export function MatchCard({
+  match,
+  currentUserId,
+  onPress,
+  onToggleFavorite,
+  onPropose,
+  onWithdraw,
+}: MatchCardProps) {
   const { colors } = useTheme();
-  const { name, isFavorite, isChosen, rank, notes, matchedAt } = match;
-  const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
+  const { name, isFavorite, isChosen, proposalStatus, proposedBy, matchedAt } = match;
+  const genderEmoji = GENDER_EMOJI[name.gender] ?? '\u{1F476}';
   const relativeTime = getRelativeTime(matchedAt);
+
+  const isPending = proposalStatus === 'pending';
+  const isCurrentUserProposer = isPending && proposedBy === currentUserId;
 
   return (
     <Pressable
       style={[
         styles.card,
-        { backgroundColor: colors.surfaceSubtle, shadowColor: colors.secondary },
+        { shadowColor: colors.secondary },
         isChosen && styles.cardChosen,
+        isPending && !isChosen && { borderColor: colors.primary, borderWidth: 2 },
       ]}
       onPress={onPress}
     >
-      {/* Chosen indicator */}
       {isChosen && (
         <View style={styles.chosenBadge}>
           <Ionicons name="trophy" size={14} color="#fff" />
@@ -78,10 +93,10 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
         </View>
       )}
 
-      {/* Rank badge */}
-      {rank !== undefined && rank > 0 && (
-        <View style={[styles.rankBadge, { backgroundColor: colors.secondary }]}>
-          <Text style={styles.rankText}>#{rank}</Text>
+      {isPending && !isChosen && (
+        <View style={[styles.chosenBadge, { backgroundColor: colors.primary }]}>
+          <Ionicons name="hand-left" size={14} color="#fff" />
+          <Text style={styles.chosenText}>Proposed</Text>
         </View>
       )}
 
@@ -89,30 +104,39 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
         <View style={styles.nameRow}>
           <Text style={styles.genderEmoji}>{genderEmoji}</Text>
           <Text style={styles.name}>{name.name}</Text>
-          <View style={[styles.matchIndicator, { backgroundColor: colors.primary }]}>
-            <Ionicons name="heart" size={12} color="#fff" />
-            <Ionicons name="heart" size={12} color="#fff" />
-          </View>
         </View>
 
         <View style={styles.metaRow}>
           <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
-            <Text style={[styles.originText, { color: colors.primary }]}>{name.origin}</Text>
+            <Text style={[styles.originText, { color: colors.primary }]}>
+              {getOriginFlag(name.origin)} {name.origin}
+            </Text>
           </View>
           <Text style={styles.timestamp}>Matched {relativeTime}</Text>
         </View>
-
-        {notes && (
-          <View style={[styles.notesRow, { borderTopColor: colors.border }]}>
-            <Ionicons name="document-text-outline" size={14} color="#6B5B7B" />
-            <Text style={styles.notesPreview} numberOfLines={1}>
-              {notes}
-            </Text>
-          </View>
-        )}
       </View>
 
       <View style={styles.actions}>
+        {/* Propose/Withdraw button */}
+        {!isChosen && !isPending && onPropose && (
+          <Pressable
+            style={styles.actionButton}
+            onPress={onPropose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="hand-left-outline" size={20} color={colors.primary} />
+          </Pressable>
+        )}
+        {isPending && isCurrentUserProposer && onWithdraw && (
+          <Pressable
+            style={styles.actionButton}
+            onPress={onWithdraw}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="close-circle-outline" size={20} color="#A89BB5" />
+          </Pressable>
+        )}
+
         {/* Favorite button */}
         <Pressable
           style={styles.actionButton}
@@ -121,21 +145,10 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
         >
           <Ionicons
             name={isFavorite ? 'star' : 'star-outline'}
-            size={24}
+            size={22}
             color={isFavorite ? '#FFB86C' : '#A89BB5'}
           />
         </Pressable>
-
-        {/* Choose button */}
-        {onChoose && !isChosen && (
-          <Pressable
-            style={styles.actionButton}
-            onPress={onChoose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="trophy-outline" size={22} color={colors.primary} />
-          </Pressable>
-        )}
       </View>
     </Pressable>
   );
@@ -143,6 +156,7 @@ export function MatchCard({ match, onPress, onToggleFavorite, onChoose }: MatchC
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: '#FFF8FA',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
@@ -178,21 +192,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-  rankBadge: {
-    position: 'absolute',
-    top: -8,
-    right: 16,
-    // backgroundColor set dynamically via inline style
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  rankText: {
-    fontSize: 11,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    color: '#fff',
-  },
   mainContent: {
     flex: 1,
   },
@@ -209,14 +208,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
-    flex: 1,
-  },
-  matchIndicator: {
-    flexDirection: 'row',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 2,
   },
   metaRow: {
     flexDirection: 'row',
@@ -237,26 +228,12 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     color: '#A89BB5',
   },
-  notesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-  },
-  notesPreview: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    fontStyle: 'italic',
-  },
   actions: {
-    gap: 8,
+    flexDirection: 'column',
     alignItems: 'center',
+    gap: 4,
   },
   actionButton: {
-    padding: 4,
+    padding: 8,
   },
 });

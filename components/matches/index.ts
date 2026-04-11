@@ -1,3 +1,9 @@
 export { MatchCelebrationModal } from './match-celebration-modal';
 export { MatchCard } from './match-card';
 export { MatchDetailModal } from './match-detail-modal';
+export { MatchesHeader } from './matches-header';
+export { MatchToast } from './match-toast';
+export { ProposalBanner } from './proposal-banner';
+export { ProposeSheet } from './propose-sheet';
+export { DeclineSheet } from './decline-sheet';
+export { CelebrationModal } from './celebration-modal';
