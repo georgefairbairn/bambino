@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Pressable,
-  Modal,
   StyleSheet,
   ScrollView,
   TextInput,
@@ -18,6 +17,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { GenderBadge } from '@/components/name-detail/gender-badge';
 import * as Haptics from 'expo-haptics';
 import * as Sentry from '@sentry/react-native';
+import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 
 interface MatchDetailModalProps {
   visible: boolean;
@@ -136,11 +136,12 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-
-        <View style={styles.sheet}>
+    <AnimatedBottomSheet
+      visible={visible}
+      onClose={onClose}
+      maxHeight="90%"
+      style={{ paddingBottom: 34 }}
+    >
           <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
 
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
@@ -271,28 +272,11 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               </Pressable>
             </View>
           </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </AnimatedBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-    paddingBottom: 34,
-  },
   handleBar: {
     width: 40,
     height: 4,
@@ -407,13 +391,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   notesInput: {
-    borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: '#fff',
+    borderRadius: 14,
     padding: 14,
     fontSize: 15,
     fontFamily: Fonts?.sans,
     color: '#2D1B4E',
     minHeight: 100,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
   rankContainer: {
     flexDirection: 'row',
@@ -421,8 +410,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rankInput: {
-    borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: '#fff',
+    borderRadius: 14,
     padding: 14,
     fontSize: 18,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',

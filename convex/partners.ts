@@ -66,7 +66,6 @@ export const getPartnerInfo = query({
         partner = {
           _id: partnerDoc._id,
           name: partnerDoc.name,
-          email: partnerDoc.email,
           imageUrl: partnerDoc.imageUrl,
         };
       }
@@ -120,8 +119,7 @@ export const getUserByShareCode = query({
 
     return {
       userId: targetUser._id,
-      name: targetUser.name ?? 'Unknown',
-      email: targetUser.email,
+      name: targetUser.name ?? 'Bambino User',
       imageUrl: targetUser.imageUrl,
     };
   },
@@ -160,6 +158,11 @@ export const linkPartner = mutation({
       throw new Error('This user already has a partner linked');
     }
 
+    // Calling user must have confirmed their name
+    if (user.nameConfirmed !== true) {
+      return { error: 'NAME_NOT_CONFIRMED' as const };
+    }
+
     // At least one user must be premium
     const userIsPremium = user.isPremium === true;
     const targetIsPremium = targetUser.isPremium === true;
@@ -181,6 +184,14 @@ export const linkPartner = mutation({
       updatedAt: now,
     });
 
+    // Clear grace period if linking to a premium partner
+    if (targetIsPremium && user.premiumRevokedAt) {
+      await ctx.db.patch(user._id, { premiumRevokedAt: undefined });
+    }
+    if (userIsPremium && targetUser.premiumRevokedAt) {
+      await ctx.db.patch(targetUser._id, { premiumRevokedAt: undefined });
+    }
+
     return { success: true };
   },
 });
@@ -196,6 +207,45 @@ export const unlinkPartner = mutation({
 
     const partner = await ctx.db.get(user.partnerId);
     const now = Date.now();
+
+    // Set grace period on the non-premium user
+    if (partner) {
+      const userIsPremium = user.isPremium === true;
+      const partnerIsPremium = partner.isPremium === true;
+
+      if (userIsPremium && !partnerIsPremium) {
+        await ctx.db.patch(partner._id, { premiumRevokedAt: now });
+      } else if (partnerIsPremium && !userIsPremium) {
+        await ctx.db.patch(user._id, { premiumRevokedAt: now });
+      }
+    }
+
+    // Clear any pending proposals between these partners
+    const matchesAsUser1 = await ctx.db
+      .query('matches')
+      .withIndex('by_user1', (q) => q.eq('user1Id', user._id))
+      .collect();
+    const matchesAsUser2 = await ctx.db
+      .query('matches')
+      .withIndex('by_user2', (q) => q.eq('user2Id', user._id))
+      .collect();
+    const allMatches = [...matchesAsUser1, ...matchesAsUser2];
+    const partnerMatches = allMatches.filter(
+      (m) =>
+        (m.user1Id === user._id && m.user2Id === user.partnerId) ||
+        (m.user1Id === user.partnerId && m.user2Id === user._id),
+    );
+    for (const m of partnerMatches) {
+      if (m.proposalStatus === 'pending') {
+        await ctx.db.patch(m._id, {
+          proposedBy: undefined,
+          proposedAt: undefined,
+          proposalMessage: undefined,
+          proposalStatus: undefined,
+          updatedAt: now,
+        });
+      }
+    }
 
     await ctx.db.patch(user._id, {
       partnerId: undefined,

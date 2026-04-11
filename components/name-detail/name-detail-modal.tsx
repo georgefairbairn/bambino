@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -11,6 +11,7 @@ import { getPopularityTier } from '@/constants/popularity';
 import { GenderBadge } from './gender-badge';
 import { QuickActionButtons } from './quick-action-buttons';
 import { RankBadge, PopularityChart } from '@/components/popularity';
+import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 
 function ordinalSuffix(n: number): string {
   const mod100 = n % 100;
@@ -77,7 +78,7 @@ const TREND_CONFIG = {
   steady: { label: 'Steady', arrow: '→', color: '#A89BB5' },
 };
 
-type Context = 'swipe' | 'liked' | 'rejected';
+type Context = 'swipe' | 'liked' | 'rejected' | 'match';
 
 interface NameDetailModalProps {
   visible: boolean;
@@ -210,105 +211,90 @@ export function NameDetailModal({
   if (!name) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-          {/* Handle bar */}
-          <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
+    <AnimatedBottomSheet
+      visible={visible}
+      onClose={onClose}
+      backgroundColor={colors.surface}
+      style={{ paddingHorizontal: 24, paddingBottom: 40 }}
+    >
+      {/* Handle bar */}
+      <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
 
-          {/* Header with close button */}
-          <View style={styles.header}>
-            <View style={styles.headerSpacer} />
-            <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
-              <Ionicons name="close" size={24} color="#6B5B7B" />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            style={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContainer}
-          >
-            {context === 'swipe' ? (
-              <PopularityDetailContent name={name} />
-            ) : (
-              <>
-                {/* Badges */}
-                <View style={styles.badgeContainer}>
-                  <GenderBadge gender={name.gender as 'boy' | 'girl' | 'unisex'} size="large" />
-                  <RankBadge rank={name.currentRank} size="large" />
-                </View>
-
-                {/* Name */}
-                <Text style={styles.name}>{name.name}</Text>
-
-                {/* Info cards */}
-                <View style={styles.infoCards}>
-                  {name.origin && (
-                    <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
-                      <Text style={styles.infoLabel}>Origin</Text>
-                      <Text style={styles.infoValue}>{name.origin}</Text>
-                    </View>
-                  )}
-
-                  {name.meaning && (
-                    <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
-                      <Text style={styles.infoLabel}>Meaning</Text>
-                      <Text style={styles.infoValue}>{name.meaning}</Text>
-                    </View>
-                  )}
-
-                  {name.phonetic && (
-                    <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
-                      <Text style={styles.infoLabel}>Pronunciation</Text>
-                      <Text style={styles.infoValue}>{name.phonetic}</Text>
-                    </View>
-                  )}
-                </View>
-
-                {name.gender === 'neutral' && (
-                  <GenderPillToggle selected={listSelectedGender} onSelect={setListSelectedGender} />
-                )}
-
-                {/* Popularity chart */}
-                <PopularityChart name={name.name} gender={listDisplayGender} />
-
-                {/* Quick action buttons */}
-                <QuickActionButtons
-                  context={context}
-                  nameName={name.name}
-                  onLike={onLike}
-                  onReject={onReject}
-                  onRemove={onRemove}
-                  onRestore={onRestore}
-                  onHide={onHide}
-                />
-              </>
-            )}
-          </ScrollView>
-        </View>
+      {/* Header with close button */}
+      <View style={styles.header}>
+        <View style={styles.headerSpacer} />
+        <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
+          <Ionicons name="close" size={24} color="#6B5B7B" />
+        </Pressable>
       </View>
-    </Modal>
+
+      <ScrollView
+        style={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        {context === 'swipe' ? (
+          <PopularityDetailContent name={name} />
+        ) : (
+          <>
+            {/* Badges */}
+            <View style={styles.badgeContainer}>
+              <GenderBadge gender={name.gender as 'boy' | 'girl' | 'unisex'} size="large" />
+              <RankBadge rank={name.currentRank} size="large" />
+            </View>
+
+            {/* Name */}
+            <Text style={styles.name}>{name.name}</Text>
+
+            {/* Info cards */}
+            <View style={styles.infoCards}>
+              {name.origin && (
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.infoLabel}>Origin</Text>
+                  <Text style={styles.infoValue}>{name.origin}</Text>
+                </View>
+              )}
+
+              {name.meaning && (
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.infoLabel}>Meaning</Text>
+                  <Text style={styles.infoValue}>{name.meaning}</Text>
+                </View>
+              )}
+
+              {name.phonetic && (
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.infoLabel}>Pronunciation</Text>
+                  <Text style={styles.infoValue}>{name.phonetic}</Text>
+                </View>
+              )}
+            </View>
+
+            {name.gender === 'neutral' && (
+              <GenderPillToggle selected={listSelectedGender} onSelect={setListSelectedGender} />
+            )}
+
+            {/* Popularity chart */}
+            <PopularityChart name={name.name} gender={listDisplayGender} />
+
+            {/* Quick action buttons */}
+            <QuickActionButtons
+              context={context}
+              nameName={name.name}
+              onLike={onLike}
+              onReject={onReject}
+              onRemove={onRemove}
+              onRestore={onRestore}
+              onHide={onHide}
+            />
+          </>
+        )}
+      </ScrollView>
+    </AnimatedBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheet: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    maxHeight: '85%',
-  },
   scrollContent: {
     flexGrow: 0,
   },

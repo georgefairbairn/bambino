@@ -498,7 +498,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
               {name.meaning ? (
                 // Two-tile layout: rank + sparkline
                 <View style={[styles.sparklineTile, { backgroundColor: colors.surfaceSubtle }]}>
-                  <Text style={styles.statLabel}>10YR TREND</Text>
+                  <Text style={styles.statLabel}>10 YEAR TREND</Text>
                   <View style={styles.sparklineRow}>
                     {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
                       <>

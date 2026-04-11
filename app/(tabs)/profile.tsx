@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
-import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useState } from 'react';
 import {
   Alert,
@@ -21,27 +20,72 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
-import { usePurchases } from '@/hooks/use-purchases';
+import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
+import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
 import { ThemePickerSection, VoiceSettingsSection } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useProfilePhoto } from '@/hooks/use-profile-photo';
+
+function PremiumBanner({
+  colors,
+  gradients,
+  onPress,
+}: {
+  colors: ReturnType<typeof useTheme>['colors'];
+  gradients: ReturnType<typeof useTheme>['gradients'];
+  onPress: () => void;
+}) {
+  return (
+    <View style={styles.premiumBannerWrap}>
+      <LinearGradient
+        colors={[colors.primaryLight, colors.secondaryLight]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.premiumBannerGradient, { borderColor: `${colors.primary}40` }]}
+      >
+        <Pressable onPress={onPress} style={styles.premiumBannerContent}>
+          <View style={[styles.premiumIconWrap, { backgroundColor: colors.primary }]}>
+            <Ionicons name="star" size={18} color="#fff" />
+          </View>
+          <View style={styles.premiumTextWrap}>
+            <Text style={styles.premiumTitle}>Go Premium</Text>
+            <Text style={styles.premiumDesc}>Unlimited likes & partner linking</Text>
+          </View>
+          <LinearGradient
+            colors={gradients.buttonPrimary as [string, string]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.premiumUpgradeBtn}
+          >
+            <Text style={styles.premiumUpgradeText}>Upgrade</Text>
+          </LinearGradient>
+        </Pressable>
+      </LinearGradient>
+    </View>
+  );
+}
 
 export default function Profile() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { colors, gradients } = useTheme();
-  const { isPremium, restorePurchases } = usePurchases();
+  const { isPremium, isOwnPremium, isPartnerPremium, partnerName: premiumPartnerName } = useEffectivePremium();
   const deleteAccount = useMutation(api.users.deleteAccount);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const convexUser = useQuery(api.users.getCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [showNameConfirmation, setShowNameConfirmation] = useState(false);
+  const [showEditName, setShowEditName] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'copy' | 'share' | 'link' | null>(null);
+  const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
   const insets = useSafeAreaInsets();
 
   const handleSignOut = useCallback(async () => {
@@ -79,15 +123,6 @@ export default function Profile() {
     );
   }, [deleteAccount, signOut]);
 
-  const handleRestore = useCallback(async () => {
-    const success = await restorePurchases();
-    if (success) {
-      Alert.alert('Restored', 'Your premium purchase has been restored!');
-    } else {
-      Alert.alert('No Purchase Found', 'No previous purchase was found to restore.');
-    }
-  }, [restorePurchases]);
-
   const handleCopyCode = useCallback(async () => {
     if (partnerInfo?.shareCode) {
       await Clipboard.setStringAsync(partnerInfo.shareCode);
@@ -107,38 +142,67 @@ export default function Profile() {
     }
   }, [partnerInfo?.shareCode]);
 
-  const handlePickImage = useCallback(async () => {
+  const handlePartnerAction = useCallback(
+    (action: 'copy' | 'share' | 'link') => {
+      // Gate 1: Name confirmation check
+      if (convexUser?.nameConfirmed !== true) {
+        setPendingAction(action);
+        setShowNameConfirmation(true);
+        return;
+      }
+
+      // Gate 2: Execute action (backend enforces premium requirement for linking)
+      executePartnerAction(action);
+    },
+    [convexUser?.nameConfirmed, executePartnerAction],
+  );
+
+  const executePartnerAction = useCallback(
+    (action: 'copy' | 'share' | 'link') => {
+      switch (action) {
+        case 'copy':
+          handleCopyCode();
+          break;
+        case 'share':
+          handleShareCode();
+          break;
+        case 'link':
+          setShowPartnerModal(true);
+          break;
+      }
+    },
+    [handleCopyCode, handleShareCode],
+  );
+
+  const handleNameConfirmed = useCallback(() => {
+    setShowNameConfirmation(false);
+    if (pendingAction) {
+      executePartnerAction(pendingAction);
+      setPendingAction(null);
+    }
+  }, [pendingAction, executePartnerAction]);
+
+  const handleAvatarPress = useCallback(() => {
     if (!user) return;
 
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please allow photo library access in your device settings to update your profile photo.',
-      );
-      return;
+    if (user.hasImage) {
+      Alert.alert('Profile Photo', undefined, [
+        { text: 'Change Photo', onPress: pickAndUploadImage },
+        {
+          text: 'Remove Photo',
+          style: 'destructive',
+          onPress: handleRemovePhoto,
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    } else {
+      pickAndUploadImage();
     }
+  }, [user, pickAndUploadImage, handleRemovePhoto]);
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (result.canceled) return;
-
-    setIsUploading(true);
-    try {
-      const response = await fetch(result.assets[0].uri);
-      const blob = await response.blob();
-      await user.setProfileImage({ file: blob });
-    } catch (error) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to update profile photo. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
+  const handleEditName = useCallback(() => {
+    if (!user) return;
+    setShowEditName(true);
   }, [user]);
 
   const handleUnlinkPartner = useCallback(() => {
@@ -178,7 +242,7 @@ export default function Profile() {
           entering={FadeInDown.duration(500).springify()}
           style={styles.userInfoSection}
         >
-          <Pressable onPress={handlePickImage} disabled={isUploading}>
+          <Pressable onPress={handleAvatarPress} disabled={isUploading}>
             {user?.hasImage ? (
               <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
                 <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
@@ -209,7 +273,10 @@ export default function Profile() {
             )}
           </Pressable>
 
-          <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
+          <Pressable onPress={handleEditName} style={styles.nameRow}>
+            <Text style={styles.userName}>{convexUser?.name || user?.fullName || 'User'}</Text>
+            <Ionicons name="pencil" size={16} color="#A89BB5" />
+          </Pressable>
           <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
         </Animated.View>
 
@@ -219,28 +286,11 @@ export default function Profile() {
             entering={FadeInUp.delay(100).duration(400).springify()}
             style={styles.premiumSection}
           >
-            <Pressable onPress={() => setShowPaywall(true)}>
-              <LinearGradient
-                colors={gradients.buttonPrimary as [string, string]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.premiumBanner}
-              >
-                <View style={styles.premiumIconWrap}>
-                  <Ionicons name="star" size={18} color="#fff" />
-                </View>
-                <View style={styles.premiumTextWrap}>
-                  <Text style={styles.premiumTitle}>Go Premium</Text>
-                  <Text style={styles.premiumDesc}>Unlimited likes & partner linking</Text>
-                </View>
-                <View style={styles.premiumUpgradeBtn}>
-                  <Text style={styles.premiumUpgradeText}>Upgrade</Text>
-                </View>
-              </LinearGradient>
-            </Pressable>
-            <Pressable style={styles.restoreBtn} onPress={handleRestore}>
-              <Text style={styles.restoreBtnText}>Restore Purchase</Text>
-            </Pressable>
+            <PremiumBanner
+              colors={colors}
+              gradients={gradients}
+              onPress={() => setShowPaywall(true)}
+            />
           </Animated.View>
         )}
 
@@ -253,7 +303,9 @@ export default function Profile() {
             <View style={[styles.premiumActiveRow, { backgroundColor: colors.primaryLight }]}>
               <Ionicons name="star" size={18} color={colors.primary} />
               <Text style={[styles.premiumActiveText, { color: colors.primary }]}>
-                Premium Active
+                {isPartnerPremium && !isOwnPremium
+                  ? `Premium via ${premiumPartnerName || 'Partner'}`
+                  : 'Premium Active'}
               </Text>
             </View>
           </Animated.View>
@@ -282,18 +334,14 @@ export default function Profile() {
                       ]}
                     >
                       <Text style={[styles.partnerAvatarInitial, { color: colors.primary }]}>
-                        {partnerInfo.partner.name?.[0]?.toUpperCase() ||
-                          partnerInfo.partner.email[0]?.toUpperCase()}
+                        {partnerInfo.partner.name?.[0]?.toUpperCase() || 'B'}
                       </Text>
                     </View>
                   )}
                   <View style={styles.partnerDetails}>
                     <Text style={styles.partnerName}>
-                      {partnerInfo.partner.name || partnerInfo.partner.email}
+                      {partnerInfo.partner.name || 'Bambino User'}
                     </Text>
-                    {partnerInfo.partner.name && (
-                      <Text style={styles.partnerEmail}>{partnerInfo.partner.email}</Text>
-                    )}
                   </View>
                 </View>
                 <Pressable style={styles.unlinkButton} onPress={handleUnlinkPartner}>
@@ -306,13 +354,15 @@ export default function Profile() {
                 {partnerInfo?.shareCode && (
                   <>
                     <Text style={styles.shareCodeLabel}>Your Share Code</Text>
-                    <Text style={[styles.shareCode, { color: colors.primary }]}>
-                      {partnerInfo.shareCode}
-                    </Text>
+                    <View style={styles.shareCodeWrap}>
+                      <Text style={[styles.shareCode, { color: colors.primary }]}>
+                        {partnerInfo.shareCode}
+                      </Text>
+                    </View>
                     <View style={styles.shareActions}>
                       <Pressable
                         style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                        onPress={handleCopyCode}
+                        onPress={() => handlePartnerAction('copy')}
                       >
                         <Ionicons name="copy-outline" size={16} color={colors.primary} />
                         <Text style={[styles.shareActionText, { color: colors.primary }]}>
@@ -321,7 +371,7 @@ export default function Profile() {
                       </Pressable>
                       <Pressable
                         style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
-                        onPress={handleShareCode}
+                        onPress={() => handlePartnerAction('share')}
                       >
                         <Ionicons name="share-outline" size={16} color={colors.primary} />
                         <Text style={[styles.shareActionText, { color: colors.primary }]}>
@@ -334,9 +384,8 @@ export default function Profile() {
                 <View style={styles.linkPartnerWrap}>
                   <GradientButton
                     title="Link Partner"
-                    onPress={() => setShowPartnerModal(true)}
+                    onPress={() => handlePartnerAction('link')}
                     variant="primary"
-                    icon="people"
                   />
                 </View>
               </View>
@@ -413,10 +462,26 @@ export default function Profile() {
         <Paywall
           visible={showPaywall}
           onClose={() => setShowPaywall(false)}
-          trigger="search_limit"
+          trigger="partner_limit"
         />
 
         <PartnerLinkModal visible={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
+
+        <NameConfirmationModal
+          visible={showEditName}
+          onClose={() => setShowEditName(false)}
+          onConfirmed={() => setShowEditName(false)}
+          mode="edit"
+        />
+
+        <NameConfirmationModal
+          visible={showNameConfirmation}
+          onClose={() => {
+            setShowNameConfirmation(false);
+            setPendingAction(null);
+          }}
+          onConfirmed={handleNameConfirmed}
+        />
       </ScrollView>
     </GradientBackground>
   );
@@ -489,6 +554,11 @@ const styles = StyleSheet.create({
     color: '#2D1B4E',
     marginBottom: 4,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   userEmail: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
@@ -499,23 +569,29 @@ const styles = StyleSheet.create({
   premiumSection: {
     marginBottom: 24,
   },
-  premiumBanner: {
+  premiumBannerWrap: {
     borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  premiumBannerGradient: {
+    borderRadius: 16,
+    borderWidth: 2,
+    overflow: 'hidden',
+  },
+  premiumBannerContent: {
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
   premiumIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -525,16 +601,15 @@ const styles = StyleSheet.create({
   premiumTitle: {
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     fontSize: 16,
-    color: '#fff',
+    color: '#2D1B4E',
   },
   premiumDesc: {
     fontSize: 12,
     fontFamily: Fonts?.sans,
-    color: 'rgba(255,255,255,0.85)',
+    color: '#6B5B7B',
     marginTop: 2,
   },
   premiumUpgradeBtn: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -546,7 +621,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   premiumActiveRow: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -557,38 +632,38 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     fontWeight: '600',
   },
-  restoreBtn: {
-    alignItems: 'center',
-    paddingTop: 8,
-  },
-  restoreBtnText: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#A89BB5',
-  },
-
   /* Sections — matches filters.tsx pattern */
   section: {
     gap: 12,
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 24,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
   },
 
-  /* Card — matches settings container pattern: #fff, 12px radius, 16px padding */
+  /* Card — matches dashboard name card pattern: #fff, 16px radius, padding, shadow */
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   /* Legal card — no padding, rows handle their own */
   legalCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
 
   /* Partner */
@@ -625,12 +700,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#2D1B4E',
   },
-  partnerEmail: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    marginTop: 2,
-  },
   unlinkButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -664,7 +733,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     letterSpacing: 6,
   },
-  shareActions: {
+  shareCodeWrap: {
+    overflow: 'hidden',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+shareActions: {
     flexDirection: 'row',
     gap: 10,
   },

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  Modal,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +16,9 @@ import { Fonts } from '@/constants/theme';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Paywall } from '@/components/paywall';
 import { useTheme } from '@/contexts/theme-context';
+import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { StyledInput } from '@/components/ui/styled-input';
+import { NameConfirmationModal } from './name-confirmation-modal';
 
 interface PartnerLinkModalProps {
   visible: boolean;
@@ -26,7 +28,6 @@ interface PartnerLinkModalProps {
 type PartnerPreview = {
   userId: string;
   name: string;
-  email: string;
   imageUrl?: string;
 };
 
@@ -38,7 +39,9 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   const [isLinking, setIsLinking] = useState(false);
   const [preview, setPreview] = useState<PartnerPreview | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showNameConfirmation, setShowNameConfirmation] = useState(false);
 
+  const convexUser = useQuery(api.users.getCurrentUser);
   const partnerPreview = useQuery(
     api.partners.getUserByShareCode,
     code.length === 6 && isLookingUp ? { code } : 'skip',
@@ -90,7 +93,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       setPreview({
         userId: partnerPreview.userId,
         name: partnerPreview.name,
-        email: partnerPreview.email,
         imageUrl: partnerPreview.imageUrl,
       });
       setIsLookingUp(false);
@@ -98,6 +100,16 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   }
 
   const handleLink = async () => {
+    // Check name confirmation before linking
+    if (convexUser?.nameConfirmed !== true) {
+      setShowNameConfirmation(true);
+      return;
+    }
+
+    executeLinkPartner();
+  };
+
+  const executeLinkPartner = async () => {
     setIsLinking(true);
     setError(null);
 
@@ -107,6 +119,8 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       if (result && typeof result === 'object' && 'error' in result) {
         if (result.error === 'FREE_TIER_PARTNER_LIMIT') {
           setShowPaywall(true);
+        } else if (result.error === 'NAME_NOT_CONFIRMED') {
+          setShowNameConfirmation(true);
         } else {
           setError('Failed to link partner');
         }
@@ -128,6 +142,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
     setIsLookingUp(false);
     setIsLinking(false);
     setShowPaywall(false);
+    setShowNameConfirmation(false);
     onClose();
   };
 
@@ -137,121 +152,112 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
-      >
-        <Pressable style={styles.backdrop} onPress={handleClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handleBar} />
+    <AnimatedBottomSheet
+      visible={visible}
+      onClose={handleClose}
+      style={{ paddingHorizontal: 24, paddingBottom: 40 }}
+    >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={styles.handleBar} />
 
-          <View style={styles.header}>
-            {preview && (
-              <Pressable onPress={handleBack} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#6B5B7B" />
-              </Pressable>
-            )}
-            <Text style={styles.title}>{preview ? 'Link Partner' : 'Enter Code'}</Text>
-            <Pressable onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#6B5B7B" />
+        <View style={styles.header}>
+          {preview && (
+            <Pressable onPress={handleBack} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#6B5B7B" />
+            </Pressable>
+          )}
+          <Text style={styles.title}>{preview ? 'Link Partner' : 'Enter Code'}</Text>
+          <Pressable onPress={handleClose} style={styles.closeButton}>
+            <Ionicons name="close" size={24} color="#6B5B7B" />
+          </Pressable>
+        </View>
+
+        {!preview ? (
+          <View style={styles.content}>
+            <Text style={styles.description}>
+              Enter your partner&apos;s 6-character share code to link your accounts
+            </Text>
+
+            <TextInput
+              style={styles.codeInput}
+              value={code}
+              onChangeText={handleCodeChange}
+              placeholder="ABC123"
+              placeholderTextColor="#A89BB5"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={6}
+              autoFocus
+            />
+
+            {error && <Text style={styles.errorText}>{error}</Text>}
+
+            <Pressable
+              style={[
+                styles.primaryButton,
+                { backgroundColor: colors.primary },
+                (isLookingUp || code.length !== 6) && styles.buttonDisabled,
+              ]}
+              onPress={handlePreview}
+              disabled={isLookingUp || code.length !== 6}
+            >
+              {isLookingUp ? (
+                <LoadingIndicator size="small" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Find Partner</Text>
+              )}
             </Pressable>
           </View>
+        ) : (
+          <View style={styles.content}>
+            <View
+              style={[
+                styles.previewCard,
+                { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.previewRow}>
+                {preview.imageUrl ? (
+                  <Image source={{ uri: preview.imageUrl }} style={styles.previewAvatar} />
+                ) : (
+                  <View
+                    style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.border }]}
+                  >
+                    <Text style={styles.previewAvatarInitial}>
+                      {preview.name[0]?.toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View>
+                  <Text style={styles.previewName}>{preview.name}</Text>
+                </View>
+              </View>
+            </View>
 
-          {!preview ? (
-            <View style={styles.content}>
-              <Text style={styles.description}>
-                Enter your partner&apos;s 6-character share code to link your accounts
-              </Text>
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
-              <TextInput
-                style={[
-                  styles.codeInput,
-                  {
-                    backgroundColor: colors.surfaceSubtle,
-                    borderColor: error ? '#FF6B6B' : colors.border,
-                  },
-                ]}
-                value={code}
-                onChangeText={handleCodeChange}
-                placeholder="ABC123"
-                placeholderTextColor="#A89BB5"
-                autoCapitalize="characters"
-                autoCorrect={false}
-                maxLength={6}
-                autoFocus
-              />
-
-              {error && <Text style={styles.errorText}>{error}</Text>}
-
+            <View style={styles.previewActions}>
               <Pressable
                 style={[
                   styles.primaryButton,
                   { backgroundColor: colors.primary },
-                  (isLookingUp || code.length !== 6) && styles.buttonDisabled,
+                  isLinking && styles.buttonDisabled,
                 ]}
-                onPress={handlePreview}
-                disabled={isLookingUp || code.length !== 6}
+                onPress={handleLink}
+                disabled={isLinking}
               >
-                {isLookingUp ? (
+                {isLinking ? (
                   <LoadingIndicator size="small" />
                 ) : (
-                  <Text style={styles.primaryButtonText}>Find Partner</Text>
+                  <Text style={styles.primaryButtonText}>Link Partner</Text>
                 )}
               </Pressable>
+              <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isLinking}>
+                <Text style={styles.secondaryButtonText}>Cancel</Text>
+              </Pressable>
             </View>
-          ) : (
-            <View style={styles.content}>
-              <View
-                style={[
-                  styles.previewCard,
-                  { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
-                ]}
-              >
-                <View style={styles.previewRow}>
-                  {preview.imageUrl ? (
-                    <Image source={{ uri: preview.imageUrl }} style={styles.previewAvatar} />
-                  ) : (
-                    <View
-                      style={[styles.previewAvatarPlaceholder, { backgroundColor: colors.border }]}
-                    >
-                      <Text style={styles.previewAvatarInitial}>
-                        {preview.name[0]?.toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
-                  <View>
-                    <Text style={styles.previewName}>{preview.name}</Text>
-                    <Text style={styles.previewEmail}>{preview.email}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {error && <Text style={styles.errorText}>{error}</Text>}
-
-              <View style={styles.previewActions}>
-                <Pressable
-                  style={[
-                    styles.primaryButton,
-                    { backgroundColor: colors.primary },
-                    isLinking && styles.buttonDisabled,
-                  ]}
-                  onPress={handleLink}
-                  disabled={isLinking}
-                >
-                  {isLinking ? (
-                    <LoadingIndicator size="small" />
-                  ) : (
-                    <Text style={styles.primaryButtonText}>Link Partner</Text>
-                  )}
-                </Pressable>
-                <Pressable style={styles.secondaryButton} onPress={handleBack} disabled={isLinking}>
-                  <Text style={styles.secondaryButtonText}>Cancel</Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
-        </View>
+          </View>
+        )}
       </KeyboardAvoidingView>
 
       <Paywall
@@ -259,26 +265,20 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
         onClose={() => setShowPaywall(false)}
         trigger="partner_limit"
       />
-    </Modal>
+
+      <NameConfirmationModal
+        visible={showNameConfirmation}
+        onClose={() => setShowNameConfirmation(false)}
+        onConfirmed={() => {
+          setShowNameConfirmation(false);
+          executeLinkPartner();
+        }}
+      />
+    </AnimatedBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheet: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
   handleBar: {
     width: 40,
     height: 4,
@@ -320,15 +320,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   codeInput: {
-    borderWidth: 1,
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 28,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
-    textAlign: 'center',
+    textAlign: 'center' as const,
     letterSpacing: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
   errorText: {
     fontSize: 13,
@@ -381,12 +386,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
-  },
-  previewEmail: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    marginTop: 2,
   },
   previewActions: {
     gap: 12,

@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
-type Context = 'swipe' | 'liked' | 'rejected';
+type Context = 'swipe' | 'liked' | 'rejected' | 'match';
 
 interface QuickActionButtonsProps {
   context: Context;
@@ -58,6 +58,10 @@ export function QuickActionButtons({
       ],
     );
   };
+
+  if (context === 'match') {
+    return null;
+  }
 
   if (context === 'swipe') {
     return (

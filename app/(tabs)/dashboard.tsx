@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { LikedNamesHeader, SortOption } from '@/components/dashboard/liked-names-header';
@@ -52,13 +52,23 @@ export default function Dashboard() {
     selectionId: Id<'selections'>;
   } | null>(null);
 
-  // Reset search and select mode when switching tabs
+  // Reset search and select mode when switching liked/rejected tabs
   useEffect(() => {
     setSearchInput('');
     setSubmittedSearch('');
     setSelectMode(false);
     setSelectedIds(new Set());
   }, [activeTab]);
+
+  // Clear search when returning to this tab from another tab
+  useFocusEffect(
+    useCallback(() => {
+      setSearchInput('');
+      setSubmittedSearch('');
+      setSelectMode(false);
+      setSelectedIds(new Set());
+    }, [])
+  );
 
   const handleSearchSubmit = () => {
     setSubmittedSearch(searchInput);
@@ -248,7 +258,7 @@ export default function Dashboard() {
             onClear={handleSearchClear}
           />
           <View style={styles.emptyContainer}>
-            <BubblePillsBackground />
+            {!isSearching && <BubblePillsBackground />}
             <Text style={styles.emptyTitle}>
               {isSearching
                 ? 'No Results Found'
