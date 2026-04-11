@@ -40,10 +40,10 @@ export function ProposalBanner({
               <Text style={styles.bannerNameText}>{nameName}</Text>
             </Text>
           </View>
+          <Pressable style={styles.withdrawClose} onPress={onWithdraw} hitSlop={10}>
+            <Ionicons name="close-circle" size={24} color={colors.primary} />
+          </Pressable>
         </View>
-        <Pressable style={styles.withdrawButton} onPress={onWithdraw}>
-          <Text style={[styles.withdrawText, { color: '#A89BB5' }]}>Withdraw</Text>
-        </Pressable>
       </View>
     );
   }
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   bannerContent: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 10,
   },
   bannerTextContainer: {
@@ -142,12 +142,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     fontWeight: '500',
   },
-  withdrawButton: {
-    alignSelf: 'flex-start',
-  },
-  withdrawText: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    fontWeight: '500',
+  withdrawClose: {
+    padding: 4,
   },
 });

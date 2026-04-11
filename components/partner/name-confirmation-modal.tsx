@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   StyleSheet,
   ActivityIndicator,
@@ -20,21 +20,25 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { StyledInput } from '@/components/ui/styled-input';
 
 interface NameConfirmationModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirmed: () => void;
+  mode?: 'confirm' | 'edit';
 }
 
 export function NameConfirmationModal({
   visible,
   onClose,
   onConfirmed,
+  mode = 'confirm',
 }: NameConfirmationModalProps) {
   const { user } = useUser();
   const { colors, gradients } = useTheme();
   const confirmName = useMutation(api.users.confirmName);
+  const insets = useSafeAreaInsets();
   const { isUploading, pickAndUploadImage } = useProfilePhoto(user);
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -63,13 +67,13 @@ export function NameConfirmationModal({
     setError(null);
 
     try {
-      // Update Clerk first
+      // Update Clerk (may fail if name fields are disabled in dashboard)
       await user?.update({
         firstName: trimmedFirst,
         lastName: lastName.trim(),
-      });
+      }).catch(() => {});
 
-      // Then update Convex
+      // Update Convex (source of truth)
       await confirmName({
         firstName: trimmedFirst,
         lastName: lastName.trim() || undefined,
@@ -95,90 +99,84 @@ export function NameConfirmationModal({
   const initial = (firstName || user?.firstName || '')[0]?.toUpperCase() || 'B';
 
   return (
-    <AnimatedBottomSheet visible={visible} onClose={handleClose}>
+    <AnimatedBottomSheet
+      visible={visible}
+      onClose={handleClose}
+      style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: Math.max(insets.bottom, 20) + 24 }}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40 }}
       >
         <View style={styles.handleBar} />
 
-        <Text style={styles.title}>Confirm Your Profile</Text>
-        <Text style={styles.subtitle}>This is how your partner will see you</Text>
+        <Text style={styles.title}>{mode === 'edit' ? 'Edit Name' : 'Confirm Your Profile'}</Text>
+        <Text style={styles.subtitle}>
+          {mode === 'edit' ? 'Update your display name' : 'This is how your partner will see you'}
+        </Text>
 
-        {/* Avatar */}
-        <Pressable
-          style={styles.avatarContainer}
-          onPress={pickAndUploadImage}
-          disabled={isUploading}
-        >
-          {user?.hasImage ? (
-            <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
-              <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
-              {isUploading && (
-                <View style={styles.uploadingOverlay}>
-                  <ActivityIndicator color={colors.primary} size="small" />
-                </View>
-              )}
-            </View>
-          ) : (
-            <LinearGradient
-              colors={gradients.buttonPrimary as [string, string]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.avatarGradient}
+        {/* Avatar (only in confirm mode) */}
+        {mode === 'confirm' && (
+          <>
+            <Pressable
+              style={styles.avatarContainer}
+              onPress={pickAndUploadImage}
+              disabled={isUploading}
             >
-              {isUploading ? (
-                <ActivityIndicator color="rgba(255,255,255,0.9)" size="small" />
+              {user?.hasImage ? (
+                <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
+                  <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
+                  {isUploading && (
+                    <View style={styles.uploadingOverlay}>
+                      <ActivityIndicator color={colors.primary} size="small" />
+                    </View>
+                  )}
+                </View>
               ) : (
-                <Text style={styles.avatarInitial}>{initial}</Text>
+                <LinearGradient
+                  colors={gradients.buttonPrimary as [string, string]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.avatarGradient}
+                >
+                  {isUploading ? (
+                    <ActivityIndicator color="rgba(255,255,255,0.9)" size="small" />
+                  ) : (
+                    <Text style={styles.avatarInitial}>{initial}</Text>
+                  )}
+                </LinearGradient>
               )}
-            </LinearGradient>
-          )}
-          <View style={[styles.cameraBadge, { backgroundColor: colors.primary }]}>
-            <Ionicons name="camera" size={12} color="#fff" />
-          </View>
-        </Pressable>
-        {!user?.hasImage && (
-          <Text style={[styles.photoHint, { color: colors.primary }]}>Tap to add a photo</Text>
+              <View style={[styles.cameraBadge, { backgroundColor: colors.primary }]}>
+                <Ionicons name="camera" size={12} color="#fff" />
+              </View>
+            </Pressable>
+            {!user?.hasImage && (
+              <Text style={[styles.photoHint, { color: colors.primary }]}>Tap to add a photo</Text>
+            )}
+          </>
         )}
 
         {/* Name fields */}
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>First Name</Text>
-          <TextInput
-            style={[
-              styles.fieldInput,
-              {
-                backgroundColor: colors.surfaceSubtle,
-                borderColor: error && !firstName.trim() ? '#FF6B6B' : colors.border,
-              },
-            ]}
+          <StyledInput
             value={firstName}
             onChangeText={(text) => {
               setFirstName(text);
               setError(null);
             }}
             placeholder="Enter your first name"
-            placeholderTextColor="#A89BB5"
             autoCapitalize="words"
             autoCorrect={false}
+            error={!!error && !firstName.trim()}
           />
         </View>
 
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>Last Name</Text>
-          <TextInput
-            style={[
-              styles.fieldInput,
-              {
-                backgroundColor: colors.surfaceSubtle,
-                borderColor: colors.border,
-              },
-            ]}
+          <StyledInput
             value={lastName}
             onChangeText={setLastName}
             placeholder="Enter your last name (optional)"
-            placeholderTextColor="#A89BB5"
             autoCapitalize="words"
             autoCorrect={false}
           />
@@ -199,11 +197,13 @@ export function NameConfirmationModal({
           {isConfirming ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={styles.confirmButtonText}>Looks Good!</Text>
+            <Text style={styles.confirmButtonText}>{mode === 'edit' ? 'Save' : 'Looks Good!'}</Text>
           )}
         </Pressable>
 
-        <Text style={styles.infoText}>You can change these later in your profile</Text>
+        {mode === 'confirm' && (
+          <Text style={styles.infoText}>You can change these later in your profile</Text>
+        )}
       </KeyboardAvoidingView>
     </AnimatedBottomSheet>
   );
@@ -299,15 +299,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
-  },
-  fieldInput: {
-    borderWidth: 1.5,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    color: '#2D1B4E',
   },
   errorText: {
     fontSize: 13,

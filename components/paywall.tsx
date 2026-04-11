@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Fonts } from '@/constants/theme';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { useTheme } from '@/contexts/theme-context';
+import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 
 interface PaywallProps {
   visible: boolean;
@@ -61,9 +62,11 @@ export function Paywall({ visible, onClose, trigger = 'search_limit' }: PaywallP
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+    <AnimatedBottomSheet
+      visible={visible}
+      onClose={onClose}
+      style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }}
+    >
           {/* Close button */}
           <Pressable style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={24} color="#6B5B7B" />
@@ -151,26 +154,11 @@ export function Paywall({ visible, onClose, trigger = 'search_limit' }: PaywallP
           <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={isPurchasing}>
             <Text style={styles.restoreButtonText}>Restore Purchase</Text>
           </Pressable>
-        </View>
-      </View>
-    </Modal>
+    </AnimatedBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  container: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 40,
-  },
   closeButton: {
     alignSelf: 'flex-end',
     padding: 8,

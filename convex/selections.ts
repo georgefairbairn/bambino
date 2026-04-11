@@ -21,6 +21,27 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
+// Delete any match for this name between the user and their partner
+async function deleteMatchForName(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  partnerId: Id<'users'>,
+  nameId: Id<'names'>,
+) {
+  const [user1Id, user2Id] = userId < partnerId ? [userId, partnerId] : [partnerId, userId];
+
+  const match = await ctx.db
+    .query('matches')
+    .withIndex('by_name_users', (q) =>
+      q.eq('nameId', nameId).eq('user1Id', user1Id).eq('user2Id', user2Id),
+    )
+    .unique();
+
+  if (match) {
+    await ctx.db.delete(match._id);
+  }
+}
+
 async function getCurrentUserOrNull(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
@@ -37,7 +58,12 @@ async function checkForMatchAndCreate(
   nameId: Id<'names'>,
   likingUserId: Id<'users'>,
   partnerId: Id<'users'>,
-): Promise<{ matchId: Id<'matches'>; name: Doc<'names'> | null; matchedAt: number } | null> {
+): Promise<{
+  matchId: Id<'matches'>;
+  name: Doc<'names'> | null;
+  matchedAt: number;
+  isFirstMatch: boolean;
+} | null> {
   // Check if partner has liked this name
   const partnerSelection = await ctx.db
     .query('selections')
@@ -63,6 +89,13 @@ async function checkForMatchAndCreate(
     return null;
   }
 
+  // Count existing matches between these two users to determine if this is the first
+  const existingMatchesAsUser1 = await ctx.db
+    .query('matches')
+    .withIndex('by_user1', (q) => q.eq('user1Id', user1Id))
+    .collect();
+  const partnerMatchCount = existingMatchesAsUser1.filter((m) => m.user2Id === user2Id).length;
+
   const now = Date.now();
   const matchId = await ctx.db.insert('matches', {
     nameId,
@@ -75,7 +108,7 @@ async function checkForMatchAndCreate(
 
   const name = await ctx.db.get(nameId);
 
-  return { matchId, name, matchedAt: now };
+  return { matchId, name, matchedAt: now, isFirstMatch: partnerMatchCount === 0 };
 }
 
 export const recordSelection = mutation({
@@ -107,6 +140,15 @@ export const recordSelection = mutation({
     const now = Date.now();
 
     if (existingSelection) {
+      // If changing from like to something else, remove the match
+      if (
+        existingSelection.selectionType === 'like' &&
+        args.selectionType !== 'like' &&
+        user.partnerId
+      ) {
+        await deleteMatchForName(ctx, user._id, user.partnerId, args.nameId);
+      }
+
       await ctx.db.patch(existingSelection._id, {
         selectionType: args.selectionType,
         updatedAt: now,
@@ -198,6 +240,11 @@ export const undoLastSelection = mutation({
     );
 
     const name = await ctx.db.get(mostRecent.nameId);
+
+    // If undoing a like, remove the corresponding match
+    if (mostRecent.selectionType === 'like' && user.partnerId) {
+      await deleteMatchForName(ctx, user._id, user.partnerId, mostRecent.nameId);
+    }
 
     await ctx.db.delete(mostRecent._id);
 
@@ -324,6 +371,11 @@ export const removeFromLiked = mutation({
       throw new Error('Not authorized to remove this selection');
     }
 
+    // Delete corresponding match if the user has a partner
+    if (user.partnerId) {
+      await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
+    }
+
     await ctx.db.delete(args.selectionId);
 
     return { success: true };
@@ -428,6 +480,11 @@ export const bulkDeleteSelections = mutation({
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
+
+      if (selection.selectionType === 'like' && user.partnerId) {
+        await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
+      }
+
       await ctx.db.delete(selectionId);
     }
 
@@ -446,6 +503,11 @@ export const bulkHideSelections = mutation({
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
+
+      if (selection.selectionType === 'like' && user.partnerId) {
+        await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
+      }
+
       await ctx.db.patch(selectionId, {
         selectionType: 'hidden',
         updatedAt: now,
@@ -470,6 +532,10 @@ export const hidePermanently = mutation({
 
     if (selection.userId !== user._id) {
       throw new Error('Not authorized to hide this selection');
+    }
+
+    if (selection.selectionType === 'like' && user.partnerId) {
+      await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
     }
 
     await ctx.db.patch(args.selectionId, {

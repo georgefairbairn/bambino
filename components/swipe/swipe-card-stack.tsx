@@ -7,7 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
 import { EmptyState } from './empty-state';
-import { MatchCelebrationModal } from '@/components/matches';
+import { MatchToast } from '@/components/matches/match-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
@@ -27,8 +27,8 @@ export function SwipeCardStack() {
 
   // Local state for optimistic updates
   const [localQueue, setLocalQueue] = useState<Doc<'names'>[]>([]);
-  const [matchedName, setMatchedName] = useState<Doc<'names'> | null>(null);
-  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [showMatchToast, setShowMatchToast] = useState(false);
+  const [matchToastName, setMatchToastName] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [hintEligible, setHintEligible] = useState(true);
@@ -67,8 +67,9 @@ export function SwipeCardStack() {
 
         // Check if we got a match
         if (result.match && result.match.name) {
-          setMatchedName(result.match.name as Doc<'names'>);
-          setShowMatchModal(true);
+          const matchName = result.match.name as Doc<'names'>;
+          setMatchToastName(matchName.name);
+          setShowMatchToast(true);
         }
       } catch (error: unknown) {
         Sentry.captureException(error);
@@ -123,18 +124,18 @@ export function SwipeCardStack() {
         ))}
       </View>
 
-      {/* Match celebration modal */}
-      <MatchCelebrationModal
-        visible={showMatchModal}
-        name={matchedName}
-        onClose={() => {
-          setShowMatchModal(false);
-          setMatchedName(null);
-        }}
-        onViewMatches={() => {
-          setShowMatchModal(false);
-          setMatchedName(null);
+      {/* Subsequent match toast */}
+      <MatchToast
+        visible={showMatchToast}
+        name={matchToastName ?? ''}
+        onPress={() => {
+          setShowMatchToast(false);
+          setMatchToastName(null);
           router.push('/matches' as const);
+        }}
+        onDismiss={() => {
+          setShowMatchToast(false);
+          setMatchToastName(null);
         }}
       />
 

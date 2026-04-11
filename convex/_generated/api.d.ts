@@ -13,6 +13,7 @@ import type * as migrations from "../migrations.js";
 import type * as names from "../names.js";
 import type * as partners from "../partners.js";
 import type * as popularity from "../popularity.js";
+import type * as premium from "../premium.js";
 import type * as selections from "../selections.js";
 import type * as users from "../users.js";
 
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   names: typeof names;
   partners: typeof partners;
   popularity: typeof popularity;
+  premium: typeof premium;
   selections: typeof selections;
   users: typeof users;
 }>;

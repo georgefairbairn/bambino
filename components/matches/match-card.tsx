@@ -92,8 +92,7 @@ export function MatchCard({
       )}
 
       {isPending && !isChosen && (
-        <View style={[styles.chosenBadge, { backgroundColor: colors.primary }]}>
-          <Ionicons name="hand-left" size={14} color="#fff" />
+        <View style={[styles.chosenBadge, { backgroundColor: colors.primary, left: undefined, right: 16 }]}>
           <Text style={styles.chosenText}>Proposed</Text>
         </View>
       )}

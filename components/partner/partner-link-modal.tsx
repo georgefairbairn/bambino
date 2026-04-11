@@ -17,6 +17,7 @@ import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Paywall } from '@/components/paywall';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { StyledInput } from '@/components/ui/styled-input';
 import { NameConfirmationModal } from './name-confirmation-modal';
 
 interface PartnerLinkModalProps {
@@ -178,13 +179,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
             </Text>
 
             <TextInput
-              style={[
-                styles.codeInput,
-                {
-                  backgroundColor: colors.surfaceSubtle,
-                  borderColor: error ? '#FF6B6B' : colors.border,
-                },
-              ]}
+              style={styles.codeInput}
               value={code}
               onChangeText={handleCodeChange}
               placeholder="ABC123"
@@ -325,15 +320,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   codeInput: {
-    borderWidth: 1,
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 28,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
-    textAlign: 'center',
+    textAlign: 'center' as const,
     letterSpacing: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
   errorText: {
     fontSize: 13,

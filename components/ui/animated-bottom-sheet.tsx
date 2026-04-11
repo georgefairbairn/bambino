@@ -94,9 +94,9 @@ export function AnimatedBottomSheet({
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View style={[styles.backdrop, backdropStyle]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={animateOut} />
-        </Animated.View>
+        <Animated.View style={[styles.backdrop, backdropStyle]} pointerEvents="none" />
+
+        <Pressable style={{ flex: 1 }} onPress={animateOut} />
 
         <Animated.View
           style={[

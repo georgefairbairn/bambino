@@ -146,8 +146,13 @@ export function ThemePickerSection() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
@@ -167,6 +172,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
+    marginTop: 4,
   },
   expandedContent: {
     marginTop: 16,
