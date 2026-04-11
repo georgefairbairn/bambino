@@ -67,6 +67,7 @@ export const getMatches = query({
         v.literal('rank'),
       ),
     ),
+    search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrNull(ctx);
@@ -91,6 +92,12 @@ export const getMatches = query({
     let results = matchesWithDetails.filter(
       (m): m is typeof m & { name: NonNullable<typeof m.name> } => m.name !== null,
     );
+
+    // Filter by search term
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      results = results.filter((m) => m.name.name.toLowerCase().includes(searchLower));
+    }
 
     const sortBy = args.sortBy ?? 'newest';
     switch (sortBy) {
@@ -188,6 +195,61 @@ export const updateMatch = mutation({
     if (args.isChosen !== undefined) updates.isChosen = args.isChosen;
 
     await ctx.db.patch(args.matchId, updates);
+
+    return { success: true };
+  },
+});
+
+export const proposeName = mutation({
+  args: {
+    matchId: v.id('matches'),
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.message !== undefined && args.message.length > 200) {
+      throw new Error('Message must be 200 characters or fewer');
+    }
+
+    const user = await getCurrentUserOrThrow(ctx);
+
+    if (!user.partnerId) {
+      throw new Error('No partner linked');
+    }
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) {
+      throw new Error('Match not found');
+    }
+
+    if (match.user1Id !== user._id && match.user2Id !== user._id) {
+      throw new Error('Not authorized to propose on this match');
+    }
+
+    if (match.isChosen && match.proposalStatus === 'accepted') {
+      throw new Error('This name is already chosen');
+    }
+
+    const partnerMatches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+    for (const m of partnerMatches) {
+      if (m.proposalStatus === 'pending') {
+        await ctx.db.patch(m._id, {
+          proposedBy: undefined,
+          proposedAt: undefined,
+          proposalMessage: undefined,
+          proposalStatus: undefined,
+          updatedAt: Date.now(),
+        });
+      }
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.matchId, {
+      proposedBy: user._id,
+      proposedAt: now,
+      proposalMessage: args.message,
+      proposalStatus: 'pending',
+      updatedAt: now,
+    });
 
     return { success: true };
   },
