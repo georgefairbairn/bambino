@@ -7,20 +7,9 @@ import {
   runOnJS,
   runOnUI,
   interpolate,
-  interpolateColor,
   Extrapolation,
 } from 'react-native-reanimated';
-import {
-  SWIPE_THRESHOLD,
-  MAX_ROTATION,
-  ROTATION_FACTOR,
-  EXIT_X,
-  EXIT_Y,
-  SPRING_CONFIG,
-  TIMING_CONFIG,
-  SWIPE_COLORS,
-  CARD_STYLES,
-} from '@/constants/swipe';
+import { MAX_ROTATION, EXIT_X, EXIT_Y, SPRING_CONFIG, TIMING_CONFIG } from '@/constants/swipe';
 
 export type SwipeDirection = 'left' | 'right';
 
@@ -104,40 +93,6 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
     ],
   }));
 
-  // Animated opacity for "LIKE" overlay (visible when swiping right)
-  const likeOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1], Extrapolation.CLAMP),
-  }));
-
-  // Animated opacity for "NOPE" overlay (visible when swiping left)
-  const nopeOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [1, 0], Extrapolation.CLAMP),
-  }));
-
-  // Animated background color - transitions from cream to green/red based on swipe direction
-  const cardBackgroundStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(
-      translateX.value,
-      [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
-      [SWIPE_COLORS.nope, CARD_STYLES.backgroundColor, SWIPE_COLORS.like],
-    ),
-  }));
-
-  // Animated text color - transitions from dark to white as swipe progresses
-  const textColorStyle = useAnimatedStyle(() => {
-    const progress = Math.abs(translateX.value) / SWIPE_THRESHOLD;
-    return {
-      color: interpolateColor(Math.min(progress, 1), [0, 1], ['#1a1a1a', '#ffffff']),
-    };
-  });
-
-  // Reset all values immediately (for when card is removed from deck)
-  const resetImmediate = useCallback(() => {
-    translateX.value = 0;
-    translateY.value = 0;
-    rotation.value = 0;
-  }, [translateX, translateY, rotation]);
-
   return {
     translateX,
     translateY,
@@ -148,11 +103,6 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
     swipeRight,
     swipeLeftFromJS,
     swipeRightFromJS,
-    resetImmediate,
     cardAnimatedStyle,
-    likeOverlayStyle,
-    nopeOverlayStyle,
-    cardBackgroundStyle,
-    textColorStyle,
   };
 }

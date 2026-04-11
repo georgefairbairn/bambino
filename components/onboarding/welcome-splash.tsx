@@ -155,6 +155,7 @@ export function WelcomeSplash({ isActive }: { isActive: boolean }) {
   const [pills, setPills] = useState<PillConfig[]>([]);
   const nextId = useRef(0);
   const spawnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   const removePill = useCallback((id: number) => {
     setPills((prev) => prev.filter((p) => p.id !== id));
@@ -185,6 +186,7 @@ export function WelcomeSplash({ isActive }: { isActive: boolean }) {
   const scheduleNextSpawn = useCallback(() => {
     const delay = PILL_SPAWN_MIN + Math.random() * (PILL_SPAWN_MAX - PILL_SPAWN_MIN);
     spawnTimer.current = setTimeout(() => {
+      if (!mountedRef.current) return;
       spawnPill();
       scheduleNextSpawn();
     }, delay);
@@ -216,6 +218,7 @@ export function WelcomeSplash({ isActive }: { isActive: boolean }) {
     }, 900);
 
     return () => {
+      mountedRef.current = false;
       clearTimeout(startDelay);
       if (spawnTimer.current) clearTimeout(spawnTimer.current);
     };
