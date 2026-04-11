@@ -255,6 +255,102 @@ export const proposeName = mutation({
   },
 });
 
+export const respondToProposal = mutation({
+  args: {
+    matchId: v.id('matches'),
+    accept: v.boolean(),
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.message !== undefined && args.message.length > 200) {
+      throw new Error('Message must be 200 characters or fewer');
+    }
+
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) {
+      throw new Error('Match not found');
+    }
+
+    if (match.user1Id !== user._id && match.user2Id !== user._id) {
+      throw new Error('Not authorized');
+    }
+
+    if (match.proposalStatus !== 'pending') {
+      throw new Error('No pending proposal on this match');
+    }
+
+    if (match.proposedBy === user._id) {
+      throw new Error('Cannot respond to your own proposal');
+    }
+
+    const now = Date.now();
+
+    if (args.accept) {
+      if (user.partnerId) {
+        const partnerMatches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+        for (const m of partnerMatches) {
+          if (m._id !== args.matchId && m.isChosen) {
+            await ctx.db.patch(m._id, {
+              isChosen: false,
+              updatedAt: now,
+            });
+          }
+        }
+      }
+
+      await ctx.db.patch(args.matchId, {
+        proposalStatus: 'accepted',
+        respondedAt: now,
+        isChosen: true,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.patch(args.matchId, {
+        proposalStatus: 'declined',
+        respondedAt: now,
+        declineMessage: args.message,
+        updatedAt: now,
+      });
+    }
+
+    return { success: true };
+  },
+});
+
+export const withdrawProposal = mutation({
+  args: {
+    matchId: v.id('matches'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) {
+      throw new Error('Match not found');
+    }
+
+    if (match.proposedBy !== user._id) {
+      throw new Error('Only the proposer can withdraw');
+    }
+
+    if (match.proposalStatus !== 'pending') {
+      throw new Error('Proposal is not pending');
+    }
+
+    await ctx.db.patch(args.matchId, {
+      proposedBy: undefined,
+      proposedAt: undefined,
+      proposalMessage: undefined,
+      proposalStatus: undefined,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
 export const deleteMatch = mutation({
   args: {
     matchId: v.id('matches'),
