@@ -72,16 +72,16 @@ export default function TabsLayout() {
         options={{
           title: 'Explore',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'compass' : 'compass-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Liked',
+          title: 'History',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'heart' : 'heart-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'archive' : 'archive-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -90,20 +90,16 @@ export default function TabsLayout() {
         options={{
           title: 'Matches',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? 'heart-circle' : 'heart-circle-outline'}
-              size={size}
-              color={color}
-            />
+            <Ionicons name={focused ? 'people' : 'people-outline'} size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Settings',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={size} color={color} />
           ),
         }}
       />
