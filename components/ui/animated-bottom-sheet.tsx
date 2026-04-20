@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Modal,
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   type ViewStyle,
@@ -54,6 +55,7 @@ export function AnimatedBottomSheet({
   }, [visible]);
 
   const animateOut = () => {
+    Keyboard.dismiss();
     backdropOpacity.value = withTiming(0, {
       duration: 200,
       easing: Easing.in(Easing.ease),
@@ -96,7 +98,12 @@ export function AnimatedBottomSheet({
       >
         <Animated.View style={[styles.backdrop, backdropStyle]} pointerEvents="none" />
 
-        <Pressable style={{ flex: 1 }} onPress={animateOut} />
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={animateOut}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+        />
 
         <Animated.View
           style={[

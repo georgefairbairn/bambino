@@ -49,11 +49,21 @@ async function getPartnershipMatches(
   const allMatches = [...matchesAsUser1, ...matchesAsUser2];
 
   // Filter to only matches between this user and their partner
-  return allMatches.filter(
+  const partnerMatches = allMatches.filter(
     (m) =>
       (m.user1Id === userId && m.user2Id === partnerId) ||
       (m.user1Id === partnerId && m.user2Id === userId),
   );
+
+  // Deduplicate by nameId — keep earliest matchedAt per name
+  const seen = new Map<Id<'names'>, Doc<'matches'>>();
+  for (const match of partnerMatches) {
+    const existing = seen.get(match.nameId);
+    if (!existing || match.matchedAt < existing.matchedAt) {
+      seen.set(match.nameId, match);
+    }
+  }
+  return Array.from(seen.values());
 }
 
 export const getMatches = query({
@@ -391,9 +401,7 @@ export const getPendingProposal = query({
     }
 
     const name = await ctx.db.get(pendingMatch.nameId);
-    const proposer = pendingMatch.proposedBy
-      ? await ctx.db.get(pendingMatch.proposedBy)
-      : null;
+    const proposer = pendingMatch.proposedBy ? await ctx.db.get(pendingMatch.proposedBy) : null;
 
     return {
       ...pendingMatch,

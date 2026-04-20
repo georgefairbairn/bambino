@@ -223,7 +223,7 @@ export function NameDetailModal({
       {/* Header with close button */}
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
-        <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
+        <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8} accessibilityLabel="Close" accessibilityRole="button">
           <Ionicons name="close" size={24} color="#6B5B7B" />
         </Pressable>
       </View>

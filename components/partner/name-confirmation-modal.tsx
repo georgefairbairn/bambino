@@ -68,10 +68,12 @@ export function NameConfirmationModal({
 
     try {
       // Update Clerk (may fail if name fields are disabled in dashboard)
-      await user?.update({
-        firstName: trimmedFirst,
-        lastName: lastName.trim(),
-      }).catch(() => {});
+      await user
+        ?.update({
+          firstName: trimmedFirst,
+          lastName: lastName.trim(),
+        })
+        .catch((err) => Sentry.captureException(err));
 
       // Update Convex (source of truth)
       await confirmName({
@@ -102,11 +104,13 @@ export function NameConfirmationModal({
     <AnimatedBottomSheet
       visible={visible}
       onClose={handleClose}
-      style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: Math.max(insets.bottom, 20) + 24 }}
+      style={{
+        paddingHorizontal: 24,
+        paddingTop: 12,
+        paddingBottom: Math.max(insets.bottom, 20) + 24,
+      }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.handleBar} />
 
         <Text style={styles.title}>{mode === 'edit' ? 'Edit Name' : 'Confirm Your Profile'}</Text>

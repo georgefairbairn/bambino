@@ -93,14 +93,18 @@ export function RejectedNameCard({
           <Pressable
             style={styles.restoreButton}
             onPress={handleRestore}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            hitSlop={8}
+            accessibilityLabel="Restore name"
+            accessibilityRole="button"
           >
             <Ionicons name="refresh-outline" size={20} color={colors.primary} />
           </Pressable>
           <Pressable
             style={styles.hideButton}
             onPress={handleHide}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            hitSlop={8}
+            accessibilityLabel="Hide name permanently"
+            accessibilityRole="button"
           >
             <Ionicons name="eye-off-outline" size={20} color="#FF6B6B" />
           </Pressable>

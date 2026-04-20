@@ -3,35 +3,35 @@ import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Fonts } from '@/constants/theme';
-import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { GradientButton } from '@/components/ui/gradient-button';
+import { trackEvent, Events } from '@/lib/analytics';
 
 interface PaywallProps {
   visible: boolean;
   onClose: () => void;
-  trigger?: 'search_limit' | 'swipe_limit' | 'origin_filter' | 'partner_limit';
+  trigger?: 'swipe_limit' | 'partner_limit' | 'dashboard_limit';
 }
 
-const TRIGGER_MESSAGES = {
-  search_limit: 'Create unlimited searches',
+const TRIGGER_MESSAGES: Record<NonNullable<PaywallProps['trigger']>, string> = {
   swipe_limit: "You've used all 25 free swipes",
-  origin_filter: 'Unlock all name filters',
   partner_limit: 'Connect with your partner',
+  dashboard_limit: 'See all your liked names',
 };
 
-const FEATURES = [
-  { icon: 'swap-horizontal-outline' as const, text: 'Unlimited swipes' },
-  { icon: 'people-outline' as const, text: 'Partner connection' },
-  { icon: 'infinite-outline' as const, text: 'Unlimited searches' },
-  { icon: 'globe-outline' as const, text: 'All origin filters' },
+const COMPARISON_ROWS = [
+  { label: 'Swipes', free: '25', premium: 'Unlimited' },
+  { label: 'Liked names', free: '25', premium: 'Unlimited' },
+  { label: 'Partner', free: '\u2014', premium: 'Yes' },
 ];
 
-export function Paywall({ visible, onClose, trigger = 'search_limit' }: PaywallProps) {
+export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallProps) {
   const { colors } = useTheme();
   const { packages, purchasePremium, restorePurchases, isLoading } = usePurchases();
   const [isPurchasing, setIsPurchasing] = useState(false);
 
+  const hasPackages = packages.length > 0;
   const price = packages[0]?.product.priceString ?? '$4.99';
 
   const handlePurchase = async () => {
@@ -39,6 +39,7 @@ export function Paywall({ visible, onClose, trigger = 'search_limit' }: PaywallP
     try {
       const success = await purchasePremium();
       if (success) {
+        trackEvent(Events.PURCHASE_COMPLETED, { trigger });
         onClose();
       }
     } finally {
@@ -67,93 +68,79 @@ export function Paywall({ visible, onClose, trigger = 'search_limit' }: PaywallP
       onClose={onClose}
       style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }}
     >
-          {/* Close button */}
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color="#6B5B7B" />
-          </Pressable>
+      {/* Close button */}
+      <Pressable
+        style={styles.closeButton}
+        onPress={onClose}
+        accessibilityLabel="Close"
+        accessibilityRole="button"
+      >
+        <Ionicons name="close" size={24} color="#6B5B7B" />
+      </Pressable>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={[styles.iconBadge, { backgroundColor: colors.secondaryLight }]}>
-              <Ionicons name="star" size={32} color={colors.primary} />
-            </View>
-            <Text style={styles.title}>Bambino Premium</Text>
-            <Text style={styles.subtitle}>{TRIGGER_MESSAGES[trigger]}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={[styles.iconBadge, { backgroundColor: colors.secondaryLight }]}>
+          <Ionicons name="star" size={32} color={colors.primary} />
+        </View>
+        <Text style={styles.title}>Bambino Premium</Text>
+        <Text style={styles.subtitle}>{TRIGGER_MESSAGES[trigger]}</Text>
+      </View>
+
+      {/* Comparison */}
+      <View style={[styles.comparison, { backgroundColor: colors.primaryLight }]}>
+        <View style={styles.comparisonRow}>
+          <Text style={styles.comparisonLabel} />
+          <Text style={styles.comparisonHeaderFree}>Free</Text>
+          <View style={[styles.premiumPill, { backgroundColor: colors.primary }]}>
+            <Text style={styles.premiumPillText}>Premium</Text>
           </View>
-
-          {/* Features */}
-          <View style={styles.features}>
-            {FEATURES.map((feature) => (
-              <View key={feature.text} style={styles.featureRow}>
-                <Ionicons name={feature.icon} size={22} color={colors.primary} />
-                <Text style={styles.featureText}>{feature.text}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Comparison */}
-          <View style={[styles.comparison, { backgroundColor: colors.surfaceSubtle }]}>
+        </View>
+        {COMPARISON_ROWS.map((row, index) => (
+          <View key={row.label}>
+            {index > 0 && <View style={styles.rowSeparator} />}
             <View style={styles.comparisonRow}>
-              <Text style={styles.comparisonLabel} />
-              <Text style={styles.comparisonHeader}>Free</Text>
-              <Text
-                style={[styles.comparisonHeader, styles.premiumHeader, { color: colors.primary }]}
-              >
-                Premium
-              </Text>
-            </View>
-            <View style={styles.comparisonRow}>
-              <Text style={styles.comparisonLabel}>Swipes</Text>
-              <Text style={styles.comparisonValue}>25</Text>
-              <Text
-                style={[styles.comparisonValue, styles.premiumValue, { color: colors.primary }]}
-              >
-                Unlimited
-              </Text>
-            </View>
-            <View style={styles.comparisonRow}>
-              <Text style={styles.comparisonLabel}>Partner</Text>
-              <Text style={styles.comparisonValue}>No</Text>
-              <Text
-                style={[styles.comparisonValue, styles.premiumValue, { color: colors.primary }]}
-              >
-                Yes
-              </Text>
-            </View>
-            <View style={styles.comparisonRow}>
-              <Text style={styles.comparisonLabel}>Searches</Text>
-              <Text style={styles.comparisonValue}>1</Text>
-              <Text
-                style={[styles.comparisonValue, styles.premiumValue, { color: colors.primary }]}
-              >
-                Unlimited
+              <Text style={styles.comparisonLabel}>{row.label}</Text>
+              <Text style={styles.comparisonValue}>{row.free}</Text>
+              <Text style={[styles.comparisonValuePremium, { color: colors.primary }]}>
+                {row.premium}
               </Text>
             </View>
           </View>
+        ))}
+      </View>
 
-          {/* Purchase button */}
-          <Pressable
-            style={[
-              styles.purchaseButton,
-              { backgroundColor: colors.primary },
-              isPurchasing && styles.buttonDisabled,
-            ]}
+      {/* Purchase button */}
+      <View style={{ marginBottom: 8 }}>
+        {!hasPackages && !isLoading ? (
+          <View style={styles.errorState}>
+            <Text style={styles.errorText}>Unable to load pricing. Check your connection.</Text>
+            <Pressable onPress={onClose}>
+              <Text style={[styles.restoreButtonText, { color: colors.primary }]}>Dismiss</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <GradientButton
+            title={`Unlock Premium - ${price}`}
             onPress={handlePurchase}
+            loading={isPurchasing}
             disabled={isPurchasing || isLoading}
-          >
-            {isPurchasing ? (
-              <LoadingIndicator size="small" />
-            ) : (
-              <Text style={styles.purchaseButtonText}>Unlock Premium - {price}</Text>
-            )}
-          </Pressable>
+          />
+        )}
+      </View>
 
-          <Text style={styles.oneTime}>One-time purchase. No subscription.</Text>
+      <Text style={styles.oneTime}>One-time purchase. No subscription.</Text>
 
-          {/* Restore */}
-          <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={isPurchasing}>
-            <Text style={styles.restoreButtonText}>Restore Purchase</Text>
-          </Pressable>
+      {/* Restore */}
+      <Pressable
+        style={styles.restoreButton}
+        onPress={handleRestore}
+        disabled={isPurchasing}
+        accessibilityLabel="Restore previous purchase"
+        accessibilityRole="button"
+      >
+        <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+      </Pressable>
     </AnimatedBottomSheet>
   );
 }
@@ -187,37 +174,24 @@ const styles = StyleSheet.create({
     color: '#6B5B7B',
     textAlign: 'center',
   },
-  features: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  featureText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    color: '#2D1B4E',
-  },
   comparison: {
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     marginBottom: 24,
-    gap: 8,
   },
   comparisonRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 8,
   },
   comparisonLabel: {
     flex: 1,
     fontSize: 14,
     fontFamily: Fonts?.sans,
+    fontWeight: '500',
     color: '#6B5B7B',
   },
-  comparisonHeader: {
+  comparisonHeaderFree: {
     width: 80,
     textAlign: 'center',
     fontSize: 13,
@@ -225,8 +199,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#A89BB5',
   },
-  premiumHeader: {
-    fontWeight: '600',
+  premiumPill: {
+    width: 80,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  premiumPillText: {
+    fontSize: 12,
+    fontFamily: Fonts?.sans,
+    fontWeight: '700',
+    color: '#fff',
   },
   comparisonValue: {
     width: 80,
@@ -235,20 +218,16 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     color: '#A89BB5',
   },
-  premiumValue: {
-    fontWeight: '600',
-  },
-  purchaseButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  purchaseButtonText: {
-    fontSize: 17,
+  comparisonValuePremium: {
+    width: 80,
+    textAlign: 'center',
+    fontSize: 13,
     fontFamily: Fonts?.sans,
     fontWeight: '700',
-    color: '#fff',
+  },
+  rowSeparator: {
+    height: 1,
+    backgroundColor: '#F0EBF5',
   },
   oneTime: {
     fontSize: 12,
@@ -266,7 +245,15 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  errorState: {
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    color: '#6B5B7B',
+    textAlign: 'center',
   },
 });

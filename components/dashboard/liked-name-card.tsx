@@ -79,7 +79,9 @@ export function LikedNameCard({
         <Pressable
           style={styles.removeButton}
           onPress={handleRemove}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={8}
+          accessibilityLabel="Remove name"
+          accessibilityRole="button"
         >
           <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
         </Pressable>

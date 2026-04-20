@@ -10,9 +10,17 @@ import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
+import { trackScreen } from '@/lib/analytics';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
-import { MatchCard, MatchesHeader, ProposalBanner, ProposeSheet, DeclineSheet, CelebrationModal } from '@/components/matches';
+import {
+  MatchCard,
+  MatchesHeader,
+  ProposalBanner,
+  ProposeSheet,
+  DeclineSheet,
+  CelebrationModal,
+} from '@/components/matches';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -71,6 +79,7 @@ export default function Matches() {
   // Clear search when returning to this tab
   useFocusEffect(
     useCallback(() => {
+      trackScreen('Matches');
       setSearchInput('');
       setSubmittedSearch('');
     }, []),
@@ -390,9 +399,7 @@ export default function Matches() {
     <GradientBackground>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
         <Animated.View
-          entering={
-            !hasAnimated.current ? FadeInDown.duration(400).springify() : undefined
-          }
+          entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}
         >
           <MatchesHeader
             count={matches.length}
@@ -418,7 +425,9 @@ export default function Matches() {
             isCurrentUserProposer={pendingProposal.isCurrentUserProposer}
             onAccept={handleAcceptProposal}
             onDecline={() => setShowDeclineSheet(true)}
-            onWithdraw={() => handleWithdrawProposal(pendingProposal._id, pendingProposal.name?.name ?? '')}
+            onWithdraw={() =>
+              handleWithdrawProposal(pendingProposal._id, pendingProposal.name?.name ?? '')
+            }
           />
         )}
 

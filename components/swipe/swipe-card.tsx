@@ -443,7 +443,8 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
               style={[styles.speakButton, { backgroundColor: colors.surfaceSubtle }]}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               activeOpacity={0.7}
-              accessibilityLabel={`Read ${name.name} aloud`}
+              accessibilityLabel="Pronounce name"
+              accessibilityRole="button"
             >
               <Ionicons
                 name={isSpeaking ? 'volume-high' : 'volume-medium'}

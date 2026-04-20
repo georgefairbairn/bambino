@@ -90,7 +90,9 @@ export function MatchCard({
         <Pressable
           style={styles.actionButton}
           onPress={onWithdraw}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={8}
+          accessibilityLabel="Withdraw proposal"
+          accessibilityRole="button"
         >
           <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
         </Pressable>
@@ -98,7 +100,9 @@ export function MatchCard({
         <Pressable
           style={styles.actionButton}
           onPress={onPropose}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={8}
+          accessibilityLabel="Propose name"
+          accessibilityRole="button"
         >
           <Ionicons name="checkmark-circle-outline" size={24} color="#A89BB5" />
         </Pressable>
