@@ -8,6 +8,7 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { SWIPE_COLORS } from '@/constants/swipe';
@@ -138,6 +139,12 @@ function BubblePill({
 }
 
 export function BubblePillsBackground() {
+  const isFocused = useIsFocused();
+  if (!isFocused) return null;
+  return <BubblePillsBackgroundInner />;
+}
+
+function BubblePillsBackgroundInner() {
   const [pills, setPills] = useState<PillConfig[]>([]);
   const nextId = useRef(0);
   const spawnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

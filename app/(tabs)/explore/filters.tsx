@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useMutation } from 'convex/react';
@@ -39,19 +40,33 @@ export default function Filters() {
   originRef.current = originFilter;
 
   // Save explicitly — called by interaction handlers, never by effects
-  const saveFilters = useCallback((gender: GenderFilter, origin: string[] | null) => {
-    updateFilters({ genderFilter: gender, originFilter: origin ?? [] });
-  }, [updateFilters]);
+  const saveFilters = useCallback(
+    async (gender: GenderFilter, origin: string[] | null) => {
+      try {
+        await updateFilters({ genderFilter: gender, originFilter: origin ?? [] });
+      } catch (error) {
+        Sentry.captureException(error);
+        Alert.alert('Error', 'Failed to save filters. Please try again.');
+      }
+    },
+    [updateFilters],
+  );
 
-  const handleGenderChange = useCallback((value: GenderFilter) => {
-    setGenderFilter(value);
-    saveFilters(value, originRef.current);
-  }, [saveFilters]);
+  const handleGenderChange = useCallback(
+    (value: GenderFilter) => {
+      setGenderFilter(value);
+      saveFilters(value, originRef.current);
+    },
+    [saveFilters],
+  );
 
-  const handleOriginChange = useCallback((value: string[] | null) => {
-    setOriginFilter(value);
-    saveFilters(genderRef.current, value);
-  }, [saveFilters]);
+  const handleOriginChange = useCallback(
+    (value: string[] | null) => {
+      setOriginFilter(value);
+      saveFilters(genderRef.current, value);
+    },
+    [saveFilters],
+  );
 
   // Live names count based on current filter state
   // null → omit originFilter (all origins), array → pass it
@@ -125,9 +140,12 @@ export default function Filters() {
           </View>
 
           {/* Origin filter — toggle list handles its own section title */}
-          <OriginToggleList value={originFilter} onChange={handleOriginChange} genderFilter={genderFilter} />
+          <OriginToggleList
+            value={originFilter}
+            onChange={handleOriginChange}
+            genderFilter={genderFilter}
+          />
         </ScrollView>
-
       </SafeAreaView>
     </GradientBackground>
   );

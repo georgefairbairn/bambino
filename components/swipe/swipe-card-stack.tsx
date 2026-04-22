@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
+import { trackEvent, Events } from '@/lib/analytics';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
@@ -69,11 +70,14 @@ export function SwipeCardStack() {
           return;
         }
 
+        trackEvent(Events.NAME_SWIPED, { direction: selectionType });
+
         // Check if we got a match
         if (result.match && result.match.name) {
           const matchName = result.match.name as Doc<'names'>;
           setMatchToastName(matchName.name);
           setShowMatchToast(true);
+          trackEvent(Events.MATCH_FOUND);
         }
       } catch (error: unknown) {
         Sentry.captureException(error);

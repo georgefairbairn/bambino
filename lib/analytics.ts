@@ -41,5 +41,6 @@ export const Events = {
   MATCH_FOUND: 'match_found',
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_RESTORED: 'purchase_restored',
+  PARTNER_LINKED: 'partner_linked',
   ACCOUNT_DELETED: 'account_deleted',
 } as const;

@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -115,9 +115,12 @@ interface LoadingScreenProps {
   onFinished?: () => void;
 }
 
+const TIMEOUT_MS = 15000;
+
 export function LoadingScreen({ isLoading = true, onFinished }: LoadingScreenProps) {
   const { colors } = useTheme();
   const containerOpacity = useSharedValue(1);
+  const [timedOut, setTimedOut] = useState(false);
 
   const handleFinished = useCallback(() => {
     onFinished?.();
@@ -141,6 +144,12 @@ export function LoadingScreen({ isLoading = true, onFinished }: LoadingScreenPro
     }
   }, [isLoading, containerOpacity, handleFinished]);
 
+  useEffect(() => {
+    if (!isLoading) return;
+    const timeout = setTimeout(() => setTimedOut(true), TIMEOUT_MS);
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
+
   const containerStyle = useAnimatedStyle(() => ({
     opacity: containerOpacity.value,
   }));
@@ -159,6 +168,18 @@ export function LoadingScreen({ isLoading = true, onFinished }: LoadingScreenPro
             />
           ))}
         </View>
+        {timedOut && (
+          <View style={styles.timeoutContainer}>
+            <Text style={styles.timeoutText}>Taking longer than expected...</Text>
+            <Pressable
+              onPress={() => {
+                setTimedOut(false);
+              }}
+            >
+              <Text style={[styles.timeoutRetry, { color: colors.primary }]}>Tap to dismiss</Text>
+            </Pressable>
+          </View>
+        )}
       </Animated.View>
     </GradientBackground>
   );
@@ -219,5 +240,21 @@ const styles = StyleSheet.create({
   letter: {
     fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
     fontSize: 36,
+  },
+  timeoutContainer: {
+    position: 'absolute',
+    bottom: 120,
+    alignItems: 'center',
+    gap: 8,
+  },
+  timeoutText: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    color: '#6B5B7B',
+  },
+  timeoutRetry: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
   },
 });

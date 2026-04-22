@@ -134,11 +134,12 @@ export function VoiceSettingsSection() {
     <View style={styles.container}>
       {/* Header row - tappable to expand/collapse */}
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
+        <Ionicons name="volume-medium-outline" size={22} color="#6B5B7B" style={{ marginRight: 12, marginTop: 2 }} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Voice</Text>
           <Text style={styles.headerSubtitle}>{currentVoiceName}</Text>
         </View>
-        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#6B5B7B" />
+        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" style={{ marginTop: 2 }} />
       </Pressable>
 
       {/* Expandable voice list */}
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
   headerContent: {

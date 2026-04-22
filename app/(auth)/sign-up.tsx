@@ -10,6 +10,7 @@ import { GradientButton } from '@/components/ui/gradient-button';
 import { StyledInput } from '@/components/ui/styled-input';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { trackEvent, Events } from '@/lib/analytics';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -59,6 +60,7 @@ export default function SignUp() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        trackEvent(Events.SIGN_UP, { method: 'email' });
         router.replace('/');
       }
     } catch (err: unknown) {
@@ -80,6 +82,7 @@ export default function SignUp() {
 
       if (createdSessionId && ssoSetActive) {
         await ssoSetActive({ session: createdSessionId });
+        trackEvent(Events.SIGN_UP, { method: 'google' });
         router.replace('/');
       }
     } catch (err: unknown) {
@@ -97,7 +100,10 @@ export default function SignUp() {
           <Animated.Text
             entering={FadeInDown.duration(500).springify()}
             className="mb-2 text-center text-4xl"
-            style={{ fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular', color: colors.primary }}
+            style={{
+              fontFamily: Fonts?.display || 'AlfaSlabOne_400Regular',
+              color: colors.primary,
+            }}
           >
             bambino
           </Animated.Text>
@@ -138,7 +144,10 @@ export default function SignUp() {
             />
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(400).duration(400)} className="mt-4 flex-row justify-center">
+          <Animated.View
+            entering={FadeInUp.delay(400).duration(400)}
+            className="mt-4 flex-row justify-center"
+          >
             <Pressable
               onPress={() => {
                 setPendingVerification(false);
@@ -231,7 +240,9 @@ export default function SignUp() {
         >
           <Text className="text-gray-600">Already have an account? </Text>
           <Pressable onPress={() => router.replace('/(auth)/sign-in')}>
-            <Text className="font-semibold" style={{ color: colors.primary }}>Sign In</Text>
+            <Text className="font-semibold" style={{ color: colors.primary }}>
+              Sign In
+            </Text>
           </Pressable>
         </Animated.View>
 

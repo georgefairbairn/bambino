@@ -3,6 +3,9 @@ import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
 import { getEffectivePremiumStatusHelper } from './premium';
 
+const FREE_TIER_SWIPE_LIMIT = 25;
+const FREE_TIER_VISIBLE_LIKES = 25;
+
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
@@ -127,7 +130,7 @@ export const recordSelection = mutation({
         .withIndex('by_user', (q) => q.eq('userId', user._id))
         .collect();
 
-      if (allSelections.length >= 25) {
+      if (allSelections.length >= FREE_TIER_SWIPE_LIMIT) {
         return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
       }
     }
@@ -303,7 +306,9 @@ export const getLikedNames = query({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrNull(ctx);
-    if (!user) return [];
+    if (!user) return { names: [], visibleLimit: null };
+
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
 
     const likedSelections = await ctx.db
       .query('selections')
@@ -351,7 +356,10 @@ export const getLikedNames = query({
         break;
     }
 
-    return results;
+    return {
+      names: results,
+      visibleLimit: premiumStatus.isPremium ? null : FREE_TIER_VISIBLE_LIKES,
+    };
   },
 });
 

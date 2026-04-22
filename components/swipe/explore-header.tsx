@@ -20,6 +20,9 @@ export function ExploreHeader({ liked, activeFilterCount, onFilterPress }: Explo
       <Pressable
         style={[styles.filterPill, { shadowColor: colors.secondary }]}
         onPress={onFilterPress}
+        accessibilityLabel="Filters"
+        accessibilityRole="button"
+        hitSlop={8}
       >
         <Ionicons name="options-outline" size={16} color="#2D1B4E" />
         <Text style={styles.filterLabel}>Filters</Text>
@@ -33,6 +36,9 @@ export function ExploreHeader({ liked, activeFilterCount, onFilterPress }: Explo
       <Pressable
         style={[styles.likedButton, { shadowColor: colors.secondary }]}
         onPress={() => router.push('/(tabs)/dashboard')}
+        accessibilityLabel="Liked names"
+        accessibilityRole="button"
+        hitSlop={8}
       >
         <Text style={styles.likedText}>{liked}</Text>
         <Ionicons name="heart" size={16} color={colors.primary} />

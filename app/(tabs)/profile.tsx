@@ -4,6 +4,8 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { trackScreen } from '@/lib/analytics';
 import {
   Alert,
   Pressable,
@@ -28,8 +30,18 @@ import { ThemePickerSection, VoiceSettingsSection } from '@/components/settings'
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Fonts } from '@/constants/theme';
+import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
+
+function formatTimeRemaining(endsAt: number): string {
+  const remaining = Math.max(0, endsAt - Date.now());
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m`;
+  return 'soon';
+}
 
 function PremiumBanner({
   colors,
@@ -74,7 +86,13 @@ export default function Profile() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { colors, gradients } = useTheme();
-  const { isPremium, isOwnPremium, isPartnerPremium, partnerName: premiumPartnerName } = useEffectivePremium();
+  const {
+    isPremium,
+    isOwnPremium,
+    isPartnerPremium,
+    partnerName: premiumPartnerName,
+    gracePeriodEndsAt,
+  } = useEffectivePremium();
   const deleteAccount = useMutation(api.users.deleteAccount);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
@@ -86,7 +104,14 @@ export default function Profile() {
   const [showEditName, setShowEditName] = useState(false);
   const [pendingAction, setPendingAction] = useState<'copy' | 'share' | 'link' | null>(null);
   const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
+  const { resetOnboarding } = useOnboarding();
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      trackScreen('Profile');
+    }, []),
+  );
 
   const handleSignOut = useCallback(async () => {
     setIsLoading(true);
@@ -277,7 +302,9 @@ export default function Profile() {
             <Text style={styles.userName}>{convexUser?.name || user?.fullName || 'User'}</Text>
             <Ionicons name="pencil" size={16} color="#A89BB5" />
           </Pressable>
-          <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
+          {user?.emailAddresses[0]?.emailAddress ? (
+            <Text style={styles.userEmail}>{user.emailAddresses[0].emailAddress}</Text>
+          ) : null}
         </Animated.View>
 
         {/* Premium Upgrade Banner */}
@@ -300,12 +327,28 @@ export default function Profile() {
             entering={FadeInUp.delay(100).duration(400).springify()}
             style={styles.premiumSection}
           >
-            <View style={[styles.premiumActiveRow, { backgroundColor: colors.primaryLight }]}>
-              <Ionicons name="star" size={18} color={colors.primary} />
-              <Text style={[styles.premiumActiveText, { color: colors.primary }]}>
-                {isPartnerPremium && !isOwnPremium
-                  ? `Premium via ${premiumPartnerName || 'Partner'}`
-                  : 'Premium Active'}
+            <View
+              style={[
+                styles.premiumActiveRow,
+                { backgroundColor: gracePeriodEndsAt ? '#FFF3CD' : colors.primaryLight },
+              ]}
+            >
+              <Ionicons
+                name={gracePeriodEndsAt ? 'time-outline' : 'star'}
+                size={18}
+                color={gracePeriodEndsAt ? '#856404' : colors.primary}
+              />
+              <Text
+                style={[
+                  styles.premiumActiveText,
+                  { color: gracePeriodEndsAt ? '#856404' : colors.primary },
+                ]}
+              >
+                {gracePeriodEndsAt
+                  ? `Premium expires in ${formatTimeRemaining(gracePeriodEndsAt)}`
+                  : isPartnerPremium && !isOwnPremium
+                    ? `Premium via ${premiumPartnerName || 'Partner'}`
+                    : 'Premium Active'}
               </Text>
             </View>
           </Animated.View>
@@ -402,6 +445,19 @@ export default function Profile() {
           <ThemePickerSection />
           <View style={{ height: 8 }} />
           <VoiceSettingsSection />
+          <View style={{ height: 8 }} />
+          <View style={styles.settingsCard}>
+            <Pressable style={styles.settingsCardRow} onPress={resetOnboarding}>
+              <Ionicons
+                name="help-circle-outline"
+                size={22}
+                color="#6B5B7B"
+                style={{ marginRight: 12 }}
+              />
+              <Text style={styles.settingsCardTitle}>How It Works</Text>
+              <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
+            </Pressable>
+          </View>
         </Animated.View>
 
         {/* Legal */}
@@ -410,31 +466,43 @@ export default function Profile() {
           style={styles.section}
         >
           <Text style={styles.sectionTitle}>Legal</Text>
-          <View style={styles.legalCard}>
+          <View style={styles.settingsCard}>
             <Pressable
-              style={styles.groupedRow}
+              style={styles.settingsCardRow}
               onPress={() =>
                 WebBrowser.openBrowserAsync(
                   'https://bambino-baby.notion.site/325d3b58308281158ce6c6cbdd562734',
                 )
               }
             >
-              <Ionicons name="shield-checkmark-outline" size={20} color="#6B5B7B" />
-              <Text style={styles.groupedRowText}>Privacy Policy</Text>
-              <Ionicons name="chevron-forward" size={18} color="#A89BB5" />
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={22}
+                color="#6B5B7B"
+                style={{ marginRight: 12 }}
+              />
+              <Text style={styles.settingsCardTitle}>Privacy Policy</Text>
+              <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
             </Pressable>
-            <View style={[styles.groupedDivider, { backgroundColor: colors.border }]} />
+          </View>
+          <View style={{ height: 8 }} />
+          <View style={styles.settingsCard}>
             <Pressable
-              style={styles.groupedRow}
+              style={styles.settingsCardRow}
               onPress={() =>
                 WebBrowser.openBrowserAsync(
                   'https://bambino-baby.notion.site/325d3b58308281768597f8bd57581eb7',
                 )
               }
             >
-              <Ionicons name="document-text-outline" size={20} color="#6B5B7B" />
-              <Text style={styles.groupedRowText}>Terms of Service</Text>
-              <Ionicons name="chevron-forward" size={18} color="#A89BB5" />
+              <Ionicons
+                name="document-text-outline"
+                size={22}
+                color="#6B5B7B"
+                style={{ marginRight: 12 }}
+              />
+              <Text style={styles.settingsCardTitle}>Terms of Service</Text>
+              <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
             </Pressable>
           </View>
         </Animated.View>
@@ -666,6 +734,28 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
+  settingsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  settingsCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingsCardTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#2D1B4E',
+  },
+
   /* Partner */
   partnerInfo: {
     gap: 16,
@@ -739,7 +829,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-shareActions: {
+  shareActions: {
     flexDirection: 'row',
     gap: 10,
   },

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
@@ -15,8 +16,11 @@ import { SearchInput } from '@/components/dashboard/search-input';
 import { LikedNameCard } from '@/components/dashboard/liked-name-card';
 import { RejectedNameCard } from '@/components/dashboard/rejected-name-card';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
+import { Paywall } from '@/components/paywall';
+import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { trackScreen } from '@/lib/analytics';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
@@ -25,11 +29,22 @@ import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
 
+function formatTimeRemaining(endsAt: number): string {
+  const remaining = Math.max(0, endsAt - Date.now());
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m`;
+  return 'soon';
+}
+
 export default function Dashboard() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { gracePeriodEndsAt } = useEffectivePremium();
 
   const [activeTab, setActiveTab] = useState<TabType>('liked');
+  const [showPaywall, setShowPaywall] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
   const [likedSortBy, setLikedSortBy] = useState<SortOption>('liked_newest');
@@ -63,11 +78,12 @@ export default function Dashboard() {
   // Clear search when returning to this tab from another tab
   useFocusEffect(
     useCallback(() => {
+      trackScreen('Dashboard');
       setSearchInput('');
       setSubmittedSearch('');
       setSelectMode(false);
       setSelectedIds(new Set());
-    }, [])
+    }, []),
   );
 
   const handleSearchSubmit = () => {
@@ -78,10 +94,15 @@ export default function Dashboard() {
     setSubmittedSearch('');
   };
 
-  const likedNames = useQuery(api.selections.getLikedNames, {
+  const likedNamesResult = useQuery(api.selections.getLikedNames, {
     search: submittedSearch || undefined,
     sortBy: likedSortBy,
   });
+  const allLikedNames = likedNamesResult?.names ?? [];
+  const visibleLimit = likedNamesResult?.visibleLimit;
+  const visibleLikedNames =
+    visibleLimit != null ? allLikedNames.slice(0, visibleLimit) : allLikedNames;
+  const gatedCount = visibleLimit != null ? Math.max(0, allLikedNames.length - visibleLimit) : 0;
 
   const rejectedNames = useQuery(api.selections.getRejectedNames, {
     search: submittedSearch || undefined,
@@ -102,21 +123,36 @@ export default function Dashboard() {
   const handleModalRemove = async () => {
     if (!selectedItem) return;
     setDetailModalVisible(false);
-    await removeFromLiked({ selectionId: selectedItem.selectionId });
+    try {
+      await removeFromLiked({ selectionId: selectedItem.selectionId });
+    } catch (error) {
+      Sentry.captureException(error);
+      Alert.alert('Error', 'Failed to remove name. Please try again.');
+    }
     setSelectedItem(null);
   };
 
   const handleModalRestore = async () => {
     if (!selectedItem) return;
     setDetailModalVisible(false);
-    await restoreToQueue({ selectionId: selectedItem.selectionId });
+    try {
+      await restoreToQueue({ selectionId: selectedItem.selectionId });
+    } catch (error) {
+      Sentry.captureException(error);
+      Alert.alert('Error', 'Failed to restore name. Please try again.');
+    }
     setSelectedItem(null);
   };
 
   const handleModalHide = async () => {
     if (!selectedItem) return;
     setDetailModalVisible(false);
-    await hidePermanently({ selectionId: selectedItem.selectionId });
+    try {
+      await hidePermanently({ selectionId: selectedItem.selectionId });
+    } catch (error) {
+      Sentry.captureException(error);
+      Alert.alert('Error', 'Failed to hide name. Please try again.');
+    }
     setSelectedItem(null);
   };
 
@@ -138,7 +174,7 @@ export default function Dashboard() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    const data = activeTab === 'liked' ? likedNames : rejectedNames;
+    const data = activeTab === 'liked' ? visibleLikedNames : rejectedNames;
     if (!data) return;
     const allIds = data.map((item) => item.selectionId);
     const allSelected = allIds.every((id) => selectedIds.has(id));
@@ -147,7 +183,7 @@ export default function Dashboard() {
     } else {
       setSelectedIds(new Set(allIds));
     }
-  }, [selectedIds, activeTab, likedNames, rejectedNames]);
+  }, [selectedIds, activeTab, visibleLikedNames, rejectedNames]);
 
   const handleBulkDelete = useCallback(() => {
     const count = selectedIds.size;
@@ -163,11 +199,16 @@ export default function Dashboard() {
           text: activeTab === 'liked' ? 'Remove' : 'Restore',
           style: activeTab === 'liked' ? 'destructive' : 'default',
           onPress: async () => {
-            await bulkDelete({
-              selectionIds: [...selectedIds] as Id<'selections'>[],
-            });
-            setSelectMode(false);
-            setSelectedIds(new Set());
+            try {
+              await bulkDelete({
+                selectionIds: [...selectedIds] as Id<'selections'>[],
+              });
+              setSelectMode(false);
+              setSelectedIds(new Set());
+            } catch (error) {
+              Sentry.captureException(error);
+              Alert.alert('Error', 'Failed to remove names. Please try again.');
+            }
           },
         },
       ],
@@ -187,27 +228,35 @@ export default function Dashboard() {
           text: 'Hide',
           style: 'destructive',
           onPress: async () => {
-            await bulkHide({
-              selectionIds: [...selectedIds] as Id<'selections'>[],
-            });
-            setSelectMode(false);
-            setSelectedIds(new Set());
+            try {
+              await bulkHide({
+                selectionIds: [...selectedIds] as Id<'selections'>[],
+              });
+              setSelectMode(false);
+              setSelectedIds(new Set());
+            } catch (error) {
+              Sentry.captureException(error);
+              Alert.alert('Error', 'Failed to hide names. Please try again.');
+            }
           },
         },
       ],
     );
   }, [selectedIds, bulkHide]);
 
-  const currentData = activeTab === 'liked' ? likedNames : rejectedNames;
+  const isDataLoaded =
+    activeTab === 'liked' ? likedNamesResult !== undefined : rejectedNames !== undefined;
+  const isDataEmpty =
+    activeTab === 'liked' ? allLikedNames.length === 0 : (rejectedNames?.length ?? 0) === 0;
 
-  const { showLoading, loadingProps } = useGracefulLoading(currentData !== undefined);
+  const { showLoading, loadingProps } = useGracefulLoading(isDataLoaded);
 
   if (showLoading) {
     return <LoadingScreen {...loadingProps} />;
   }
 
   // Data loading state
-  if (currentData === undefined) {
+  if (!isDataLoaded) {
     return (
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
@@ -236,7 +285,7 @@ export default function Dashboard() {
   }
 
   // Empty state
-  if (currentData.length === 0) {
+  if (isDataEmpty) {
     const isSearching = submittedSearch.length > 0;
     return (
       <GradientBackground>
@@ -270,7 +319,7 @@ export default function Dashboard() {
               {isSearching
                 ? `No names match "${submittedSearch}"`
                 : activeTab === 'liked'
-                  ? 'Swipe right on names you love — they\'ll land right here!'
+                  ? "Swipe right on names you love — they'll land right here!"
                   : 'Names you swipe left on will drift over here.'}
             </Text>
             {!isSearching && (
@@ -292,20 +341,26 @@ export default function Dashboard() {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
-        <Animated.View entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}>
+        <Animated.View
+          entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}
+        >
           <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
         </Animated.View>
         {activeTab === 'liked' ? (
           <>
-            <Animated.View entering={!hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined}>
+            <Animated.View
+              entering={
+                !hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined
+              }
+            >
               <LikedNamesHeader
-                count={likedNames?.length ?? 0}
+                count={allLikedNames.length}
                 sortBy={likedSortBy}
                 onSortChange={setLikedSortBy}
                 selectMode={selectMode}
                 onToggleSelectMode={toggleSelectMode}
                 selectedCount={selectedIds.size}
-                totalCount={likedNames?.length ?? 0}
+                totalCount={visibleLikedNames.length}
                 onSelectAll={handleSelectAll}
               />
               {!selectMode && (
@@ -317,8 +372,16 @@ export default function Dashboard() {
                 />
               )}
             </Animated.View>
+            {gracePeriodEndsAt && (
+              <View style={[styles.graceBanner, { borderColor: '#F0D060' }]}>
+                <Ionicons name="time-outline" size={16} color="#856404" />
+                <Text style={styles.graceBannerText}>
+                  Premium expires in {formatTimeRemaining(gracePeriodEndsAt)}
+                </Text>
+              </View>
+            )}
             <FlatList
-              data={likedNames}
+              data={visibleLikedNames}
               keyExtractor={(item) => item.selectionId}
               renderItem={({ item, index }) => (
                 <Animated.View
@@ -337,6 +400,22 @@ export default function Dashboard() {
                   />
                 </Animated.View>
               )}
+              ListFooterComponent={
+                gatedCount > 0 ? (
+                  <Pressable
+                    style={[styles.gatedBanner, { borderColor: colors.border }]}
+                    onPress={() => setShowPaywall(true)}
+                  >
+                    <View style={styles.gatedIconRow}>
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+                      <Text style={[styles.gatedText, { color: colors.textSecondary }]}>
+                        +{gatedCount} more name{gatedCount !== 1 ? 's' : ''} — upgrade to view all
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                  </Pressable>
+                ) : null
+              }
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -345,7 +424,11 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            <Animated.View entering={!hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined}>
+            <Animated.View
+              entering={
+                !hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined
+              }
+            >
               <RejectedNamesHeader
                 count={rejectedNames?.length ?? 0}
                 sortBy={rejectedSortBy}
@@ -441,6 +524,12 @@ export default function Dashboard() {
           onRemove={activeTab === 'liked' ? handleModalRemove : undefined}
           onRestore={activeTab === 'rejected' ? handleModalRestore : undefined}
           onHide={activeTab === 'rejected' ? handleModalHide : undefined}
+        />
+
+        <Paywall
+          visible={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          trigger="dashboard_limit"
         />
       </SafeAreaView>
     </GradientBackground>
@@ -603,5 +692,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  graceBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#FFF3CD',
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  graceBannerText: {
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    fontWeight: '500',
+    color: '#856404',
+  },
+  gatedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFF8FA',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  gatedIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  gatedText: {
+    fontSize: 14,
+    fontFamily: Fonts?.sans,
+    fontWeight: '500',
   },
 });

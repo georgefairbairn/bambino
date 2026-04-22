@@ -115,13 +115,14 @@ export function ThemePickerSection() {
   return (
     <View style={styles.container}>
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
+        <Ionicons name="color-palette-outline" size={22} color="#6B5B7B" style={{ marginRight: 12, marginTop: 2 }} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Theme</Text>
           <Text style={styles.headerSubtitle}>
             {currentMeta.emoji} {currentMeta.name}
           </Text>
         </View>
-        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={24} color="#6B5B7B" />
+        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" style={{ marginTop: 2 }} />
       </Pressable>
 
       {isExpanded && (
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
   headerContent: {
