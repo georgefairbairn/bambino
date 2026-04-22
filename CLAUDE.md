@@ -14,6 +14,8 @@ npx convex dev           # Start Convex backend dev server (must run alongside E
 npm run seed:names       # Seed baby names into Convex
 npm run seed:popularity  # Seed historical popularity data
 npm run process:ssa      # Process raw SSA data files
+npm run extract-names    # Extract candidate names from SSA data files
+npm run enrich-names     # Enrich extracted names via Claude API (needs ANTHROPIC_API_KEY)
 ```
 
 ## Architecture
