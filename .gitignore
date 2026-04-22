@@ -54,3 +54,4 @@ docs/superpowers/
 
 # SSA raw data files (download from ssa.gov)
 data/ssa-raw/*.txt
+data/names-extracted.json
