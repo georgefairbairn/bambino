@@ -11,7 +11,9 @@
     "lint": "expo lint",
     "seed:names": "npx tsx scripts/seed-names.ts",
     "process:ssa": "npx tsx scripts/process-ssa-data.ts",
-    "seed:popularity": "npx tsx scripts/seed-popularity.ts"
+    "seed:popularity": "npx tsx scripts/seed-popularity.ts",
+    "extract-names": "npx tsx scripts/extract-ssa-names.ts",
+    "enrich-names": "npx tsx scripts/enrich-names.ts"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.17.1",
