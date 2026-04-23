@@ -30,7 +30,7 @@ export default function Filters() {
     if (loaded.current || !user) return;
     loaded.current = true;
     setGenderFilter((user.genderFilter as GenderFilter) ?? 'both');
-    setOriginFilter(user.originFilter ?? null);
+    setOriginFilter(user.originFilter?.length ? user.originFilter : null);
   }, [user]);
 
   // Refs track latest state so saveFilters can read current values
