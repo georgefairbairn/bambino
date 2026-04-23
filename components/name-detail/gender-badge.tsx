@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { getGenderEmoji } from '@/constants/skin-tone';
 
 type Gender = 'boy' | 'girl' | 'unisex';
 type Size = 'small' | 'large';
@@ -10,21 +12,18 @@ interface GenderBadgeProps {
   size?: Size;
 }
 
-const GENDER_CONFIG: Record<Gender, { emoji: string; bg: string; text: string; label: string }> = {
+const GENDER_CONFIG: Record<Gender, { bg: string; text: string; label: string }> = {
   boy: {
-    emoji: '👦',
     bg: '#E3F0FF',
     text: '#7CB9E8',
     label: 'Boy',
   },
   girl: {
-    emoji: '👧',
     bg: '#FFE4EC',
     text: '#FF8FAB',
     label: 'Girl',
   },
   unisex: {
-    emoji: '👶',
     bg: '#f3e8ff',
     text: '#C4A7E7',
     label: 'Unisex',
@@ -33,18 +32,17 @@ const GENDER_CONFIG: Record<Gender, { emoji: string; bg: string; text: string; l
 
 export function GenderBadge({ gender, size = 'large' }: GenderBadgeProps) {
   const { colors } = useTheme();
+  const { skinTone } = useSkinTone();
   const config = GENDER_CONFIG[gender] ?? GENDER_CONFIG.unisex;
   const isLarge = size === 'large';
 
-  // Use theme color for unisex background, keep boy/girl bg fixed
-  const bgColor =
-    gender === 'unisex'
-      ? colors.secondaryLight
-      : config.bg;
+  const bgColor = gender === 'unisex' ? colors.secondaryLight : config.bg;
 
   return (
     <View style={[styles.badge, { backgroundColor: bgColor }, isLarge && styles.badgeLarge]}>
-      <Text style={[styles.emoji, isLarge && styles.emojiLarge]}>{config.emoji}</Text>
+      <Text style={[styles.emoji, isLarge && styles.emojiLarge]}>
+        {getGenderEmoji(gender, skinTone)}
+      </Text>
       <Text style={[styles.label, { color: config.text }, isLarge && styles.labelLarge]}>
         {config.label}
       </Text>

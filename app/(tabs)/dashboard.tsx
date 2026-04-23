@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -28,6 +36,7 @@ import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
+const BULK_BATCH_SIZE = 25;
 
 function formatTimeRemaining(endsAt: number): string {
   const remaining = Math.max(0, endsAt - Date.now());
@@ -53,6 +62,8 @@ export default function Dashboard() {
   // Multi-select state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<'delete' | 'hide' | null>(null);
+  const bulkLoadingRef = useRef(false);
 
   // Track initial mount so header animations only play once
   const hasAnimated = useRef(false);
@@ -156,7 +167,13 @@ export default function Dashboard() {
     setSelectedItem(null);
   };
 
+  const handleTabChange = useCallback((tab: TabType) => {
+    if (bulkLoadingRef.current) return;
+    setActiveTab(tab);
+  }, []);
+
   const toggleSelectMode = useCallback(() => {
+    if (bulkLoadingRef.current) return;
     setSelectMode((prev) => !prev);
     setSelectedIds(new Set());
   }, []);
@@ -185,9 +202,37 @@ export default function Dashboard() {
     }
   }, [selectedIds, activeTab, visibleLikedNames, rejectedNames]);
 
+  const executeBulkAction = useCallback(
+    async (
+      action: 'delete' | 'hide',
+      mutationFn: (args: { selectionIds: Id<'selections'>[] }) => Promise<unknown>,
+      ids: Id<'selections'>[],
+      errorMessage: string,
+    ) => {
+      bulkLoadingRef.current = true;
+      setBulkAction(action);
+      try {
+        for (let i = 0; i < ids.length; i += BULK_BATCH_SIZE) {
+          const chunk = ids.slice(i, i + BULK_BATCH_SIZE);
+          await mutationFn({ selectionIds: chunk });
+        }
+        setSelectMode(false);
+        setSelectedIds(new Set());
+      } catch (error) {
+        Sentry.captureException(error);
+        setSelectedIds(new Set());
+        Alert.alert('Error', errorMessage);
+      } finally {
+        bulkLoadingRef.current = false;
+        setBulkAction(null);
+      }
+    },
+    [],
+  );
+
   const handleBulkDelete = useCallback(() => {
     const count = selectedIds.size;
-    if (count === 0) return;
+    if (count === 0 || bulkLoadingRef.current) return;
 
     const action = activeTab === 'liked' ? 'remove' : 'restore to queue';
     Alert.alert(
@@ -198,26 +243,21 @@ export default function Dashboard() {
         {
           text: activeTab === 'liked' ? 'Remove' : 'Restore',
           style: activeTab === 'liked' ? 'destructive' : 'default',
-          onPress: async () => {
-            try {
-              await bulkDelete({
-                selectionIds: [...selectedIds] as Id<'selections'>[],
-              });
-              setSelectMode(false);
-              setSelectedIds(new Set());
-            } catch (error) {
-              Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to remove names. Please try again.');
-            }
-          },
+          onPress: () =>
+            executeBulkAction(
+              'delete',
+              bulkDelete,
+              [...selectedIds] as Id<'selections'>[],
+              'Failed to remove some names. Please try again.',
+            ),
         },
       ],
     );
-  }, [selectedIds, activeTab, bulkDelete]);
+  }, [selectedIds, activeTab, bulkDelete, executeBulkAction]);
 
   const handleBulkHide = useCallback(() => {
     const count = selectedIds.size;
-    if (count === 0) return;
+    if (count === 0 || bulkLoadingRef.current) return;
 
     Alert.alert(
       `Hide ${count} Names`,
@@ -227,22 +267,17 @@ export default function Dashboard() {
         {
           text: 'Hide',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await bulkHide({
-                selectionIds: [...selectedIds] as Id<'selections'>[],
-              });
-              setSelectMode(false);
-              setSelectedIds(new Set());
-            } catch (error) {
-              Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to hide names. Please try again.');
-            }
-          },
+          onPress: () =>
+            executeBulkAction(
+              'hide',
+              bulkHide,
+              [...selectedIds] as Id<'selections'>[],
+              'Failed to hide some names. Please try again.',
+            ),
         },
       ],
     );
-  }, [selectedIds, bulkHide]);
+  }, [selectedIds, bulkHide, executeBulkAction]);
 
   const isDataLoaded =
     activeTab === 'liked' ? likedNamesResult !== undefined : rejectedNames !== undefined;
@@ -344,7 +379,7 @@ export default function Dashboard() {
         <Animated.View
           entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}
         >
-          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
         </Animated.View>
         {activeTab === 'liked' ? (
           <>
@@ -478,7 +513,7 @@ export default function Dashboard() {
         )}
 
         {/* Floating bulk action bar */}
-        {selectMode && selectedIds.size > 0 && (
+        {selectMode && (selectedIds.size > 0 || bulkAction) && (
           <Animated.View
             entering={FadeInDown.duration(300).springify()}
             style={styles.bulkActionBar}
@@ -487,25 +522,46 @@ export default function Dashboard() {
               <Pressable
                 style={[styles.bulkActionButton, { backgroundColor: '#FF6B6B' }]}
                 onPress={handleBulkDelete}
+                disabled={!!bulkAction}
               >
-                <Ionicons name="trash-outline" size={20} color="#fff" />
-                <Text style={styles.bulkActionText}>Remove {selectedIds.size}</Text>
+                {bulkAction === 'delete' ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                )}
+                <Text style={styles.bulkActionText}>
+                  {bulkAction === 'delete' ? 'Removing...' : `Remove ${selectedIds.size}`}
+                </Text>
               </Pressable>
             ) : (
               <View style={styles.bulkActionRow}>
                 <Pressable
                   style={[styles.bulkActionButton, { backgroundColor: colors.primary, flex: 1 }]}
                   onPress={handleBulkDelete}
+                  disabled={!!bulkAction}
                 >
-                  <Ionicons name="refresh-outline" size={20} color="#fff" />
-                  <Text style={styles.bulkActionText}>Restore {selectedIds.size}</Text>
+                  {bulkAction === 'delete' ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="refresh-outline" size={20} color="#fff" />
+                  )}
+                  <Text style={styles.bulkActionText}>
+                    {bulkAction === 'delete' ? 'Restoring...' : `Restore ${selectedIds.size}`}
+                  </Text>
                 </Pressable>
                 <Pressable
                   style={[styles.bulkActionButton, { backgroundColor: '#FF6B6B', flex: 1 }]}
                   onPress={handleBulkHide}
+                  disabled={!!bulkAction}
                 >
-                  <Ionicons name="eye-off-outline" size={20} color="#fff" />
-                  <Text style={styles.bulkActionText}>Hide {selectedIds.size}</Text>
+                  {bulkAction === 'hide' ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="eye-off-outline" size={20} color="#fff" />
+                  )}
+                  <Text style={styles.bulkActionText}>
+                    {bulkAction === 'hide' ? 'Hiding...' : `Hide ${selectedIds.size}`}
+                  </Text>
                 </Pressable>
               </View>
             )}

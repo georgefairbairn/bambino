@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { SWIPE_COLORS } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { getGenderEmoji } from '@/constants/skin-tone';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -141,6 +143,7 @@ function BubblePill({
 
 export function WelcomeSplash({ isActive }: { isActive: boolean }) {
   const { colors } = useTheme();
+  const { skinTone } = useSkinTone();
 
   // Phase 1: Emoji entrance — fade up + scale bounce
   const emojiOpacity = useSharedValue(0);
@@ -240,7 +243,9 @@ export function WelcomeSplash({ isActive }: { isActive: boolean }) {
   return (
     <View style={styles.container}>
       <View style={styles.brandingCenter}>
-        <Animated.Text style={[styles.emoji, emojiStyle]}>{'\u{1F476}'}</Animated.Text>
+        <Animated.Text style={[styles.emoji, emojiStyle]}>
+          {getGenderEmoji('neutral', skinTone)}
+        </Animated.Text>
         <Animated.Text style={[styles.brandName, { color: colors.primary }, titleStyle]}>
           bambino
         </Animated.Text>

@@ -1,10 +1,11 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
-import { GENDER_EMOJI } from '@/constants/names';
 import { getRelativeTime } from '@/lib/format';
 import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { getGenderEmoji } from '@/constants/skin-tone';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 interface MatchCardProps {
@@ -34,8 +35,9 @@ export function MatchCard({
   onWithdraw,
 }: MatchCardProps) {
   const { colors } = useTheme();
+  const { skinTone } = useSkinTone();
   const { name, isFavorite, isChosen, proposalStatus, proposedBy, matchedAt } = match;
-  const genderEmoji = GENDER_EMOJI[name.gender] ?? '\u{1F476}';
+  const genderEmoji = getGenderEmoji(name.gender, skinTone);
   const relativeTime = getRelativeTime(matchedAt);
 
   const isPending = proposalStatus === 'pending';

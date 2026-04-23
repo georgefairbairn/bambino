@@ -26,7 +26,7 @@ import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
-import { ThemePickerSection, VoiceSettingsSection } from '@/components/settings';
+import { ThemePickerSection, SkinToneSection, VoiceSettingsSection } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Fonts } from '@/constants/theme';
@@ -443,6 +443,8 @@ export default function Profile() {
         >
           <Text style={styles.sectionTitle}>Settings</Text>
           <ThemePickerSection />
+          <View style={{ height: 8 }} />
+          <SkinToneSection />
           <View style={{ height: 8 }} />
           <VoiceSettingsSection />
           <View style={{ height: 8 }} />
