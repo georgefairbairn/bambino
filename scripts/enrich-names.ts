@@ -18,7 +18,7 @@ interface EnrichedName {
 const EXTRACTED_PATH = path.join(__dirname, '../data/names-extracted.json');
 const OUTPUT_PATH = path.join(__dirname, '../data/names.json');
 const BATCH_SIZE = 50;
-const MODEL = 'claude-sonnet-4-6-20250514';
+const MODEL = 'claude-sonnet-4-6';
 const MAX_RETRIES = 3;
 
 function loadExtractedNames(): ExtractedName[] {

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -110,19 +111,23 @@ export function ThemePickerSection() {
   const { themeKey, setTheme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
 
+  useFocusEffect(useCallback(() => {
+    return () => setIsExpanded(false);
+  }, []));
+
   const currentMeta = THEME_META.find((t) => t.key === themeKey)!;
 
   return (
     <View style={styles.container}>
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
-        <Ionicons name="color-palette-outline" size={22} color="#6B5B7B" style={{ marginRight: 12, marginTop: 2 }} />
+        <Ionicons name="color-palette-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Theme</Text>
           <Text style={styles.headerSubtitle}>
             {currentMeta.emoji} {currentMeta.name}
           </Text>
         </View>
-        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" style={{ marginTop: 2 }} />
+        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" />
       </Pressable>
 
       {isExpanded && (

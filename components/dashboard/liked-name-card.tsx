@@ -1,10 +1,11 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
-import { GENDER_EMOJI } from '@/constants/names';
 import { getRelativeTime } from '@/lib/format';
 import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { getGenderEmoji } from '@/constants/skin-tone';
 import { Doc } from '@/convex/_generated/dataModel';
 
 interface LikedNameCardProps {
@@ -27,7 +28,8 @@ export function LikedNameCard({
   onToggleSelect,
 }: LikedNameCardProps) {
   const { colors } = useTheme();
-  const genderEmoji = GENDER_EMOJI[name.gender] ?? '👶';
+  const { skinTone } = useSkinTone();
+  const genderEmoji = getGenderEmoji(name.gender, skinTone);
   const relativeTime = getRelativeTime(likedAt);
 
   const handleRemove = () => {

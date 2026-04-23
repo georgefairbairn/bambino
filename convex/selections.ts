@@ -485,6 +485,7 @@ export const bulkDeleteSelections = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
+    let deletedCount = 0;
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
@@ -494,9 +495,10 @@ export const bulkDeleteSelections = mutation({
       }
 
       await ctx.db.delete(selectionId);
+      deletedCount++;
     }
 
-    return { success: true, count: args.selectionIds.length };
+    return { success: true, deletedCount };
   },
 });
 
@@ -508,6 +510,7 @@ export const bulkHideSelections = mutation({
     const user = await getCurrentUserOrThrow(ctx);
     const now = Date.now();
 
+    let hiddenCount = 0;
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
@@ -520,9 +523,10 @@ export const bulkHideSelections = mutation({
         selectionType: 'hidden',
         updatedAt: now,
       });
+      hiddenCount++;
     }
 
-    return { success: true, count: args.selectionIds.length };
+    return { success: true, hiddenCount };
   },
 });
 

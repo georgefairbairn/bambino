@@ -22,6 +22,7 @@ import { cssInterop } from 'react-native-css-interop';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, useTheme } from '@/contexts/theme-context';
 import { VoiceSettingsProvider } from '@/contexts/voice-settings-context';
+import { SkinToneProvider } from '@/contexts/skin-tone-context';
 import { OnboardingProvider } from '@/contexts/onboarding-context';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LoadingScreen } from '@/components/ui/loading-screen';
@@ -80,12 +81,14 @@ export default function RootLayout() {
           <ErrorBoundary>
             <AuthGate>
               <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-                <VoiceSettingsProvider>
-                  <OnboardingProvider>
-                    <OfflineBanner />
-                    <Slot />
-                  </OnboardingProvider>
-                </VoiceSettingsProvider>
+                <SkinToneProvider>
+                  <VoiceSettingsProvider>
+                    <OnboardingProvider>
+                      <OfflineBanner />
+                      <Slot />
+                    </OnboardingProvider>
+                  </VoiceSettingsProvider>
+                </SkinToneProvider>
               </ConvexProviderWithClerk>
             </AuthGate>
           </ErrorBoundary>

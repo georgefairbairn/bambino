@@ -7,6 +7,8 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { getGenderEmoji } from '@/constants/skin-tone';
 import { getPopularityTier } from '@/constants/popularity';
 import { GenderBadge } from './gender-badge';
 import { QuickActionButtons } from './quick-action-buttons';
@@ -29,8 +31,8 @@ function ordinalSuffix(n: number): string {
 }
 
 const GENDER_TOGGLE_CONFIG = {
-  male: { emoji: '👦', activeBg: '#E3F0FF', text: '#7CB9E8', label: 'Boy' },
-  female: { emoji: '👧', activeBg: '#FFE4EC', text: '#FF8FAB', label: 'Girl' },
+  male: { activeBg: '#E3F0FF', text: '#7CB9E8', label: 'Boy' },
+  female: { activeBg: '#FFE4EC', text: '#FF8FAB', label: 'Girl' },
 } as const;
 
 function GenderPillToggle({
@@ -40,6 +42,8 @@ function GenderPillToggle({
   selected: 'male' | 'female';
   onSelect: (g: 'male' | 'female') => void;
 }) {
+  const { skinTone } = useSkinTone();
+
   return (
     <View style={swipeStyles.genderToggle}>
       {(['male', 'female'] as const).map((g) => {
@@ -55,7 +59,7 @@ function GenderPillToggle({
             ]}
             onPress={() => onSelect(g)}
           >
-            <Text style={swipeStyles.genderPillEmoji}>{config.emoji}</Text>
+            <Text style={swipeStyles.genderPillEmoji}>{getGenderEmoji(g, skinTone)}</Text>
             <Text
               style={[
                 swipeStyles.genderPillText,

@@ -1,6 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { getGenderEmoji } from '@/constants/skin-tone';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
@@ -9,14 +11,15 @@ interface GenderFilterSelectorProps {
   onChange: (value: GenderFilter) => void;
 }
 
-const OPTIONS: { value: GenderFilter; label: string; emoji: string }[] = [
-  { value: 'boy', label: 'Boy', emoji: '👦' },
-  { value: 'both', label: 'Both', emoji: '👶' },
-  { value: 'girl', label: 'Girl', emoji: '👧' },
+const OPTIONS: { value: GenderFilter; label: string }[] = [
+  { value: 'boy', label: 'Boy' },
+  { value: 'both', label: 'Both' },
+  { value: 'girl', label: 'Girl' },
 ];
 
 export function GenderFilterSelector({ value, onChange }: GenderFilterSelectorProps) {
   const { colors } = useTheme();
+  const { skinTone } = useSkinTone();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.surfaceSubtle }]}>
@@ -28,7 +31,7 @@ export function GenderFilterSelector({ value, onChange }: GenderFilterSelectorPr
             style={[styles.option, isSelected && styles.optionSelected]}
             onPress={() => onChange(option.value)}
           >
-            <Text style={styles.emoji}>{option.emoji}</Text>
+            <Text style={styles.emoji}>{getGenderEmoji(option.value, skinTone)}</Text>
             <Text style={[styles.label, isSelected && styles.labelSelected]}>{option.label}</Text>
           </Pressable>
         );

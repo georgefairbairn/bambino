@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { Ionicons } from '@expo/vector-icons';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
@@ -45,6 +46,10 @@ export function VoiceSettingsSection() {
   const [isLoadingVoices, setIsLoadingVoices] = useState(true);
   const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useFocusEffect(useCallback(() => {
+    return () => setIsExpanded(false);
+  }, []));
 
   // Fetch available voices on mount
   useEffect(() => {
@@ -134,12 +139,12 @@ export function VoiceSettingsSection() {
     <View style={styles.container}>
       {/* Header row - tappable to expand/collapse */}
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
-        <Ionicons name="volume-medium-outline" size={22} color="#6B5B7B" style={{ marginRight: 12, marginTop: 2 }} />
+        <Ionicons name="volume-medium-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Voice</Text>
           <Text style={styles.headerSubtitle}>{currentVoiceName}</Text>
         </View>
-        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" style={{ marginTop: 2 }} />
+        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" />
       </Pressable>
 
       {/* Expandable voice list */}
