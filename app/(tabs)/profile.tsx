@@ -26,7 +26,12 @@ import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
-import { ThemePickerSection, SkinToneSection, VoiceSettingsSection } from '@/components/settings';
+import {
+  ThemePickerSection,
+  SkinToneSection,
+  VoiceSettingsSection,
+  FeedbackSection,
+} from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Fonts } from '@/constants/theme';
@@ -167,21 +172,6 @@ export default function Profile() {
     }
   }, [partnerInfo?.shareCode]);
 
-  const handlePartnerAction = useCallback(
-    (action: 'copy' | 'share' | 'link') => {
-      // Gate 1: Name confirmation check
-      if (convexUser?.nameConfirmed !== true) {
-        setPendingAction(action);
-        setShowNameConfirmation(true);
-        return;
-      }
-
-      // Gate 2: Execute action (backend enforces premium requirement for linking)
-      executePartnerAction(action);
-    },
-    [convexUser?.nameConfirmed, executePartnerAction],
-  );
-
   const executePartnerAction = useCallback(
     (action: 'copy' | 'share' | 'link') => {
       switch (action) {
@@ -197,6 +187,19 @@ export default function Profile() {
       }
     },
     [handleCopyCode, handleShareCode],
+  );
+
+  const handlePartnerAction = useCallback(
+    (action: 'copy' | 'share' | 'link') => {
+      if (convexUser?.nameConfirmed !== true) {
+        setPendingAction(action);
+        setShowNameConfirmation(true);
+        return;
+      }
+
+      executePartnerAction(action);
+    },
+    [convexUser?.nameConfirmed, executePartnerAction],
   );
 
   const handleNameConfirmed = useCallback(() => {
@@ -443,11 +446,16 @@ export default function Profile() {
         >
           <Text style={styles.sectionTitle}>Settings</Text>
           <ThemePickerSection />
-          <View style={{ height: 8 }} />
           <SkinToneSection />
-          <View style={{ height: 8 }} />
           <VoiceSettingsSection />
-          <View style={{ height: 8 }} />
+        </Animated.View>
+
+        {/* Other */}
+        <Animated.View
+          entering={FadeInUp.delay(250).duration(400).springify()}
+          style={styles.section}
+        >
+          <Text style={styles.sectionTitle}>Other</Text>
           <View style={styles.settingsCard}>
             <Pressable style={styles.settingsCardRow} onPress={resetOnboarding}>
               <Ionicons
@@ -460,14 +468,7 @@ export default function Profile() {
               <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
             </Pressable>
           </View>
-        </Animated.View>
-
-        {/* Legal */}
-        <Animated.View
-          entering={FadeInUp.delay(250).duration(400).springify()}
-          style={styles.section}
-        >
-          <Text style={styles.sectionTitle}>Legal</Text>
+          <FeedbackSection />
           <View style={styles.settingsCard}>
             <Pressable
               style={styles.settingsCardRow}
@@ -487,7 +488,6 @@ export default function Profile() {
               <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
             </Pressable>
           </View>
-          <View style={{ height: 8 }} />
           <View style={styles.settingsCard}>
             <Pressable
               style={styles.settingsCardRow}
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
   },
   /* Sections — matches filters.tsx pattern */
   section: {
-    gap: 12,
+    gap: 8,
     marginBottom: 24,
   },
   sectionTitle: {
