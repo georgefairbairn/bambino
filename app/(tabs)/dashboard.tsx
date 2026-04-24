@@ -109,11 +109,10 @@ export default function Dashboard() {
     search: submittedSearch || undefined,
     sortBy: likedSortBy,
   });
-  const allLikedNames = likedNamesResult?.names ?? [];
+  const visibleLikedNames = likedNamesResult?.names ?? [];
   const visibleLimit = likedNamesResult?.visibleLimit;
-  const visibleLikedNames =
-    visibleLimit != null ? allLikedNames.slice(0, visibleLimit) : allLikedNames;
-  const gatedCount = visibleLimit != null ? Math.max(0, allLikedNames.length - visibleLimit) : 0;
+  const totalLikedCount = likedNamesResult?.totalCount ?? 0;
+  const gatedCount = visibleLimit != null ? Math.max(0, totalLikedCount - visibleLimit) : 0;
 
   const rejectedNames = useQuery(api.selections.getRejectedNames, {
     search: submittedSearch || undefined,
@@ -282,7 +281,7 @@ export default function Dashboard() {
   const isDataLoaded =
     activeTab === 'liked' ? likedNamesResult !== undefined : rejectedNames !== undefined;
   const isDataEmpty =
-    activeTab === 'liked' ? allLikedNames.length === 0 : (rejectedNames?.length ?? 0) === 0;
+    activeTab === 'liked' ? totalLikedCount === 0 : (rejectedNames?.length ?? 0) === 0;
 
   const { showLoading, loadingProps } = useGracefulLoading(isDataLoaded);
 
@@ -389,7 +388,7 @@ export default function Dashboard() {
               }
             >
               <LikedNamesHeader
-                count={allLikedNames.length}
+                count={totalLikedCount}
                 sortBy={likedSortBy}
                 onSortChange={setLikedSortBy}
                 selectMode={selectMode}

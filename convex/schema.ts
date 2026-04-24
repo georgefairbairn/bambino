@@ -38,7 +38,9 @@ export default defineSchema({
     .index('by_name', ['name'])
     .index('by_gender', ['gender'])
     .index('by_first_letter', ['firstLetter'])
-    .index('by_gender_and_first_letter', ['gender', 'firstLetter']),
+    .index('by_gender_and_first_letter', ['gender', 'firstLetter'])
+    .index('by_origin', ['origin'])
+    .index('by_gender_origin', ['gender', 'origin']),
 
   namePopularity: defineTable({
     name: v.string(),
@@ -67,7 +69,8 @@ export default defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_user_name', ['userId', 'nameId'])
-    .index('by_user_type', ['userId', 'selectionType']),
+    .index('by_user_type', ['userId', 'selectionType'])
+    .index('by_user_createdAt', ['userId', 'createdAt']),
 
   matches: defineTable({
     nameId: v.id('names'),
@@ -91,5 +94,6 @@ export default defineSchema({
   })
     .index('by_user1', ['user1Id'])
     .index('by_user2', ['user2Id'])
-    .index('by_name_users', ['nameId', 'user1Id', 'user2Id']),
+    .index('by_name_users', ['nameId', 'user1Id', 'user2Id'])
+    .index('by_user1_user2', ['user1Id', 'user2Id']),
 });

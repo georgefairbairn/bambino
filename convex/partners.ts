@@ -221,20 +221,12 @@ export const unlinkPartner = mutation({
     }
 
     // Clear any pending proposals between these partners
-    const matchesAsUser1 = await ctx.db
+    const [u1, u2] =
+      user._id < user.partnerId ? [user._id, user.partnerId] : [user.partnerId, user._id];
+    const partnerMatches = await ctx.db
       .query('matches')
-      .withIndex('by_user1', (q) => q.eq('user1Id', user._id))
+      .withIndex('by_user1_user2', (q) => q.eq('user1Id', u1).eq('user2Id', u2))
       .collect();
-    const matchesAsUser2 = await ctx.db
-      .query('matches')
-      .withIndex('by_user2', (q) => q.eq('user2Id', user._id))
-      .collect();
-    const allMatches = [...matchesAsUser1, ...matchesAsUser2];
-    const partnerMatches = allMatches.filter(
-      (m) =>
-        (m.user1Id === user._id && m.user2Id === user.partnerId) ||
-        (m.user1Id === user.partnerId && m.user2Id === user._id),
-    );
     for (const m of partnerMatches) {
       if (m.proposalStatus === 'pending') {
         await ctx.db.patch(m._id, {

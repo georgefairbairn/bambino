@@ -1,23 +1,35 @@
-/**
- * Emoji flags for name origins, displayed on cards and filter rows.
- * Falls back to globe emoji for unmapped origins.
- */
 export const ORIGIN_FLAGS: Record<string, string> = {
   Hebrew: '\u{1F1EE}\u{1F1F1}',
-  English: '\u{1F1EC}\u{1F1E7}',
-  Latin: '\u{1F1EE}\u{1F1F9}',
+  English: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}',
+  American: '\u{1F1FA}\u{1F1F8}',
+  'African American': '\u{1F1FA}\u{1F1F8}',
+  Latin: '\u{1F3DB}\u{FE0F}',
   Greek: '\u{1F1EC}\u{1F1F7}',
-  Germanic: '\u{1F1E9}\u{1F1EA}',
-  Irish: '\u{1F1EE}\u{1F1EA}',
   French: '\u{1F1EB}\u{1F1F7}',
-  Welsh: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}',
-  Scottish: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}',
-  Italian: '\u{1F1EE}\u{1F1F9}',
+  Irish: '\u{1F1EE}\u{1F1EA}',
+  Germanic: '\u{1F1E9}\u{1F1EA}',
+  Arabic: '\u{1F1F8}\u{1F1E6}',
   Spanish: '\u{1F1EA}\u{1F1F8}',
-  Scandinavian: '\u{1F1F8}\u{1F1EA}',
+  Scottish: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}',
+  'South Asian': '\u{1F1EE}\u{1F1F3}',
+  Welsh: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}',
+  Nordic: '\u{1F1F8}\u{1F1EA}',
+  Italian: '\u{1F1EE}\u{1F1F9}',
+  'East Asian': '\u{1F30F}',
+  Slavic: '\u{1F1F7}\u{1F1FA}',
+  Persian: '\u{1F1EE}\u{1F1F7}',
+  African: '\u{1F30D}',
+  Hawaiian: '\u{1F33A}',
+  Turkish: '\u{1F1F9}\u{1F1F7}',
+  Celtic: '\u{2618}\u{FE0F}',
   Dutch: '\u{1F1F3}\u{1F1F1}',
   Aramaic: '\u{1F1F8}\u{1F1FE}',
-  Arabic: '\u{1F1F8}\u{1F1E6}',
+  Basque: '\u{1F1EA}\u{1F1F8}',
+  Yiddish: '\u{2721}\u{FE0F}',
+  'Native American': '\u{1FAB6}',
+  Egyptian: '\u{1F1EA}\u{1F1EC}',
+  Nahuatl: '\u{1F1F2}\u{1F1FD}',
+  Hungarian: '\u{1F1ED}\u{1F1FA}',
 };
 
 export function getOriginFlag(origin: string): string {
