@@ -5,6 +5,9 @@ import { join } from 'path';
 import popularityData from '../data/popularity.json';
 
 const BATCH_SIZE = 100;
+const MAX_RETRIES = 5;
+const BASE_DELAY_MS = 2000;
+const BATCH_DELAY_MS = 100;
 
 interface PopularityRecord {
   name: string;
@@ -14,19 +17,41 @@ interface PopularityRecord {
   count: number;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function runWithRetry(command: string, batchNumber: number): string {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return execSync(command, { encoding: 'utf-8', cwd: process.cwd() });
+    } catch (error) {
+      if (attempt === MAX_RETRIES) throw error;
+      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      console.log(`  Batch ${batchNumber} failed (attempt ${attempt}/${MAX_RETRIES}), retrying in ${delay / 1000}s...`);
+      execSync(`sleep ${delay / 1000}`);
+    }
+  }
+  throw new Error('Unreachable');
+}
+
 async function seedPopularity() {
   const records = popularityData as PopularityRecord[];
+  const totalBatches = Math.ceil(records.length / BATCH_SIZE);
+
+  const startBatchArg = process.argv.find((a) => a.startsWith('--start='));
+  const startBatch = startBatchArg ? parseInt(startBatchArg.split('=')[1], 10) : 1;
+  const startIndex = (startBatch - 1) * BATCH_SIZE;
 
   console.log(`Starting seed with ${records.length} popularity records...`);
-  console.log(`Batch size: ${BATCH_SIZE}`);
+  console.log(`Batch size: ${BATCH_SIZE}, starting from batch ${startBatch}/${totalBatches}`);
 
   let totalInserted = 0;
   let totalSkipped = 0;
 
-  for (let i = 0; i < records.length; i += BATCH_SIZE) {
+  for (let i = startIndex; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
     const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
-    const totalBatches = Math.ceil(records.length / BATCH_SIZE);
 
     console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} records)...`);
 
@@ -34,16 +59,17 @@ async function seedPopularity() {
 
     try {
       writeFileSync(tmpFile, JSON.stringify({ records: batch }));
-      const output = execSync(`npx convex run popularity:seedPopularity "$(cat ${tmpFile})"`, {
-        encoding: 'utf-8',
-        cwd: process.cwd(),
-      });
+      const output = runWithRetry(
+        `npx convex run popularity:seedPopularity "$(cat ${tmpFile})"`,
+        batchNumber,
+      );
       const parsed = JSON.parse(output.trim());
       totalInserted += parsed.inserted;
       totalSkipped += parsed.skipped;
       console.log(`  Inserted: ${parsed.inserted}, Skipped: ${parsed.skipped}`);
     } catch (error) {
-      console.error(`Error processing batch ${batchNumber}:`, error);
+      console.error(`Error processing batch ${batchNumber} after ${MAX_RETRIES} retries:`, error);
+      console.error(`\nResume with: npm run seed:popularity -- --start=${batchNumber}`);
       process.exit(1);
     } finally {
       try {
@@ -52,25 +78,16 @@ async function seedPopularity() {
         // ignore cleanup errors
       }
     }
+
+    if (i + BATCH_SIZE < records.length) {
+      await sleep(BATCH_DELAY_MS);
+    }
   }
 
   console.log('\nSeed completed!');
   console.log(`Total inserted: ${totalInserted}`);
   console.log(`Total skipped (duplicates): ${totalSkipped}`);
-
-  // Now update names with current rank
-  console.log('\nUpdating names with current rank for 2023...');
-  try {
-    const output = execSync(
-      'npx convex run popularity:updateNamesWithCurrentRank \'{"year": 2023}\'',
-      { encoding: 'utf-8', cwd: process.cwd() },
-    );
-    const rankResult = JSON.parse(output.trim());
-    console.log(`Updated ${rankResult.updated} of ${rankResult.total} names with current rank`);
-  } catch (error) {
-    console.error('Error updating names with current rank:', error);
-    process.exit(1);
-  }
+  console.log('\nRun `npm run update:ranks` to update names with current popularity rank.');
 }
 
 seedPopularity();

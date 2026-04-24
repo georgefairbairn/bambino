@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
-import { Doc, Id } from './_generated/dataModel';
+import { Id } from './_generated/dataModel';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -30,40 +30,18 @@ async function getCurrentUserOrNull(ctx: QueryCtx | MutationCtx) {
     .unique();
 }
 
-// Get all matches involving the user and their partner
 async function getPartnershipMatches(
   ctx: QueryCtx | MutationCtx,
   userId: Id<'users'>,
   partnerId: Id<'users'>,
 ) {
-  const matchesAsUser1 = await ctx.db
+  // Canonical ordering (user1Id < user2Id) is enforced at match creation
+  const [u1, u2] = userId < partnerId ? [userId, partnerId] : [partnerId, userId];
+
+  return await ctx.db
     .query('matches')
-    .withIndex('by_user1', (q) => q.eq('user1Id', userId))
+    .withIndex('by_user1_user2', (q) => q.eq('user1Id', u1).eq('user2Id', u2))
     .collect();
-
-  const matchesAsUser2 = await ctx.db
-    .query('matches')
-    .withIndex('by_user2', (q) => q.eq('user2Id', userId))
-    .collect();
-
-  const allMatches = [...matchesAsUser1, ...matchesAsUser2];
-
-  // Filter to only matches between this user and their partner
-  const partnerMatches = allMatches.filter(
-    (m) =>
-      (m.user1Id === userId && m.user2Id === partnerId) ||
-      (m.user1Id === partnerId && m.user2Id === userId),
-  );
-
-  // Deduplicate by nameId — keep earliest matchedAt per name
-  const seen = new Map<Id<'names'>, Doc<'matches'>>();
-  for (const match of partnerMatches) {
-    const existing = seen.get(match.nameId);
-    if (!existing || match.matchedAt < existing.matchedAt) {
-      seen.set(match.nameId, match);
-    }
-  }
-  return Array.from(seen.values());
 }
 
 export const getMatches = query({

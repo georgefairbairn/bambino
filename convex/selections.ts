@@ -92,12 +92,10 @@ async function checkForMatchAndCreate(
     return null;
   }
 
-  // Count existing matches between these two users to determine if this is the first
-  const existingMatchesAsUser1 = await ctx.db
+  const existingPartnerMatch = await ctx.db
     .query('matches')
-    .withIndex('by_user1', (q) => q.eq('user1Id', user1Id))
-    .collect();
-  const partnerMatchCount = existingMatchesAsUser1.filter((m) => m.user2Id === user2Id).length;
+    .withIndex('by_user1_user2', (q) => q.eq('user1Id', user1Id).eq('user2Id', user2Id))
+    .first();
 
   const now = Date.now();
   const matchId = await ctx.db.insert('matches', {
@@ -111,7 +109,7 @@ async function checkForMatchAndCreate(
 
   const name = await ctx.db.get(nameId);
 
-  return { matchId, name, matchedAt: now, isFirstMatch: partnerMatchCount === 0 };
+  return { matchId, name, matchedAt: now, isFirstMatch: existingPartnerMatch === null };
 }
 
 export const recordSelection = mutation({
@@ -125,12 +123,12 @@ export const recordSelection = mutation({
     // Free tier: limit to 25 swipes total (check effective premium including partner sharing)
     const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
     if (!premiumStatus.isPremium) {
-      const allSelections = await ctx.db
+      const existing = await ctx.db
         .query('selections')
         .withIndex('by_user', (q) => q.eq('userId', user._id))
-        .collect();
+        .take(FREE_TIER_SWIPE_LIMIT);
 
-      if (allSelections.length >= FREE_TIER_SWIPE_LIMIT) {
+      if (existing.length >= FREE_TIER_SWIPE_LIMIT) {
         return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
       }
     }
@@ -201,16 +199,27 @@ export const getSwipeQueue = query({
 
     const genderFilter = user.genderFilter ?? 'both';
     const originFilter = user.originFilter;
-    const hasOriginFilter = originFilter !== undefined && originFilter.length > 0;
-    const originSet = hasOriginFilter ? new Set(originFilter) : null;
-
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
+    const singleOrigin = originFilter && originFilter.length === 1 ? originFilter[0] : null;
 
-    const namesQuery =
-      genderValue !== null
-        ? ctx.db.query('names').withIndex('by_gender', (q) => q.eq('gender', genderValue))
-        : ctx.db.query('names');
+    let namesQuery;
+    if (genderValue && singleOrigin) {
+      namesQuery = ctx.db
+        .query('names')
+        .withIndex('by_gender_origin', (q) =>
+          q.eq('gender', genderValue).eq('origin', singleOrigin),
+        );
+    } else if (genderValue) {
+      namesQuery = ctx.db.query('names').withIndex('by_gender', (q) => q.eq('gender', genderValue));
+    } else if (singleOrigin) {
+      namesQuery = ctx.db
+        .query('names')
+        .withIndex('by_origin', (q) => q.eq('origin', singleOrigin));
+    } else {
+      namesQuery = ctx.db.query('names');
+    }
 
+    const originSet = originFilter && originFilter.length > 1 ? new Set(originFilter) : null;
     const results: Doc<'names'>[] = [];
 
     for await (const name of namesQuery) {
@@ -229,18 +238,15 @@ export const undoLastSelection = mutation({
   handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    const userSelections = await ctx.db
+    const mostRecent = await ctx.db
       .query('selections')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .collect();
+      .withIndex('by_user_createdAt', (q) => q.eq('userId', user._id))
+      .order('desc')
+      .first();
 
-    if (userSelections.length === 0) {
+    if (!mostRecent) {
       return null;
     }
-
-    const mostRecent = userSelections.reduce((latest, current) =>
-      current.createdAt > latest.createdAt ? current : latest,
-    );
 
     const name = await ctx.db.get(mostRecent.nameId);
 
@@ -266,29 +272,19 @@ export const getSelectionStats = query({
     const user = await getCurrentUserOrNull(ctx);
     if (!user) return null;
 
-    const userSelections = await ctx.db
+    let liked = 0;
+    let rejected = 0;
+    let skipped = 0;
+
+    for await (const selection of ctx.db
       .query('selections')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .collect();
-
-    const stats = {
-      liked: 0,
-      rejected: 0,
-      skipped: 0,
-      total: userSelections.length,
-    };
-
-    for (const selection of userSelections) {
-      if (selection.selectionType === 'like') {
-        stats.liked++;
-      } else if (selection.selectionType === 'reject') {
-        stats.rejected++;
-      } else if (selection.selectionType === 'skip') {
-        stats.skipped++;
-      }
+      .withIndex('by_user', (q) => q.eq('userId', user._id))) {
+      if (selection.selectionType === 'like') liked++;
+      else if (selection.selectionType === 'reject') rejected++;
+      else if (selection.selectionType === 'skip') skipped++;
     }
 
-    return stats;
+    return { liked, rejected, skipped, total: liked + rejected + skipped };
   },
 });
 
@@ -356,9 +352,13 @@ export const getLikedNames = query({
         break;
     }
 
+    const totalCount = results.length;
+    const visibleLimit = premiumStatus.isPremium ? null : FREE_TIER_VISIBLE_LIKES;
+
     return {
-      names: results,
-      visibleLimit: premiumStatus.isPremium ? null : FREE_TIER_VISIBLE_LIKES,
+      names: visibleLimit !== null ? results.slice(0, visibleLimit) : results,
+      totalCount,
+      visibleLimit,
     };
   },
 });

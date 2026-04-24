@@ -80,23 +80,26 @@ export const getFilteredNameCount = query({
 
     const actionedIds = await getActionedNameIds(ctx);
 
-    let names =
-      genderValue !== null
-        ? await ctx.db
-            .query('names')
-            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
-            .collect()
-        : await ctx.db.query('names').collect();
-
     // undefined = no filter (all origins), [] = no origins (0 results), [...] = specific origins
-    if (args.originFilter !== undefined) {
-      const originSet = new Set(args.originFilter);
-      names = names.filter((n) => originSet.has(n.origin));
+    if (args.originFilter !== undefined && args.originFilter.length === 0) {
+      return 0;
     }
 
-    names = names.filter((n) => !actionedIds.has(n._id as string));
+    const originSet = args.originFilter !== undefined ? new Set(args.originFilter) : null;
 
-    return names.length;
+    const baseQuery =
+      genderValue !== null
+        ? ctx.db.query('names').withIndex('by_gender', (q) => q.eq('gender', genderValue))
+        : ctx.db.query('names');
+
+    let count = 0;
+    for await (const name of baseQuery) {
+      if (actionedIds.has(name._id as string)) continue;
+      if (originSet && !originSet.has(name.origin)) continue;
+      count++;
+    }
+
+    return count;
   },
 });
 
@@ -110,16 +113,13 @@ export const getOriginCounts = query({
 
     const actionedIds = await getActionedNameIds(ctx);
 
-    const allNames =
+    const baseQuery =
       genderValue !== null
-        ? await ctx.db
-            .query('names')
-            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
-            .collect()
-        : await ctx.db.query('names').collect();
+        ? ctx.db.query('names').withIndex('by_gender', (q) => q.eq('gender', genderValue))
+        : ctx.db.query('names');
 
     const counts: Record<string, number> = {};
-    for (const name of allNames) {
+    for await (const name of baseQuery) {
       if (actionedIds.has(name._id as string)) continue;
       counts[name.origin] = (counts[name.origin] ?? 0) + 1;
     }

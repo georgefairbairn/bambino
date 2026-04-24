@@ -45,14 +45,21 @@ export const seedPopularity = internalMutation({
 });
 
 export const updateNamesWithCurrentRank = internalMutation({
-  args: { year: v.number() },
+  args: {
+    year: v.number(),
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    const names = await ctx.db.query('names').collect();
+    const pageSize = args.limit ?? 500;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as any) ?? null });
+
     let updated = 0;
 
-    for (const name of names) {
+    for (const name of result.page) {
       if (name.gender === 'neutral') {
-        // For unisex names, check both genders and pick the better (lower) rank
         const maleRecord = await ctx.db
           .query('namePopularity')
           .withIndex('by_name_gender_year', (q) =>
@@ -80,7 +87,6 @@ export const updateNamesWithCurrentRank = internalMutation({
         continue;
       }
 
-      // Map app gender to SSA gender format
       const ssaGender = name.gender === 'male' ? 'M' : 'F';
 
       const popularityRecord = await ctx.db
@@ -96,7 +102,12 @@ export const updateNamesWithCurrentRank = internalMutation({
       }
     }
 
-    return { updated, total: names.length };
+    return {
+      updated,
+      processed: result.page.length,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
   },
 });
 
