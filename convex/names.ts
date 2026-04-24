@@ -35,6 +35,7 @@ export const seedNames = internalMutation({
         phonetic: nameData.phonetic,
         length: nameData.name.length,
         firstLetter: nameData.name[0].toUpperCase(),
+        sortKey: Math.random(),
         createdAt: now,
       });
       inserted++;
@@ -174,5 +175,31 @@ export const searchNames = query({
     }
 
     return results.slice(0, limit);
+  },
+});
+
+export const backfillSortKeys = internalMutation({
+  args: {
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const BATCH_SIZE = 500;
+    const results = await ctx.db
+      .query('names')
+      .paginate({ numItems: BATCH_SIZE, cursor: args.cursor ?? null });
+
+    let patched = 0;
+    for (const name of results.page) {
+      if (name.sortKey === undefined) {
+        await ctx.db.patch(name._id, { sortKey: Math.random() });
+        patched++;
+      }
+    }
+
+    return {
+      patched,
+      isDone: results.isDone,
+      cursor: results.continueCursor,
+    };
   },
 });
