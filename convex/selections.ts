@@ -200,31 +200,13 @@ export const getSwipeQueue = query({
     const genderFilter = user.genderFilter ?? 'both';
     const originFilter = user.originFilter;
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
-    const singleOrigin = originFilter && originFilter.length === 1 ? originFilter[0] : null;
-
-    let namesQuery;
-    if (genderValue && singleOrigin) {
-      namesQuery = ctx.db
-        .query('names')
-        .withIndex('by_gender_origin', (q) =>
-          q.eq('gender', genderValue).eq('origin', singleOrigin),
-        );
-    } else if (genderValue) {
-      namesQuery = ctx.db.query('names').withIndex('by_gender', (q) => q.eq('gender', genderValue));
-    } else if (singleOrigin) {
-      namesQuery = ctx.db
-        .query('names')
-        .withIndex('by_origin', (q) => q.eq('origin', singleOrigin));
-    } else {
-      namesQuery = ctx.db.query('names');
-    }
-
-    const originSet = originFilter && originFilter.length > 1 ? new Set(originFilter) : null;
+    const originSet = originFilter && originFilter.length > 0 ? new Set(originFilter) : null;
     const results: Doc<'names'>[] = [];
 
-    for await (const name of namesQuery) {
+    for await (const name of ctx.db.query('names').withIndex('by_sort_key')) {
       if (results.length >= limit) break;
       if (swipedNameIds.has(name._id)) continue;
+      if (genderValue && name.gender !== genderValue) continue;
       if (originSet && !originSet.has(name.origin)) continue;
       results.push(name);
     }
