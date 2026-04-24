@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, LayoutChangeEvent } from 'react-native';
 import * as Speech from 'expo-speech';
 import Animated, {
   useAnimatedStyle,
@@ -463,7 +463,9 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
                 isTop && meaningAnimatedStyle,
               ]}
             >
-              <Text style={styles.meaningText}>{name.meaning}</Text>
+              <ScrollView showsVerticalScrollIndicator nestedScrollEnabled bounces={false}>
+                <Text style={styles.meaningText}>{name.meaning}</Text>
+              </ScrollView>
             </Animated.View>
           )}
 
@@ -684,6 +686,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
+    flexShrink: 1,
+    minHeight: 0,
   },
   meaningText: {
     fontSize: 17,
