@@ -183,6 +183,7 @@ export const recordSelection = mutation({
 export const getSwipeQueue = query({
   args: {
     limit: v.optional(v.number()),
+    randomSeed: v.number(),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrNull(ctx);
@@ -200,33 +201,36 @@ export const getSwipeQueue = query({
     const genderFilter = user.genderFilter ?? 'both';
     const originFilter = user.originFilter;
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
-    const singleOrigin = originFilter && originFilter.length === 1 ? originFilter[0] : null;
+    const originSet = originFilter && originFilter.length > 0 ? new Set(originFilter) : null;
 
-    let namesQuery;
-    if (genderValue && singleOrigin) {
-      namesQuery = ctx.db
-        .query('names')
-        .withIndex('by_gender_origin', (q) =>
-          q.eq('gender', genderValue).eq('origin', singleOrigin),
-        );
-    } else if (genderValue) {
-      namesQuery = ctx.db.query('names').withIndex('by_gender', (q) => q.eq('gender', genderValue));
-    } else if (singleOrigin) {
-      namesQuery = ctx.db
-        .query('names')
-        .withIndex('by_origin', (q) => q.eq('origin', singleOrigin));
-    } else {
-      namesQuery = ctx.db.query('names');
-    }
+    const buildQuery = (startKey: number) =>
+      genderValue !== null
+        ? ctx.db
+            .query('names')
+            .withIndex('by_gender_sort_key', (q) =>
+              q.eq('gender', genderValue).gte('sortKey', startKey),
+            )
+        : ctx.db.query('names').withIndex('by_sort_key', (q) => q.gte('sortKey', startKey));
 
-    const originSet = originFilter && originFilter.length > 1 ? new Set(originFilter) : null;
     const results: Doc<'names'>[] = [];
 
-    for await (const name of namesQuery) {
+    // First pass: from randomSeed to end
+    for await (const name of buildQuery(args.randomSeed)) {
       if (results.length >= limit) break;
       if (swipedNameIds.has(name._id)) continue;
       if (originSet && !originSet.has(name.origin)) continue;
       results.push(name);
+    }
+
+    // Wrap around: from 0 to randomSeed if we need more
+    if (results.length < limit) {
+      for await (const name of buildQuery(0)) {
+        if (results.length >= limit) break;
+        if (name.sortKey !== undefined && name.sortKey >= args.randomSeed) break;
+        if (swipedNameIds.has(name._id)) continue;
+        if (originSet && !originSet.has(name.origin)) continue;
+        results.push(name);
+      }
     }
 
     return results;
