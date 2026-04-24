@@ -33,6 +33,7 @@ export default defineSchema({
     firstLetter: v.string(),
     currentRank: v.optional(v.number()),
     primaryGender: v.optional(v.union(v.literal('male'), v.literal('female'))),
+    sortKey: v.number(),
     createdAt: v.number(),
   })
     .index('by_name', ['name'])
@@ -40,7 +41,8 @@ export default defineSchema({
     .index('by_first_letter', ['firstLetter'])
     .index('by_gender_and_first_letter', ['gender', 'firstLetter'])
     .index('by_origin', ['origin'])
-    .index('by_gender_origin', ['gender', 'origin']),
+    .index('by_gender_origin', ['gender', 'origin'])
+    .index('by_sort_key', ['sortKey']),
 
   namePopularity: defineTable({
     name: v.string(),

@@ -35,6 +35,7 @@ export const seedNames = internalMutation({
         phonetic: nameData.phonetic,
         length: nameData.name.length,
         firstLetter: nameData.name[0].toUpperCase(),
+        sortKey: Math.random(),
         createdAt: now,
       });
       inserted++;
