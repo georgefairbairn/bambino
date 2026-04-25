@@ -9,6 +9,7 @@ import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
 import { EmptyState } from './empty-state';
 import { MatchToast } from '@/components/matches/match-toast';
+import { ErrorToast } from '@/components/ui/error-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
@@ -35,6 +36,7 @@ export function SwipeCardStack() {
   const [matchToastName, setMatchToastName] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
   const [hintEligible, setHintEligible] = useState(true);
 
   // Sync server queue to local state (only when server data arrives)
@@ -81,8 +83,8 @@ export function SwipeCardStack() {
         }
       } catch (error: unknown) {
         Sentry.captureException(error);
-        // Revert on error
         setLocalQueue((prev) => [currentName, ...prev]);
+        setShowErrorToast(true);
       }
     },
     [recordSelection],
@@ -145,6 +147,13 @@ export function SwipeCardStack() {
           setShowMatchToast(false);
           setMatchToastName(null);
         }}
+      />
+
+      {/* Swipe error toast */}
+      <ErrorToast
+        visible={showErrorToast}
+        message="Something went wrong. Please try again."
+        onDismiss={() => setShowErrorToast(false)}
       />
 
       {/* Name detail modal — opened by tapping popularity row */}

@@ -16,10 +16,11 @@ export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeAc
       entering={FadeInUp.delay(200).duration(400).springify()}
       style={styles.container}
     >
-      {/* Dislike button */}
       <Pressable
         onPress={onNope}
         disabled={disabled}
+        accessibilityLabel="Pass"
+        accessibilityRole="button"
         style={({ pressed }) => [
           styles.button,
           { shadowColor: colors.secondary },
@@ -31,10 +32,11 @@ export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeAc
         <Ionicons name="heart-dislike" size={32} color={disabled ? '#FFD4E0' : '#FF8FAB'} />
       </Pressable>
 
-      {/* Like button */}
       <Pressable
         onPress={onLike}
         disabled={disabled}
+        accessibilityLabel="Like"
+        accessibilityRole="button"
         style={({ pressed }) => [
           styles.button,
           { shadowColor: colors.secondary },

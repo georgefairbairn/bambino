@@ -203,10 +203,13 @@ export const getSwipeQueue = query({
     const originSet = originFilter && originFilter.length > 0 ? new Set(originFilter) : null;
     const results: Doc<'names'>[] = [];
 
-    for await (const name of ctx.db.query('names').withIndex('by_sort_key')) {
+    const nameQuery = genderValue
+      ? ctx.db.query('names').withIndex('by_gender_sort_key', (q) => q.eq('gender', genderValue))
+      : ctx.db.query('names').withIndex('by_sort_key');
+
+    for await (const name of nameQuery) {
       if (results.length >= limit) break;
       if (swipedNameIds.has(name._id)) continue;
-      if (genderValue && name.gender !== genderValue) continue;
       if (originSet && !originSet.has(name.origin)) continue;
       results.push(name);
     }
@@ -254,17 +257,24 @@ export const getSelectionStats = query({
     const user = await getCurrentUserOrNull(ctx);
     if (!user) return null;
 
-    let liked = 0;
-    let rejected = 0;
-    let skipped = 0;
+    const [likedDocs, rejectedDocs, skippedDocs] = await Promise.all([
+      ctx.db
+        .query('selections')
+        .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'like'))
+        .collect(),
+      ctx.db
+        .query('selections')
+        .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'reject'))
+        .collect(),
+      ctx.db
+        .query('selections')
+        .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'skip'))
+        .collect(),
+    ]);
 
-    for await (const selection of ctx.db
-      .query('selections')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))) {
-      if (selection.selectionType === 'like') liked++;
-      else if (selection.selectionType === 'reject') rejected++;
-      else if (selection.selectionType === 'skip') skipped++;
-    }
+    const liked = likedDocs.length;
+    const rejected = rejectedDocs.length;
+    const skipped = skippedDocs.length;
 
     return { liked, rejected, skipped, total: liked + rejected + skipped };
   },

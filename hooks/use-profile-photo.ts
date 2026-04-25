@@ -38,14 +38,16 @@ export function useProfilePhoto(user: UserResource | null | undefined) {
       });
     } catch (error: any) {
       Sentry.captureException(error);
-      console.error('Profile photo upload failed:', {
-        message: error?.message,
-        status: error?.status,
-        code: error?.errors?.[0]?.code,
-        longMessage: error?.errors?.[0]?.longMessage,
-        clerkError: error?.clerkError,
-        raw: JSON.stringify(error, null, 2),
-      });
+      if (__DEV__) {
+        console.error('Profile photo upload failed:', {
+          message: error?.message,
+          status: error?.status,
+          code: error?.errors?.[0]?.code,
+          longMessage: error?.errors?.[0]?.longMessage,
+          clerkError: error?.clerkError,
+          raw: JSON.stringify(error, null, 2),
+        });
+      }
       Alert.alert('Error', 'Failed to update profile photo. Please try again.');
     } finally {
       setIsUploading(false);
