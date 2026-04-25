@@ -42,7 +42,8 @@ export default defineSchema({
     .index('by_gender_and_first_letter', ['gender', 'firstLetter'])
     .index('by_origin', ['origin'])
     .index('by_gender_origin', ['gender', 'origin'])
-    .index('by_sort_key', ['sortKey']),
+    .index('by_sort_key', ['sortKey'])
+    .index('by_gender_sort_key', ['gender', 'sortKey']),
 
   namePopularity: defineTable({
     name: v.string(),
