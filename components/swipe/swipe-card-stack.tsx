@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
@@ -19,9 +19,13 @@ export function SwipeCardStack() {
   const router = useRouter();
   const { colors } = useTheme();
 
+  // Stable random seed per mount — changes when component remounts (e.g. filter change)
+  const randomSeed = useMemo(() => Math.random(), []);
+
   // Fetch initial queue from backend
   const serverQueue = useQuery(api.selections.getSwipeQueue, {
     limit: 50,
+    randomSeed,
   });
 
   // Mutations

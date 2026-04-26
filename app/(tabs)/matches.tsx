@@ -76,12 +76,14 @@ export default function Matches() {
 
   const lastSeenChosenId = useRef<string | null>(null);
 
-  // Clear search when returning to this tab
+  // Reset state when returning to this tab
+  const [focusCount, setFocusCount] = useState(0);
   useFocusEffect(
     useCallback(() => {
       trackScreen('Matches');
       setSearchInput('');
       setSubmittedSearch('');
+      setFocusCount((c) => c + 1);
     }, []),
   );
 
@@ -279,7 +281,7 @@ export default function Matches() {
                 ? 'Upgrade to connect with your partner and discover the baby names you both love.'
                 : 'Share your partner code and start discovering the names you both love. Matches appear when you both swipe right!'}
             </Text>
-            <MatchAnimation />
+            <MatchAnimation key={focusCount} />
             {isFreeUser && (
               <View style={styles.ctaContainer}>
                 <Pressable
