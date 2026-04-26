@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { trackScreen } from '@/lib/analytics';
 import {
@@ -111,10 +111,12 @@ export default function Profile() {
   const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
   const { resetOnboarding } = useOnboarding();
   const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
 
   useFocusEffect(
     useCallback(() => {
       trackScreen('Profile');
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
     }, []),
   );
 
@@ -258,6 +260,7 @@ export default function Profile() {
   return (
     <GradientBackground>
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={{
           paddingTop: insets.top + 16,

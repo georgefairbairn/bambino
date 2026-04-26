@@ -226,7 +226,7 @@ export const getSwipeQueue = query({
     if (results.length < limit) {
       for await (const name of buildQuery(0)) {
         if (results.length >= limit) break;
-        if (name.sortKey !== undefined && name.sortKey >= args.randomSeed) break;
+        if (name.sortKey >= args.randomSeed) break;
         if (swipedNameIds.has(name._id)) continue;
         if (originSet && !originSet.has(name.origin)) continue;
         results.push(name);
@@ -276,17 +276,24 @@ export const getSelectionStats = query({
     const user = await getCurrentUserOrNull(ctx);
     if (!user) return null;
 
-    let liked = 0;
-    let rejected = 0;
-    let skipped = 0;
+    const [likedDocs, rejectedDocs, skippedDocs] = await Promise.all([
+      ctx.db
+        .query('selections')
+        .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'like'))
+        .collect(),
+      ctx.db
+        .query('selections')
+        .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'reject'))
+        .collect(),
+      ctx.db
+        .query('selections')
+        .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'skip'))
+        .collect(),
+    ]);
 
-    for await (const selection of ctx.db
-      .query('selections')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))) {
-      if (selection.selectionType === 'like') liked++;
-      else if (selection.selectionType === 'reject') rejected++;
-      else if (selection.selectionType === 'skip') skipped++;
-    }
+    const liked = likedDocs.length;
+    const rejected = rejectedDocs.length;
+    const skipped = skippedDocs.length;
 
     return { liked, rejected, skipped, total: liked + rejected + skipped };
   },

@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, LayoutChangeEvent, Alert } from 'react-native';
 import * as Speech from 'expo-speech';
 import Animated, {
   useAnimatedStyle,
@@ -355,6 +355,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     } catch (error) {
       Sentry.captureException(error);
       setIsSpeaking(false);
+      Alert.alert('Speech Unavailable', 'Unable to pronounce this name right now.');
     }
   }, [name.name, getBestVoice]);
 

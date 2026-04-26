@@ -71,6 +71,7 @@ export default function TabsLayout() {
         name="explore"
         options={{
           title: 'Explore',
+          tabBarAccessibilityLabel: 'Explore names',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
           ),
@@ -80,6 +81,7 @@ export default function TabsLayout() {
         name="dashboard"
         options={{
           title: 'History',
+          tabBarAccessibilityLabel: 'Swipe history',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'archive' : 'archive-outline'} size={size} color={color} />
           ),
@@ -89,6 +91,7 @@ export default function TabsLayout() {
         name="matches"
         options={{
           title: 'Matches',
+          tabBarAccessibilityLabel: 'Partner matches',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'people' : 'people-outline'} size={size} color={color} />
           ),
@@ -98,6 +101,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: 'Settings',
+          tabBarAccessibilityLabel: 'Settings',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'settings' : 'settings-outline'} size={size} color={color} />
           ),

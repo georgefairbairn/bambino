@@ -33,7 +33,7 @@ export default defineSchema({
     firstLetter: v.string(),
     currentRank: v.optional(v.number()),
     primaryGender: v.optional(v.union(v.literal('male'), v.literal('female'))),
-    sortKey: v.optional(v.number()),
+    sortKey: v.number(),
     createdAt: v.number(),
   })
     .index('by_name', ['name'])
