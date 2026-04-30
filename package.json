@@ -17,7 +17,7 @@
     "enrich-names": "npx tsx scripts/enrich-names.ts"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.17.1",
+    "@clerk/clerk-expo": "^2.19.36",
     "@expo-google-fonts/alfa-slab-one": "^0.4.1",
     "@expo-google-fonts/gabarito": "^0.4.2",
     "@expo-google-fonts/sanchez": "^0.4.1",
