@@ -93,6 +93,28 @@ export default function SignUp() {
     }
   }, [startSSOFlow, router]);
 
+  const handleAppleSignUp = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
+        strategy: 'oauth_apple',
+      });
+
+      if (createdSessionId && ssoSetActive) {
+        await ssoSetActive({ session: createdSessionId });
+        trackEvent(Events.SIGN_UP, { method: 'apple' });
+        router.replace('/');
+      }
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: { message: string }[] };
+      setError(clerkError.errors?.[0]?.message || 'Apple sign up failed');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startSSOFlow, router]);
+
   if (pendingVerification) {
     return (
       <GradientBackground variant="auth">
@@ -224,7 +246,7 @@ export default function SignUp() {
           <View className="h-px flex-1 bg-gray-300" />
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-6">
+        <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-4">
           <GradientButton
             title="Continue with Google"
             onPress={handleGoogleSignUp}
@@ -234,8 +256,18 @@ export default function SignUp() {
           />
         </Animated.View>
 
+        <Animated.View entering={FadeInUp.delay(600).duration(400).springify()} className="mb-6">
+          <GradientButton
+            title="Continue with Apple"
+            onPress={handleAppleSignUp}
+            variant="secondary"
+            icon="logo-apple"
+            disabled={isLoading}
+          />
+        </Animated.View>
+
         <Animated.View
-          entering={FadeInUp.delay(600).duration(400)}
+          entering={FadeInUp.delay(700).duration(400)}
           className="flex-row justify-center"
         >
           <Text className="text-gray-600">Already have an account? </Text>
