@@ -223,3 +223,18 @@ export const deleteAccount = mutation({
     return { success: true };
   },
 });
+
+export const setPushToken = mutation({
+  args: {
+    token: v.string(),
+    platform: v.union(v.literal('ios'), v.literal('android')),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    await ctx.db.patch(user._id, {
+      pushToken: args.token,
+      pushTokenPlatform: args.platform,
+      updatedAt: Date.now(),
+    });
+  },
+});

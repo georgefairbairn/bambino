@@ -15,6 +15,8 @@ export default defineSchema({
     partnerId: v.optional(v.id('users')),
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
     originFilter: v.optional(v.array(v.string())),
+    pushToken: v.optional(v.string()),
+    pushTokenPlatform: v.optional(v.union(v.literal('ios'), v.literal('android'))),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

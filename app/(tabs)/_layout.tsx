@@ -5,6 +5,7 @@ import { Platform, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 
 import { useStoreUser } from '@/hooks/use-store-user';
+import { usePushRegistration } from '@/hooks/use-push-registration';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
 import { OnboardingScreens } from '@/components/onboarding';
@@ -13,6 +14,7 @@ import { GradientBackground } from '@/components/ui/gradient-background';
 export default function TabsLayout() {
   const { isSignedIn } = useAuth();
   useStoreUser();
+  usePushRegistration();
   const {
     hasCompletedOnboarding,
     isLoading: isOnboardingLoading,
