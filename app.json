@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bambino.app"
+      "bundleIdentifier": "xyz.bambinobaby.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Bambino uses your photo library so you can choose a profile photo.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.bambino.app"
+      "package": "xyz.bambinobaby.app"
     },
     "web": {
       "output": "static",

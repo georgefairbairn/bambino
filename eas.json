@@ -35,9 +35,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "george.fair@icloud.com",
+        "ascAppId": "6773164657",
+        "appleTeamId": "788KCHBRB8"
       }
     }
   }
