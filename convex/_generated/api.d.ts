@@ -13,6 +13,7 @@ import type * as feedback from "../feedback.js";
 import type * as matches from "../matches.js";
 import type * as migrations from "../migrations.js";
 import type * as names from "../names.js";
+import type * as notifications from "../notifications.js";
 import type * as partners from "../partners.js";
 import type * as popularity from "../popularity.js";
 import type * as premium from "../premium.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   matches: typeof matches;
   migrations: typeof migrations;
   names: typeof names;
+  notifications: typeof notifications;
   partners: typeof partners;
   popularity: typeof popularity;
   premium: typeof premium;

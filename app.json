@@ -43,6 +43,7 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
+      "expo-notifications",
       [
         "@sentry/react-native/expo",
         {
@@ -54,6 +55,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "83a067c0-5e5c-422f-a89b-9d308f82389a"
+      }
     }
   }
 }

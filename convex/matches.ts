@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
+import { internal } from './_generated/api';
 import { Id } from './_generated/dataModel';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
@@ -237,6 +238,17 @@ export const proposeName = mutation({
       updatedAt: now,
     });
 
+    const partnerId = match.user1Id === user._id ? match.user2Id : match.user1Id;
+    const name = await ctx.db.get(match.nameId);
+    const proposerName = user.name ?? 'Your partner';
+
+    await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
+      userId: partnerId,
+      title: `${proposerName} proposed a name`,
+      body: name ? `What do you think about ${name.name}?` : 'They want your thoughts on a name',
+      data: { type: 'proposal', matchId: args.matchId },
+    });
+
     return { success: true };
   },
 });
@@ -292,6 +304,18 @@ export const respondToProposal = mutation({
         isChosen: true,
         updatedAt: now,
       });
+
+      if (match.proposedBy) {
+        const name = await ctx.db.get(match.nameId);
+        const responderName = user.name ?? 'Your partner';
+
+        await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
+          userId: match.proposedBy,
+          title: `${responderName} accepted your proposal`,
+          body: name ? `${name.name} it is!` : 'You agreed on a name!',
+          data: { type: 'proposal_accepted', matchId: args.matchId },
+        });
+      }
     } else {
       await ctx.db.patch(args.matchId, {
         proposalStatus: 'declined',
