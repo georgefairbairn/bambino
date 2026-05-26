@@ -37,4 +37,4 @@ jobs:
         run: npm ci
 
       - name: Build development client
-        run: eas build --platform ios --profile development --non-interactive --no-wait
+        run: eas build --platform ios --profile development-device --non-interactive --no-wait
