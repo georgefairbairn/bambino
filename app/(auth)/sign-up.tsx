@@ -1,4 +1,4 @@
-import { useSignUp, useSSO } from '@clerk/clerk-expo';
+import { useSignInWithApple, useSignUp, useSSO } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
@@ -17,6 +17,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function SignUp() {
   const { signUp, setActive, isLoaded } = useSignUp();
   const { startSSOFlow } = useSSO();
+  const { startAppleAuthenticationFlow } = useSignInWithApple();
   const router = useRouter();
 
   const { colors } = useTheme();
@@ -98,22 +99,23 @@ export default function SignUp() {
     setError('');
 
     try {
-      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
-        strategy: 'oauth_apple',
-      });
+      const { createdSessionId, setActive: appleSetActive } =
+        await startAppleAuthenticationFlow();
 
-      if (createdSessionId && ssoSetActive) {
-        await ssoSetActive({ session: createdSessionId });
+      if (createdSessionId && appleSetActive) {
+        await appleSetActive({ session: createdSessionId });
         trackEvent(Events.SIGN_UP, { method: 'apple' });
         router.replace('/');
       }
     } catch (err: unknown) {
+      const appleError = err as { code?: string };
+      if (appleError.code === 'ERR_REQUEST_CANCELED') return;
       const clerkError = err as { errors?: { message: string }[] };
       setError(clerkError.errors?.[0]?.message || 'Apple sign up failed');
     } finally {
       setIsLoading(false);
     }
-  }, [startSSOFlow, router]);
+  }, [startAppleAuthenticationFlow, router]);
 
   if (pendingVerification) {
     return (
