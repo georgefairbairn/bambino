@@ -4,9 +4,9 @@ import Purchases, { PurchasesPackage, CustomerInfo, LOG_LEVEL } from 'react-nati
 import { useMutation } from 'convex/react';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
+import { ENTITLEMENT_ID } from '@/constants/purchases';
 
 const REVENUECAT_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY ?? '';
-const ENTITLEMENT_ID = 'premium';
 
 let isConfigured = false;
 
