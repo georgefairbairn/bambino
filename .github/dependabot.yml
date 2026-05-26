@@ -11,6 +11,23 @@ updates:
     versioning-strategy: increase
     allow:
       - dependency-type: direct
+    # Expo SDK packages are version-locked to the active SDK release.
+    # Major bumps must be done as a coordinated SDK upgrade, not piecemeal.
+    ignore:
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # RevenueCat is parked until build 2 (Path A).
+      - dependency-name: "react-native-purchases"
     groups:
       security-updates:
         applies-to: security-updates
