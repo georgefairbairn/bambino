@@ -1,0 +1,52 @@
+name: Production build + TestFlight submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      what_to_test:
+        description: "What to test (shown in TestFlight release notes)"
+        required: false
+        default: ""
+
+jobs:
+  build-and-submit:
+    name: Build production + submit to TestFlight (iOS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "EXPO_TOKEN is not set. Add it at https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production
+        run: eas build --platform ios --profile production --non-interactive --wait
+
+      - name: Submit to TestFlight
+        run: |
+          if [ -n "${{ github.event.inputs.what_to_test }}" ]; then
+            eas submit --platform ios --latest --non-interactive --what-to-test "${{ github.event.inputs.what_to_test }}"
+          else
+            eas submit --platform ios --latest --non-interactive
+          fi
