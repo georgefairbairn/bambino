@@ -47,10 +47,7 @@ export function DeclineSheet({ visible, nameName, onDecline, onClose }: DeclineS
         <Text style={styles.charCount}>{message.length}/200</Text>
 
         <View style={styles.buttons}>
-          <Pressable
-            style={styles.declineButton}
-            onPress={handleDecline}
-          >
+          <Pressable style={styles.declineButton} onPress={handleDecline}>
             <Text style={styles.declineButtonText}>Decline</Text>
           </Pressable>
           <Pressable style={styles.cancelButton} onPress={handleClose}>

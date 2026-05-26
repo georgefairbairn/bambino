@@ -47,9 +47,11 @@ export function VoiceSettingsSection() {
   const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    return () => setIsExpanded(false);
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      return () => setIsExpanded(false);
+    }, []),
+  );
 
   // Fetch available voices on mount
   useEffect(() => {
@@ -139,7 +141,12 @@ export function VoiceSettingsSection() {
     <View style={styles.container}>
       {/* Header row - tappable to expand/collapse */}
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
-        <Ionicons name="volume-medium-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
+        <Ionicons
+          name="volume-medium-outline"
+          size={22}
+          color="#6B5B7B"
+          style={{ marginRight: 12 }}
+        />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Voice</Text>
           <Text style={styles.headerSubtitle}>{currentVoiceName}</Text>

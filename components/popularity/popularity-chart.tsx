@@ -127,15 +127,16 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
   }
 
   // Use current data, fall back to cached data during transitions
-  const rawData = (popularityData && popularityData.length > 0) ? popularityData : cachedData.current;
+  const rawData = popularityData && popularityData.length > 0 ? popularityData : cachedData.current;
   if (rawData.length === 0) return null;
 
   // Downsample large datasets (All Time) to ~50 points for readable labels
   const MAX_POINTS = 50;
   const step = Math.ceil(rawData.length / MAX_POINTS);
-  const data = rawData.length > MAX_POINTS
-    ? rawData.filter((_, i) => i % step === 0 || i === rawData.length - 1)
-    : rawData;
+  const data =
+    rawData.length > MAX_POINTS
+      ? rawData.filter((_, i) => i % step === 0 || i === rawData.length - 1)
+      : rawData;
 
   // Find max rank for inverting (so rank 1 appears at top)
   const maxRank = Math.max(...data.map((d) => d.rank));
@@ -147,9 +148,7 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
   const labelInterval = Math.max(1, Math.floor((data.length - 1) / (labelCount - 1)));
   const chartData = data.map((d, index) => ({
     value: maxRank - d.rank + 1,
-    label: index % labelInterval === 0 || index === data.length - 1
-      ? String(d.year)
-      : '',
+    label: index % labelInterval === 0 || index === data.length - 1 ? String(d.year) : '',
   }));
 
   // Calculate spacing based on data length and available width
@@ -181,40 +180,40 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
           </View>
           <View style={styles.chartWrapper}>
             <LineChart
-            data={chartData}
-            width={chartWidth}
-            height={CHART_HEIGHT}
-            color={GENDER_COLORS[gender].line}
-            thickness={2}
-            curved
-            areaChart
-            startFillColor={GENDER_COLORS[gender].gradient}
-            endFillColor="transparent"
-            startOpacity={0.4}
-            endOpacity={0}
-            initialSpacing={10}
-            endSpacing={10}
-            spacing={spacing}
-            hideDataPoints
-            onPress={handleDataPointPress}
-            yAxisTextStyle={styles.axisLabel}
-            xAxisLabelTextStyle={styles.axisLabel}
-            yAxisThickness={0}
-            xAxisThickness={1}
-            xAxisColor={themeColors.border}
-            labelsExtraHeight={20}
-            rulesColor={themeColors.surfaceSubtle}
-            rulesType="dashed"
-            noOfSections={4}
-            maxValue={maxRank - minRank + 1}
-            formatYLabel={(value: string) => {
-              const numValue = parseFloat(value);
-              const rank = maxRank - numValue + 1;
-              return `#${Math.round(rank)}`;
-            }}
-            disableScroll
-            isAnimated={false}
-          />
+              data={chartData}
+              width={chartWidth}
+              height={CHART_HEIGHT}
+              color={GENDER_COLORS[gender].line}
+              thickness={2}
+              curved
+              areaChart
+              startFillColor={GENDER_COLORS[gender].gradient}
+              endFillColor="transparent"
+              startOpacity={0.4}
+              endOpacity={0}
+              initialSpacing={10}
+              endSpacing={10}
+              spacing={spacing}
+              hideDataPoints
+              onPress={handleDataPointPress}
+              yAxisTextStyle={styles.axisLabel}
+              xAxisLabelTextStyle={styles.axisLabel}
+              yAxisThickness={0}
+              xAxisThickness={1}
+              xAxisColor={themeColors.border}
+              labelsExtraHeight={20}
+              rulesColor={themeColors.surfaceSubtle}
+              rulesType="dashed"
+              noOfSections={4}
+              maxValue={maxRank - minRank + 1}
+              formatYLabel={(value: string) => {
+                const numValue = parseFloat(value);
+                const rank = maxRank - numValue + 1;
+                return `#${Math.round(rank)}`;
+              }}
+              disableScroll
+              isAnimated={false}
+            />
           </View>
         </View>
         {/* X-axis label */}

@@ -204,13 +204,21 @@ export default function SignIn() {
               />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(250).duration(400)} className="mb-6 flex-row justify-end">
+            <Animated.View
+              entering={FadeInUp.delay(250).duration(400)}
+              className="mb-6 flex-row justify-end"
+            >
               <Pressable onPress={handleForgotPassword}>
-                <Text className="text-sm" style={{ color: colors.primary }}>Forgot password?</Text>
+                <Text className="text-sm" style={{ color: colors.primary }}>
+                  Forgot password?
+                </Text>
               </Pressable>
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(300).duration(400).springify()} className="mb-4">
+            <Animated.View
+              entering={FadeInUp.delay(300).duration(400).springify()}
+              className="mb-4"
+            >
               <GradientButton
                 title="Sign In"
                 onPress={handleSignIn}
@@ -229,7 +237,10 @@ export default function SignIn() {
               <View className="h-px flex-1 bg-gray-300" />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-4">
+            <Animated.View
+              entering={FadeInUp.delay(500).duration(400).springify()}
+              className="mb-4"
+            >
               <GradientButton
                 title="Continue with Google"
                 onPress={handleGoogleSignIn}
@@ -239,7 +250,10 @@ export default function SignIn() {
               />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(600).duration(400).springify()} className="mb-6">
+            <Animated.View
+              entering={FadeInUp.delay(600).duration(400).springify()}
+              className="mb-6"
+            >
               <GradientButton
                 title="Continue with Apple"
                 onPress={handleAppleSignIn}
@@ -255,7 +269,9 @@ export default function SignIn() {
             >
               <Text className="text-gray-600">Don&apos;t have an account? </Text>
               <Pressable onPress={() => router.replace('/(auth)/sign-up')}>
-                <Text className="font-semibold" style={{ color: colors.primary }}>Sign Up</Text>
+                <Text className="font-semibold" style={{ color: colors.primary }}>
+                  Sign Up
+                </Text>
               </Pressable>
             </Animated.View>
           </>
@@ -273,7 +289,10 @@ export default function SignIn() {
               />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(100).duration(400).springify()} className="mb-4">
+            <Animated.View
+              entering={FadeInUp.delay(100).duration(400).springify()}
+              className="mb-4"
+            >
               <GradientButton
                 title="Verify Code"
                 onPress={handleVerifyCode}
@@ -283,9 +302,21 @@ export default function SignIn() {
               />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(200).duration(400)} className="flex-row justify-center">
-              <Pressable onPress={() => { setResetFlow('idle'); setError(''); setCode(''); setNewPassword(''); }}>
-                <Text className="font-semibold" style={{ color: colors.primary }}>Back to Sign In</Text>
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(400)}
+              className="flex-row justify-center"
+            >
+              <Pressable
+                onPress={() => {
+                  setResetFlow('idle');
+                  setError('');
+                  setCode('');
+                  setNewPassword('');
+                }}
+              >
+                <Text className="font-semibold" style={{ color: colors.primary }}>
+                  Back to Sign In
+                </Text>
               </Pressable>
             </Animated.View>
           </>
@@ -303,7 +334,10 @@ export default function SignIn() {
               />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(100).duration(400).springify()} className="mb-4">
+            <Animated.View
+              entering={FadeInUp.delay(100).duration(400).springify()}
+              className="mb-4"
+            >
               <GradientButton
                 title="Reset Password"
                 onPress={handleResetPassword}

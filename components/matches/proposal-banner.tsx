@@ -36,8 +36,7 @@ export function ProposalBanner({
           <Ionicons name="time-outline" size={20} color={colors.primary} />
           <View style={styles.bannerTextContainer}>
             <Text style={[styles.bannerText, { color: colors.tabActive }]}>
-              Waiting for response on{' '}
-              <Text style={styles.bannerNameText}>{nameName}</Text>
+              Waiting for response on <Text style={styles.bannerNameText}>{nameName}</Text>
             </Text>
           </View>
           <Pressable style={styles.withdrawClose} onPress={onWithdraw} hitSlop={10}>
@@ -50,21 +49,15 @@ export function ProposalBanner({
 
   return (
     <View
-      style={[
-        styles.banner,
-        { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-      ]}
+      style={[styles.banner, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
     >
       <View style={styles.bannerContent}>
         <Ionicons name="hand-left" size={20} color={colors.primary} />
         <View style={styles.bannerTextContainer}>
           <Text style={[styles.bannerText, { color: colors.tabActive }]}>
-            {proposerName} proposed{' '}
-            <Text style={styles.bannerNameText}>{nameName}</Text>
+            {proposerName} proposed <Text style={styles.bannerNameText}>{nameName}</Text>
           </Text>
-          {message ? (
-            <Text style={styles.bannerMessage}>"{message}"</Text>
-          ) : null}
+          {message ? <Text style={styles.bannerMessage}>"{message}"</Text> : null}
         </View>
       </View>
       <View style={styles.bannerActions}>

@@ -14,16 +14,14 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
   const { colors } = useTheme();
 
   return (
-    <Pressable
-      onPress={onToggle}
-      style={[
-        styles.row,
-        { shadowColor: colors.secondary },
-      ]}
-    >
+    <Pressable onPress={onToggle} style={[styles.row, { shadowColor: colors.secondary }]}>
       <View style={styles.textContainer}>
-        <Text style={[styles.name, isActive && styles.nameActive]}>{getOriginFlag(origin)} {origin}</Text>
-        <Text style={styles.count}>{count.toLocaleString()} {count === 1 ? 'name' : 'names'}</Text>
+        <Text style={[styles.name, isActive && styles.nameActive]}>
+          {getOriginFlag(origin)} {origin}
+        </Text>
+        <Text style={styles.count}>
+          {count.toLocaleString()} {count === 1 ? 'name' : 'names'}
+        </Text>
       </View>
       <Switch
         value={isActive}

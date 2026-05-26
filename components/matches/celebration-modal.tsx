@@ -36,28 +36,16 @@ export function CelebrationModal({ visible, nameName, onClose }: CelebrationModa
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <Confetti visible={visible} />
       <View style={styles.overlay}>
-        <Animated.View
-          entering={FadeIn.duration(400)}
-          style={styles.content}
-        >
-          <Animated.Text
-            entering={ZoomIn.delay(200).duration(500).springify()}
-            style={styles.name}
-          >
+        <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
+          <Animated.Text entering={ZoomIn.delay(200).duration(500).springify()} style={styles.name}>
             {nameName}
           </Animated.Text>
 
-          <Animated.Text
-            entering={FadeIn.delay(500).duration(400)}
-            style={styles.subtitle}
-          >
+          <Animated.Text entering={FadeIn.delay(500).duration(400)} style={styles.subtitle}>
             You both chose {nameName}
           </Animated.Text>
 
-          <Animated.View
-            entering={FadeIn.delay(800).duration(400)}
-            style={styles.buttons}
-          >
+          <Animated.View entering={FadeIn.delay(800).duration(400)} style={styles.buttons}>
             <Pressable
               style={[styles.shareButton, { backgroundColor: colors.primary }]}
               onPress={handleShare}
