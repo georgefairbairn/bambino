@@ -68,32 +68,23 @@ export function SkinToneSection() {
   const { colors } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    return () => setIsExpanded(false);
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      return () => setIsExpanded(false);
+    }, []),
+  );
 
   const currentEmoji = getGenderEmoji('neutral', skinTone);
 
   return (
     <View style={styles.container}>
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
-        <Ionicons
-          name="hand-left-outline"
-          size={22}
-          color="#6B5B7B"
-          style={{ marginRight: 12 }}
-        />
+        <Ionicons name="hand-left-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Skin Tone</Text>
-          <Text style={styles.headerSubtitle}>
-            {currentEmoji}
-          </Text>
+          <Text style={styles.headerSubtitle}>{currentEmoji}</Text>
         </View>
-        <Ionicons
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={22}
-          color="#A89BB5"
-        />
+        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={22} color="#A89BB5" />
       </Pressable>
 
       {isExpanded && (

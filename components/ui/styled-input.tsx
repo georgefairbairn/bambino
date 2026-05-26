@@ -1,4 +1,11 @@
-import { TextInput, StyleSheet, View, Pressable, type TextInputProps, type ViewStyle } from 'react-native';
+import {
+  TextInput,
+  StyleSheet,
+  View,
+  Pressable,
+  type TextInputProps,
+  type ViewStyle,
+} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

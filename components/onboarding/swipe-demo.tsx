@@ -46,13 +46,13 @@ export function SwipeDemo({ isActive }: { isActive: boolean }) {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.12, 0.24, 0.40, 0.52, 0.64, 1.0],
+      [0, 0.12, 0.24, 0.4, 0.52, 0.64, 1.0],
       [0, 100, 0, 0, -100, 0, 0],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.12, 0.24, 0.40, 0.52, 0.64, 1.0],
+      [0, 0.12, 0.24, 0.4, 0.52, 0.64, 1.0],
       [0, 8, 0, 0, -8, 0, 0],
       Extrapolation.CLAMP,
     );
@@ -64,8 +64,8 @@ export function SwipeDemo({ isActive }: { isActive: boolean }) {
   // LIKE stamp opacity and scale
   const likeStampStyle = useAnimatedStyle(() => {
     const p = progress.value;
-    const opacity = interpolate(p, [0.04, 0.08, 0.12, 0.20], [0, 1, 1, 0], Extrapolation.CLAMP);
-    const scale = interpolate(p, [0.04, 0.07, 0.10], [0.6, 1.15, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(p, [0.04, 0.08, 0.12, 0.2], [0, 1, 1, 0], Extrapolation.CLAMP);
+    const scale = interpolate(p, [0.04, 0.07, 0.1], [0.6, 1.15, 1], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [{ rotate: '-12deg' }, { scale }],
@@ -75,8 +75,8 @@ export function SwipeDemo({ isActive }: { isActive: boolean }) {
   // NOPE stamp opacity and scale
   const nopeStampStyle = useAnimatedStyle(() => {
     const p = progress.value;
-    const opacity = interpolate(p, [0.44, 0.48, 0.52, 0.60], [0, 1, 1, 0], Extrapolation.CLAMP);
-    const scale = interpolate(p, [0.44, 0.47, 0.50], [0.6, 1.15, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(p, [0.44, 0.48, 0.52, 0.6], [0, 1, 1, 0], Extrapolation.CLAMP);
+    const scale = interpolate(p, [0.44, 0.47, 0.5], [0.6, 1.15, 1], Extrapolation.CLAMP);
     return {
       opacity,
       transform: [{ rotate: '12deg' }, { scale }],
@@ -116,7 +116,7 @@ export function SwipeDemo({ isActive }: { isActive: boolean }) {
     const p = progress.value;
     const fade = interpolate(
       p,
-      [0, 0.04, 0.12, 0.20, 0.24, 0.40, 0.44, 0.52, 0.60, 0.64, 1.0],
+      [0, 0.04, 0.12, 0.2, 0.24, 0.4, 0.44, 0.52, 0.6, 0.64, 1.0],
       [1, 0.3, 0.3, 0.3, 1, 1, 0.3, 0.3, 0.3, 1, 1],
       Extrapolation.CLAMP,
     );
@@ -168,7 +168,8 @@ export function SwipeDemo({ isActive }: { isActive: boolean }) {
 
             <View style={[styles.meaningBox, { backgroundColor: colors.surfaceSubtle }]}>
               <Text style={styles.meaningText}>
-                {'\u201C'}Dawn{'\u201D'} {'\u2014'} the Roman goddess of sunrise, whose tears became the morning dew
+                {'\u201C'}Dawn{'\u201D'} {'\u2014'} the Roman goddess of sunrise, whose tears became
+                the morning dew
               </Text>
             </View>
 

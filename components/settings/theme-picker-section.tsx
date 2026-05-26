@@ -111,16 +111,23 @@ export function ThemePickerSection() {
   const { themeKey, setTheme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    return () => setIsExpanded(false);
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      return () => setIsExpanded(false);
+    }, []),
+  );
 
   const currentMeta = THEME_META.find((t) => t.key === themeKey)!;
 
   return (
     <View style={styles.container}>
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
-        <Ionicons name="color-palette-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
+        <Ionicons
+          name="color-palette-outline"
+          size={22}
+          color="#6B5B7B"
+          style={{ marginRight: 12 }}
+        />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Theme</Text>
           <Text style={styles.headerSubtitle}>

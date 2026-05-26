@@ -38,19 +38,19 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.10, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.7, 0.82, 1.0],
       [-70, 0, 0, -70, -70],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.10, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.7, 0.82, 1.0],
       [-6, 0, 0, -6, -6],
       Extrapolation.CLAMP,
     );
     const borderColor = interpolateColor(
       p,
-      [0, 0.10, 0.18, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.18, 0.7, 0.82, 1.0],
       [colors.border, colors.border, MATCH_GREEN, MATCH_GREEN, colors.border, colors.border],
     );
     return {
@@ -63,19 +63,14 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.10, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.7, 0.82, 1.0],
       [70, 0, 0, 70, 70],
       Extrapolation.CLAMP,
     );
-    const rotate = interpolate(
-      p,
-      [0, 0.10, 0.70, 0.82, 1.0],
-      [6, 0, 0, 6, 6],
-      Extrapolation.CLAMP,
-    );
+    const rotate = interpolate(p, [0, 0.1, 0.7, 0.82, 1.0], [6, 0, 0, 6, 6], Extrapolation.CLAMP);
     const borderColor = interpolateColor(
       p,
-      [0, 0.10, 0.18, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.18, 0.7, 0.82, 1.0],
       [colors.border, colors.border, MATCH_GREEN, MATCH_GREEN, colors.border, colors.border],
     );
     return {
@@ -90,13 +85,13 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
     const p = progress.value;
     const scale = interpolate(
       p,
-      [0, 0.28, 0.32, 0.34, 0.70, 0.78, 1.0],
+      [0, 0.28, 0.32, 0.34, 0.7, 0.78, 1.0],
       [0, 0, 1.08, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.28, 0.32, 0.70, 0.78, 1.0],
+      [0, 0.28, 0.32, 0.7, 0.78, 1.0],
       [0, 0, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
@@ -148,7 +143,17 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
         </Animated.View>
 
         {/* Match banner */}
-        <Animated.View style={[styles.matchBanner, { borderColor: colors.primary, shadowColor: colors.primary, backgroundColor: colors.secondaryLight }, bannerStyle]}>
+        <Animated.View
+          style={[
+            styles.matchBanner,
+            {
+              borderColor: colors.primary,
+              shadowColor: colors.primary,
+              backgroundColor: colors.secondaryLight,
+            },
+            bannerStyle,
+          ]}
+        >
           <Text style={styles.matchEmoji}>{'\uD83C\uDF89'}</Text>
           <Text style={[styles.matchText, { color: colors.tabActive }]}>It&apos;s a Match!</Text>
         </Animated.View>

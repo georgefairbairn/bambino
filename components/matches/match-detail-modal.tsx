@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  Alert,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -142,136 +134,136 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
       maxHeight="90%"
       style={{ paddingBottom: 34 }}
     >
-          <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
+      <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
 
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
-            <Text style={styles.headerTitle}>Match Details</Text>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color="#6B5B7B" />
-            </Pressable>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={styles.headerTitle}>Match Details</Text>
+        <Pressable style={styles.closeButton} onPress={onClose}>
+          <Ionicons name="close" size={24} color="#6B5B7B" />
+        </Pressable>
+      </View>
+
+      <ScrollView
+        style={styles.scrollContent}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Name display */}
+        <View style={styles.nameSection}>
+          <View style={[styles.matchBadge, { backgroundColor: colors.primary }]}>
+            <Ionicons name="heart" size={16} color="#fff" />
+            <Text style={styles.matchBadgeText}>{"It's a Match!"}</Text>
           </View>
+          <Text style={styles.name}>{name.name}</Text>
+          <View style={styles.badges}>
+            <GenderBadge gender={name.gender as 'boy' | 'girl' | 'unisex'} />
+            <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
+              <Text style={[styles.originText, { color: colors.primary }]}>{name.origin}</Text>
+            </View>
+          </View>
+          {name.meaning && <Text style={styles.meaning}>{name.meaning}</Text>}
+        </View>
 
-          <ScrollView
-            style={styles.scrollContent}
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+        {/* Quick actions */}
+        <View style={styles.quickActions}>
+          <Pressable
+            style={[
+              styles.quickAction,
+              { borderColor: colors.border },
+              isFavorite && { borderColor: colors.primary, backgroundColor: colors.secondaryLight },
+            ]}
+            onPress={handleToggleFavorite}
           >
-            {/* Name display */}
-            <View style={styles.nameSection}>
-              <View style={[styles.matchBadge, { backgroundColor: colors.primary }]}>
-                <Ionicons name="heart" size={16} color="#fff" />
-                <Text style={styles.matchBadgeText}>{"It's a Match!"}</Text>
-              </View>
-              <Text style={styles.name}>{name.name}</Text>
-              <View style={styles.badges}>
-                <GenderBadge gender={name.gender as 'boy' | 'girl' | 'unisex'} />
-                <View style={[styles.originBadge, { backgroundColor: colors.primaryLight }]}>
-                  <Text style={[styles.originText, { color: colors.primary }]}>{name.origin}</Text>
-                </View>
-              </View>
-              {name.meaning && <Text style={styles.meaning}>{name.meaning}</Text>}
-            </View>
+            <Ionicons
+              name={isFavorite ? 'star' : 'star-outline'}
+              size={24}
+              color={isFavorite ? colors.primary : '#6B5B7B'}
+            />
+            <Text style={[styles.quickActionText, isFavorite && { color: colors.primary }]}>
+              {isFavorite ? 'Favorited' : 'Favorite'}
+            </Text>
+          </Pressable>
 
-            {/* Quick actions */}
-            <View style={styles.quickActions}>
-              <Pressable
-                style={[
-                  styles.quickAction,
-                  { borderColor: colors.border },
-                  isFavorite && { borderColor: colors.primary, backgroundColor: colors.secondaryLight },
-                ]}
-                onPress={handleToggleFavorite}
-              >
-                <Ionicons
-                  name={isFavorite ? 'star' : 'star-outline'}
-                  size={24}
-                  color={isFavorite ? colors.primary : '#6B5B7B'}
-                />
-                <Text style={[styles.quickActionText, isFavorite && { color: colors.primary }]}>
-                  {isFavorite ? 'Favorited' : 'Favorite'}
-                </Text>
-              </Pressable>
+          <Pressable
+            style={[
+              styles.quickAction,
+              { borderColor: colors.border },
+              isChosen && { borderColor: colors.primary, backgroundColor: colors.primary },
+            ]}
+            onPress={isChosen ? undefined : handleChoose}
+            disabled={isChosen}
+          >
+            <Ionicons
+              name={isChosen ? 'trophy' : 'trophy-outline'}
+              size={24}
+              color={isChosen ? '#fff' : '#6B5B7B'}
+            />
+            <Text style={[styles.quickActionText, isChosen && styles.quickActionTextChosen]}>
+              {isChosen ? 'Chosen!' : 'Choose'}
+            </Text>
+          </Pressable>
+        </View>
 
-              <Pressable
-                style={[
-                  styles.quickAction,
-                  { borderColor: colors.border },
-                  isChosen && { borderColor: colors.primary, backgroundColor: colors.primary },
-                ]}
-                onPress={isChosen ? undefined : handleChoose}
-                disabled={isChosen}
-              >
-                <Ionicons
-                  name={isChosen ? 'trophy' : 'trophy-outline'}
-                  size={24}
-                  color={isChosen ? '#fff' : '#6B5B7B'}
-                />
-                <Text style={[styles.quickActionText, isChosen && styles.quickActionTextChosen]}>
-                  {isChosen ? 'Chosen!' : 'Choose'}
-                </Text>
-              </Pressable>
-            </View>
+        {/* Notes input */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Notes</Text>
+          <TextInput
+            style={[
+              styles.notesInput,
+              { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+            ]}
+            placeholder="Add your thoughts about this name..."
+            placeholderTextColor="#A89BB5"
+            multiline
+            numberOfLines={3}
+            value={notes}
+            onChangeText={setNotes}
+            textAlignVertical="top"
+          />
+        </View>
 
-            {/* Notes input */}
-            <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Notes</Text>
-              <TextInput
-                style={[
-                  styles.notesInput,
-                  { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
-                ]}
-                placeholder="Add your thoughts about this name..."
-                placeholderTextColor="#A89BB5"
-                multiline
-                numberOfLines={3}
-                value={notes}
-                onChangeText={setNotes}
-                textAlignVertical="top"
-              />
-            </View>
+        {/* Rank input */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Rank</Text>
+          <View style={styles.rankContainer}>
+            <TextInput
+              style={[
+                styles.rankInput,
+                { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+              ]}
+              placeholder="#"
+              placeholderTextColor="#A89BB5"
+              keyboardType="number-pad"
+              value={rank}
+              onChangeText={(text) => setRank(text.replace(/[^0-9]/g, ''))}
+              maxLength={2}
+            />
+            <Text style={styles.rankHint}>Set a priority ranking (1 = top choice)</Text>
+          </View>
+        </View>
 
-            {/* Rank input */}
-            <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Rank</Text>
-              <View style={styles.rankContainer}>
-                <TextInput
-                  style={[
-                    styles.rankInput,
-                    { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
-                  ]}
-                  placeholder="#"
-                  placeholderTextColor="#A89BB5"
-                  keyboardType="number-pad"
-                  value={rank}
-                  onChangeText={(text) => setRank(text.replace(/[^0-9]/g, ''))}
-                  maxLength={2}
-                />
-                <Text style={styles.rankHint}>Set a priority ranking (1 = top choice)</Text>
-              </View>
-            </View>
+        {/* Action buttons */}
+        <View style={styles.buttons}>
+          <Pressable
+            style={[
+              styles.saveButton,
+              { backgroundColor: colors.primary },
+              isSaving && styles.buttonDisabled,
+            ]}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            <Ionicons name="checkmark" size={20} color="#fff" />
+            <Text style={styles.saveButtonText}>{isSaving ? 'Saving...' : 'Save Changes'}</Text>
+          </Pressable>
 
-            {/* Action buttons */}
-            <View style={styles.buttons}>
-              <Pressable
-                style={[
-                  styles.saveButton,
-                  { backgroundColor: colors.primary },
-                  isSaving && styles.buttonDisabled,
-                ]}
-                onPress={handleSave}
-                disabled={isSaving}
-              >
-                <Ionicons name="checkmark" size={20} color="#fff" />
-                <Text style={styles.saveButtonText}>{isSaving ? 'Saving...' : 'Save Changes'}</Text>
-              </Pressable>
-
-              <Pressable style={styles.removeButton} onPress={handleRemoveMatch}>
-                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
-                <Text style={styles.removeButtonText}>Remove Match</Text>
-              </Pressable>
-            </View>
-          </ScrollView>
+          <Pressable style={styles.removeButton} onPress={handleRemoveMatch}>
+            <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
+            <Text style={styles.removeButtonText}>Remove Match</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </AnimatedBottomSheet>
   );
 }

@@ -31,19 +31,19 @@ export function MatchAnimation() {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.1, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.7, 0.82, 1.0],
       [-70, 0, 0, -70, -70],
       Extrapolation.CLAMP,
     );
     const rotate = interpolate(
       p,
-      [0, 0.1, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.7, 0.82, 1.0],
       [-6, 0, 0, -6, -6],
       Extrapolation.CLAMP,
     );
     const borderColor = interpolateColor(
       p,
-      [0, 0.10, 0.18, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.18, 0.7, 0.82, 1.0],
       [colors.border, colors.border, MATCH_GREEN, MATCH_GREEN, colors.border, colors.border],
     );
     return { transform: [{ rotate: `${rotate}deg` }, { translateX }], borderColor };
@@ -53,19 +53,14 @@ export function MatchAnimation() {
     const p = progress.value;
     const translateX = interpolate(
       p,
-      [0, 0.1, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.7, 0.82, 1.0],
       [70, 0, 0, 70, 70],
       Extrapolation.CLAMP,
     );
-    const rotate = interpolate(
-      p,
-      [0, 0.1, 0.70, 0.82, 1.0],
-      [6, 0, 0, 6, 6],
-      Extrapolation.CLAMP,
-    );
+    const rotate = interpolate(p, [0, 0.1, 0.7, 0.82, 1.0], [6, 0, 0, 6, 6], Extrapolation.CLAMP);
     const borderColor = interpolateColor(
       p,
-      [0, 0.10, 0.18, 0.70, 0.82, 1.0],
+      [0, 0.1, 0.18, 0.7, 0.82, 1.0],
       [colors.border, colors.border, MATCH_GREEN, MATCH_GREEN, colors.border, colors.border],
     );
     return { transform: [{ rotate: `${rotate}deg` }, { translateX }], borderColor };
@@ -76,13 +71,13 @@ export function MatchAnimation() {
     const p = progress.value;
     const scale = interpolate(
       p,
-      [0, 0.28, 0.32, 0.34, 0.70, 0.78, 1.0],
+      [0, 0.28, 0.32, 0.34, 0.7, 0.78, 1.0],
       [0, 0, 1.08, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );
     const opacity = interpolate(
       p,
-      [0, 0.28, 0.32, 0.70, 0.78, 1.0],
+      [0, 0.28, 0.32, 0.7, 0.78, 1.0],
       [0, 0, 1, 1, 0, 0],
       Extrapolation.CLAMP,
     );

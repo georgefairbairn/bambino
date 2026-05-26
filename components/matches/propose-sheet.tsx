@@ -36,9 +36,7 @@ export function ProposeSheet({ visible, name, onPropose, onClose }: ProposeSheet
 
         <Text style={styles.title}>Propose This Name?</Text>
         <Text style={styles.name}>{name.name}</Text>
-        <Text style={styles.subtitle}>
-          Your partner will be asked to accept or decline.
-        </Text>
+        <Text style={styles.subtitle}>Your partner will be asked to accept or decline.</Text>
 
         <StyledInput
           value={message}
