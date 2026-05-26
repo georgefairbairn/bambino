@@ -140,6 +140,26 @@ export default function SignIn() {
     }
   }, [startSSOFlow, router]);
 
+  const handleAppleSignIn = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
+        strategy: 'oauth_apple',
+      });
+
+      if (createdSessionId && ssoSetActive) {
+        await ssoSetActive({ session: createdSessionId });
+        router.replace('/');
+      }
+    } catch (err: unknown) {
+      setError(getClerkError(err, 'Apple sign in failed'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startSSOFlow, router]);
+
   return (
     <GradientBackground variant="auth">
       <View className="flex-1 justify-center px-8">
@@ -209,7 +229,7 @@ export default function SignIn() {
               <View className="h-px flex-1 bg-gray-300" />
             </Animated.View>
 
-            <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-6">
+            <Animated.View entering={FadeInUp.delay(500).duration(400).springify()} className="mb-4">
               <GradientButton
                 title="Continue with Google"
                 onPress={handleGoogleSignIn}
@@ -219,8 +239,18 @@ export default function SignIn() {
               />
             </Animated.View>
 
+            <Animated.View entering={FadeInUp.delay(600).duration(400).springify()} className="mb-6">
+              <GradientButton
+                title="Continue with Apple"
+                onPress={handleAppleSignIn}
+                variant="secondary"
+                icon="logo-apple"
+                disabled={isLoading}
+              />
+            </Animated.View>
+
             <Animated.View
-              entering={FadeInUp.delay(600).duration(400)}
+              entering={FadeInUp.delay(700).duration(400)}
               className="flex-row justify-center"
             >
               <Text className="text-gray-600">Don&apos;t have an account? </Text>

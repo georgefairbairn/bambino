@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "xyz.bambinobaby.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Bambino uses your photo library so you can choose a profile photo.",
         "ITSAppUsesNonExemptEncryption": false
@@ -48,6 +49,7 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-notifications",
+      "expo-apple-authentication",
       [
         "@sentry/react-native/expo",
         {
