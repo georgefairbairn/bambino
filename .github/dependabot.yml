@@ -7,46 +7,10 @@ updates:
       day: monday
       time: "08:00"
       timezone: Europe/London
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     versioning-strategy: increase
     allow:
       - dependency-type: direct
-    # Expo SDK packages are version-locked to the active SDK release.
-    # Major bumps must be done as a coordinated SDK upgrade, not piecemeal.
-    ignore:
-      - dependency-name: "expo"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "expo-*"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@expo/*"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react-native"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
-      - dependency-name: "react-dom"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
-      # RevenueCat is parked until build 2 (Path A).
-      - dependency-name: "react-native-purchases"
-      # Dev tooling — major bumps need deliberate review/migration.
-      - dependency-name: "eslint"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "eslint-config-expo"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "prettier-plugin-tailwindcss"
-        update-types: ["version-update:semver-major"]
-      # Sentry SDK majors require migration steps.
-      - dependency-name: "@sentry/react-native"
-        update-types: ["version-update:semver-major"]
-      # Convex SDK and react-navigation: pin to direct minor/patch only.
-      - dependency-name: "convex"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@react-navigation/*"
-        update-types: ["version-update:semver-major"]
     groups:
       security-updates:
         applies-to: security-updates
@@ -61,15 +25,20 @@ updates:
         update-types:
           - minor
           - patch
-
-  - package-ecosystem: github-actions
-    directory: "/"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "08:00"
-      timezone: Europe/London
-    groups:
-      actions:
-        patterns:
-          - "*"
+    # Hard pins — these MUST be coordinated with an Expo SDK upgrade,
+    # never auto-merged. Major bumps are still proposed as individual
+    # PRs (via the default group) so we can see them, but they sit
+    # open as a reminder until SDK upgrade time.
+    ignore:
+      # SDK-locked: Expo packages on the active SDK release
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+      # SDK-locked: react-native is pinned by Expo SDK
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major"]
+      # RevenueCat is parked until build 2 (Path A).
+      - dependency-name: "react-native-purchases"
