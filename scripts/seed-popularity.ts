@@ -43,7 +43,11 @@ async function seedPopularity() {
   const startBatch = startBatchArg ? parseInt(startBatchArg.split('=')[1], 10) : 1;
   const startIndex = (startBatch - 1) * BATCH_SIZE;
 
+  const isProd = process.argv.includes('--prod');
+  const convexFlag = isProd ? '--prod ' : '';
+
   console.log(`Starting seed with ${records.length} popularity records...`);
+  console.log(`Target: ${isProd ? 'PRODUCTION' : 'dev (from .env.local)'}`);
   console.log(`Batch size: ${BATCH_SIZE}, starting from batch ${startBatch}/${totalBatches}`);
 
   let totalInserted = 0;
@@ -60,7 +64,7 @@ async function seedPopularity() {
     try {
       writeFileSync(tmpFile, JSON.stringify({ records: batch }));
       const output = runWithRetry(
-        `npx convex run popularity:seedPopularity "$(cat ${tmpFile})"`,
+        `npx convex run ${convexFlag}popularity:seedPopularity "$(cat ${tmpFile})"`,
         batchNumber,
       );
       const parsed = JSON.parse(output.trim());

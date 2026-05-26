@@ -7,7 +7,11 @@ import namesData from '../data/names.json';
 const BATCH_SIZE = 100;
 
 async function seedNames() {
+  const isProd = process.argv.includes('--prod');
+  const convexFlag = isProd ? '--prod ' : '';
+
   console.log(`Starting seed with ${namesData.length} names...`);
+  console.log(`Target: ${isProd ? 'PRODUCTION' : 'dev (from .env.local)'}`);
   console.log(`Batch size: ${BATCH_SIZE}`);
 
   let totalInserted = 0;
@@ -24,7 +28,7 @@ async function seedNames() {
 
     try {
       writeFileSync(tmpFile, JSON.stringify({ names: batch }));
-      const output = execSync(`npx convex run names:seedNames "$(cat ${tmpFile})"`, {
+      const output = execSync(`npx convex run ${convexFlag}names:seedNames "$(cat ${tmpFile})"`, {
         encoding: 'utf-8',
         cwd: process.cwd(),
       });
