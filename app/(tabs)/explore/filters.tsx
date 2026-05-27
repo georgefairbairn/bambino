@@ -12,6 +12,7 @@ import { GradientBackground } from '@/components/ui/gradient-background';
 import { SlotCounter } from '@/components/ui/slot-counter';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { Events, trackEvent } from '@/lib/analytics';
 
 type GenderFilter = 'boy' | 'girl' | 'both';
 
@@ -44,6 +45,11 @@ export default function Filters() {
     async (gender: GenderFilter, origin: string[] | null) => {
       try {
         await updateFilters({ genderFilter: gender, originFilter: origin ?? [] });
+        trackEvent(Events.FILTERS_CHANGED, {
+          gender_filter: gender,
+          origin_count: origin?.length ?? 0,
+          all_origins: origin === null,
+        });
       } catch (error) {
         Sentry.captureException(error);
         Alert.alert('Error', 'Failed to save filters. Please try again.');

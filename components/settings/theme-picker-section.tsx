@@ -13,6 +13,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts, THEME_META, CANDY_THEMES, type ThemeKey } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { Events, trackEvent } from '@/lib/analytics';
 
 const SPRING_CONFIG = { damping: 20, stiffness: 200 };
 const COLOR_TIMING = { duration: 350, easing: Easing.out(Easing.cubic) };
@@ -145,7 +146,12 @@ export function ThemePickerSection() {
                 key={key}
                 themeKey={key}
                 isSelected={themeKey === key}
-                onSelect={() => setTheme(key)}
+                onSelect={() => {
+                  if (themeKey !== key) {
+                    trackEvent(Events.THEME_CHANGED, { from: themeKey, to: key });
+                  }
+                  setTheme(key);
+                }}
               />
             ))}
           </View>

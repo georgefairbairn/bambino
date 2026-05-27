@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { Events, trackEvent } from '@/lib/analytics';
 import { WelcomeSplash } from './welcome-splash';
 import { SwipeDemo } from './swipe-demo';
 import { MultiplayerIntro } from './multiplayer-intro';
@@ -26,11 +27,19 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
+  // Fire onboarding_started once when the carousel mounts
+  useEffect(() => {
+    trackEvent(Events.ONBOARDING_STARTED);
+  }, []);
+
   const handleNext = useCallback(() => {
     if (currentIndex < TOTAL_SCREENS - 1) {
-      flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
-      setCurrentIndex(currentIndex + 1);
+      const nextIndex = currentIndex + 1;
+      flatListRef.current?.scrollToIndex({ index: nextIndex });
+      setCurrentIndex(nextIndex);
+      trackEvent(Events.ONBOARDING_SLIDE_ADVANCED, { slide_index: nextIndex });
     } else {
+      trackEvent(Events.ONBOARDING_COMPLETED);
       onComplete();
     }
   }, [currentIndex, onComplete]);

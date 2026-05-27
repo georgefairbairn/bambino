@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePurchases } from '@/hooks/use-purchases';
@@ -34,13 +34,20 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
   const hasPackages = packages.length > 0;
   const price = packages[0]?.product.priceString ?? '$4.99';
 
+  useEffect(() => {
+    if (visible) trackEvent(Events.PAYWALL_SHOWN, { trigger });
+  }, [visible, trigger]);
+
   const handlePurchase = async () => {
     setIsPurchasing(true);
+    trackEvent(Events.PURCHASE_ATTEMPTED, { trigger });
     try {
       const success = await purchasePremium();
       if (success) {
         trackEvent(Events.PURCHASE_COMPLETED, { trigger });
         onClose();
+      } else {
+        trackEvent(Events.PURCHASE_FAILED, { trigger, reason: 'cancelled_or_failed' });
       }
     } finally {
       setIsPurchasing(false);
@@ -52,6 +59,7 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
     try {
       const success = await restorePurchases();
       if (success) {
+        trackEvent(Events.PURCHASE_RESTORED);
         onClose();
         Alert.alert('Restored', 'Your premium purchase has been restored!');
       } else {

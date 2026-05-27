@@ -1,4 +1,5 @@
 import { useSignInWithApple, useSignUp, useSSO } from '@clerk/clerk-expo';
+import * as Sentry from '@sentry/react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
@@ -11,6 +12,11 @@ import { StyledInput } from '@/components/ui/styled-input';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { trackEvent, Events } from '@/lib/analytics';
+
+function getClerkError(err: unknown, fallback: string): string {
+  const clerkError = err as { errors?: { message: string }[] };
+  return clerkError.errors?.[0]?.message || fallback;
+}
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -43,8 +49,10 @@ export default function SignUp() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setPendingVerification(true);
     } catch (err: unknown) {
-      const clerkError = err as { errors?: { message: string }[] };
-      setError(clerkError.errors?.[0]?.message || 'Sign up failed');
+      const message = getClerkError(err, 'Sign up failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_up', method: 'email' } });
+      trackEvent(Events.SIGN_UP_FAILED, { method: 'email', reason: message });
     } finally {
       setIsLoading(false);
     }
@@ -65,8 +73,10 @@ export default function SignUp() {
         router.replace('/');
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: { message: string }[] };
-      setError(clerkError.errors?.[0]?.message || 'Verification failed');
+      const message = getClerkError(err, 'Verification failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_up_verify', method: 'email' } });
+      trackEvent(Events.SIGN_UP_FAILED, { method: 'email', reason: message });
     } finally {
       setIsLoading(false);
     }
@@ -87,8 +97,10 @@ export default function SignUp() {
         router.replace('/');
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: { message: string }[] };
-      setError(clerkError.errors?.[0]?.message || 'Google sign up failed');
+      const message = getClerkError(err, 'Google sign up failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_up', method: 'google' } });
+      trackEvent(Events.SIGN_UP_FAILED, { method: 'google', reason: message });
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +111,7 @@ export default function SignUp() {
     setError('');
 
     try {
-      const { createdSessionId, setActive: appleSetActive } =
-        await startAppleAuthenticationFlow();
+      const { createdSessionId, setActive: appleSetActive } = await startAppleAuthenticationFlow();
 
       if (createdSessionId && appleSetActive) {
         await appleSetActive({ session: createdSessionId });
@@ -110,8 +121,10 @@ export default function SignUp() {
     } catch (err: unknown) {
       const appleError = err as { code?: string };
       if (appleError.code === 'ERR_REQUEST_CANCELED') return;
-      const clerkError = err as { errors?: { message: string }[] };
-      setError(clerkError.errors?.[0]?.message || 'Apple sign up failed');
+      const message = getClerkError(err, 'Apple sign up failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_up', method: 'apple' } });
+      trackEvent(Events.SIGN_UP_FAILED, { method: 'apple', reason: message });
     } finally {
       setIsLoading(false);
     }

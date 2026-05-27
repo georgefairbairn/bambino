@@ -10,6 +10,7 @@ import { GenderBadge } from '@/components/name-detail/gender-badge';
 import * as Haptics from 'expo-haptics';
 import * as Sentry from '@sentry/react-native';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { Events, trackEvent } from '@/lib/analytics';
 
 interface MatchDetailModalProps {
   visible: boolean;
@@ -43,6 +44,13 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
     }
   }, [match]);
 
+  // Fire match_viewed when the modal opens with a match
+  useEffect(() => {
+    if (visible && match) {
+      trackEvent(Events.MATCH_VIEWED, { match_id: match._id });
+    }
+  }, [visible, match]);
+
   if (!match) return null;
 
   const { name, isFavorite, isChosen } = match;
@@ -71,6 +79,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
         matchId: match._id,
         isFavorite: !isFavorite,
       });
+      trackEvent(Events.MATCH_FAVORITED, { favorited: !isFavorite });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
       Sentry.captureException(error);
@@ -91,6 +100,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
                 matchId: match._id,
                 isChosen: true,
               });
+              trackEvent(Events.NAME_CHOSEN);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               onClose();
             } catch (error) {
@@ -115,6 +125,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
           onPress: async () => {
             try {
               await deleteMatch({ matchId: match._id });
+              trackEvent(Events.MATCH_REMOVED);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
               onClose();
             } catch (error) {

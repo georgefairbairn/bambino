@@ -1,4 +1,5 @@
 import { useSignIn, useSignInWithApple, useSSO } from '@clerk/clerk-expo';
+import * as Sentry from '@sentry/react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
@@ -10,6 +11,7 @@ import { GradientButton } from '@/components/ui/gradient-button';
 import { StyledInput } from '@/components/ui/styled-input';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { Events, trackEvent } from '@/lib/analytics';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -47,10 +49,14 @@ export default function SignIn() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        trackEvent(Events.SIGN_IN, { method: 'email' });
         router.replace('/');
       }
     } catch (err: unknown) {
-      setError(getClerkError(err, 'Sign in failed'));
+      const message = getClerkError(err, 'Sign in failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_in', method: 'email' } });
+      trackEvent(Events.SIGN_IN_FAILED, { method: 'email', reason: message });
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +80,7 @@ export default function SignIn() {
       setResetFlow('code');
     } catch (err: unknown) {
       setError(getClerkError(err, 'Failed to send reset code'));
+      Sentry.captureException(err, { tags: { flow: 'forgot_password' } });
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +103,7 @@ export default function SignIn() {
       }
     } catch (err: unknown) {
       setError(getClerkError(err, 'Invalid code'));
+      Sentry.captureException(err, { tags: { flow: 'reset_password_verify' } });
     } finally {
       setIsLoading(false);
     }
@@ -116,6 +124,7 @@ export default function SignIn() {
       }
     } catch (err: unknown) {
       setError(getClerkError(err, 'Failed to reset password'));
+      Sentry.captureException(err, { tags: { flow: 'reset_password' } });
     } finally {
       setIsLoading(false);
     }
@@ -132,10 +141,14 @@ export default function SignIn() {
 
       if (createdSessionId && ssoSetActive) {
         await ssoSetActive({ session: createdSessionId });
+        trackEvent(Events.SIGN_IN, { method: 'google' });
         router.replace('/');
       }
     } catch (err: unknown) {
-      setError(getClerkError(err, 'Google sign in failed'));
+      const message = getClerkError(err, 'Google sign in failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_in', method: 'google' } });
+      trackEvent(Events.SIGN_IN_FAILED, { method: 'google', reason: message });
     } finally {
       setIsLoading(false);
     }
@@ -146,17 +159,20 @@ export default function SignIn() {
     setError('');
 
     try {
-      const { createdSessionId, setActive: appleSetActive } =
-        await startAppleAuthenticationFlow();
+      const { createdSessionId, setActive: appleSetActive } = await startAppleAuthenticationFlow();
 
       if (createdSessionId && appleSetActive) {
         await appleSetActive({ session: createdSessionId });
+        trackEvent(Events.SIGN_IN, { method: 'apple' });
         router.replace('/');
       }
     } catch (err: unknown) {
       const appleError = err as { code?: string };
       if (appleError.code === 'ERR_REQUEST_CANCELED') return;
-      setError(getClerkError(err, 'Apple sign in failed'));
+      const message = getClerkError(err, 'Apple sign in failed');
+      setError(message);
+      Sentry.captureException(err, { tags: { flow: 'sign_in', method: 'apple' } });
+      trackEvent(Events.SIGN_IN_FAILED, { method: 'apple', reason: message });
     } finally {
       setIsLoading(false);
     }

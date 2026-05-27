@@ -15,8 +15,9 @@ import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Paywall } from '@/components/paywall';
+import * as Sentry from '@sentry/react-native';
 import { useTheme } from '@/contexts/theme-context';
-import { trackEvent } from '@/lib/analytics';
+import { Events, trackEvent } from '@/lib/analytics';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 import { StyledInput } from '@/components/ui/styled-input';
 import { NameConfirmationModal } from './name-confirmation-modal';
@@ -129,10 +130,11 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
         return;
       }
 
-      trackEvent('partner_linked');
+      trackEvent(Events.PARTNER_LINKED);
       handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to link partner');
+      Sentry.captureException(err, { tags: { flow: 'partner_link' } });
       setIsLinking(false);
     }
   };

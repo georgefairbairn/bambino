@@ -14,6 +14,7 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useSkinTone } from '@/contexts/skin-tone-context';
 import { SKIN_TONE_OPTIONS, getGenderEmoji, type SkinToneKey } from '@/constants/skin-tone';
+import { Events, trackEvent } from '@/lib/analytics';
 
 const SPRING_CONFIG = { damping: 20, stiffness: 200 };
 const COLOR_TIMING = { duration: 350, easing: Easing.out(Easing.cubic) };
@@ -95,7 +96,12 @@ export function SkinToneSection() {
                 key={option.key}
                 toneKey={option.key}
                 isSelected={skinTone === option.key}
-                onSelect={() => setSkinTone(option.key)}
+                onSelect={() => {
+                  if (skinTone !== option.key) {
+                    trackEvent(Events.SKIN_TONE_CHANGED, { tone: option.key });
+                  }
+                  setSkinTone(option.key);
+                }}
                 primaryColor={colors.primary}
               />
             ))}
