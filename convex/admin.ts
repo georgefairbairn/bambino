@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalMutation, internalQuery } from './_generated/server';
+import { Id } from './_generated/dataModel';
 
 // All admin utilities are internal functions.
 // Run via: npx convex run admin:<functionName> '{"arg": "value"}'
@@ -169,6 +170,245 @@ export const linkUsers = internalMutation({
     await ctx.db.patch(user2._id, { partnerId: user1._id, updatedAt: now });
 
     return { success: true };
+  },
+});
+
+// Seeds two demo accounts with partner link + matches + a pending proposal so
+// App Review sees a fully-populated app. Idempotent: running twice will not
+// double-seed or create duplicate selections.
+export const seedAppReviewDemo = internalMutation({
+  args: {
+    reviewerEmail: v.string(),
+    partnerEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const reviewer = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', args.reviewerEmail))
+      .unique();
+    const partner = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', args.partnerEmail))
+      .unique();
+
+    if (!reviewer) return { error: `Reviewer not found: ${args.reviewerEmail}` };
+    if (!partner) return { error: `Partner not found: ${args.partnerEmail}` };
+
+    const now = Date.now();
+
+    // 1. Link as partners
+    await ctx.db.patch(reviewer._id, { partnerId: partner._id, updatedAt: now });
+    await ctx.db.patch(partner._id, { partnerId: reviewer._id, updatedAt: now });
+
+    // Confirm names so the partner-action gate doesn't pop the modal for the reviewer
+    if (reviewer.nameConfirmed !== true) {
+      await ctx.db.patch(reviewer._id, { nameConfirmed: true });
+    }
+    if (partner.nameConfirmed !== true) {
+      await ctx.db.patch(partner._id, { nameConfirmed: true });
+    }
+
+    // 2. Pick popular names from the seeded names table.
+    // Mutual likes (both like → match): 8 names
+    // Reviewer-only likes: 12 names (no match)
+    // Partner-only likes: 12 names (no match)
+    // Reviewer rejects: 8 names
+    const mutualLikeNames = [
+      'Olivia',
+      'Emma',
+      'Liam',
+      'Noah',
+      'Charlotte',
+      'Sophia',
+      'Mia',
+      'Lucas',
+    ];
+    const reviewerOnlyLikes = [
+      'Ava',
+      'Isabella',
+      'Amelia',
+      'Harper',
+      'Evelyn',
+      'Abigail',
+      'Emily',
+      'Elizabeth',
+      'Mila',
+      'Ella',
+      'Avery',
+      'Sofia',
+    ];
+    const partnerOnlyLikes = [
+      'Benjamin',
+      'Henry',
+      'Alexander',
+      'William',
+      'James',
+      'Mason',
+      'Ethan',
+      'Logan',
+      'Aiden',
+      'Daniel',
+      'Owen',
+      'Samuel',
+    ];
+    const reviewerRejects = [
+      'Aaron',
+      'Adam',
+      'Adrian',
+      'Aidan',
+      'Andrew',
+      'Anthony',
+      'Brandon',
+      'Caleb',
+    ];
+
+    async function findName(name: string) {
+      return ctx.db
+        .query('names')
+        .withIndex('by_name', (q) => q.eq('name', name))
+        .first();
+    }
+
+    async function upsertSelection(
+      userId: Id<'users'>,
+      nameId: Id<'names'>,
+      selectionType: 'like' | 'reject',
+    ) {
+      const existing = await ctx.db
+        .query('selections')
+        .withIndex('by_user_name', (q) => q.eq('userId', userId).eq('nameId', nameId))
+        .unique();
+
+      if (existing) {
+        if (existing.selectionType === selectionType) return;
+        await ctx.db.patch(existing._id, { selectionType, updatedAt: Date.now() });
+        return;
+      }
+
+      const ts = Date.now();
+      await ctx.db.insert('selections', {
+        userId,
+        nameId,
+        selectionType,
+        createdAt: ts,
+        updatedAt: ts,
+      });
+    }
+
+    let foundMutual = 0;
+    let foundReviewerOnly = 0;
+    let foundPartnerOnly = 0;
+    let foundRejects = 0;
+    let matchesCreated = 0;
+
+    for (const n of mutualLikeNames) {
+      const name = await findName(n);
+      if (!name) continue;
+      foundMutual++;
+      await upsertSelection(reviewer._id, name._id, 'like');
+      await upsertSelection(partner._id, name._id, 'like');
+    }
+
+    for (const n of reviewerOnlyLikes) {
+      const name = await findName(n);
+      if (!name) continue;
+      foundReviewerOnly++;
+      await upsertSelection(reviewer._id, name._id, 'like');
+    }
+
+    for (const n of partnerOnlyLikes) {
+      const name = await findName(n);
+      if (!name) continue;
+      foundPartnerOnly++;
+      await upsertSelection(partner._id, name._id, 'like');
+    }
+
+    for (const n of reviewerRejects) {
+      const name = await findName(n);
+      if (!name) continue;
+      foundRejects++;
+      await upsertSelection(reviewer._id, name._id, 'reject');
+    }
+
+    // 3. Create matches for the mutual likes (canonical user ordering)
+    const [u1, u2] =
+      reviewer._id < partner._id ? [reviewer._id, partner._id] : [partner._id, reviewer._id];
+
+    for (const n of mutualLikeNames) {
+      const name = await findName(n);
+      if (!name) continue;
+
+      const existing = await ctx.db
+        .query('matches')
+        .withIndex('by_name_users', (q) =>
+          q.eq('nameId', name._id).eq('user1Id', u1).eq('user2Id', u2),
+        )
+        .unique();
+      if (existing) continue;
+
+      const ts = Date.now();
+      await ctx.db.insert('matches', {
+        nameId: name._id,
+        user1Id: u1,
+        user2Id: u2,
+        matchedAt: ts,
+        createdAt: ts,
+        updatedAt: ts,
+      });
+      matchesCreated++;
+    }
+
+    // 4. Mark first two matches as favorites with notes (visual variety)
+    const allMatches = await ctx.db
+      .query('matches')
+      .withIndex('by_user1_user2', (q) => q.eq('user1Id', u1).eq('user2Id', u2))
+      .collect();
+
+    const sortedMatches = allMatches.sort((a, b) => a.matchedAt - b.matchedAt);
+    if (sortedMatches[0]) {
+      await ctx.db.patch(sortedMatches[0]._id, {
+        isFavorite: true,
+        notes: 'Love this one — strong and classic.',
+        rank: 1,
+        updatedAt: Date.now(),
+      });
+    }
+    if (sortedMatches[1]) {
+      await ctx.db.patch(sortedMatches[1]._id, {
+        isFavorite: true,
+        rank: 2,
+        updatedAt: Date.now(),
+      });
+    }
+
+    // 5. Create a pending proposal from partner → reviewer on the third match
+    if (sortedMatches[2]) {
+      const proposalTarget = sortedMatches[2];
+      // Only set if not already proposed (idempotent)
+      if (!proposalTarget.proposedBy) {
+        await ctx.db.patch(proposalTarget._id, {
+          proposedBy: partner._id,
+          proposedAt: Date.now(),
+          proposalMessage: 'What do you think about this one?',
+          proposalStatus: 'pending',
+          updatedAt: Date.now(),
+        });
+      }
+    }
+
+    return {
+      success: true,
+      reviewer: { id: reviewer._id, email: reviewer.email, name: reviewer.name },
+      partner: { id: partner._id, email: partner.email, name: partner.name },
+      counts: {
+        mutualLikes: foundMutual,
+        reviewerOnlyLikes: foundReviewerOnly,
+        partnerOnlyLikes: foundPartnerOnly,
+        reviewerRejects: foundRejects,
+        matchesCreated,
+        totalMatches: sortedMatches.length,
+      },
+    };
   },
 });
 
