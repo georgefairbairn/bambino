@@ -1,0 +1,45 @@
+name: Convex deploy (prod)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or commit SHA to deploy (defaults to master)"
+        required: false
+        default: "master"
+
+jobs:
+  deploy:
+    name: Deploy Convex backend to prod
+    runs-on: ubuntu-latest
+    # Production environment: requires CONVEX_DEPLOY_KEY secret.
+    # Configure under Settings → Secrets and variables → Actions.
+    environment: production
+    steps:
+      - name: Check for CONVEX_DEPLOY_KEY
+        run: |
+          if [ -z "${{ secrets.CONVEX_DEPLOY_KEY }}" ]; then
+            echo "CONVEX_DEPLOY_KEY is not set. Generate one in the Convex dashboard"
+            echo "(Settings → Deploy Keys → Generate prod deploy key) and add it at"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Convex backend
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: npx convex deploy
