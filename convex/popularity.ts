@@ -1,6 +1,19 @@
 import { v } from 'convex/values';
 import { internalMutation, query } from './_generated/server';
 
+// Tier boundaries used by the swipe queue. Keep in sync with the swipe
+// queue logic in convex/selections.ts.
+export const TIER_TOP = 0; // ranks 1–1000
+export const TIER_MID = 1; // ranks 1001–5000
+export const TIER_LONG_TAIL = 2; // ranks 5001+
+
+export function rankToTier(rank: number | undefined | null): number | undefined {
+  if (rank === undefined || rank === null) return undefined;
+  if (rank <= 1000) return TIER_TOP;
+  if (rank <= 5000) return TIER_MID;
+  return TIER_LONG_TAIL;
+}
+
 const popularityRecordValidator = v.object({
   name: v.string(),
   gender: v.string(),
@@ -78,9 +91,11 @@ export const updateNamesWithCurrentRank = internalMutation({
 
         if (maleRecord || femaleRecord) {
           const isMaleBetter = maleRank <= femaleRank;
+          const chosenRank = isMaleBetter ? maleRecord!.rank : femaleRecord!.rank;
           await ctx.db.patch(name._id, {
-            currentRank: isMaleBetter ? maleRecord!.rank : femaleRecord!.rank,
+            currentRank: chosenRank,
             primaryGender: isMaleBetter ? 'male' : 'female',
+            popularityTier: rankToTier(chosenRank),
           });
           updated++;
         }
@@ -97,7 +112,10 @@ export const updateNamesWithCurrentRank = internalMutation({
         .first();
 
       if (popularityRecord) {
-        await ctx.db.patch(name._id, { currentRank: popularityRecord.rank });
+        await ctx.db.patch(name._id, {
+          currentRank: popularityRecord.rank,
+          popularityTier: rankToTier(popularityRecord.rank),
+        });
         updated++;
       }
     }
@@ -183,6 +201,7 @@ export const backfillCurrentRankFromMostRecent = internalMutation({
           await ctx.db.patch(name._id, {
             currentRank: chosen.rank,
             primaryGender: chosenGender,
+            popularityTier: rankToTier(chosen.rank),
           });
           updated++;
         }
@@ -192,7 +211,10 @@ export const backfillCurrentRankFromMostRecent = internalMutation({
       const ssaGender = name.gender === 'male' ? 'M' : 'F';
       const fallback = await mostRecentForGender(ssaGender);
       if (fallback) {
-        await ctx.db.patch(name._id, { currentRank: fallback.rank });
+        await ctx.db.patch(name._id, {
+          currentRank: fallback.rank,
+          popularityTier: rankToTier(fallback.rank),
+        });
         updated++;
       } else {
         stillRankless++;
@@ -204,6 +226,58 @@ export const backfillCurrentRankFromMostRecent = internalMutation({
       updated,
       alreadyRanked,
       stillRankless,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+// One-time backfill: walks the names table and sets popularityTier
+// derived from the existing currentRank value. Idempotent; only patches
+// rows where the computed tier differs from what's there. Paginated.
+export const backfillPopularityTier = internalMutation({
+  args: {
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 500;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    let updated = 0;
+    let alreadyCorrect = 0;
+    let unranked = 0;
+
+    for (const name of result.page) {
+      const expectedTier = rankToTier(name.currentRank);
+
+      if (expectedTier === undefined) {
+        if (name.popularityTier === undefined) {
+          unranked++;
+        } else {
+          // currentRank was cleared somehow but tier still set; reset it
+          await ctx.db.patch(name._id, { popularityTier: undefined });
+          updated++;
+        }
+        continue;
+      }
+
+      if (name.popularityTier === expectedTier) {
+        alreadyCorrect++;
+        continue;
+      }
+
+      await ctx.db.patch(name._id, { popularityTier: expectedTier });
+      updated++;
+    }
+
+    return {
+      processed: result.page.length,
+      updated,
+      alreadyCorrect,
+      unranked,
       isDone: result.isDone,
       continueCursor: result.continueCursor,
     };

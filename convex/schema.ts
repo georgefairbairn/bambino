@@ -35,6 +35,10 @@ export default defineSchema({
     firstLetter: v.string(),
     currentRank: v.optional(v.number()),
     primaryGender: v.optional(v.union(v.literal('male'), v.literal('female'))),
+    // Bucket derived from currentRank for the tiered swipe queue.
+    // 0 = top 1000, 1 = ranks 1001–5000, 2 = ranks 5001+, undefined = no rank.
+    // Kept in sync by update-ranks.ts and backfill-ranks.ts.
+    popularityTier: v.optional(v.number()),
     sortKey: v.number(),
     createdAt: v.number(),
   })
@@ -45,7 +49,9 @@ export default defineSchema({
     .index('by_origin', ['origin'])
     .index('by_gender_origin', ['gender', 'origin'])
     .index('by_sort_key', ['sortKey'])
-    .index('by_gender_sort_key', ['gender', 'sortKey']),
+    .index('by_gender_sort_key', ['gender', 'sortKey'])
+    .index('by_tier_sort_key', ['popularityTier', 'sortKey'])
+    .index('by_gender_tier_sort_key', ['gender', 'popularityTier', 'sortKey']),
 
   namePopularity: defineTable({
     name: v.string(),

@@ -57,12 +57,13 @@ export const createOrUpdateUser = mutation({
     const now = Date.now();
 
     if (existingUser) {
-      await ctx.db.patch(existingUser._id, {
-        email: args.email,
-        name: args.name,
-        imageUrl: args.imageUrl,
-        updatedAt: now,
-      });
+      // Only overwrite name/imageUrl when Clerk actually provides a value.
+      // Otherwise we'd erase fields set elsewhere (admin seed, name-edit
+      // modal) every time useStoreUser fires on app launch.
+      const patch: Record<string, unknown> = { email: args.email, updatedAt: now };
+      if (args.name) patch.name = args.name;
+      if (args.imageUrl) patch.imageUrl = args.imageUrl;
+      await ctx.db.patch(existingUser._id, patch);
       return existingUser._id;
     }
 
