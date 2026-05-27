@@ -196,18 +196,26 @@ export const seedAppReviewDemo = internalMutation({
 
     const now = Date.now();
 
-    // 1. Link as partners + set display names so neither side sees the
-    //    "Bambino User" fallback in the partner section.
+    // 1. Link as partners, set display names, and grant premium so the
+    //    reviewer can access Matches and unlimited swipes without
+    //    going through IAP. (Premium on either side is shared with the
+    //    partner via getEffectivePremiumStatus.)
     await ctx.db.patch(reviewer._id, {
       partnerId: partner._id,
       name: 'Bambino User',
       nameConfirmed: true,
+      isPremium: true,
+      purchasedAt: now,
+      premiumRevokedAt: undefined,
       updatedAt: now,
     });
     await ctx.db.patch(partner._id, {
       partnerId: reviewer._id,
       name: 'Bambino Partner',
       nameConfirmed: true,
+      isPremium: true,
+      purchasedAt: now,
+      premiumRevokedAt: undefined,
       updatedAt: now,
     });
 
