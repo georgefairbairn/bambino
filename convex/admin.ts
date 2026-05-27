@@ -173,69 +173,108 @@ export const linkUsers = internalMutation({
   },
 });
 
-// Diagnoses the state of name + popularity data. Returns:
-// - total names
-// - names with a currentRank set / missing
-// - total popularity records
-// - distinct names covered by popularity
-// - distinct years covered
-// - sample of 5 names that have NO popularity records at all (orphans in names but not namePopularity)
-export const auditPopularityData = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    const names = await ctx.db.query('names').collect();
-    const popularity = await ctx.db.query('namePopularity').collect();
-
-    const popularityNamesSet = new Set<string>(popularity.map((p) => `${p.name}::${p.gender}`));
-    const popularityYearsSet = new Set<number>(popularity.map((p) => p.year));
+// Audits the names table — counts total, with-rank, without-rank, plus a
+// sample of 10 orphan names (names whose direct gender has zero popularity
+// records). Paginated so it doesn't blow Convex's 32k document read limit.
+//
+// Run repeatedly with the returned `continueCursor` until isDone=true:
+//   npx convex run admin:auditNamesPage --prod '{}'
+//   npx convex run admin:auditNamesPage --prod '{"cursor":"<value>"}'
+// Each page processes 1000 names. The script wrapper accumulates totals.
+export const auditNamesPage = internalQuery({
+  args: {
+    cursor: v.optional(v.string()),
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = args.pageSize ?? 1000;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
 
     let withRank = 0;
     let withoutRank = 0;
     const orphanSamples: { name: string; gender: string }[] = [];
 
-    for (const n of names) {
+    for (const n of result.page) {
       if (n.currentRank !== undefined && n.currentRank !== null) {
         withRank++;
       } else {
         withoutRank++;
       }
 
-      if (orphanSamples.length < 5) {
+      if (orphanSamples.length < 10) {
+        // Use the indexed lookup to check for any popularity record (M or F).
+        // Cheap: at most 2 indexed reads per name in the sample.
         const ssaGender = n.gender === 'male' ? 'M' : n.gender === 'female' ? 'F' : null;
+        let hasAny = false;
         if (ssaGender) {
-          if (!popularityNamesSet.has(`${n.name}::${ssaGender}`)) {
-            orphanSamples.push({ name: n.name, gender: n.gender });
-          }
+          const hit = await ctx.db
+            .query('namePopularity')
+            .withIndex('by_name_gender', (q) => q.eq('name', n.name).eq('gender', ssaGender))
+            .first();
+          hasAny = hit !== null;
         } else {
-          // neutral — orphan only if BOTH M and F are missing
-          if (
-            !popularityNamesSet.has(`${n.name}::M`) &&
-            !popularityNamesSet.has(`${n.name}::F`)
-          ) {
-            orphanSamples.push({ name: n.name, gender: n.gender });
-          }
+          const m = await ctx.db
+            .query('namePopularity')
+            .withIndex('by_name_gender', (q) => q.eq('name', n.name).eq('gender', 'M'))
+            .first();
+          const f = await ctx.db
+            .query('namePopularity')
+            .withIndex('by_name_gender', (q) => q.eq('name', n.name).eq('gender', 'F'))
+            .first();
+          hasAny = m !== null || f !== null;
+        }
+
+        if (!hasAny) {
+          orphanSamples.push({ name: n.name, gender: n.gender });
         }
       }
     }
 
-    const years = Array.from(popularityYearsSet).sort((a, b) => a - b);
-
     return {
-      names: {
-        total: names.length,
-        withRank,
-        withoutRank,
-        rankCoveragePct: names.length > 0 ? Math.round((withRank / names.length) * 1000) / 10 : 0,
-      },
-      popularity: {
-        totalRecords: popularity.length,
-        distinctNames: popularityNamesSet.size,
-        distinctYears: popularityYearsSet.size,
-        earliestYear: years[0] ?? null,
-        latestYear: years[years.length - 1] ?? null,
-      },
+      processed: result.page.length,
+      withRank,
+      withoutRank,
       orphanSamples,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
     };
+  },
+});
+
+// Returns popularity-table coverage stats by checking the index across
+// representative years (1900, 1925, 1950, 1975, 2000, 2023). For each year,
+// counts how many distinct names have at least one record (sampled via take).
+// This avoids a full table scan; gives a rough but actionable picture.
+export const auditPopularityYears = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const sampleYears = [1900, 1925, 1950, 1975, 2000, 2010, 2020, 2023];
+    const perYear: { year: number; recordsTaken: number; topRank: number; bottomRank: number }[] =
+      [];
+
+    for (const year of sampleYears) {
+      const records = await ctx.db
+        .query('namePopularity')
+        .withIndex('by_year_gender', (q) => q.eq('year', year))
+        .take(20000);
+
+      if (records.length === 0) {
+        perYear.push({ year, recordsTaken: 0, topRank: 0, bottomRank: 0 });
+        continue;
+      }
+
+      const ranks = records.map((r) => r.rank).sort((a, b) => a - b);
+      perYear.push({
+        year,
+        recordsTaken: records.length,
+        topRank: ranks[0],
+        bottomRank: ranks[ranks.length - 1],
+      });
+    }
+
+    return { perYear };
   },
 });
 
