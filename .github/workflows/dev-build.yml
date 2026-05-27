@@ -1,10 +1,17 @@
 name: Development build
 
+# Manual dispatch only. The `development-device` profile produces a dev
+# client used for connecting Metro to a physical iPhone — you only need
+# a fresh one when native config changes (app.json plugins, new native
+# deps, etc.). JS-only changes don't require a rebuild. Auto-on-master
+# was burning EAS build credits on every merge.
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or commit SHA to build (defaults to master)"
+        required: false
+        default: "master"
 
 jobs:
   build:
@@ -20,6 +27,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
