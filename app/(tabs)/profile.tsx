@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { trackScreen } from '@/lib/analytics';
+import { Events, resetAnalytics, trackEvent, trackScreen } from '@/lib/analytics';
 import {
   Alert,
   Pressable,
@@ -123,7 +123,10 @@ export default function Profile() {
   const handleSignOut = useCallback(async () => {
     setIsLoading(true);
     try {
+      trackEvent(Events.SIGNED_OUT);
       await signOut();
+      Sentry.setUser(null);
+      resetAnalytics();
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +145,10 @@ export default function Profile() {
             setIsLoading(true);
             try {
               await deleteAccount();
+              trackEvent(Events.ACCOUNT_DELETED);
               await signOut();
+              Sentry.setUser(null);
+              resetAnalytics();
             } catch (error) {
               Sentry.captureException(error);
               Alert.alert('Error', 'Failed to delete account. Please try again.');
@@ -158,6 +164,7 @@ export default function Profile() {
   const handleCopyCode = useCallback(async () => {
     if (partnerInfo?.shareCode) {
       await Clipboard.setStringAsync(partnerInfo.shareCode);
+      trackEvent(Events.PARTNER_CODE_COPIED);
       Alert.alert('Copied', 'Share code copied to clipboard!');
     }
   }, [partnerInfo?.shareCode]);
@@ -168,6 +175,7 @@ export default function Profile() {
         await Share.share({
           message: `Join me on Bambino! Use my partner code: ${partnerInfo.shareCode}`,
         });
+        trackEvent(Events.PARTNER_CODE_SHARED);
       } catch (error) {
         Sentry.captureException(error);
       }
@@ -247,6 +255,7 @@ export default function Profile() {
           onPress: async () => {
             try {
               await unlinkPartner();
+              trackEvent(Events.PARTNER_UNLINKED);
             } catch (error) {
               Sentry.captureException(error);
               Alert.alert('Error', 'Failed to unlink partner. Please try again.');

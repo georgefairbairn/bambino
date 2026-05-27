@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import * as Sentry from '@sentry/react-native';
 
 import { api } from '@/convex/_generated/api';
+import { identifyUser } from '@/lib/analytics';
 
 export function useStoreUser() {
   const { isSignedIn, user } = useUser();
@@ -14,11 +15,20 @@ export function useStoreUser() {
       return;
     }
 
+    const email = user.primaryEmailAddress?.emailAddress ?? '';
+    const name = user.fullName ?? undefined;
+
+    Sentry.setUser({ id: user.id, email });
+    identifyUser(user.id, {
+      ...(email ? { email } : {}),
+      ...(name ? { name } : {}),
+    });
+
     const syncUser = async () => {
       try {
         await createOrUpdateUser({
-          email: user.primaryEmailAddress?.emailAddress ?? '',
-          name: user.fullName ?? undefined,
+          email,
+          name,
           imageUrl: user.imageUrl ?? undefined,
         });
       } catch (error) {

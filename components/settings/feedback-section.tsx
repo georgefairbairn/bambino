@@ -3,6 +3,7 @@ import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAction } from 'convex/react';
+import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
@@ -52,8 +53,9 @@ export function FeedbackSection() {
         setCategory(null);
         setMessage('');
       }, 2000);
-    } catch {
+    } catch (err) {
       setErrorMessage('Something went wrong. Try again.');
+      Sentry.captureException(err, { tags: { flow: 'feedback_submit' } });
     } finally {
       setIsSubmitting(false);
     }

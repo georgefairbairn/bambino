@@ -8,6 +8,7 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import * as Sentry from '@sentry/react-native';
+import { Events, trackEvent } from '@/lib/analytics';
 
 interface Voice {
   identifier: string;
@@ -86,6 +87,7 @@ export function VoiceSettingsSection() {
   const handleSelectVoice = useCallback(
     async (identifier: string | null) => {
       await setVoiceIdentifier(identifier);
+      trackEvent(Events.VOICE_CHANGED, { voice_id: identifier ?? 'system_default' });
       setIsExpanded(false);
     },
     [setVoiceIdentifier],

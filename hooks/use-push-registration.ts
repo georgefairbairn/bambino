@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 
 import { api } from '@/convex/_generated/api';
+import { Events, trackEvent } from '@/lib/analytics';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -41,8 +42,12 @@ export function usePushRegistration() {
         let finalStatus = existingStatus;
 
         if (existingStatus !== 'granted') {
+          trackEvent(Events.PUSH_PERMISSION_REQUESTED);
           const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
+          trackEvent(
+            status === 'granted' ? Events.PUSH_PERMISSION_GRANTED : Events.PUSH_PERMISSION_DENIED,
+          );
         }
 
         if (finalStatus !== 'granted') {

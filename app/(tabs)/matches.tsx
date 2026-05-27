@@ -10,7 +10,7 @@ import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
-import { trackScreen } from '@/lib/analytics';
+import { Events, trackEvent, trackScreen } from '@/lib/analytics';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import {
@@ -135,6 +135,7 @@ export default function Matches() {
           matchId: proposeTarget._id,
           message,
         });
+        trackEvent(Events.PROPOSAL_SENT);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setProposeTarget(null);
       } catch (error) {
@@ -152,6 +153,7 @@ export default function Matches() {
         matchId: pendingProposal._id,
         accept: true,
       });
+      trackEvent(Events.PROPOSAL_ACCEPTED);
       setCelebrationName(pendingProposal.name?.name ?? '');
       setShowCelebration(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -170,6 +172,7 @@ export default function Matches() {
           accept: false,
           message,
         });
+        trackEvent(Events.PROPOSAL_DECLINED);
         setShowDeclineSheet(false);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (error) {
@@ -192,6 +195,7 @@ export default function Matches() {
             onPress: async () => {
               try {
                 await withdrawProposalMutation({ matchId });
+                trackEvent(Events.PROPOSAL_WITHDRAWN);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               } catch (error) {
                 Sentry.captureException(error);
