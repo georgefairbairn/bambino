@@ -290,23 +290,33 @@ export const getNamePopularitySummary = query({
     gender: v.string(),
   },
   handler: async (ctx, args) => {
-    // Map app gender to SSA gender format
-    const ssaGender = args.gender === 'male' ? 'M' : args.gender === 'female' ? 'F' : null;
-
-    if (!ssaGender) {
-      return {
-        currentRank: null,
-        trend: null as 'rising' | 'falling' | 'steady' | null,
-        peakYear: null as number | null,
-        peakRank: null as number | null,
-        sparklinePoints: [] as number[],
-      };
+    // Determine which SSA gender(s) to query. For 'male'/'female' it's a
+    // direct mapping. For 'neutral' (or any other value), fetch both M and F
+    // and pick the series whose most recent record is more recent — matches
+    // the backfill logic so currentRank and the sparkline come from the
+    // same gender that update-ranks chose.
+    async function fetchByGender(g: 'M' | 'F') {
+      return ctx.db
+        .query('namePopularity')
+        .withIndex('by_name_gender', (q) => q.eq('name', args.name).eq('gender', g))
+        .collect();
     }
 
-    const records = await ctx.db
-      .query('namePopularity')
-      .withIndex('by_name_gender', (q) => q.eq('name', args.name).eq('gender', ssaGender))
-      .collect();
+    let records: Awaited<ReturnType<typeof fetchByGender>>;
+    if (args.gender === 'male') {
+      records = await fetchByGender('M');
+    } else if (args.gender === 'female') {
+      records = await fetchByGender('F');
+    } else {
+      const m = await fetchByGender('M');
+      const f = await fetchByGender('F');
+      const mLatest = m.reduce((y, r) => Math.max(y, r.year), -Infinity);
+      const fLatest = f.reduce((y, r) => Math.max(y, r.year), -Infinity);
+      // Tiebreaker: more records wins (broader history)
+      if (mLatest > fLatest) records = m;
+      else if (fLatest > mLatest) records = f;
+      else records = m.length >= f.length ? m : f;
+    }
 
     if (records.length === 0) {
       return {
@@ -346,11 +356,11 @@ export const getNamePopularitySummary = query({
     const maxRank = Math.max(...last10.map((r) => r.rank));
     const sparklinePoints = last10.map((r) => maxRank - r.rank + 1);
 
-    // Get the highest rank for this gender in the most recent year (1 record via index)
+    // Get the highest rank for the chosen gender in the most recent year (1 record via index)
     const highestRankRecord = await ctx.db
       .query('namePopularity')
       .withIndex('by_year_gender_rank', (q) =>
-        q.eq('year', mostRecent.year).eq('gender', ssaGender),
+        q.eq('year', mostRecent.year).eq('gender', mostRecent.gender),
       )
       .order('desc')
       .first();
