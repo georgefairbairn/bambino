@@ -202,7 +202,7 @@ export const seedAppReviewDemo = internalMutation({
     //    partner via getEffectivePremiumStatus.)
     await ctx.db.patch(reviewer._id, {
       partnerId: partner._id,
-      name: 'Bambino User',
+      name: 'Sam',
       nameConfirmed: true,
       isPremium: true,
       purchasedAt: now,
@@ -211,7 +211,7 @@ export const seedAppReviewDemo = internalMutation({
     });
     await ctx.db.patch(partner._id, {
       partnerId: reviewer._id,
-      name: 'Bambino Partner',
+      name: 'Alex',
       nameConfirmed: true,
       isPremium: true,
       purchasedAt: now,
