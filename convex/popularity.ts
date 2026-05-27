@@ -111,6 +111,105 @@ export const updateNamesWithCurrentRank = internalMutation({
   },
 });
 
+// Backfill currentRank for names that have no rank yet — uses each name's
+// most recent year of popularity data as a fallback. Run AFTER
+// updateNamesWithCurrentRank for the target year, so this only touches
+// names that didn't have a record in that year (e.g. names popular in
+// 1950 but no longer in the SSA top list).
+//
+// Records primaryGender for neutral names based on which gender's record
+// is more recent (or higher-ranked if tied on year).
+export const backfillCurrentRankFromMostRecent = internalMutation({
+  args: {
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 500;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    let updated = 0;
+    let alreadyRanked = 0;
+    let stillRankless = 0;
+
+    for (const name of result.page) {
+      if (name.currentRank !== undefined && name.currentRank !== null) {
+        alreadyRanked++;
+        continue;
+      }
+
+      async function mostRecentForGender(g: 'M' | 'F') {
+        const records = await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', g))
+          .collect();
+        if (records.length === 0) return null;
+        // Pick highest year; tiebreaker = lower rank (more popular).
+        return records.reduce((best, r) => {
+          if (r.year > best.year) return r;
+          if (r.year === best.year && r.rank < best.rank) return r;
+          return best;
+        });
+      }
+
+      if (name.gender === 'neutral') {
+        const mr = await mostRecentForGender('M');
+        const fr = await mostRecentForGender('F');
+        if (!mr && !fr) {
+          stillRankless++;
+          continue;
+        }
+        // Prefer the gender with the more recent record, then better rank
+        let chosen: { rank: number; year: number } | null = null;
+        let chosenGender: 'male' | 'female' = 'male';
+        if (mr && fr) {
+          if (mr.year > fr.year || (mr.year === fr.year && mr.rank <= fr.rank)) {
+            chosen = mr;
+            chosenGender = 'male';
+          } else {
+            chosen = fr;
+            chosenGender = 'female';
+          }
+        } else if (mr) {
+          chosen = mr;
+          chosenGender = 'male';
+        } else if (fr) {
+          chosen = fr;
+          chosenGender = 'female';
+        }
+        if (chosen) {
+          await ctx.db.patch(name._id, {
+            currentRank: chosen.rank,
+            primaryGender: chosenGender,
+          });
+          updated++;
+        }
+        continue;
+      }
+
+      const ssaGender = name.gender === 'male' ? 'M' : 'F';
+      const fallback = await mostRecentForGender(ssaGender);
+      if (fallback) {
+        await ctx.db.patch(name._id, { currentRank: fallback.rank });
+        updated++;
+      } else {
+        stillRankless++;
+      }
+    }
+
+    return {
+      processed: result.page.length,
+      updated,
+      alreadyRanked,
+      stillRankless,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
 export const getNamePopularity = query({
   args: {
     name: v.string(),
