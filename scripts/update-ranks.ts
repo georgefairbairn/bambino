@@ -20,8 +20,11 @@ function runWithRetry(command: string): string {
 async function updateRanks() {
   const yearArg = process.argv.find((a) => a.startsWith('--year='));
   const year = yearArg ? parseInt(yearArg.split('=')[1], 10) : 2023;
+  const prod = process.argv.includes('--prod');
+  const deploymentFlag = prod ? ' --prod' : '';
+  const target = prod ? 'PRODUCTION' : 'dev';
 
-  console.log(`Updating names with current rank for ${year}...`);
+  console.log(`Updating names with current rank for ${year} on ${target}...`);
 
   let totalUpdated = 0;
   let totalProcessed = 0;
@@ -36,7 +39,7 @@ async function updateRanks() {
 
     try {
       const output = runWithRetry(
-        `npx convex run popularity:updateNamesWithCurrentRank '${JSON.stringify(argsObj)}'`,
+        `npx convex run popularity:updateNamesWithCurrentRank${deploymentFlag} '${JSON.stringify(argsObj)}'`,
       );
       const result = JSON.parse(output.trim());
       totalUpdated += result.updated;
