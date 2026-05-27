@@ -196,17 +196,20 @@ export const seedAppReviewDemo = internalMutation({
 
     const now = Date.now();
 
-    // 1. Link as partners
-    await ctx.db.patch(reviewer._id, { partnerId: partner._id, updatedAt: now });
-    await ctx.db.patch(partner._id, { partnerId: reviewer._id, updatedAt: now });
-
-    // Confirm names so the partner-action gate doesn't pop the modal for the reviewer
-    if (reviewer.nameConfirmed !== true) {
-      await ctx.db.patch(reviewer._id, { nameConfirmed: true });
-    }
-    if (partner.nameConfirmed !== true) {
-      await ctx.db.patch(partner._id, { nameConfirmed: true });
-    }
+    // 1. Link as partners + set display names so neither side sees the
+    //    "Bambino User" fallback in the partner section.
+    await ctx.db.patch(reviewer._id, {
+      partnerId: partner._id,
+      name: 'Bambino User',
+      nameConfirmed: true,
+      updatedAt: now,
+    });
+    await ctx.db.patch(partner._id, {
+      partnerId: reviewer._id,
+      name: 'Bambino Partner',
+      nameConfirmed: true,
+      updatedAt: now,
+    });
 
     // 2. Pick popular names from the seeded names table.
     // Mutual likes (both like → match): 8 names
