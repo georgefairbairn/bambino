@@ -173,6 +173,72 @@ export const linkUsers = internalMutation({
   },
 });
 
+// Diagnoses the state of name + popularity data. Returns:
+// - total names
+// - names with a currentRank set / missing
+// - total popularity records
+// - distinct names covered by popularity
+// - distinct years covered
+// - sample of 5 names that have NO popularity records at all (orphans in names but not namePopularity)
+export const auditPopularityData = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const names = await ctx.db.query('names').collect();
+    const popularity = await ctx.db.query('namePopularity').collect();
+
+    const popularityNamesSet = new Set<string>(popularity.map((p) => `${p.name}::${p.gender}`));
+    const popularityYearsSet = new Set<number>(popularity.map((p) => p.year));
+
+    let withRank = 0;
+    let withoutRank = 0;
+    const orphanSamples: { name: string; gender: string }[] = [];
+
+    for (const n of names) {
+      if (n.currentRank !== undefined && n.currentRank !== null) {
+        withRank++;
+      } else {
+        withoutRank++;
+      }
+
+      if (orphanSamples.length < 5) {
+        const ssaGender = n.gender === 'male' ? 'M' : n.gender === 'female' ? 'F' : null;
+        if (ssaGender) {
+          if (!popularityNamesSet.has(`${n.name}::${ssaGender}`)) {
+            orphanSamples.push({ name: n.name, gender: n.gender });
+          }
+        } else {
+          // neutral — orphan only if BOTH M and F are missing
+          if (
+            !popularityNamesSet.has(`${n.name}::M`) &&
+            !popularityNamesSet.has(`${n.name}::F`)
+          ) {
+            orphanSamples.push({ name: n.name, gender: n.gender });
+          }
+        }
+      }
+    }
+
+    const years = Array.from(popularityYearsSet).sort((a, b) => a - b);
+
+    return {
+      names: {
+        total: names.length,
+        withRank,
+        withoutRank,
+        rankCoveragePct: names.length > 0 ? Math.round((withRank / names.length) * 1000) / 10 : 0,
+      },
+      popularity: {
+        totalRecords: popularity.length,
+        distinctNames: popularityNamesSet.size,
+        distinctYears: popularityYearsSet.size,
+        earliestYear: years[0] ?? null,
+        latestYear: years[years.length - 1] ?? null,
+      },
+      orphanSamples,
+    };
+  },
+});
+
 // Seeds two demo accounts with partner link + matches + a pending proposal so
 // App Review sees a fully-populated app. Idempotent: running twice will not
 // double-seed or create duplicate selections.
