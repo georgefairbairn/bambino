@@ -43,6 +43,15 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
   const chartOpacity = useRef(new Animated.Value(1)).current;
   const isFirstLoad = useRef(true);
   const cachedData = useRef<{ year: number; rank: number; count: number }[]>([]);
+  // Tracks whether we've auto-widened the range for this name because the
+  // narrower default returned no data. Prevents fighting the user if they
+  // later choose a narrow range manually.
+  const hasAutoExpanded = useRef(false);
+
+  // Reset auto-expand state when the name changes
+  useEffect(() => {
+    hasAutoExpanded.current = false;
+  }, [name]);
 
   const startYear = getStartYear(yearRange);
 
@@ -52,6 +61,20 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
     startYear,
     endYear: END_YEAR,
   });
+
+  // If the default narrow window returned nothing, auto-widen to 'all' once
+  // so names whose data ends before the 50-year window still show a chart.
+  useEffect(() => {
+    if (
+      !hasAutoExpanded.current &&
+      popularityData !== undefined &&
+      popularityData.length === 0 &&
+      yearRange !== 'all'
+    ) {
+      hasAutoExpanded.current = true;
+      setYearRange('all');
+    }
+  }, [popularityData, yearRange]);
 
   // Cache the latest valid data so we can keep rendering during transitions
   if (popularityData !== undefined && popularityData.length > 0) {
@@ -155,9 +178,21 @@ export function PopularityChart({ name, gender }: PopularityChartProps) {
   const chartWidth = 280;
   const spacing = chartData.length > 1 ? chartWidth / (chartData.length - 1) : chartWidth;
 
+  // If we auto-expanded because the narrow window was empty, surface a
+  // subtitle so the user understands why they're seeing older data.
+  const latestDataYear = data[data.length - 1]?.year;
+  const showAutoExpandSubtitle =
+    hasAutoExpanded.current &&
+    yearRange === 'all' &&
+    latestDataYear !== undefined &&
+    latestDataYear < END_YEAR - 19;
+
   return (
     <View style={[styles.container, { backgroundColor: themeColors.surfaceSubtle }]}>
       <Text style={styles.title}>Popularity Over Time</Text>
+      {showAutoExpandSubtitle ? (
+        <Text style={styles.subtitle}>Most recent data: {latestDataYear}</Text>
+      ) : null}
 
       <YearRangeSelector selected={yearRange} onSelect={setYearRange} />
 
@@ -236,6 +271,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 11,
+    color: '#A89BB5',
+    textAlign: 'center',
+    marginTop: -8,
   },
   chartArea: {
     height: CHART_HEIGHT + 70,

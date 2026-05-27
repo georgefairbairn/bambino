@@ -26,11 +26,13 @@ const START_YEAR = END_YEAR - YEARS_TO_SHOW + 1;
 
 export function SparklineChart({ name, gender }: SparklineChartProps) {
   const { colors } = useTheme();
+  // Fetch all popularity data, then prefer the last 20 years client-side.
+  // For names whose data ends before the recent window (e.g. 1950s only),
+  // fall back to using all data so the sparkline isn't blank. Slightly more
+  // data over the wire, but avoids a follow-up query / loading flicker.
   const popularityData = useQuery(api.popularity.getNamePopularity, {
     name,
     gender,
-    startYear: START_YEAR,
-    endYear: END_YEAR,
   });
 
   // Don't render for neutral gender
@@ -56,13 +58,17 @@ export function SparklineChart({ name, gender }: SparklineChartProps) {
     );
   }
 
+  // Prefer last 20 years if any data lands there; otherwise show full history.
+  const recent = popularityData.filter((d) => d.year >= START_YEAR);
+  const seriesSource = recent.length > 0 ? recent : popularityData;
+
   const lineColor = GENDER_COLORS[gender];
 
   // Find max rank for inverting (so rank 1 appears at top)
-  const maxRank = Math.max(...popularityData.map((d) => d.rank));
+  const maxRank = Math.max(...seriesSource.map((d) => d.rank));
 
   // Transform data - invert rank so lower rank appears higher
-  const chartData = popularityData.map((d) => ({
+  const chartData = seriesSource.map((d) => ({
     value: maxRank - d.rank + 1,
   }));
 
