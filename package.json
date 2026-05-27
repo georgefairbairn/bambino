@@ -14,6 +14,7 @@
     "seed:popularity": "npx tsx scripts/seed-popularity.ts",
     "update:ranks": "npx tsx scripts/update-ranks.ts",
     "backfill:ranks": "npx tsx scripts/backfill-ranks.ts",
+    "backfill:tiers": "npx tsx scripts/backfill-popularity-tiers.ts",
     "extract-names": "npx tsx scripts/extract-ssa-names.ts",
     "enrich-names": "npx tsx scripts/enrich-names.ts"
   },

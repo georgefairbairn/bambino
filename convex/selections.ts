@@ -180,6 +180,13 @@ export const recordSelection = mutation({
   },
 });
 
+// Tier-ordered swipe queue: surfaces popular names first, falls back to
+// progressively less popular tiers as the user swipes through the top pool.
+// Within each tier results are randomly ordered (sortKey shuffle, walking
+// from randomSeed forward then wrapping). Names with no popularityTier
+// (unranked) are deprioritized to the very end.
+const TIER_ORDER = [0, 1, 2] as const;
+
 export const getSwipeQueue = query({
   args: {
     limit: v.optional(v.number()),
@@ -203,33 +210,47 @@ export const getSwipeQueue = query({
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
     const originSet = originFilter && originFilter.length > 0 ? new Set(originFilter) : null;
 
-    const buildQuery = (startKey: number) =>
+    const buildTierQuery = (tier: number, startKey: number) =>
       genderValue !== null
         ? ctx.db
             .query('names')
-            .withIndex('by_gender_sort_key', (q) =>
-              q.eq('gender', genderValue).gte('sortKey', startKey),
+            .withIndex('by_gender_tier_sort_key', (q) =>
+              q.eq('gender', genderValue).eq('popularityTier', tier).gte('sortKey', startKey),
             )
-        : ctx.db.query('names').withIndex('by_sort_key', (q) => q.gte('sortKey', startKey));
+        : ctx.db
+            .query('names')
+            .withIndex('by_tier_sort_key', (q) =>
+              q.eq('popularityTier', tier).gte('sortKey', startKey),
+            );
 
     const results: Doc<'names'>[] = [];
+    const seen = new Set<string>();
 
-    // First pass: from randomSeed to end
-    for await (const name of buildQuery(args.randomSeed)) {
-      if (results.length >= limit) break;
-      if (swipedNameIds.has(name._id)) continue;
-      if (originSet && !originSet.has(name.origin)) continue;
+    function accept(name: Doc<'names'>): boolean {
+      if (results.length >= limit) return false;
+      if (seen.has(name._id)) return false;
+      if (swipedNameIds.has(name._id)) return false;
+      if (originSet && !originSet.has(name.origin)) return false;
+      seen.add(name._id);
       results.push(name);
+      return true;
     }
 
-    // Wrap around: from 0 to randomSeed if we need more
-    if (results.length < limit) {
-      for await (const name of buildQuery(0)) {
-        if (results.length >= limit) break;
+    // Walk each tier in order. Within a tier, scan from randomSeed forward
+    // then wrap around to 0..randomSeed. Stop as soon as we hit `limit`.
+    for (const tier of TIER_ORDER) {
+      if (results.length >= limit) break;
+
+      // First pass: randomSeed → end of tier
+      for await (const name of buildTierQuery(tier, args.randomSeed)) {
+        if (!accept(name) && results.length >= limit) break;
+      }
+      if (results.length >= limit) break;
+
+      // Wrap: 0 → randomSeed
+      for await (const name of buildTierQuery(tier, 0)) {
         if (name.sortKey >= args.randomSeed) break;
-        if (swipedNameIds.has(name._id)) continue;
-        if (originSet && !originSet.has(name.origin)) continue;
-        results.push(name);
+        if (!accept(name) && results.length >= limit) break;
       }
     }
 
