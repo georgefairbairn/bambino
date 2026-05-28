@@ -1,12 +1,11 @@
 name: Production build + TestFlight submit
 
+# Manual dispatch only. Builds the production profile and submits the
+# resulting build to TestFlight. Add release notes manually in App Store
+# Connect after submission — the `--what-to-test` flag requires the EAS
+# Enterprise plan, so we don't pass it here.
 on:
-  workflow_dispatch:
-    inputs:
-      what_to_test:
-        description: "What to test (shown in TestFlight release notes)"
-        required: false
-        default: ""
+  workflow_dispatch: {}
 
 jobs:
   build-and-submit:
@@ -44,9 +43,4 @@ jobs:
         run: eas build --platform ios --profile production --non-interactive --wait
 
       - name: Submit to TestFlight
-        run: |
-          if [ -n "${{ github.event.inputs.what_to_test }}" ]; then
-            eas submit --platform ios --latest --non-interactive --what-to-test "${{ github.event.inputs.what_to_test }}"
-          else
-            eas submit --platform ios --latest --non-interactive
-          fi
+        run: eas submit --platform ios --latest --non-interactive
