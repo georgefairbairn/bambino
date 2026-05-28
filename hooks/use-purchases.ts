@@ -18,17 +18,16 @@ export function usePurchases() {
 
   useEffect(() => {
     async function init() {
-      if (!REVENUECAT_API_KEY || isConfigured) {
+      if (!REVENUECAT_API_KEY) {
         setIsLoading(false);
         return;
       }
 
       try {
-        if (__DEV__) {
-          Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-        }
-
-        if (Platform.OS === 'ios') {
+        if (!isConfigured && Platform.OS === 'ios') {
+          if (__DEV__) {
+            Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+          }
           Purchases.configure({ apiKey: REVENUECAT_API_KEY });
           isConfigured = true;
         }
