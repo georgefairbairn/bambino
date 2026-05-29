@@ -49,6 +49,9 @@ interface SwipeCardProps {
   onDetailPress?: () => void;
   swipeEnabled?: boolean;
   detailOpen?: boolean;
+  /** Override the default card height. Used when accessibility buttons need
+   *  vertical space below the card. */
+  cardHeight?: number;
 }
 
 // Gender-based underline colors
@@ -91,6 +94,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     onDetailPress,
     swipeEnabled = true,
     detailOpen = false,
+    cardHeight,
   },
   ref,
 ) {
@@ -365,6 +369,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
         style={[
           styles.card,
           { borderColor: colors.primary },
+          cardHeight !== undefined && { height: cardHeight },
           isTop && cardAnimatedStyle,
           isTop && cardBorderStyle,
           { zIndex: isTop ? 2 : 1 },

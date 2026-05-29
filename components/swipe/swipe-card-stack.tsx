@@ -7,6 +7,7 @@ import { trackEvent, Events } from '@/lib/analytics';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
+import { SwipeActionButtons, SWIPE_ACTION_BUTTONS_HEIGHT } from './swipe-action-buttons';
 import { EmptyState } from './empty-state';
 import { MatchToast } from '@/components/matches/match-toast';
 import { ErrorToast } from '@/components/ui/error-toast';
@@ -15,6 +16,7 @@ import { Paywall } from '@/components/paywall';
 import { PushPrimingSheet } from '@/components/push/push-priming-sheet';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
+import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 import { usePushPriming } from '@/hooks/use-push-priming';
 import { usePushRequestPermission } from '@/hooks/use-push-registration';
 
@@ -49,6 +51,7 @@ export function SwipeCardStack() {
 
   const { shouldPrime, markAsked, markDismissed } = usePushPriming();
   const requestPermission = usePushRequestPermission();
+  const { needsButtons, reduceMotion } = useA11yPreferences();
 
   // Sync server queue to local state (only when server data arrives)
   useEffect(() => {
@@ -133,9 +136,10 @@ export function SwipeCardStack() {
             key={name._id}
             name={name}
             isTop={index === 0}
-            showSwipeHint={hintEligible}
-            swipeEnabled={!showDetailModal}
+            showSwipeHint={hintEligible && !needsButtons}
+            swipeEnabled={!showDetailModal && !needsButtons}
             detailOpen={showDetailModal}
+            cardHeight={needsButtons ? CARD_HEIGHT_FULL - SWIPE_ACTION_BUTTONS_HEIGHT : undefined}
             onSwipeHintShown={() => setHintEligible(false)}
             onSwipeHintReset={() => setHintEligible(true)}
             onSwipeLeft={() => handleSelection('reject')}
@@ -144,6 +148,17 @@ export function SwipeCardStack() {
           />
         ))}
       </View>
+
+      {/* Accessibility-only Pass/Like buttons — pan gesture conflicts with
+          VoiceOver, and Reduce Motion users may also prefer explicit taps (#162). */}
+      {needsButtons && (
+        <SwipeActionButtons
+          onLike={() => handleSelection('like')}
+          onNope={() => handleSelection('reject')}
+          disabled={localQueue.length === 0}
+          reduceMotion={reduceMotion}
+        />
+      )}
 
       {/* Subsequent match toast */}
       <MatchToast

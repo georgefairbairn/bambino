@@ -1,19 +1,28 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 interface SwipeActionButtonsProps {
   onLike: () => void;
   onNope: () => void;
   disabled?: boolean;
+  /** When true, skip the FadeInUp entrance — respects user's Reduce Motion setting. */
+  reduceMotion?: boolean;
 }
 
-export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeActionButtonsProps) {
-  const { colors } = useTheme();
+export function SwipeActionButtons({
+  onLike,
+  onNope,
+  disabled = false,
+  reduceMotion = false,
+}: SwipeActionButtonsProps) {
+  const { colors, gradients } = useTheme();
+
   return (
     <Animated.View
-      entering={FadeInUp.delay(200).duration(400).springify()}
+      entering={reduceMotion ? undefined : FadeInUp.delay(200).duration(400).springify()}
       style={styles.container}
     >
       <Pressable
@@ -21,15 +30,11 @@ export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeAc
         disabled={disabled}
         accessibilityLabel="Pass"
         accessibilityRole="button"
-        style={({ pressed }) => [
-          styles.button,
-          { shadowColor: colors.secondary },
-          styles.dislikeButton,
-          pressed && styles.buttonPressed,
-          disabled && { borderColor: colors.border, backgroundColor: colors.surfaceSubtle },
-        ]}
+        style={[styles.button, disabled && styles.disabled]}
       >
-        <Ionicons name="heart-dislike" size={32} color={disabled ? '#FFD4E0' : '#FF8FAB'} />
+        <View style={[styles.secondaryButton, { borderColor: colors.primary }]}>
+          <Text style={[styles.secondaryText, { color: colors.primary }]}>Pass</Text>
+        </View>
       </Pressable>
 
       <Pressable
@@ -37,51 +42,71 @@ export function SwipeActionButtons({ onLike, onNope, disabled = false }: SwipeAc
         disabled={disabled}
         accessibilityLabel="Like"
         accessibilityRole="button"
-        style={({ pressed }) => [
-          styles.button,
-          { shadowColor: colors.secondary },
-          styles.likeButton,
-          pressed && styles.buttonPressed,
-          disabled && { borderColor: colors.border, backgroundColor: colors.surfaceSubtle },
-        ]}
+        style={[styles.button, disabled && styles.disabled]}
       >
-        <Ionicons name="heart" size={32} color={disabled ? '#B4EAD0' : '#6DD5A0'} />
+        <LinearGradient
+          colors={[...gradients.buttonPrimary]}
+          style={[styles.gradient, { shadowColor: colors.primary }]}
+        >
+          {disabled ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Text style={styles.gradientText}>Like</Text>
+          )}
+        </LinearGradient>
       </Pressable>
     </Animated.View>
   );
 }
 
+// Approximate height the row takes when rendered. Used by callers to
+// reserve vertical space (e.g. shrink the card so this fits below).
+export const SWIPE_ACTION_BUTTONS_HEIGHT = 80;
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 40,
-    paddingVertical: 24,
+    gap: 12,
     paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   button: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    flex: 1,
+  },
+  gradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOpacity: 0.1,
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
   },
-  dislikeButton: {
-    backgroundColor: '#fff',
-    borderWidth: 3,
-    borderColor: '#FF8FAB',
+  gradientText: {
+    fontSize: 16,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+    color: '#ffffff',
   },
-  likeButton: {
-    backgroundColor: '#fff',
-    borderWidth: 3,
-    borderColor: '#6DD5A0',
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
   },
-  buttonPressed: {
-    transform: [{ scale: 0.92 }],
+  secondaryText: {
+    fontSize: 16,
+    fontFamily: Fonts?.sans,
+    fontWeight: '600',
+  },
+  disabled: {
+    opacity: 0.6,
   },
 });
