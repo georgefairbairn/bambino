@@ -38,7 +38,7 @@ export function DeclineSheet({ visible, nameName, onDecline, onClose }: DeclineS
       <View style={styles.content}>
         <View style={styles.handleBar} />
 
-        <Text style={styles.title}>Decline "{nameName}"?</Text>
+        <Text style={styles.title}>Decline &ldquo;{nameName}&rdquo;?</Text>
         <Text style={styles.subtitle}>
           Your partner will be notified. You can both propose again anytime.
         </Text>
