@@ -9,7 +9,7 @@ import { usePushRegistration } from '@/hooks/use-push-registration';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
 import { OnboardingScreens } from '@/components/onboarding';
-import { GradientBackground } from '@/components/ui/gradient-background';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 export default function TabsLayout() {
   const { isSignedIn } = useAuth();
@@ -26,10 +26,12 @@ export default function TabsLayout() {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  // Wait silently for onboarding check (near-instant from AsyncStorage).
-  // The root AuthGate loading screen covers this during initial app launch.
+  // Wait for the Convex user query to resolve. On a fresh launch the root
+  // AuthGate already showed the loading animation; for sign-out + sign-in
+  // on the same device we render the Bambino loading screen so the user
+  // sees a clear "still loading" signal instead of a blank gradient.
   if (isOnboardingLoading) {
-    return <GradientBackground>{null}</GradientBackground>;
+    return <LoadingScreen isLoading />;
   }
 
   // Show onboarding for new users

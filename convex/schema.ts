@@ -11,6 +11,11 @@ export default defineSchema({
     purchasedAt: v.optional(v.number()),
     premiumRevokedAt: v.optional(v.number()),
     nameConfirmed: v.optional(v.boolean()),
+    // True once the user has completed the in-app onboarding carousel.
+    // Stored per-account (not AsyncStorage) so a sign-out + sign-in on
+    // the same device doesn't re-trigger onboarding, and a fresh device
+    // doesn't skip it. (#154)
+    onboardingCompleted: v.optional(v.boolean()),
     shareCode: v.optional(v.string()),
     partnerId: v.optional(v.id('users')),
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),

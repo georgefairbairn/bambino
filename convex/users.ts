@@ -228,16 +228,52 @@ export const deleteAccount = mutation({
   },
 });
 
+// Expo push tokens are always of the form "ExponentPushToken[<base64-ish>]".
+// Anything else is either a different gateway's token (FCM, APNs raw) or
+// garbage from a malicious caller. Reject up front (#172).
+const EXPO_PUSH_TOKEN_REGEX = /^ExponentPushToken\[[A-Za-z0-9_-]+\]$/;
+
 export const setPushToken = mutation({
   args: {
     token: v.string(),
     platform: v.union(v.literal('ios'), v.literal('android')),
   },
   handler: async (ctx, args) => {
+    if (!EXPO_PUSH_TOKEN_REGEX.test(args.token)) {
+      throw new Error('Invalid push token format');
+    }
     const user = await getCurrentUserOrThrow(ctx);
     await ctx.db.patch(user._id, {
       pushToken: args.token,
       pushTokenPlatform: args.platform,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Mark or unmark this user's onboarding as completed. Stored on the user
+ *  row rather than AsyncStorage so it survives sign-out/sign-in on the
+ *  same device and doesn't leak across accounts on shared devices (#154). */
+export const setOnboardingCompleted = mutation({
+  args: { completed: v.boolean() },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    await ctx.db.patch(user._id, {
+      onboardingCompleted: args.completed,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Drop the device's push token from this user's row. Called on sign-out
+ *  to prevent cross-user notifications on shared devices (#172). */
+export const clearPushToken = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    await ctx.db.patch(user._id, {
+      pushToken: undefined,
+      pushTokenPlatform: undefined,
       updatedAt: Date.now(),
     });
   },

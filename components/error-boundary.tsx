@@ -9,6 +9,11 @@ import { useTheme } from '@/contexts/theme-context';
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** When true, the fallback uses the active theme via useTheme(). Only safe
+   *  when this boundary is mounted INSIDE ThemeProvider. The outermost
+   *  boundary must NOT set this — if ThemeProvider itself errored, useTheme
+   *  would throw and the fallback would crash again. (#153) */
+  themed?: boolean;
 }
 
 interface State {
@@ -39,15 +44,51 @@ export class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) {
         return this.props.fallback;
       }
-
-      return <ErrorFallback onRetry={this.handleRetry} />;
+      return this.props.themed ? (
+        <ThemedErrorFallback onRetry={this.handleRetry} />
+      ) : (
+        <BareErrorFallback onRetry={this.handleRetry} />
+      );
     }
 
     return this.props.children;
   }
 }
 
-function ErrorFallback({ onRetry }: { onRetry: () => void }) {
+// Hardcoded styling — no provider deps. Safe to render even if Theme,
+// Clerk, or Convex providers are the cause of the crash. Used as the
+// outermost fallback (#153).
+const FALLBACK_BG = '#FFF8E7';
+const FALLBACK_PRIMARY = '#F5C84B';
+const FALLBACK_PRIMARY_DARK = '#E8A93B';
+const FALLBACK_ACCENT_LIGHT = '#FCE9B6';
+const FALLBACK_TEXT_DARK = '#2D1B4E';
+const FALLBACK_TEXT_MUTED = '#6B5B7B';
+
+function BareErrorFallback({ onRetry }: { onRetry: () => void }) {
+  return (
+    <View style={[styles.container, { backgroundColor: FALLBACK_BG }]}>
+      <View style={[styles.iconContainer, { backgroundColor: FALLBACK_ACCENT_LIGHT }]}>
+        <Ionicons name="heart-half-outline" size={56} color={FALLBACK_PRIMARY} />
+      </View>
+      <Text style={[styles.title, { color: FALLBACK_TEXT_DARK }]}>Oops!</Text>
+      <Text style={[styles.message, { color: FALLBACK_TEXT_MUTED }]}>
+        Something didn&apos;t go as planned.{'\n'}A quick refresh should fix things up.
+      </Text>
+      <Pressable
+        style={({ pressed }) => [styles.retryButton, { opacity: pressed ? 0.85 : 1 }]}
+        onPress={onRetry}
+      >
+        <View style={[styles.retryButtonGradient, { backgroundColor: FALLBACK_PRIMARY_DARK }]}>
+          <Ionicons name="refresh-outline" size={20} color="#fff" />
+          <Text style={styles.retryText}>Refresh</Text>
+        </View>
+      </Pressable>
+    </View>
+  );
+}
+
+function ThemedErrorFallback({ onRetry }: { onRetry: () => void }) {
   const { colors, gradients } = useTheme();
 
   return (
@@ -55,8 +96,8 @@ function ErrorFallback({ onRetry }: { onRetry: () => void }) {
       <View style={[styles.iconContainer, { backgroundColor: colors.primaryLight }]}>
         <Ionicons name="heart-half-outline" size={56} color={colors.primary} />
       </View>
-      <Text style={styles.title}>Oops!</Text>
-      <Text style={styles.message}>
+      <Text style={[styles.title, { color: '#2D1B4E' }]}>Oops!</Text>
+      <Text style={[styles.message, { color: '#6B5B7B' }]}>
         Something didn&apos;t go as planned.{'\n'}A quick refresh should fix things up.
       </Text>
       <Pressable
@@ -96,13 +137,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
-    color: '#2D1B4E',
     textAlign: 'center',
   },
   message: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 24,
   },

@@ -1,7 +1,7 @@
 import '@/global.css';
 
 import * as Sentry from '@sentry/react-native';
-import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { AlfaSlabOne_400Regular } from '@expo-google-fonts/alfa-slab-one';
 import {
@@ -85,30 +85,29 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <ThemeProvider>
-          <ErrorBoundary>
-            <AuthGate>
-              <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-                <SkinToneProvider>
-                  <VoiceSettingsProvider>
-                    <OnboardingProvider>
-                      <OfflineBanner />
-                      <Slot />
-                    </OnboardingProvider>
-                  </VoiceSettingsProvider>
-                </SkinToneProvider>
-              </ConvexProviderWithClerk>
-            </AuthGate>
-          </ErrorBoundary>
-        </ThemeProvider>
-      </ClerkProvider>
+      {/* Outermost boundary — uses BareErrorFallback (no provider deps) so a
+          crash in ClerkProvider/ThemeProvider itself can still render (#153). */}
+      <ErrorBoundary>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <ThemeProvider>
+            {/* Inner themed boundary — when this catches, ThemeProvider is
+                alive, so the fallback can use the user's theme (#153). */}
+            <ErrorBoundary themed>
+              <AuthGate>
+                <OfflineBanner />
+                <Slot />
+              </AuthGate>
+            </ErrorBoundary>
+          </ThemeProvider>
+        </ClerkProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoaded } = useAuth();
+  const { user } = useUser();
   const { isLoading: themeLoading } = useTheme();
   const [animationDone, setAnimationDone] = useState(false);
 
@@ -126,5 +125,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     return <LoadingScreen isLoading={!isLoaded} onFinished={() => setAnimationDone(true)} />;
   }
 
-  return <>{children}</>;
+  // Key the Convex provider + the user-scoped contexts on Clerk's user.id.
+  // When A signs out and B signs in, this unmounts in-flight Convex
+  // subscriptions and resets in-memory provider state so B can't see a
+  // flash of A's data or inherit A's onboarding flag (#154, #175).
+  return (
+    <ConvexProviderWithClerk key={user?.id ?? 'anonymous'} client={convex} useAuth={useAuth}>
+      <SkinToneProvider>
+        <VoiceSettingsProvider>
+          <OnboardingProvider>{children}</OnboardingProvider>
+        </VoiceSettingsProvider>
+      </SkinToneProvider>
+    </ConvexProviderWithClerk>
+  );
 }

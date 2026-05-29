@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sentry from '@sentry/react-native';
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Events, resetAnalytics, trackEvent, trackScreen } from '@/lib/analytics';
@@ -99,6 +100,7 @@ export default function Profile() {
     gracePeriodEndsAt,
   } = useEffectivePremium();
   const deleteAccount = useMutation(api.users.deleteAccount);
+  const clearPushToken = useMutation(api.users.clearPushToken);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
   const regenerateShareCode = useMutation(api.partners.regenerateShareCode);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
@@ -127,13 +129,38 @@ export default function Profile() {
     setIsLoading(true);
     try {
       trackEvent(Events.SIGNED_OUT);
+      // Drop the device's push token from this user's row so a subsequent
+      // user on the same device doesn't get the previous user's
+      // notifications (#172). Best-effort — a network failure here
+      // shouldn't block sign-out.
+      try {
+        await clearPushToken();
+      } catch (err) {
+        Sentry.captureException(err, { tags: { phase: 'clear_push_token' } });
+      }
+      // Clear cosmetic per-user preferences from AsyncStorage so a different
+      // user signing in on the same device doesn't inherit them (#154).
+      // Onboarding state is stored on the Convex user row (not here) so it
+      // follows the user across devices and survives sign-out/sign-in on
+      // the same device.
+      await AsyncStorage.multiRemove([
+        'bambino_candy_theme',
+        'bambino_voice_settings',
+        'bambino_skin_tone',
+      ]);
       await signOut();
       Sentry.setUser(null);
       resetAnalytics();
+    } catch (err) {
+      // #224: spinner stops in finally, but the user needs feedback
+      // when signOut itself rejects (e.g. network failure revoking the
+      // Clerk session) — they're silently still signed in otherwise.
+      Sentry.captureException(err, { tags: { phase: 'sign_out' } });
+      Alert.alert('Sign out failed', 'Check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
-  }, [signOut]);
+  }, [signOut, clearPushToken]);
 
   const handleDeleteAccount = useCallback(() => {
     Alert.alert(

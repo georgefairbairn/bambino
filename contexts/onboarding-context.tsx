@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useCallback } from 'react';
+import { useMutation, useQuery } from 'convex/react';
 import * as Sentry from '@sentry/react-native';
-
-const ONBOARDING_KEY = 'bambino_onboarding_completed';
+import { api } from '@/convex/_generated/api';
 
 interface OnboardingContextValue {
+  // null while the Convex user query is still loading. true/false once known.
   hasCompletedOnboarding: boolean | null;
   isLoading: boolean;
   completeOnboarding: () => Promise<void>;
@@ -18,41 +18,37 @@ interface OnboardingProviderProps {
 }
 
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Onboarding state is stored on the Convex user row (#154). Reading it
+  // via useQuery means it follows the active Clerk identity automatically:
+  // sign-out + sign-in on the same device sees the new user's flag, not
+  // the old user's; a returning user's flag persists across launches.
+  const user = useQuery(api.users.getCurrentUser);
+  const setOnboardingCompleted = useMutation(api.users.setOnboardingCompleted);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const value = await AsyncStorage.getItem(ONBOARDING_KEY);
-        setHasCompletedOnboarding(value === 'true');
-      } catch (error) {
-        Sentry.captureException(error);
-        setHasCompletedOnboarding(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    load();
-  }, []);
+  // user === undefined → query in flight.
+  // user === null     → authenticated but Convex row not yet created
+  //                     (race with useStoreUser's createOrUpdateUser on
+  //                     first sign-in). Treat both as loading so we
+  //                     don't briefly flash onboarding before the row
+  //                     exists with onboardingCompleted=false.
+  const isLoading = user === undefined || user === null;
+  const hasCompletedOnboarding = isLoading ? null : user.onboardingCompleted === true;
 
   const completeOnboarding = useCallback(async () => {
     try {
-      await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
-      setHasCompletedOnboarding(true);
+      await setOnboardingCompleted({ completed: true });
     } catch (error) {
       Sentry.captureException(error);
     }
-  }, []);
+  }, [setOnboardingCompleted]);
 
   const resetOnboarding = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem(ONBOARDING_KEY);
-      setHasCompletedOnboarding(false);
+      await setOnboardingCompleted({ completed: false });
     } catch (error) {
       Sentry.captureException(error);
     }
-  }, []);
+  }, [setOnboardingCompleted]);
 
   return (
     <OnboardingContext.Provider
