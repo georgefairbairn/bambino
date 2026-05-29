@@ -15,6 +15,9 @@
     "update:ranks": "npx tsx scripts/update-ranks.ts",
     "backfill:ranks": "npx tsx scripts/backfill-ranks.ts",
     "backfill:tiers": "npx tsx scripts/backfill-popularity-tiers.ts",
+    "populate:origin-stats": "npx tsx scripts/populate-origin-stats.ts",
+    "backfill:selection-origin-gender": "npx tsx scripts/backfill-selection-origin-gender.ts",
+    "update:name-origin": "npx tsx scripts/update-name-origin.ts",
     "extract-names": "npx tsx scripts/extract-ssa-names.ts",
     "enrich-names": "npx tsx scripts/enrich-names.ts"
   },

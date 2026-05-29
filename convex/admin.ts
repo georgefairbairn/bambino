@@ -401,11 +401,14 @@ export const seedAppReviewDemo = internalMutation({
         return;
       }
 
+      const nameDoc = await ctx.db.get(nameId);
       const ts = Date.now();
       await ctx.db.insert('selections', {
         userId,
         nameId,
         selectionType,
+        origin: nameDoc?.origin,
+        gender: nameDoc?.gender,
         createdAt: ts,
         updatedAt: ts,
       });

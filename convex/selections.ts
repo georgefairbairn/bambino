@@ -150,10 +150,25 @@ export const recordSelection = mutation({
         await deleteMatchForName(ctx, user._id, user.partnerId, args.nameId);
       }
 
-      await ctx.db.patch(existingSelection._id, {
+      // Heal denormalized origin/gender on rows predating that schema
+      // change (no-op once backfill has run).
+      const patch: {
+        selectionType: typeof args.selectionType;
+        updatedAt: number;
+        origin?: string;
+        gender?: string;
+      } = {
         selectionType: args.selectionType,
         updatedAt: now,
-      });
+      };
+      if (!existingSelection.origin || !existingSelection.gender) {
+        const nameDoc = await ctx.db.get(args.nameId);
+        if (nameDoc) {
+          patch.origin = nameDoc.origin;
+          patch.gender = nameDoc.gender;
+        }
+      }
+      await ctx.db.patch(existingSelection._id, patch);
 
       if (args.selectionType === 'like' && user.partnerId) {
         const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
@@ -163,10 +178,13 @@ export const recordSelection = mutation({
       return { selectionId: existingSelection._id, match: null };
     }
 
+    const nameDoc = await ctx.db.get(args.nameId);
     const selectionId = await ctx.db.insert('selections', {
       userId: user._id,
       nameId: args.nameId,
       selectionType: args.selectionType,
+      origin: nameDoc?.origin,
+      gender: nameDoc?.gender,
       createdAt: now,
       updatedAt: now,
     });
