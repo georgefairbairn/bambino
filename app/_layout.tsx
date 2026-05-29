@@ -29,10 +29,21 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 import { OfflineBanner } from '@/components/ui/offline-banner';
 import { initAnalytics } from '@/lib/analytics';
 
+// Sentry release uniquely identifies a single build, not the marketing
+// version. EAS auto-increments ios.buildNumber on every production build,
+// so combining it with version gives "1.0.0+8", "1.0.0+9", etc. — letting
+// "Resolved in next release" actually distinguish between builds and
+// catch regressions that come back in a later build.
+const sentryVersion = Constants.expoConfig?.version ?? '1.0.0';
+const sentryBuildNumber = Constants.expoConfig?.ios?.buildNumber;
+const sentryRelease = sentryBuildNumber
+  ? `${sentryVersion}+${sentryBuildNumber}`
+  : sentryVersion;
+
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   enabled: !__DEV__,
-  release: Constants.expoConfig?.version ?? '1.0.0',
+  release: sentryRelease,
   environment: __DEV__ ? 'development' : 'production',
   tracesSampleRate: 0.2,
 });
