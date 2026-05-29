@@ -147,11 +147,26 @@ export default function Profile() {
             try {
               await deleteAccount();
               trackEvent(Events.ACCOUNT_DELETED);
-              try {
-                await user?.delete();
-              } catch (clerkErr) {
-                Sentry.captureException(clerkErr, { tags: { phase: 'clerk_delete' } });
+              // DIAGNOSTIC — remove before merging #152
+              const diag: string[] = [];
+              if (!user) {
+                diag.push('user is null');
+              } else {
+                diag.push(`user.id=${user.id}`);
+                try {
+                  await user.delete();
+                  diag.push('delete() resolved OK');
+                } catch (clerkErr: unknown) {
+                  const msg = clerkErr instanceof Error ? clerkErr.message : String(clerkErr);
+                  diag.push(`delete() threw: ${msg}`);
+                  Sentry.captureException(clerkErr, { tags: { phase: 'clerk_delete' } });
+                }
               }
+              await new Promise<void>((resolve) => {
+                Alert.alert('Delete diagnostic', diag.join('\n'), [
+                  { text: 'OK', onPress: () => resolve() },
+                ]);
+              });
               await signOut();
               Sentry.setUser(null);
               resetAnalytics();
