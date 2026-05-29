@@ -67,15 +67,10 @@ export function NameConfirmationModal({
     setError(null);
 
     try {
-      // Update Clerk (may fail if name fields are disabled in dashboard)
-      await user
-        ?.update({
-          firstName: trimmedFirst,
-          lastName: lastName.trim(),
-        })
-        .catch((err) => Sentry.captureException(err));
-
-      // Update Convex (source of truth)
+      // Convex is the source of truth for display name. We don't write
+      // back to Clerk because the dashboard has first_name/last_name
+      // disabled (PATCH /v1/me would 422). Clerk only contributes the
+      // initial name at sign-up via user.fullName from Apple/Google SSO.
       await confirmName({
         firstName: trimmedFirst,
         lastName: lastName.trim() || undefined,
