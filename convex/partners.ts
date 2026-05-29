@@ -289,6 +289,51 @@ export const linkPartner = mutation({
       await ctx.db.patch(targetUser._id, { premiumRevokedAt: undefined });
     }
 
+    // Backfill matches: any name both users have already liked becomes a
+    // match (#157). Without this, partners who swiped pre-link would see
+    // zero matches and assume the feature is broken. Inline for now —
+    // typical pre-link queues are small (tens of names).
+    const userLikes = await ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) =>
+        q.eq('userId', user._id).eq('selectionType', 'like'),
+      )
+      .collect();
+    const targetLikes = await ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) =>
+        q.eq('userId', targetUser._id).eq('selectionType', 'like'),
+      )
+      .collect();
+
+    const userLikedNameIds = new Set(userLikes.map((s) => s.nameId));
+    const overlap = targetLikes.filter((s) => userLikedNameIds.has(s.nameId));
+
+    const [u1, u2] =
+      user._id < targetUser._id ? [user._id, targetUser._id] : [targetUser._id, user._id];
+
+    for (const sel of overlap) {
+      // Defensive: #158 deletes matches on unlink, but a stale row from a
+      // data corruption / migration scenario could exist. Skip rather than
+      // duplicate.
+      const existing = await ctx.db
+        .query('matches')
+        .withIndex('by_name_users', (q) =>
+          q.eq('nameId', sel.nameId).eq('user1Id', u1).eq('user2Id', u2),
+        )
+        .unique();
+      if (existing) continue;
+
+      await ctx.db.insert('matches', {
+        nameId: sel.nameId,
+        user1Id: u1,
+        user2Id: u2,
+        matchedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
     // Successful link — reset the attacker counter for this user.
     await resetRateLimit(ctx, user._id);
 
