@@ -147,6 +147,11 @@ export default function Profile() {
             try {
               await deleteAccount();
               trackEvent(Events.ACCOUNT_DELETED);
+              try {
+                await user?.delete();
+              } catch (clerkErr) {
+                Sentry.captureException(clerkErr, { tags: { phase: 'clerk_delete' } });
+              }
               await signOut();
               Sentry.setUser(null);
               resetAnalytics();
@@ -160,7 +165,7 @@ export default function Profile() {
         },
       ],
     );
-  }, [deleteAccount, signOut]);
+  }, [deleteAccount, signOut, user]);
 
   const handleCopyCode = useCallback(async () => {
     if (partnerInfo?.shareCode) {
