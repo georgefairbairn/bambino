@@ -30,6 +30,7 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMethod, setLoadingMethod] = useState<'email' | 'google' | 'apple' | null>(null);
   const [error, setError] = useState('');
   const [resetFlow, setResetFlow] = useState<'idle' | 'code' | 'new-password'>('idle');
   const [code, setCode] = useState('');
@@ -39,6 +40,7 @@ export default function SignIn() {
     if (!isLoaded) return;
 
     setIsLoading(true);
+    setLoadingMethod('email');
     setError('');
 
     try {
@@ -59,6 +61,7 @@ export default function SignIn() {
       trackEvent(Events.SIGN_IN_FAILED, { method: 'email', reason: message });
     } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }, [isLoaded, signIn, email, password, setActive, router]);
 
@@ -132,6 +135,7 @@ export default function SignIn() {
 
   const handleGoogleSignIn = useCallback(async () => {
     setIsLoading(true);
+    setLoadingMethod('google');
     setError('');
 
     try {
@@ -151,11 +155,13 @@ export default function SignIn() {
       trackEvent(Events.SIGN_IN_FAILED, { method: 'google', reason: message });
     } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }, [startSSOFlow, router]);
 
   const handleAppleSignIn = useCallback(async () => {
     setIsLoading(true);
+    setLoadingMethod('apple');
     setError('');
 
     try {
@@ -175,6 +181,7 @@ export default function SignIn() {
       trackEvent(Events.SIGN_IN_FAILED, { method: 'apple', reason: message });
     } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }, [startAppleAuthenticationFlow, router]);
 
@@ -241,7 +248,7 @@ export default function SignIn() {
                 title="Sign In"
                 onPress={handleSignIn}
                 variant="primary"
-                loading={isLoading}
+                loading={loadingMethod === 'email'}
                 disabled={isLoading}
               />
             </Animated.View>
@@ -264,6 +271,7 @@ export default function SignIn() {
                 onPress={handleGoogleSignIn}
                 variant="secondary"
                 icon="logo-google"
+                loading={loadingMethod === 'google'}
                 disabled={isLoading}
               />
             </Animated.View>
@@ -277,6 +285,7 @@ export default function SignIn() {
                 onPress={handleAppleSignIn}
                 variant="secondary"
                 icon="logo-apple"
+                loading={loadingMethod === 'apple'}
                 disabled={isLoading}
               />
             </Animated.View>

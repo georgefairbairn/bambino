@@ -32,12 +32,14 @@ export default function SignUp() {
   const [code, setCode] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMethod, setLoadingMethod] = useState<'email' | 'google' | 'apple' | null>(null);
   const [error, setError] = useState('');
 
   const handleSignUp = useCallback(async () => {
     if (!isLoaded) return;
 
     setIsLoading(true);
+    setLoadingMethod('email');
     setError('');
 
     try {
@@ -55,6 +57,7 @@ export default function SignUp() {
       trackEvent(Events.SIGN_UP_FAILED, { method: 'email', reason: message });
     } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }, [isLoaded, signUp, email, password]);
 
@@ -84,6 +87,7 @@ export default function SignUp() {
 
   const handleGoogleSignUp = useCallback(async () => {
     setIsLoading(true);
+    setLoadingMethod('google');
     setError('');
 
     try {
@@ -103,11 +107,13 @@ export default function SignUp() {
       trackEvent(Events.SIGN_UP_FAILED, { method: 'google', reason: message });
     } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }, [startSSOFlow, router]);
 
   const handleAppleSignUp = useCallback(async () => {
     setIsLoading(true);
+    setLoadingMethod('apple');
     setError('');
 
     try {
@@ -127,6 +133,7 @@ export default function SignUp() {
       trackEvent(Events.SIGN_UP_FAILED, { method: 'apple', reason: message });
     } finally {
       setIsLoading(false);
+      setLoadingMethod(null);
     }
   }, [startAppleAuthenticationFlow, router]);
 
@@ -247,7 +254,7 @@ export default function SignUp() {
             title="Sign Up"
             onPress={handleSignUp}
             variant="primary"
-            loading={isLoading}
+            loading={loadingMethod === 'email'}
             disabled={isLoading}
           />
         </Animated.View>
@@ -267,6 +274,7 @@ export default function SignUp() {
             onPress={handleGoogleSignUp}
             variant="secondary"
             icon="logo-google"
+            loading={loadingMethod === 'google'}
             disabled={isLoading}
           />
         </Animated.View>
@@ -277,6 +285,7 @@ export default function SignUp() {
             onPress={handleAppleSignUp}
             variant="secondary"
             icon="logo-apple"
+            loading={loadingMethod === 'apple'}
             disabled={isLoading}
           />
         </Animated.View>

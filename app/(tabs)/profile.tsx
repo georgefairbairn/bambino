@@ -103,6 +103,7 @@ export default function Profile() {
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
   const convexUser = useQuery(api.users.getCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUnlinking, setIsUnlinking] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
@@ -253,12 +254,15 @@ export default function Profile() {
           text: 'Unlink',
           style: 'destructive',
           onPress: async () => {
+            setIsUnlinking(true);
             try {
               await unlinkPartner();
               trackEvent(Events.PARTNER_UNLINKED);
             } catch (error) {
               Sentry.captureException(error);
               Alert.alert('Error', 'Failed to unlink partner. Please try again.');
+            } finally {
+              setIsUnlinking(false);
             }
           },
         },
@@ -402,9 +406,19 @@ export default function Profile() {
                     </Text>
                   </View>
                 </View>
-                <Pressable style={styles.unlinkButton} onPress={handleUnlinkPartner}>
-                  <Ionicons name="close-circle-outline" size={18} color="#ef4444" />
-                  <Text style={styles.unlinkButtonText}>Unlink Partner</Text>
+                <Pressable
+                  style={styles.unlinkButton}
+                  onPress={handleUnlinkPartner}
+                  disabled={isUnlinking}
+                >
+                  {isUnlinking ? (
+                    <ActivityIndicator size="small" color="#ef4444" />
+                  ) : (
+                    <>
+                      <Ionicons name="close-circle-outline" size={18} color="#ef4444" />
+                      <Text style={styles.unlinkButtonText}>Unlink Partner</Text>
+                    </>
+                  )}
                 </Pressable>
               </View>
             ) : (
@@ -538,7 +552,11 @@ export default function Profile() {
           onPress={handleDeleteAccount}
           disabled={isLoading}
         >
-          <Text style={styles.deleteAccountText}>Delete Account</Text>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#ef4444" />
+          ) : (
+            <Text style={styles.deleteAccountText}>Delete Account</Text>
+          )}
         </Pressable>
 
         <Paywall

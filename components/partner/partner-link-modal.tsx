@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   TextInput,
@@ -13,7 +14,6 @@ import { useQuery, useMutation } from 'convex/react';
 import { Image } from 'expo-image';
 import { api } from '@/convex/_generated/api';
 import { Fonts } from '@/constants/theme';
-import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Paywall } from '@/components/paywall';
 import * as Sentry from '@sentry/react-native';
 import { useTheme } from '@/contexts/theme-context';
@@ -206,7 +206,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
               disabled={isLookingUp || code.length !== 6}
             >
               {isLookingUp ? (
-                <LoadingIndicator size="small" />
+                <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <Text style={styles.primaryButtonText}>Find Partner</Text>
               )}
@@ -251,7 +251,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
                 disabled={isLinking}
               >
                 {isLinking ? (
-                  <LoadingIndicator size="small" />
+                  <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <Text style={styles.primaryButtonText}>Link Partner</Text>
                 )}
