@@ -339,6 +339,10 @@ export const unlinkPartner = mutation({
       }
     }
 
+    // Delete every match row between this pair. Keeping them creates two
+    // problems on re-link: (1) stale isFavorite/notes/isChosen reappear,
+    // (2) recordSelection's by_name_users lookup finds the orphan and
+    // suppresses the match toast on a re-like (#158).
     const [u1, u2] =
       user._id < user.partnerId ? [user._id, user.partnerId] : [user.partnerId, user._id];
     const partnerMatches = await ctx.db
@@ -346,15 +350,7 @@ export const unlinkPartner = mutation({
       .withIndex('by_user1_user2', (q) => q.eq('user1Id', u1).eq('user2Id', u2))
       .collect();
     for (const m of partnerMatches) {
-      if (m.proposalStatus === 'pending') {
-        await ctx.db.patch(m._id, {
-          proposedBy: undefined,
-          proposedAt: undefined,
-          proposalMessage: undefined,
-          proposalStatus: undefined,
-          updatedAt: now,
-        });
-      }
+      await ctx.db.delete(m._id);
     }
 
     await ctx.db.patch(user._id, {

@@ -278,7 +278,7 @@ export default function Profile() {
   const handleUnlinkPartner = useCallback(() => {
     Alert.alert(
       'Unlink Partner',
-      'Are you sure you want to unlink your partner? Your selections and existing matches will be kept.',
+      'Are you sure you want to unlink your partner? Your liked names will be kept, but matches between you will be cleared.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
