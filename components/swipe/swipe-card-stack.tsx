@@ -12,8 +12,11 @@ import { MatchToast } from '@/components/matches/match-toast';
 import { ErrorToast } from '@/components/ui/error-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
+import { PushPrimingSheet } from '@/components/push/push-priming-sheet';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useTheme } from '@/contexts/theme-context';
+import { usePushPriming } from '@/hooks/use-push-priming';
+import { usePushRequestPermission } from '@/hooks/use-push-registration';
 
 export function SwipeCardStack() {
   const router = useRouter();
@@ -42,6 +45,10 @@ export function SwipeCardStack() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [hintEligible, setHintEligible] = useState(true);
+  const [showPushPriming, setShowPushPriming] = useState(false);
+
+  const { shouldPrime, markAsked, markDismissed } = usePushPriming();
+  const requestPermission = usePushRequestPermission();
 
   // Sync server queue to local state (only when server data arrives)
   useEffect(() => {
@@ -147,9 +154,28 @@ export function SwipeCardStack() {
           setMatchToastName(null);
           router.push('/matches' as const);
         }}
-        onDismiss={() => {
+        onDismiss={async () => {
           setShowMatchToast(false);
           setMatchToastName(null);
+          // After a fresh match auto-dismisses, this is the moment iOS push
+          // notifications become valuable — ask now while the user is engaged.
+          if (await shouldPrime()) {
+            setShowPushPriming(true);
+          }
+        }}
+      />
+
+      {/* Notification permission priming — fires after a fresh match (#156) */}
+      <PushPrimingSheet
+        visible={showPushPriming}
+        onAllow={async () => {
+          await requestPermission();
+          await markAsked();
+          setShowPushPriming(false);
+        }}
+        onDismiss={async () => {
+          await markDismissed();
+          setShowPushPriming(false);
         }}
       />
 

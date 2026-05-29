@@ -3,7 +3,7 @@ import { useMutation, useQuery } from 'convex/react';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 
@@ -19,6 +19,22 @@ Notifications.setNotificationHandler({
   }),
 });
 
+async function registerToken(
+  setPushToken: (args: { token: string; platform: 'ios' }) => Promise<unknown>,
+) {
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+  if (!projectId) return;
+  const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
+  await setPushToken({ token: tokenResponse.data, platform: 'ios' });
+}
+
+/**
+ * On sign-in, registers the push token IF permission is already granted.
+ * Never calls requestPermissionsAsync — that's handled by the priming
+ * sheet via usePushRequestPermission, gated on a contextual moment.
+ *
+ * Mount once at the tabs layout level.
+ */
 export function usePushRegistration() {
   const { isSignedIn } = useUser();
   const setPushToken = useMutation(api.users.setPushToken);
@@ -28,52 +44,50 @@ export function usePushRegistration() {
   const convexUser = useQuery(api.users.getCurrentUser, isSignedIn ? {} : 'skip');
 
   useEffect(() => {
-    if (!isSignedIn) {
-      return;
-    }
+    if (!isSignedIn) return;
+    if (Platform.OS !== 'ios') return;
+    if (!Device.isDevice) return;
+    if (!convexUser) return;
 
-    if (Platform.OS !== 'ios') {
-      return;
-    }
-
-    if (!Device.isDevice) {
-      return;
-    }
-
-    if (!convexUser) {
-      return;
-    }
-
-    const register = async () => {
+    const refresh = async () => {
       try {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-
-        if (existingStatus !== 'granted') {
-          trackEvent(Events.PUSH_PERMISSION_REQUESTED);
-          const { status } = await Notifications.requestPermissionsAsync();
-          finalStatus = status;
-          trackEvent(
-            status === 'granted' ? Events.PUSH_PERMISSION_GRANTED : Events.PUSH_PERMISSION_DENIED,
-          );
-        }
-
-        if (finalStatus !== 'granted') {
-          return;
-        }
-
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-        if (!projectId) {
-          return;
-        }
-
-        const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
-        await setPushToken({ token: tokenResponse.data, platform: 'ios' });
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') return;
+        await registerToken(setPushToken);
       } catch (error) {
         Sentry.captureException(error);
       }
     };
 
-    register();
+    refresh();
   }, [isSignedIn, convexUser, setPushToken]);
+}
+
+/**
+ * Returns a function that drives the iOS notification permission prompt
+ * and registers the push token if granted. Use from the priming sheet's
+ * Allow button, not from a useEffect.
+ */
+export function usePushRequestPermission() {
+  const setPushToken = useMutation(api.users.setPushToken);
+
+  return useCallback(async (): Promise<Notifications.PermissionStatus> => {
+    if (Platform.OS !== 'ios' || !Device.isDevice) {
+      return Notifications.PermissionStatus.DENIED;
+    }
+    try {
+      trackEvent(Events.PUSH_PERMISSION_REQUESTED);
+      const { status } = await Notifications.requestPermissionsAsync();
+      trackEvent(
+        status === 'granted' ? Events.PUSH_PERMISSION_GRANTED : Events.PUSH_PERMISSION_DENIED,
+      );
+      if (status === 'granted') {
+        await registerToken(setPushToken);
+      }
+      return status;
+    } catch (error) {
+      Sentry.captureException(error);
+      return Notifications.PermissionStatus.DENIED;
+    }
+  }, [setPushToken]);
 }
