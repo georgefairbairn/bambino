@@ -75,13 +75,35 @@ export default defineSchema({
       v.literal('skip'),
       v.literal('hidden'),
     ),
+    // Denormalized from the names table so getOriginCounts /
+    // getFilteredNameCount can compute "remaining" counts without
+    // scanning the full names DB. Kept in sync by:
+    //   - selection insert paths (read once from names on insert)
+    //   - names:updateNameOrigin (when a name's origin is corrected)
+    origin: v.optional(v.string()),
+    gender: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_user', ['userId'])
     .index('by_user_name', ['userId', 'nameId'])
     .index('by_user_type', ['userId', 'selectionType'])
-    .index('by_user_createdAt', ['userId', 'createdAt']),
+    .index('by_user_createdAt', ['userId', 'createdAt'])
+    .index('by_name', ['nameId']),
+
+  // Pre-computed total count of names per (origin, gender) so the
+  // Filters screen can render origin counts in O(stats + actioned)
+  // instead of O(all names). Kept in sync by:
+  //   - names:populateOriginStats (initial seed)
+  //   - names:updateNameOrigin (corrections)
+  // We don't currently mutate the names table at runtime, so there's
+  // no insert/delete sync path; if you add one, update this table too.
+  nameOriginStats: defineTable({
+    origin: v.string(),
+    gender: v.string(),
+    count: v.number(),
+    updatedAt: v.number(),
+  }).index('by_origin_gender', ['origin', 'gender']),
 
   matches: defineTable({
     nameId: v.id('names'),
