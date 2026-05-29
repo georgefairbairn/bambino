@@ -36,9 +36,7 @@ import { initAnalytics } from '@/lib/analytics';
 // catch regressions that come back in a later build.
 const sentryVersion = Constants.expoConfig?.version ?? '1.0.0';
 const sentryBuildNumber = Constants.expoConfig?.ios?.buildNumber;
-const sentryRelease = sentryBuildNumber
-  ? `${sentryVersion}+${sentryBuildNumber}`
-  : sentryVersion;
+const sentryRelease = sentryBuildNumber ? `${sentryVersion}+${sentryBuildNumber}` : sentryVersion;
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,

@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   Pressable,
+  type StyleProp,
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
@@ -61,7 +62,7 @@ export function StyledInput({
 
   return (
     <View className={className} style={containerStyle}>
-      <AnimatedView style={[styles.container, animatedStyle, style]}>
+      <AnimatedView style={[styles.container, animatedStyle, style as StyleProp<ViewStyle>]}>
         {icon && (
           <Ionicons name={icon} size={20} color={CandyColors.textMuted} style={styles.icon} />
         )}

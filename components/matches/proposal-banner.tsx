@@ -57,7 +57,7 @@ export function ProposalBanner({
           <Text style={[styles.bannerText, { color: colors.tabActive }]}>
             {proposerName} proposed <Text style={styles.bannerNameText}>{nameName}</Text>
           </Text>
-          {message ? <Text style={styles.bannerMessage}>"{message}"</Text> : null}
+          {message ? <Text style={styles.bannerMessage}>&ldquo;{message}&rdquo;</Text> : null}
         </View>
       </View>
       <View style={styles.bannerActions}>
