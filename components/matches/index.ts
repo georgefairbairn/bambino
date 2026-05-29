@@ -5,5 +5,6 @@ export { MatchesHeader } from './matches-header';
 export { MatchToast } from './match-toast';
 export { ProposalBanner } from './proposal-banner';
 export { ProposeSheet } from './propose-sheet';
+export { ProposalConflictSheet } from './proposal-conflict-sheet';
 export { DeclineSheet } from './decline-sheet';
 export { CelebrationModal } from './celebration-modal';
