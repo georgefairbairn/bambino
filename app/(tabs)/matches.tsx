@@ -27,6 +27,7 @@ import {
   MatchesHeader,
   ProposalBanner,
   ProposeSheet,
+  ProposalConflictSheet,
   DeclineSheet,
   CelebrationModal,
 } from '@/components/matches';
@@ -73,6 +74,11 @@ export default function Matches() {
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [proposeTarget, setProposeTarget] = useState<MatchWithName | null>(null);
+  const [proposalConflict, setProposalConflict] = useState<{
+    matchId: Id<'matches'>;
+    message: string | undefined;
+    partnerProposalName: string;
+  } | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showDeclineSheet, setShowDeclineSheet] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -137,23 +143,39 @@ export default function Matches() {
     }
   }, [chosenName, currentUser?._id]);
 
-  const handlePropose = useCallback(
-    async (message?: string) => {
-      if (!proposeTarget) return;
+  const submitProposal = useCallback(
+    async (matchId: Id<'matches'>, message: string | undefined, force: boolean) => {
       try {
-        await proposeNameMutation({
-          matchId: proposeTarget._id,
-          message,
-        });
+        const result = await proposeNameMutation({ matchId, message, force });
+        if (result && 'error' in result && result.error === 'PARTNER_HAS_PENDING_PROPOSAL') {
+          // Surface the conflict via a bottom sheet (#169). Stash matchId
+          // and message so the "Send mine" button can re-call with force.
+          setProposeTarget(null);
+          setProposalConflict({
+            matchId,
+            message,
+            partnerProposalName: result.partnerProposalName,
+          });
+          return;
+        }
         trackEvent(Events.PROPOSAL_SENT);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setProposeTarget(null);
+        setProposalConflict(null);
       } catch (error) {
         Sentry.captureException(error);
         Alert.alert('Error', 'Failed to propose name. Please try again.');
       }
     },
-    [proposeTarget, proposeNameMutation],
+    [proposeNameMutation],
+  );
+
+  const handlePropose = useCallback(
+    async (message?: string) => {
+      if (!proposeTarget) return;
+      await submitProposal(proposeTarget._id, message, false);
+    },
+    [proposeTarget, submitProposal],
   );
 
   const handleAcceptProposal = useCallback(async () => {
@@ -500,6 +522,19 @@ export default function Matches() {
           name={proposeTarget?.name ?? null}
           onPropose={handlePropose}
           onClose={() => setProposeTarget(null)}
+        />
+
+        {/* Proposal conflict sheet — fires when both partners try to
+            propose at the same time (#169). */}
+        <ProposalConflictSheet
+          visible={proposalConflict !== null}
+          partnerProposalName={proposalConflict?.partnerProposalName ?? null}
+          onSeeTheirs={() => setProposalConflict(null)}
+          onSendMine={async () => {
+            if (!proposalConflict) return;
+            await submitProposal(proposalConflict.matchId, proposalConflict.message, true);
+          }}
+          onClose={() => setProposalConflict(null)}
         />
 
         {/* Decline sheet */}

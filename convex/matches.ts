@@ -214,6 +214,10 @@ export const proposeName = mutation({
   args: {
     matchId: v.id('matches'),
     message: v.optional(v.string()),
+    // When true, replace any pending proposal from the partner instead of
+    // returning the PARTNER_HAS_PENDING_PROPOSAL warning. The partner is
+    // notified that their proposal was replaced.
+    force: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     if (args.message !== undefined && args.message.length > 200) {
@@ -234,19 +238,66 @@ export const proposeName = mutation({
     assertCurrentPartner(user, match);
 
     const partnerMatches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+
+    // Check whether the partner has a pending proposal we'd be overwriting
+    // (#169). If so and the caller hasn't acknowledged via force=true,
+    // surface a structured warning so the UI can prompt.
+    const partnerPending = partnerMatches.find(
+      (m) =>
+        m.proposalStatus === 'pending' &&
+        m.proposedBy !== undefined &&
+        m.proposedBy !== user._id,
+    );
+
+    if (partnerPending && !args.force) {
+      const partnerProposalNameDoc = await ctx.db.get(partnerPending.nameId);
+      return {
+        error: 'PARTNER_HAS_PENDING_PROPOSAL' as const,
+        partnerProposalMatchId: partnerPending._id,
+        partnerProposalName: partnerProposalNameDoc?.name ?? 'a name',
+      };
+    }
+
+    const now = Date.now();
+
+    // Clear the caller's own previous pending proposal (if any) — one
+    // pending proposal per side. Do NOT touch the partner's pending
+    // proposal here unless force=true; #169 prevents silent destruction.
     for (const m of partnerMatches) {
-      if (m.proposalStatus === 'pending') {
+      if (m.proposalStatus === 'pending' && m.proposedBy === user._id) {
         await ctx.db.patch(m._id, {
           proposedBy: undefined,
           proposedAt: undefined,
           proposalMessage: undefined,
           proposalStatus: undefined,
-          updatedAt: Date.now(),
+          updatedAt: now,
         });
       }
     }
 
-    const now = Date.now();
+    // If we're force-replacing, clear the partner's pending proposal too
+    // and send them a notification so they aren't surprised.
+    if (partnerPending && args.force) {
+      await ctx.db.patch(partnerPending._id, {
+        proposedBy: undefined,
+        proposedAt: undefined,
+        proposalMessage: undefined,
+        proposalStatus: undefined,
+        updatedAt: now,
+      });
+
+      const proposerName = user.name ?? 'Your partner';
+      const newName = await ctx.db.get(match.nameId);
+      await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
+        userId: partnerPending.proposedBy as Id<'users'>,
+        title: `${proposerName} replaced your proposal`,
+        body: newName
+          ? `They proposed ${newName.name} instead.`
+          : 'They proposed a different name.',
+        data: { type: 'proposal_replaced', matchId: args.matchId },
+      });
+    }
+
     await ctx.db.patch(args.matchId, {
       proposedBy: user._id,
       proposedAt: now,
@@ -268,7 +319,7 @@ export const proposeName = mutation({
       data: { type: 'proposal', matchId: args.matchId },
     });
 
-    return { success: true };
+    return { success: true as const };
   },
 });
 
