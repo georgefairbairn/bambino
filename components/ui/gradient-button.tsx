@@ -1,10 +1,9 @@
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts, Gradients as DefaultGradients } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
-import { LoadingIndicator } from './loading-indicator';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -57,7 +56,7 @@ export function GradientButton({
         disabled={disabled || loading}
       >
         {loading ? (
-          <LoadingIndicator size="small" />
+          <ActivityIndicator size="small" color={colors.primary} />
         ) : (
           <View style={styles.contentRow}>
             {icon && <Ionicons name={icon} size={20} color={colors.primary} />}
@@ -83,7 +82,7 @@ export function GradientButton({
     >
       <LinearGradient colors={[...gradientColors]} style={[styles.gradient, { shadowColor }]}>
         {loading ? (
-          <LoadingIndicator size="small" />
+          <ActivityIndicator size="small" color="#ffffff" />
         ) : (
           <View style={styles.contentRow}>
             {icon && <Ionicons name={icon} size={20} color="#fff" />}

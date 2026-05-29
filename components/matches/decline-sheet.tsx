@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, Text, Pressable, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
@@ -15,13 +15,20 @@ interface DeclineSheetProps {
 export function DeclineSheet({ visible, nameName, onDecline, onClose }: DeclineSheetProps) {
   const { colors } = useTheme();
   const [message, setMessage] = useState('');
+  const [isDeclining, setIsDeclining] = useState(false);
 
-  const handleDecline = () => {
-    onDecline(message.trim() || undefined);
-    setMessage('');
+  const handleDecline = async () => {
+    setIsDeclining(true);
+    try {
+      await onDecline(message.trim() || undefined);
+      setMessage('');
+    } finally {
+      setIsDeclining(false);
+    }
   };
 
   const handleClose = () => {
+    if (isDeclining) return;
     setMessage('');
     onClose();
   };
@@ -47,10 +54,14 @@ export function DeclineSheet({ visible, nameName, onDecline, onClose }: DeclineS
         <Text style={styles.charCount}>{message.length}/200</Text>
 
         <View style={styles.buttons}>
-          <Pressable style={styles.declineButton} onPress={handleDecline}>
-            <Text style={styles.declineButtonText}>Decline</Text>
+          <Pressable style={styles.declineButton} onPress={handleDecline} disabled={isDeclining}>
+            {isDeclining ? (
+              <ActivityIndicator size="small" color="#6B5B7B" />
+            ) : (
+              <Text style={styles.declineButtonText}>Decline</Text>
+            )}
           </Pressable>
-          <Pressable style={styles.cancelButton} onPress={handleClose}>
+          <Pressable style={styles.cancelButton} onPress={handleClose} disabled={isDeclining}>
             <Text style={[styles.cancelButtonText, { color: colors.primary }]}>Cancel</Text>
           </Pressable>
         </View>

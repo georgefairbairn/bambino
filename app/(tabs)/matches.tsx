@@ -1,5 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, Share, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  Share,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
@@ -64,6 +73,7 @@ export default function Matches() {
   const [selectedMatch, setSelectedMatch] = useState<MatchWithName | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [proposeTarget, setProposeTarget] = useState<MatchWithName | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
   const [showDeclineSheet, setShowDeclineSheet] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationName, setCelebrationName] = useState('');
@@ -296,19 +306,29 @@ export default function Matches() {
                 </Pressable>
                 <Pressable
                   style={styles.restoreButton}
+                  disabled={isRestoring}
                   onPress={async () => {
-                    const success = await restorePurchases();
-                    if (success) {
-                      Alert.alert('Restored', 'Your premium purchase has been restored!');
-                    } else {
-                      Alert.alert(
-                        'No Purchase Found',
-                        'No previous purchase was found to restore.',
-                      );
+                    setIsRestoring(true);
+                    try {
+                      const success = await restorePurchases();
+                      if (success) {
+                        Alert.alert('Restored', 'Your premium purchase has been restored!');
+                      } else {
+                        Alert.alert(
+                          'No Purchase Found',
+                          'No previous purchase was found to restore.',
+                        );
+                      }
+                    } finally {
+                      setIsRestoring(false);
                     }
                   }}
                 >
-                  <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+                  {isRestoring ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+                  )}
                 </Pressable>
               </View>
             )}

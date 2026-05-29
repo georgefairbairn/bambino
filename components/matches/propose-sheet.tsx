@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, Text, Pressable, StyleSheet } from 'react-native';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
@@ -16,13 +16,20 @@ interface ProposeSheetProps {
 export function ProposeSheet({ visible, name, onPropose, onClose }: ProposeSheetProps) {
   const { colors } = useTheme();
   const [message, setMessage] = useState('');
+  const [isProposing, setIsProposing] = useState(false);
 
-  const handlePropose = () => {
-    onPropose(message.trim() || undefined);
-    setMessage('');
+  const handlePropose = async () => {
+    setIsProposing(true);
+    try {
+      await onPropose(message.trim() || undefined);
+      setMessage('');
+    } finally {
+      setIsProposing(false);
+    }
   };
 
   const handleClose = () => {
+    if (isProposing) return;
     setMessage('');
     onClose();
   };
@@ -52,10 +59,15 @@ export function ProposeSheet({ visible, name, onPropose, onClose }: ProposeSheet
           <Pressable
             style={[styles.proposeButton, { backgroundColor: colors.primary }]}
             onPress={handlePropose}
+            disabled={isProposing}
           >
-            <Text style={styles.proposeButtonText}>Propose</Text>
+            {isProposing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.proposeButtonText}>Propose</Text>
+            )}
           </Pressable>
-          <Pressable style={styles.cancelButton} onPress={handleClose}>
+          <Pressable style={styles.cancelButton} onPress={handleClose} disabled={isProposing}>
             <Text style={[styles.cancelButtonText, { color: colors.primary }]}>Cancel</Text>
           </Pressable>
         </View>
