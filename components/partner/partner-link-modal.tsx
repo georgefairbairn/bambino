@@ -28,10 +28,11 @@ interface PartnerLinkModalProps {
 }
 
 type PartnerPreview = {
-  userId: string;
   name: string;
   imageUrl?: string;
 };
+
+const CODE_LENGTH = 8;
 
 export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   const { colors } = useTheme();
@@ -44,11 +45,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
 
   const convexUser = useQuery(api.users.getCurrentUser);
-  const partnerPreview = useQuery(
-    api.partners.getUserByShareCode,
-    code.length === 6 && isLookingUp ? { code } : 'skip',
-  );
-
+  const previewPartner = useMutation(api.partners.previewPartnerByCode);
   const linkPartner = useMutation(api.partners.linkPartner);
 
   const handleCodeChange = (text: string) => {
@@ -58,19 +55,10 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
     setPreview(null);
   };
 
-  const handlePreview = () => {
-    if (code.length !== 6) {
-      setError('Please enter a valid 6-character code');
-      return;
-    }
-    setIsLookingUp(true);
-    setError(null);
-  };
-
   const getErrorMessage = (errorCode: string) => {
     switch (errorCode) {
       case 'invalid_format':
-        return 'Please enter a valid 6-character code';
+        return 'Please enter a valid share code';
       case 'not_found':
         return 'User not found. Please check the code.';
       case 'own_code':
@@ -84,22 +72,29 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
     }
   };
 
-  // Handle query result
-  if (isLookingUp && partnerPreview) {
-    if ('error' in partnerPreview && partnerPreview.error) {
-      if (error === null) {
-        setError(getErrorMessage(partnerPreview.error));
-        setIsLookingUp(false);
+  const handlePreview = async () => {
+    if (code.length !== CODE_LENGTH) {
+      setError('Please enter a valid share code');
+      return;
+    }
+    setIsLookingUp(true);
+    setError(null);
+    try {
+      const result = await previewPartner({ code });
+      if ('error' in result && result.error) {
+        setError(getErrorMessage(result.error));
+      } else if ('name' in result && result.name) {
+        setPreview({ name: result.name, imageUrl: result.imageUrl });
       }
-    } else if ('userId' in partnerPreview && preview === null) {
-      setPreview({
-        userId: partnerPreview.userId,
-        name: partnerPreview.name,
-        imageUrl: partnerPreview.imageUrl,
-      });
+    } catch (err) {
+      // Rate-limit errors come back here as plain Error messages — surface
+      // them verbatim so the user sees "Try again in N minutes".
+      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
+      Sentry.captureException(err, { tags: { flow: 'partner_preview' } });
+    } finally {
       setIsLookingUp(false);
     }
-  }
+  };
 
   const handleLink = async () => {
     // Check name confirmation before linking
@@ -179,18 +174,18 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
         {!preview ? (
           <View style={styles.content}>
             <Text style={styles.description}>
-              Enter your partner&apos;s 6-character share code to link your accounts
+              Enter your partner&apos;s share code to link your accounts
             </Text>
 
             <TextInput
               style={styles.codeInput}
               value={code}
               onChangeText={handleCodeChange}
-              placeholder="ABC123"
+              placeholder="ABCD2345"
               placeholderTextColor="#A89BB5"
               autoCapitalize="characters"
               autoCorrect={false}
-              maxLength={6}
+              maxLength={CODE_LENGTH}
               autoFocus
             />
 
@@ -200,10 +195,10 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
               style={[
                 styles.primaryButton,
                 { backgroundColor: colors.primary },
-                (isLookingUp || code.length !== 6) && styles.buttonDisabled,
+                (isLookingUp || code.length !== CODE_LENGTH) && styles.buttonDisabled,
               ]}
               onPress={handlePreview}
-              disabled={isLookingUp || code.length !== 6}
+              disabled={isLookingUp || code.length !== CODE_LENGTH}
             >
               {isLookingUp ? (
                 <ActivityIndicator size="small" color="#fff" />
