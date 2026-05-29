@@ -60,8 +60,11 @@ export const createOrUpdateUser = mutation({
       // Only overwrite name/imageUrl when Clerk actually provides a value.
       // Otherwise we'd erase fields set elsewhere (admin seed, name-edit
       // modal) every time useStoreUser fires on app launch.
+      // Once a user has confirmed their name in-app (NameConfirmationModal
+      // sets nameConfirmed=true), don't let Clerk's fullName overwrite it
+      // on subsequent sign-ins (#166).
       const patch: Record<string, unknown> = { email: args.email, updatedAt: now };
-      if (args.name) patch.name = args.name;
+      if (args.name && existingUser.nameConfirmed !== true) patch.name = args.name;
       if (args.imageUrl) patch.imageUrl = args.imageUrl;
       await ctx.db.patch(existingUser._id, patch);
       return existingUser._id;
