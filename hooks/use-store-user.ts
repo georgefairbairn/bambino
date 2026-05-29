@@ -21,7 +21,6 @@ export function useStoreUser() {
     Sentry.setUser({ id: user.id, email });
     identifyUser(user.id, {
       ...(email ? { email } : {}),
-      ...(name ? { name } : {}),
     });
 
     const syncUser = async () => {
