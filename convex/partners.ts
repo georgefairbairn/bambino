@@ -1,31 +1,36 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+
+// 31-char alphabet with confusables (I/O/0/1) removed for readability when
+// users dictate codes verbally. 31^8 ≈ 8.5e11 keyspace.
+const SHARE_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const SHARE_CODE_LENGTH = 8;
+const SHARE_CODE_REGEX = new RegExp(`^[${SHARE_CODE_ALPHABET}]{${SHARE_CODE_LENGTH}}$`);
 
 function generateShareCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const bytes = new Uint8Array(SHARE_CODE_LENGTH);
+  crypto.getRandomValues(bytes);
   let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < SHARE_CODE_LENGTH; i++) {
+    code += SHARE_CODE_ALPHABET.charAt(bytes[i] % SHARE_CODE_ALPHABET.length);
   }
   return code;
 }
 
 export async function generateUniqueShareCode(ctx: QueryCtx | MutationCtx): Promise<string> {
-  let code = generateShareCode();
-  let existing = await ctx.db
-    .query('users')
-    .withIndex('by_share_code', (q) => q.eq('shareCode', code))
-    .unique();
-
-  while (existing) {
-    code = generateShareCode();
-    existing = await ctx.db
+  // Loop is bounded in practice — collision probability with 8.5e11 keyspace
+  // is vanishingly small even at millions of users. We cap iterations as a
+  // safety net rather than letting it spin.
+  for (let i = 0; i < 8; i++) {
+    const code = generateShareCode();
+    const existing = await ctx.db
       .query('users')
       .withIndex('by_share_code', (q) => q.eq('shareCode', code))
       .unique();
+    if (!existing) return code;
   }
-
-  return code;
+  throw new Error('Could not generate a unique share code');
 }
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
@@ -45,6 +50,98 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
 
   return user;
 }
+
+// ---- Rate limiting ---------------------------------------------------------
+
+const RATE_WINDOW_MS = 60 * 1000;
+const RATE_MAX_ATTEMPTS = 10;
+// Backoff schedule, indexed by lockoutCount. Last entry repeats.
+const LOCKOUT_DURATIONS_MS = [
+  1 * 60 * 1000, // 1 min
+  5 * 60 * 1000, // 5 min
+  30 * 60 * 1000, // 30 min
+  60 * 60 * 1000, // 60 min
+];
+
+class RateLimitError extends Error {
+  constructor(public retryAfterMs: number) {
+    const seconds = Math.ceil(retryAfterMs / 1000);
+    const minutes = Math.ceil(seconds / 60);
+    super(
+      seconds < 60
+        ? `Too many attempts. Try again in ${seconds} seconds.`
+        : `Too many attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+    );
+    this.name = 'RateLimitError';
+  }
+}
+
+async function enforceRateLimit(ctx: MutationCtx, userId: Id<'users'>): Promise<void> {
+  const now = Date.now();
+  const record = await ctx.db
+    .query('shareCodeAttempts')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .unique();
+
+  if (record?.lockedUntil && now < record.lockedUntil) {
+    throw new RateLimitError(record.lockedUntil - now);
+  }
+
+  if (!record) {
+    await ctx.db.insert('shareCodeAttempts', {
+      userId,
+      attempts: 1,
+      windowStart: now,
+      lockoutCount: 0,
+    });
+    return;
+  }
+
+  // Slide the window forward if it's expired.
+  if (now - record.windowStart >= RATE_WINDOW_MS) {
+    await ctx.db.patch(record._id, {
+      attempts: 1,
+      windowStart: now,
+      lockedUntil: undefined,
+    });
+    return;
+  }
+
+  const newAttempts = record.attempts + 1;
+
+  if (newAttempts > RATE_MAX_ATTEMPTS) {
+    const nextLockoutCount = record.lockoutCount + 1;
+    const lockoutMs =
+      LOCKOUT_DURATIONS_MS[Math.min(nextLockoutCount - 1, LOCKOUT_DURATIONS_MS.length - 1)];
+    await ctx.db.patch(record._id, {
+      attempts: newAttempts,
+      lockoutCount: nextLockoutCount,
+      lockedUntil: now + lockoutMs,
+    });
+    throw new RateLimitError(lockoutMs);
+  }
+
+  await ctx.db.patch(record._id, { attempts: newAttempts });
+}
+
+async function resetRateLimit(ctx: MutationCtx, userId: Id<'users'>): Promise<void> {
+  const record = await ctx.db
+    .query('shareCodeAttempts')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .unique();
+  if (record) {
+    await ctx.db.delete(record._id);
+  }
+}
+
+// ---- Code validation -------------------------------------------------------
+
+function normalizeAndValidateCode(input: string): string | null {
+  const normalized = input.toUpperCase().replace(/\s/g, '');
+  return SHARE_CODE_REGEX.test(normalized) ? normalized : null;
+}
+
+// ---- Public queries / mutations -------------------------------------------
 
 export const getPartnerInfo = query({
   args: {},
@@ -78,13 +175,24 @@ export const getPartnerInfo = query({
   },
 });
 
-export const getUserByShareCode = query({
-  args: {
-    code: v.string(),
-  },
+/**
+ * Auth-gated, rate-limited preview lookup. Replaces the old public
+ * `getUserByShareCode` query — anonymous probing is no longer possible
+ * (#150). A mutation rather than a query so the rate-limit counter
+ * increments transactionally.
+ *
+ * Returns the partner's display name only; image is fetched after a
+ * successful link via getPartnerInfo. Errors are returned as discriminated
+ * objects rather than thrown so the UI can render specific messages.
+ */
+export const previewPartnerByCode = mutation({
+  args: { code: v.string() },
   handler: async (ctx, args) => {
-    const normalizedCode = args.code.toUpperCase().replace(/\s/g, '');
-    if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
+    const user = await getCurrentUserOrThrow(ctx);
+    await enforceRateLimit(ctx, user._id);
+
+    const normalizedCode = normalizeAndValidateCode(args.code);
+    if (!normalizedCode) {
       return { error: 'invalid_format' as const };
     }
 
@@ -97,28 +205,17 @@ export const getUserByShareCode = query({
       return { error: 'not_found' as const };
     }
 
-    const identity = await ctx.auth.getUserIdentity();
-    if (identity) {
-      const currentUser = await ctx.db
-        .query('users')
-        .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-        .unique();
-
-      if (currentUser) {
-        if (targetUser._id === currentUser._id) {
-          return { error: 'own_code' as const };
-        }
-        if (currentUser.partnerId) {
-          return { error: 'already_has_partner' as const };
-        }
-        if (targetUser.partnerId) {
-          return { error: 'target_has_partner' as const };
-        }
-      }
+    if (targetUser._id === user._id) {
+      return { error: 'own_code' as const };
+    }
+    if (user.partnerId) {
+      return { error: 'already_has_partner' as const };
+    }
+    if (targetUser.partnerId) {
+      return { error: 'target_has_partner' as const };
     }
 
     return {
-      userId: targetUser._id,
       name: targetUser.name ?? 'Bambino User',
       imageUrl: targetUser.imageUrl,
     };
@@ -126,15 +223,14 @@ export const getUserByShareCode = query({
 });
 
 export const linkPartner = mutation({
-  args: {
-    code: v.string(),
-  },
+  args: { code: v.string() },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
+    await enforceRateLimit(ctx, user._id);
 
-    const normalizedCode = args.code.toUpperCase().replace(/\s/g, '');
-    if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
-      throw new Error('Please enter a valid 6-character code');
+    const normalizedCode = normalizeAndValidateCode(args.code);
+    if (!normalizedCode) {
+      throw new Error('Please enter a valid share code');
     }
 
     const targetUser = await ctx.db
@@ -158,12 +254,10 @@ export const linkPartner = mutation({
       throw new Error('This user already has a partner linked');
     }
 
-    // Calling user must have confirmed their name
     if (user.nameConfirmed !== true) {
       return { error: 'NAME_NOT_CONFIRMED' as const };
     }
 
-    // At least one user must be premium
     const userIsPremium = user.isPremium === true;
     const targetIsPremium = targetUser.isPremium === true;
 
@@ -173,7 +267,10 @@ export const linkPartner = mutation({
 
     const now = Date.now();
 
-    // Link bidirectionally
+    // Burn the target's share code on successful link — the code that just
+    // worked has been seen by the calling user, so rotate it for safety.
+    const newTargetCode = await generateUniqueShareCode(ctx);
+
     await ctx.db.patch(user._id, {
       partnerId: targetUser._id,
       updatedAt: now,
@@ -181,10 +278,10 @@ export const linkPartner = mutation({
 
     await ctx.db.patch(targetUser._id, {
       partnerId: user._id,
+      shareCode: newTargetCode,
       updatedAt: now,
     });
 
-    // Clear grace period if linking to a premium partner
     if (targetIsPremium && user.premiumRevokedAt) {
       await ctx.db.patch(user._id, { premiumRevokedAt: undefined });
     }
@@ -192,7 +289,30 @@ export const linkPartner = mutation({
       await ctx.db.patch(targetUser._id, { premiumRevokedAt: undefined });
     }
 
+    // Successful link — reset the attacker counter for this user.
+    await resetRateLimit(ctx, user._id);
+
     return { success: true };
+  },
+});
+
+/** Lets the user explicitly mint a fresh share code (e.g. if they shared
+ *  it with the wrong person). #149 acceptance. */
+export const regenerateShareCode = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    if (user.partnerId) {
+      throw new Error('You already have a partner — share code is no longer needed');
+    }
+
+    const newCode = await generateUniqueShareCode(ctx);
+    await ctx.db.patch(user._id, {
+      shareCode: newCode,
+      updatedAt: Date.now(),
+    });
+    return { shareCode: newCode };
   },
 });
 
@@ -208,7 +328,6 @@ export const unlinkPartner = mutation({
     const partner = await ctx.db.get(user.partnerId);
     const now = Date.now();
 
-    // Set grace period on the non-premium user
     if (partner) {
       const userIsPremium = user.isPremium === true;
       const partnerIsPremium = partner.isPremium === true;
@@ -220,7 +339,6 @@ export const unlinkPartner = mutation({
       }
     }
 
-    // Clear any pending proposals between these partners
     const [u1, u2] =
       user._id < user.partnerId ? [user._id, user.partnerId] : [user.partnerId, user._id];
     const partnerMatches = await ctx.db

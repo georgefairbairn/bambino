@@ -105,6 +105,18 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_origin_gender', ['origin', 'gender']),
 
+  // Per-user rate limit state for share-code lookups and linking.
+  // Tracks attempts within a 1-minute sliding window; on too many failures,
+  // sets lockedUntil with exponential backoff. See convex/partners.ts.
+  shareCodeAttempts: defineTable({
+    userId: v.id('users'),
+    attempts: v.number(),
+    windowStart: v.number(),
+    // Number of times this user has hit the lock — drives backoff length.
+    lockoutCount: v.number(),
+    lockedUntil: v.optional(v.number()),
+  }).index('by_user', ['userId']),
+
   matches: defineTable({
     nameId: v.id('names'),
     user1Id: v.id('users'),

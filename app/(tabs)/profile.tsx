@@ -100,6 +100,7 @@ export default function Profile() {
   } = useEffectivePremium();
   const deleteAccount = useMutation(api.users.deleteAccount);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
+  const regenerateShareCode = useMutation(api.partners.regenerateShareCode);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
   const convexUser = useQuery(api.users.getCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +109,7 @@ export default function Profile() {
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
   const [showEditName, setShowEditName] = useState(false);
+  const [isRegeneratingCode, setIsRegeneratingCode] = useState(false);
   const [pendingAction, setPendingAction] = useState<'copy' | 'share' | 'link' | null>(null);
   const { isUploading, pickAndUploadImage, removePhoto: handleRemovePhoto } = useProfilePhoto(user);
   const { resetOnboarding } = useOnboarding();
@@ -248,6 +250,30 @@ export default function Profile() {
     if (!user) return;
     setShowEditName(true);
   }, [user]);
+
+  const handleRegenerateCode = useCallback(() => {
+    Alert.alert(
+      'Generate New Code?',
+      'Your current share code will stop working. If you already shared it, you’ll need to send the new one.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Generate',
+          onPress: async () => {
+            setIsRegeneratingCode(true);
+            try {
+              await regenerateShareCode();
+            } catch (error) {
+              Sentry.captureException(error);
+              Alert.alert('Error', 'Failed to generate a new code. Please try again.');
+            } finally {
+              setIsRegeneratingCode(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [regenerateShareCode]);
 
   const handleUnlinkPartner = useCallback(() => {
     Alert.alert(
@@ -454,6 +480,26 @@ export default function Profile() {
                         <Text style={[styles.shareActionText, { color: colors.primary }]}>
                           Share
                         </Text>
+                      </Pressable>
+                      <Pressable
+                        style={[
+                          styles.shareActionButton,
+                          { backgroundColor: colors.primaryLight },
+                          isRegeneratingCode && { opacity: 0.6 },
+                        ]}
+                        onPress={handleRegenerateCode}
+                        disabled={isRegeneratingCode}
+                      >
+                        {isRegeneratingCode ? (
+                          <ActivityIndicator size="small" color={colors.primary} />
+                        ) : (
+                          <>
+                            <Ionicons name="refresh-outline" size={16} color={colors.primary} />
+                            <Text style={[styles.shareActionText, { color: colors.primary }]}>
+                              New
+                            </Text>
+                          </>
+                        )}
                       </Pressable>
                     </View>
                   </>
