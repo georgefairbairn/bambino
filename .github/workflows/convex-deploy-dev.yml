@@ -1,0 +1,53 @@
+name: Convex deploy (dev)
+
+# Pushes the current branch's convex/ schema and functions to the dev
+# deployment. Useful when you've made a schema change and want to
+# validate migrations or new functions on dev before promoting to prod.
+# Defaults to master so it tracks the same source of truth as the prod
+# workflow, but accepts any branch via the `ref` input.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or commit SHA to deploy (defaults to master)"
+        required: false
+        default: "master"
+
+jobs:
+  deploy:
+    name: Deploy Convex backend to dev
+    runs-on: ubuntu-latest
+    # `development` environment requires CONVEX_DEPLOY_KEY_DEV secret —
+    # the dev-deployment key from the Convex dashboard. Different key
+    # than the prod workflow uses; do not reuse the prod key.
+    environment: development
+    steps:
+      - name: Check for CONVEX_DEPLOY_KEY_DEV
+        run: |
+          if [ -z "${{ secrets.CONVEX_DEPLOY_KEY_DEV }}" ]; then
+            echo "CONVEX_DEPLOY_KEY_DEV is not set. Generate one in the Convex dashboard"
+            echo "(Settings → Deploy Keys → Generate dev deploy key) and add it under the"
+            echo "'development' GitHub Environment at"
+            echo "https://github.com/${{ github.repository }}/settings/environments"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Convex backend (dev)
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY_DEV }}
+        run: npx convex deploy
