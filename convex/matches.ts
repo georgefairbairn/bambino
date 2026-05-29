@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
-import { Id } from './_generated/dataModel';
+import { Doc, Id } from './_generated/dataModel';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -29,6 +29,30 @@ async function getCurrentUserOrNull(ctx: QueryCtx | MutationCtx) {
     .query('users')
     .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
     .unique();
+}
+
+/**
+ * Defense in depth (#159): every match-write mutation must confirm both
+ *   1. the caller is one of the two users on the match, AND
+ *   2. the OTHER user on the match is the caller's CURRENT partner.
+ *
+ * Without (2), an ex-partner can keep editing notes / proposing / etc on
+ * stale match rows after an unlink (orphan rows from data corruption,
+ * a missed delete in unlinkPartner, or the brief window during the
+ * unlink itself). Cheap to enforce, hardens the system.
+ */
+function getOtherUserId(match: Doc<'matches'>, userId: Id<'users'>): Id<'users'> {
+  return match.user1Id === userId ? match.user2Id : match.user1Id;
+}
+
+function assertCurrentPartner(user: Doc<'users'>, match: Doc<'matches'>) {
+  if (match.user1Id !== user._id && match.user2Id !== user._id) {
+    throw new Error('Not authorized to update this match');
+  }
+  const otherId = getOtherUserId(match, user._id);
+  if (user.partnerId !== otherId) {
+    throw new Error('This match is from a previous partnership');
+  }
 }
 
 async function getPartnershipMatches(
@@ -150,10 +174,7 @@ export const updateMatch = mutation({
       throw new Error('Match not found');
     }
 
-    // Verify user is part of this match
-    if (match.user1Id !== user._id && match.user2Id !== user._id) {
-      throw new Error('Not authorized to update this match');
-    }
+    assertCurrentPartner(user, match);
 
     // If marking as chosen, unmark any other chosen name for this partnership
     if (args.isChosen === true && user.partnerId) {
@@ -210,9 +231,7 @@ export const proposeName = mutation({
       throw new Error('Match not found');
     }
 
-    if (match.user1Id !== user._id && match.user2Id !== user._id) {
-      throw new Error('Not authorized to propose on this match');
-    }
+    assertCurrentPartner(user, match);
 
     const partnerMatches = await getPartnershipMatches(ctx, user._id, user.partnerId);
     for (const m of partnerMatches) {
@@ -271,9 +290,7 @@ export const respondToProposal = mutation({
       throw new Error('Match not found');
     }
 
-    if (match.user1Id !== user._id && match.user2Id !== user._id) {
-      throw new Error('Not authorized');
-    }
+    assertCurrentPartner(user, match);
 
     if (match.proposalStatus !== 'pending') {
       throw new Error('No pending proposal on this match');
@@ -375,9 +392,7 @@ export const deleteMatch = mutation({
       throw new Error('Match not found');
     }
 
-    if (match.user1Id !== user._id && match.user2Id !== user._id) {
-      throw new Error('Not authorized to delete this match');
-    }
+    assertCurrentPartner(user, match);
 
     await ctx.db.delete(args.matchId);
 
