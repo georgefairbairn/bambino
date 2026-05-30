@@ -1,10 +1,98 @@
 import { v } from 'convex/values';
+import { paginationOptsValidator } from 'convex/server';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
 import { getEffectivePremiumStatusHelper } from './premium';
 
 const FREE_TIER_SWIPE_LIMIT = 25;
-const FREE_TIER_VISIBLE_LIKES = 25;
+
+// ---- Selection counter helpers (#183) -------------------------------------
+
+type CounterField = 'likedCount' | 'rejectedCount' | 'skippedCount';
+
+const COUNTER_FIELDS: Record<'like' | 'reject' | 'skip', CounterField> = {
+  like: 'likedCount',
+  reject: 'rejectedCount',
+  skip: 'skippedCount',
+};
+
+/**
+ * Lazily backfill the running counters from the selections table. Called
+ * automatically by adjustCounters before any increment/decrement so users
+ * created before this field existed get correct counts on their first
+ * counter-touching mutation. Idempotent.
+ */
+async function ensureCountersBackfilled(
+  ctx: MutationCtx,
+  user: Doc<'users'>,
+): Promise<Doc<'users'>> {
+  if (
+    user.likedCount !== undefined &&
+    user.rejectedCount !== undefined &&
+    user.skippedCount !== undefined
+  ) {
+    return user;
+  }
+  const [likes, rejects, skips] = await Promise.all([
+    ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'like'))
+      .collect(),
+    ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'reject'))
+      .collect(),
+    ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'skip'))
+      .collect(),
+  ]);
+  await ctx.db.patch(user._id, {
+    likedCount: likes.length,
+    rejectedCount: rejects.length,
+    skippedCount: skips.length,
+  });
+  return {
+    ...user,
+    likedCount: likes.length,
+    rejectedCount: rejects.length,
+    skippedCount: skips.length,
+  };
+}
+
+/**
+ * Apply a set of delta counter changes to the user row. Pass positive ints
+ * for inserts, negative for deletes. Selection types not in deltas are
+ * untouched. Floors at 0 to defend against any drift.
+ */
+async function adjustCounters(
+  ctx: MutationCtx,
+  user: Doc<'users'>,
+  deltas: Partial<Record<'like' | 'reject' | 'skip', number>>,
+): Promise<void> {
+  const filled = await ensureCountersBackfilled(ctx, user);
+  const patch: Partial<Pick<Doc<'users'>, 'likedCount' | 'rejectedCount' | 'skippedCount'>> = {};
+  for (const [type, delta] of Object.entries(deltas) as [
+    'like' | 'reject' | 'skip',
+    number,
+  ][]) {
+    if (!delta) continue;
+    const field = COUNTER_FIELDS[type];
+    patch[field] = Math.max(0, (filled[field] ?? 0) + delta);
+  }
+  if (Object.keys(patch).length > 0) {
+    await ctx.db.patch(user._id, patch);
+  }
+}
+
+// 'hidden' selections aren't counted in stats — they were once a like or
+// reject and decremented on transition.
+function counterTypeFor(
+  selectionType: Doc<'selections'>['selectionType'],
+): 'like' | 'reject' | 'skip' | null {
+  if (selectionType === 'hidden') return null;
+  return selectionType;
+}
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -170,6 +258,16 @@ export const recordSelection = mutation({
       }
       await ctx.db.patch(existingSelection._id, patch);
 
+      // Counter sync (#183): selection type changed → decrement old, increment new
+      const oldCounterType = counterTypeFor(existingSelection.selectionType);
+      const newCounterType = counterTypeFor(args.selectionType);
+      if (oldCounterType !== newCounterType) {
+        const deltas: Partial<Record<'like' | 'reject' | 'skip', number>> = {};
+        if (oldCounterType) deltas[oldCounterType] = -1;
+        if (newCounterType) deltas[newCounterType] = 1;
+        await adjustCounters(ctx, user, deltas);
+      }
+
       if (args.selectionType === 'like' && user.partnerId) {
         const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
         return { selectionId: existingSelection._id, match };
@@ -188,6 +286,12 @@ export const recordSelection = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // Counter sync (#183): new selection of countable type → increment
+    const newCounterType = counterTypeFor(args.selectionType);
+    if (newCounterType) {
+      await adjustCounters(ctx, user, { [newCounterType]: 1 });
+    }
 
     if (args.selectionType === 'like' && user.partnerId) {
       const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
@@ -216,12 +320,17 @@ export const getSwipeQueue = query({
 
     const limit = args.limit ?? 50;
 
-    const userSelections = await ctx.db
-      .query('selections')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .collect();
-
-    const swipedNameIds = new Set(userSelections.map((s) => s.nameId));
+    // (#160) Per-candidate indexed lookup instead of collecting every prior
+    // selection. Read set is bounded by queue size (~50) regardless of how
+    // many names the user has swiped, so the subscription doesn't bloat
+    // linearly with engagement.
+    const isAlreadySwiped = async (nameId: Id<'names'>): Promise<boolean> => {
+      const existing = await ctx.db
+        .query('selections')
+        .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', nameId))
+        .unique();
+      return existing !== null;
+    };
 
     const genderFilter = user.genderFilter ?? 'both';
     const originFilter = user.originFilter;
@@ -244,11 +353,11 @@ export const getSwipeQueue = query({
     const results: Doc<'names'>[] = [];
     const seen = new Set<string>();
 
-    function accept(name: Doc<'names'>): boolean {
+    async function tryAccept(name: Doc<'names'>): Promise<boolean> {
       if (results.length >= limit) return false;
       if (seen.has(name._id)) return false;
-      if (swipedNameIds.has(name._id)) return false;
       if (originSet && !originSet.has(name.origin)) return false;
+      if (await isAlreadySwiped(name._id)) return false;
       seen.add(name._id);
       results.push(name);
       return true;
@@ -261,14 +370,16 @@ export const getSwipeQueue = query({
 
       // First pass: randomSeed → end of tier
       for await (const name of buildTierQuery(tier, args.randomSeed)) {
-        if (!accept(name) && results.length >= limit) break;
+        await tryAccept(name);
+        if (results.length >= limit) break;
       }
       if (results.length >= limit) break;
 
       // Wrap: 0 → randomSeed
       for await (const name of buildTierQuery(tier, 0)) {
         if (name.sortKey >= args.randomSeed) break;
-        if (!accept(name) && results.length >= limit) break;
+        await tryAccept(name);
+        if (results.length >= limit) break;
       }
     }
 
@@ -300,6 +411,12 @@ export const undoLastSelection = mutation({
 
     await ctx.db.delete(mostRecent._id);
 
+    // Counter sync (#183)
+    const counterType = counterTypeFor(mostRecent.selectionType);
+    if (counterType) {
+      await adjustCounters(ctx, user, { [counterType]: -1 });
+    }
+
     return {
       deletedSelectionId: mostRecent._id,
       nameId: mostRecent.nameId,
@@ -314,6 +431,21 @@ export const getSelectionStats = query({
   handler: async (ctx) => {
     const user = await getCurrentUserOrNull(ctx);
     if (!user) return null;
+
+    // (#183) Read running counters from the user row instead of collecting
+    // every selection on every render of the explore screen's count pill.
+    // Counters can be undefined for users predating this field — fall back
+    // to a one-time count, but the next mutation will backfill.
+    if (
+      user.likedCount !== undefined &&
+      user.rejectedCount !== undefined &&
+      user.skippedCount !== undefined
+    ) {
+      const liked = user.likedCount;
+      const rejected = user.rejectedCount;
+      const skipped = user.skippedCount;
+      return { liked, rejected, skipped, total: liked + rejected + skipped };
+    }
 
     const [likedDocs, rejectedDocs, skippedDocs] = await Promise.all([
       ctx.db
@@ -338,77 +470,61 @@ export const getSelectionStats = query({
   },
 });
 
-export const getLikedNames = query({
+/**
+ * Paginated liked names (#170). Returns one page at a time so engaged users
+ * with hundreds of likes don't blow up Convex's 32k row limit and the
+ * dashboard's render footprint stays bounded.
+ *
+ * Server-side sort: by liked-at via the by_user_type index. Name sort and
+ * text search were dropped from the dashboard when pagination landed —
+ * they don't fit a streaming-page model.
+ *
+ * Free-tier gating happens client-side based on getSelectionStats counts;
+ * the dashboard refuses to fetch past the cap so the server doesn't need
+ * to enforce it here.
+ */
+export const getLikedNamesPaginated = query({
   args: {
-    search: v.optional(v.string()),
-    sortBy: v.optional(
-      v.union(
-        v.literal('name_asc'),
-        v.literal('name_desc'),
-        v.literal('liked_newest'),
-        v.literal('liked_oldest'),
-      ),
-    ),
+    paginationOpts: paginationOptsValidator,
+    sortBy: v.optional(v.union(v.literal('liked_newest'), v.literal('liked_oldest'))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrNull(ctx);
-    if (!user) return { names: [], visibleLimit: null };
+    if (!user) {
+      return { page: [], isDone: true, continueCursor: '' };
+    }
 
-    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
-
-    const likedSelections = await ctx.db
+    const order = args.sortBy === 'liked_oldest' ? 'asc' : 'desc';
+    const result = await ctx.db
       .query('selections')
       .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'like'))
-      .collect();
+      .order(order)
+      .paginate(args.paginationOpts);
 
-    const uniqueNameIds = [...new Set(likedSelections.map((s) => s.nameId))];
-    const nameDocsArray = await Promise.all(uniqueNameIds.map((id) => ctx.db.get(id)));
-    const nameMap = new Map(uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]));
+    const nameIds = [...new Set(result.page.map((s) => s.nameId))];
+    const names = await Promise.all(nameIds.map((id) => ctx.db.get(id)));
+    const nameMap = new Map(nameIds.map((id, i) => [id, names[i]]));
 
-    const likedNamesWithDetails = likedSelections.map((selection) => ({
-      selectionId: selection._id,
-      likedAt: selection.createdAt,
-      name: nameMap.get(selection.nameId) ?? null,
-    }));
-
-    let results = likedNamesWithDetails.filter(
-      (
-        item,
-      ): item is {
-        selectionId: Id<'selections'>;
-        likedAt: number;
-        name: NonNullable<typeof item.name>;
-      } => item.name !== null,
-    );
-
-    if (args.search) {
-      const searchLower = args.search.toLowerCase();
-      results = results.filter((item) => item.name.name.toLowerCase().includes(searchLower));
-    }
-
-    const sortBy = args.sortBy ?? 'liked_newest';
-    switch (sortBy) {
-      case 'name_asc':
-        results.sort((a, b) => a.name.name.localeCompare(b.name.name));
-        break;
-      case 'name_desc':
-        results.sort((a, b) => b.name.name.localeCompare(a.name.name));
-        break;
-      case 'liked_newest':
-        results.sort((a, b) => b.likedAt - a.likedAt);
-        break;
-      case 'liked_oldest':
-        results.sort((a, b) => a.likedAt - b.likedAt);
-        break;
-    }
-
-    const totalCount = results.length;
-    const visibleLimit = premiumStatus.isPremium ? null : FREE_TIER_VISIBLE_LIKES;
+    const hydrated = result.page
+      .map((s) => ({
+        selectionId: s._id,
+        likedAt: s.createdAt,
+        name: nameMap.get(s.nameId) ?? null,
+      }))
+      .filter(
+        (
+          item,
+        ): item is {
+          selectionId: Id<'selections'>;
+          likedAt: number;
+          name: NonNullable<typeof item.name>;
+        } => item.name !== null,
+      );
 
     return {
-      names: visibleLimit !== null ? results.slice(0, visibleLimit) : results,
-      totalCount,
-      visibleLimit,
+      page: hydrated,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
     };
   },
 });
@@ -436,73 +552,63 @@ export const removeFromLiked = mutation({
 
     await ctx.db.delete(args.selectionId);
 
+    // Counter sync (#183)
+    const counterType = counterTypeFor(selection.selectionType);
+    if (counterType) {
+      await adjustCounters(ctx, user, { [counterType]: -1 });
+    }
+
     return { success: true };
   },
 });
 
-export const getRejectedNames = query({
+/**
+ * Paginated rejected names (#170). See getLikedNamesPaginated for shape
+ * rationale. No free-tier gate — rejected names aren't capped.
+ */
+export const getRejectedNamesPaginated = query({
   args: {
-    search: v.optional(v.string()),
-    sortBy: v.optional(
-      v.union(
-        v.literal('name_asc'),
-        v.literal('name_desc'),
-        v.literal('rejected_newest'),
-        v.literal('rejected_oldest'),
-      ),
-    ),
+    paginationOpts: paginationOptsValidator,
+    sortBy: v.optional(v.union(v.literal('rejected_newest'), v.literal('rejected_oldest'))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrNull(ctx);
-    if (!user) return [];
+    if (!user) {
+      return { page: [], isDone: true, continueCursor: '' };
+    }
 
-    const rejectedSelections = await ctx.db
+    const order = args.sortBy === 'rejected_oldest' ? 'asc' : 'desc';
+    const result = await ctx.db
       .query('selections')
       .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'reject'))
-      .collect();
+      .order(order)
+      .paginate(args.paginationOpts);
 
-    const uniqueNameIds = [...new Set(rejectedSelections.map((s) => s.nameId))];
-    const nameDocsArray = await Promise.all(uniqueNameIds.map((id) => ctx.db.get(id)));
-    const nameMap = new Map(uniqueNameIds.map((id, i) => [id, nameDocsArray[i]]));
+    const nameIds = [...new Set(result.page.map((s) => s.nameId))];
+    const names = await Promise.all(nameIds.map((id) => ctx.db.get(id)));
+    const nameMap = new Map(nameIds.map((id, i) => [id, names[i]]));
 
-    const rejectedNamesWithDetails = rejectedSelections.map((selection) => ({
-      selectionId: selection._id,
-      rejectedAt: selection.createdAt,
-      name: nameMap.get(selection.nameId) ?? null,
-    }));
+    const hydrated = result.page
+      .map((s) => ({
+        selectionId: s._id,
+        rejectedAt: s.createdAt,
+        name: nameMap.get(s.nameId) ?? null,
+      }))
+      .filter(
+        (
+          item,
+        ): item is {
+          selectionId: Id<'selections'>;
+          rejectedAt: number;
+          name: NonNullable<typeof item.name>;
+        } => item.name !== null,
+      );
 
-    let results = rejectedNamesWithDetails.filter(
-      (
-        item,
-      ): item is {
-        selectionId: Id<'selections'>;
-        rejectedAt: number;
-        name: NonNullable<typeof item.name>;
-      } => item.name !== null,
-    );
-
-    if (args.search) {
-      const searchLower = args.search.toLowerCase();
-      results = results.filter((item) => item.name.name.toLowerCase().includes(searchLower));
-    }
-
-    const sortBy = args.sortBy ?? 'rejected_newest';
-    switch (sortBy) {
-      case 'name_asc':
-        results.sort((a, b) => a.name.name.localeCompare(b.name.name));
-        break;
-      case 'name_desc':
-        results.sort((a, b) => b.name.name.localeCompare(a.name.name));
-        break;
-      case 'rejected_newest':
-        results.sort((a, b) => b.rejectedAt - a.rejectedAt);
-        break;
-      case 'rejected_oldest':
-        results.sort((a, b) => a.rejectedAt - b.rejectedAt);
-        break;
-    }
-
-    return results;
+    return {
+      page: hydrated,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
   },
 });
 
@@ -524,6 +630,12 @@ export const restoreToQueue = mutation({
 
     await ctx.db.delete(args.selectionId);
 
+    // Counter sync (#183)
+    const counterType = counterTypeFor(selection.selectionType);
+    if (counterType) {
+      await adjustCounters(ctx, user, { [counterType]: -1 });
+    }
+
     return { success: true };
   },
 });
@@ -536,6 +648,7 @@ export const bulkDeleteSelections = mutation({
     const user = await getCurrentUserOrThrow(ctx);
 
     let deletedCount = 0;
+    const deltas: Partial<Record<'like' | 'reject' | 'skip', number>> = {};
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
@@ -546,6 +659,16 @@ export const bulkDeleteSelections = mutation({
 
       await ctx.db.delete(selectionId);
       deletedCount++;
+
+      const counterType = counterTypeFor(selection.selectionType);
+      if (counterType) {
+        deltas[counterType] = (deltas[counterType] ?? 0) - 1;
+      }
+    }
+
+    // Counter sync (#183) — single batched user-row patch instead of per item.
+    if (Object.keys(deltas).length > 0) {
+      await adjustCounters(ctx, user, deltas);
     }
 
     return { success: true, deletedCount };
@@ -561,6 +684,7 @@ export const bulkHideSelections = mutation({
     const now = Date.now();
 
     let hiddenCount = 0;
+    const deltas: Partial<Record<'like' | 'reject' | 'skip', number>> = {};
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
@@ -569,11 +693,22 @@ export const bulkHideSelections = mutation({
         await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
       }
 
+      // Hidden doesn't count toward stats — decrement the original type
+      // exactly like a delete (#183).
+      const counterType = counterTypeFor(selection.selectionType);
+      if (counterType) {
+        deltas[counterType] = (deltas[counterType] ?? 0) - 1;
+      }
+
       await ctx.db.patch(selectionId, {
         selectionType: 'hidden',
         updatedAt: now,
       });
       hiddenCount++;
+    }
+
+    if (Object.keys(deltas).length > 0) {
+      await adjustCounters(ctx, user, deltas);
     }
 
     return { success: true, hiddenCount };
@@ -598,6 +733,12 @@ export const hidePermanently = mutation({
 
     if (selection.selectionType === 'like' && user.partnerId) {
       await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
+    }
+
+    // Counter sync (#183) — hidden doesn't count toward stats.
+    const counterType = counterTypeFor(selection.selectionType);
+    if (counterType) {
+      await adjustCounters(ctx, user, { [counterType]: -1 });
     }
 
     await ctx.db.patch(args.selectionId, {
