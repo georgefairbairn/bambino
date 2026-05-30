@@ -52,11 +52,12 @@ export function OriginToggleList({ value, onChange, genderFilter }: OriginToggle
       // From "all" state: select all EXCEPT this one
       onChange(availableOrigins.filter((o) => o !== origin));
     } else if (selectedSet.has(origin)) {
-      // Deselect this origin
-      onChange(value!.filter((o) => o !== origin));
+      // Deselect this origin. value is non-null in this branch (isAllSelected
+      // is false), but use `?? []` instead of a non-null assertion (#207).
+      onChange((value ?? []).filter((o) => o !== origin));
     } else {
       // Select this origin — if all are now selected, collapse to null (all)
-      const next = [...value!, origin].sort();
+      const next = [...(value ?? []), origin].sort();
       onChange(next.length === availableOrigins.length ? null : next);
     }
   };

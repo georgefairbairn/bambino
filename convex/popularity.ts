@@ -90,8 +90,11 @@ export const updateNamesWithCurrentRank = internalMutation({
         const femaleRank = femaleRecord?.rank ?? Infinity;
 
         if (maleRecord || femaleRecord) {
+          // No non-null assertions (#207): maleRank/femaleRank already fold
+          // the null case into Infinity, and at least one record exists here,
+          // so the smaller rank is finite and correct.
           const isMaleBetter = maleRank <= femaleRank;
-          const chosenRank = isMaleBetter ? maleRecord!.rank : femaleRecord!.rank;
+          const chosenRank = isMaleBetter ? maleRank : femaleRank;
           await ctx.db.patch(name._id, {
             currentRank: chosenRank,
             primaryGender: isMaleBetter ? 'male' : 'female',
