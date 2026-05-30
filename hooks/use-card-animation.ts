@@ -5,7 +5,6 @@ import {
   withSpring,
   withTiming,
   runOnJS,
-  runOnUI,
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
@@ -75,15 +74,6 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
     rotation.value = withTiming(-MAX_ROTATION, TIMING_CONFIG);
   }, [translateX, translateY, rotation, onSwipeComplete]);
 
-  // JS-callable wrappers for programmatic swipes (from button presses)
-  const swipeLeftFromJS = useCallback(() => {
-    runOnUI(swipeLeft)();
-  }, [swipeLeft]);
-
-  const swipeRightFromJS = useCallback(() => {
-    runOnUI(swipeRight)();
-  }, [swipeRight]);
-
   // Animated style for the card transform
   const cardAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -101,8 +91,6 @@ export function useCardAnimation(options: UseCardAnimationOptions = {}) {
     resetPosition,
     swipeLeft,
     swipeRight,
-    swipeLeftFromJS,
-    swipeRightFromJS,
     cardAnimatedStyle,
   };
 }
