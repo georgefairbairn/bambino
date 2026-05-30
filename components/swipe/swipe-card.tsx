@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, LayoutChangeEvent, Alert } from 'react-native';
 import * as Speech from 'expo-speech';
 import Animated, {
@@ -31,11 +31,6 @@ import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
 import { GenderBadge } from '@/components/name-detail/gender-badge';
 import * as Sentry from '@sentry/react-native';
-
-export interface SwipeCardRef {
-  swipeLeft: () => void;
-  swipeRight: () => void;
-}
 
 interface SwipeCardProps {
   name: Doc<'names'>;
@@ -92,24 +87,21 @@ function getNameFontSize(name: string): number {
   return 32;
 }
 
-export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function SwipeCard(
-  {
-    name,
-    isTop,
-    showSwipeHint = true,
-    onSwipeHintShown,
-    onSwipeHintReset,
-    onSwipeLeft,
-    onSwipeRight,
-    onSwipeComplete,
-    onDetailPress,
-    swipeEnabled = true,
-    detailOpen = false,
-    cardHeight,
-    popularitySummary: prefetchedSummary,
-  },
-  ref,
-) {
+export function SwipeCard({
+  name,
+  isTop,
+  showSwipeHint = true,
+  onSwipeHintShown,
+  onSwipeHintReset,
+  onSwipeLeft,
+  onSwipeRight,
+  onSwipeComplete,
+  onDetailPress,
+  swipeEnabled = true,
+  detailOpen = false,
+  cardHeight,
+  popularitySummary: prefetchedSummary,
+}: SwipeCardProps) {
   const { colors } = useTheme();
 
   // Prefer the parent's prefetched summary (#174). Only self-query when the
@@ -129,16 +121,8 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     resetPosition,
     swipeLeft,
     swipeRight,
-    swipeLeftFromJS,
-    swipeRightFromJS,
     cardAnimatedStyle,
   } = useCardAnimation({ onSwipeComplete });
-
-  // Expose JS-callable swipe methods to parent via ref
-  useImperativeHandle(ref, () => ({
-    swipeLeft: swipeLeftFromJS,
-    swipeRight: swipeRightFromJS,
-  }));
 
   const { panGesture } = useSwipeGesture({
     translateX,
@@ -596,7 +580,7 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
       </Animated.View>
     </GestureDetector>
   );
-});
+}
 
 const styles = StyleSheet.create({
   card: {

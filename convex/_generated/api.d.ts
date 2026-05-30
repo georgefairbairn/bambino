@@ -11,7 +11,6 @@
 import type * as admin from "../admin.js";
 import type * as feedback from "../feedback.js";
 import type * as matches from "../matches.js";
-import type * as migrations from "../migrations.js";
 import type * as names from "../names.js";
 import type * as notifications from "../notifications.js";
 import type * as partners from "../partners.js";
@@ -30,7 +29,6 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   feedback: typeof feedback;
   matches: typeof matches;
-  migrations: typeof migrations;
   names: typeof names;
   notifications: typeof notifications;
   partners: typeof partners;

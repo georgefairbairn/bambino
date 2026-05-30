@@ -702,11 +702,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
-  avatarInitial: {
-    fontSize: 30,
-    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
-    color: '#fff',
-  },
   avatarUploadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255,255,255,0.6)',
@@ -832,18 +827,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  /* Legal card — no padding, rows handle their own */
-  legalCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-
   settingsCard: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
@@ -959,25 +942,6 @@ const styles = StyleSheet.create({
   },
   linkPartnerWrap: {
     alignSelf: 'stretch',
-  },
-
-  /* Grouped rows (legal) — card with no gap/padding, rows handle their own */
-  groupedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  groupedRowText: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    color: '#2D1B4E',
-  },
-  groupedDivider: {
-    height: 1,
-    marginHorizontal: 16,
   },
 
   /* Delete account */
