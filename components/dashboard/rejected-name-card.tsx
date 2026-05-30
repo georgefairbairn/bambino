@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
@@ -19,7 +20,7 @@ interface RejectedNameCardProps {
   onToggleSelect?: () => void;
 }
 
-export function RejectedNameCard({
+function RejectedNameCardImpl({
   name,
   rejectedAt,
   onRestore,
@@ -115,6 +116,17 @@ export function RejectedNameCard({
     </Pressable>
   );
 }
+
+// See LikedNameCard — memo with a data-only comparator so renderItem's fresh
+// closures don't bust it (#161).
+export const RejectedNameCard = memo(RejectedNameCardImpl, (prev, next) => {
+  return (
+    prev.name._id === next.name._id &&
+    prev.rejectedAt === next.rejectedAt &&
+    prev.selectMode === next.selectMode &&
+    prev.selected === next.selected
+  );
+});
 
 const styles = StyleSheet.create({
   checkboxContainer: {

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
@@ -27,13 +28,7 @@ interface MatchCardProps {
   onWithdraw?: () => void;
 }
 
-export function MatchCard({
-  match,
-  currentUserId,
-  onPress,
-  onPropose,
-  onWithdraw,
-}: MatchCardProps) {
+function MatchCardImpl({ match, currentUserId, onPress, onPropose, onWithdraw }: MatchCardProps) {
   const { colors } = useTheme();
   const { skinTone } = useSkinTone();
   const { name, isFavorite, isChosen, proposalStatus, proposedBy, matchedAt } = match;
@@ -112,6 +107,24 @@ export function MatchCard({
     </Pressable>
   );
 }
+
+// Memo with a comparator over the fields that actually affect render (#161).
+// onPress is ignored (identity changes every render, behavior is stable);
+// onPropose/onWithdraw are compared by PRESENCE only, since whether they're
+// defined gates the action buttons but their identity doesn't matter.
+export const MatchCard = memo(MatchCardImpl, (prev, next) => {
+  return (
+    prev.match._id === next.match._id &&
+    prev.match.isFavorite === next.match.isFavorite &&
+    prev.match.isChosen === next.match.isChosen &&
+    prev.match.proposalStatus === next.match.proposalStatus &&
+    prev.match.proposedBy === next.match.proposedBy &&
+    prev.match.matchedAt === next.match.matchedAt &&
+    prev.currentUserId === next.currentUserId &&
+    !!prev.onPropose === !!next.onPropose &&
+    !!prev.onWithdraw === !!next.onWithdraw
+  );
+});
 
 const styles = StyleSheet.create({
   card: {

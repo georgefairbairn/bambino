@@ -52,7 +52,18 @@ interface SwipeCardProps {
   /** Override the default card height. Used when accessibility buttons need
    *  vertical space below the card. */
   cardHeight?: number;
+  /** Pre-fetched popularity summary supplied by the parent (#174). When
+   *  provided, the card skips its own query so the sparkline is already
+   *  populated the moment the card becomes top — no per-swipe flash.
+   *  Falls back to a self-query when undefined (e.g. detail modal usage). */
+  popularitySummary?: PopularitySummary;
 }
+
+type PopularitySummary = {
+  sparklinePoints: number[];
+  trend: 'rising' | 'falling' | 'steady' | null;
+  peakYear: number | null;
+} | null;
 
 // Gender-based underline colors
 const UNDERLINE_COLORS = {
@@ -95,16 +106,21 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(function Swipe
     swipeEnabled = true,
     detailOpen = false,
     cardHeight,
+    popularitySummary: prefetchedSummary,
   },
   ref,
 ) {
   const { colors } = useTheme();
 
-  // Fetch popularity summary only for the top (visible) card
-  const popularitySummary = useQuery(
+  // Prefer the parent's prefetched summary (#174). Only self-query when the
+  // parent didn't supply one AND this is the top card — the fallback keeps
+  // standalone usages (detail modal) working without forcing them to fetch.
+  const shouldSelfQuery = prefetchedSummary === undefined && isTop;
+  const selfQueriedSummary = useQuery(
     api.popularity.getNamePopularitySummary,
-    isTop ? { name: name.name, gender: name.gender } : 'skip',
+    shouldSelfQuery ? { name: name.name, gender: name.gender } : 'skip',
   );
+  const popularitySummary = prefetchedSummary ?? selfQueriedSummary;
 
   const {
     translateX,
