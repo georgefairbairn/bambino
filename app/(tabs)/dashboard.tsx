@@ -31,7 +31,6 @@ import { useTheme } from '@/contexts/theme-context';
 import { trackScreen } from '@/lib/analytics';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
-import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
@@ -232,17 +231,74 @@ export default function Dashboard() {
     });
   }, []);
 
-  const handleSelectAll = useCallback(() => {
-    const data = activeTab === 'liked' ? visibleLikedNames : visibleRejectedNames;
-    if (!data) return;
-    const allIds = data.map((item) => item.selectionId);
-    const allSelected = allIds.every((id) => selectedIds.has(id));
+  // Track an in-flight "Select all" request so we can show progress and
+  // prevent reentry while pages are still loading.
+  const [isSelectingAll, setIsSelectingAll] = useState(false);
+
+  const handleSelectAll = useCallback(async () => {
+    const items = activeTab === 'liked' ? visibleLikedNames : visibleRejectedNames;
+    const allLoadedIds = items.map((item) => item.selectionId);
+    const allSelected = allLoadedIds.length > 0 && allLoadedIds.every((id) => selectedIds.has(id));
+
+    // Toggle off when everything currently loaded is selected.
     if (allSelected) {
       setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(allIds));
+      return;
     }
-  }, [selectedIds, activeTab, visibleLikedNames, visibleRejectedNames]);
+
+    // Pagination means "select all" must drain remaining pages so the
+    // subsequent bulk delete/hide actually covers every name (#170 +
+    // user-reported gap).
+    const status = activeTab === 'liked' ? likedStatus : rejectedStatus;
+    const loadMore = activeTab === 'liked' ? loadMoreLiked : loadMoreRejected;
+
+    if (status === 'CanLoadMore' || status === 'LoadingMore') {
+      setIsSelectingAll(true);
+      // The hook re-runs and `status` flips between LoadingMore and
+      // CanLoadMore until exhausted. We detect completion with an effect
+      // below; here we just kick off the first batch.
+      loadMore(LIST_PAGE_SIZE);
+      return;
+    }
+
+    setSelectedIds(new Set(allLoadedIds));
+  }, [
+    selectedIds,
+    activeTab,
+    visibleLikedNames,
+    visibleRejectedNames,
+    likedStatus,
+    rejectedStatus,
+    loadMoreLiked,
+    loadMoreRejected,
+  ]);
+
+  // Drive "select all" through the remaining pages: each time we land in
+  // CanLoadMore while the user is selecting-all, fetch the next batch;
+  // when Exhausted, materialize the full selection.
+  useEffect(() => {
+    if (!isSelectingAll) return;
+    const status = activeTab === 'liked' ? likedStatus : rejectedStatus;
+    if (status === 'CanLoadMore') {
+      const loadMore = activeTab === 'liked' ? loadMoreLiked : loadMoreRejected;
+      loadMore(LIST_PAGE_SIZE);
+      return;
+    }
+    if (status === 'Exhausted') {
+      const items = activeTab === 'liked' ? visibleLikedNames : visibleRejectedNames;
+      setSelectedIds(new Set(items.map((item) => item.selectionId)));
+      setIsSelectingAll(false);
+    }
+  }, [
+    isSelectingAll,
+    activeTab,
+    likedStatus,
+    rejectedStatus,
+    loadMoreLiked,
+    loadMoreRejected,
+    visibleLikedNames,
+    visibleRejectedNames,
+  ]);
 
   const executeBulkAction = useCallback(
     async (
@@ -321,19 +377,19 @@ export default function Dashboard() {
     );
   }, [selectedIds, bulkHide, executeBulkAction]);
 
+  // Data-ready gate: the paginated query has returned its first page.
   const isDataLoaded =
     activeTab === 'liked'
       ? likedStatus !== 'LoadingFirstPage'
       : rejectedStatus !== 'LoadingFirstPage';
-  const isDataEmpty = activeTab === 'liked' ? totalLikedCount === 0 : totalRejectedCount === 0;
 
-  const { showLoading, loadingProps } = useGracefulLoading(isDataLoaded);
+  // Emptiness is decided by the actual loaded items, NOT the running
+  // counter. The counter is a display optimization for the header and can
+  // drift; the paginated query is the source of truth for what exists. This
+  // is what makes the empty state appear reliably after a bulk delete (#170).
+  const loadedCount = activeTab === 'liked' ? allLikedItems.length : allRejectedItems.length;
+  const isDataEmpty = isDataLoaded && loadedCount === 0;
 
-  if (showLoading) {
-    return <LoadingScreen {...loadingProps} />;
-  }
-
-  // Data loading state
   if (!isDataLoaded) {
     return (
       <GradientBackground>
@@ -378,12 +434,17 @@ export default function Dashboard() {
               onSortChange={setRejectedSortBy}
             />
           )}
-          <SearchInput
-            value={searchInput}
-            onChangeText={setSearchInput}
-            onSubmit={handleSearchSubmit}
-            onClear={handleSearchClear}
-          />
+          {/* Keep the search bar only when the emptiness is a no-results
+              state — the user needs it to edit/clear their query. When the
+              list is genuinely empty, hide it; there's nothing to search. */}
+          {isSearching && (
+            <SearchInput
+              value={searchInput}
+              onChangeText={setSearchInput}
+              onSubmit={handleSearchSubmit}
+              onClear={handleSearchClear}
+            />
+          )}
           <View style={styles.emptyContainer}>
             {!isSearching && <BubblePillsBackground />}
             <Text style={styles.emptyTitle}>

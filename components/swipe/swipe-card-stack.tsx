@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
@@ -24,10 +24,15 @@ export function SwipeCardStack() {
   const router = useRouter();
   const { colors } = useTheme();
 
-  // Stable random seed per mount — changes when component remounts (e.g. filter change)
-  const randomSeed = useMemo(() => Math.random(), []);
+  // Random seed lives in state so we can rotate it (and trigger a fresh
+  // server query) when the local queue gets low. Initial value is stable
+  // for the first fetch.
+  const [randomSeed, setRandomSeed] = useState(() => Math.random());
 
-  // Fetch initial queue from backend
+  // Fetch the swipe queue. Each unique randomSeed value corresponds to a
+  // distinct server query — when it changes, the next batch of names
+  // arrives. We keep all batches we've ever seen accumulated in
+  // localQueue (deduped), so swiping never visibly stalls (#160 prefetch).
   const serverQueue = useQuery(api.selections.getSwipeQueue, {
     limit: 50,
     randomSeed,
@@ -40,6 +45,12 @@ export function SwipeCardStack() {
   const [localQueue, setLocalQueue] = useState<Doc<'names'>[]>([]);
   const localQueueRef = useRef(localQueue);
   localQueueRef.current = localQueue;
+  // Track which name IDs have ever been added to localQueue so a re-fetched
+  // batch with overlapping results doesn't add duplicates.
+  const seenNameIdsRef = useRef<Set<string>>(new Set());
+  // Track when we've already kicked off a prefetch for the current low-queue
+  // event so we don't fire a flood of seed rotations.
+  const prefetchInFlightRef = useRef(false);
 
   const [showMatchToast, setShowMatchToast] = useState(false);
   const [matchToastName, setMatchToastName] = useState<string | null>(null);
@@ -53,13 +64,51 @@ export function SwipeCardStack() {
   const requestPermission = usePushRequestPermission();
   const { needsButtons, reduceMotion } = useA11yPreferences();
 
-  // Sync server queue to local state (only when server data arrives)
+  // Prefetch popularity summaries for the top TWO cards (#174). Querying the
+  // next card's summary now means it's already cached by the time the user
+  // swipes and it becomes top — no flash of an empty sparkline tile.
+  const topName = localQueue[0];
+  const nextName = localQueue[1];
+  const topSummary = useQuery(
+    api.popularity.getNamePopularitySummary,
+    topName ? { name: topName.name, gender: topName.gender } : 'skip',
+  );
+  const nextSummary = useQuery(
+    api.popularity.getNamePopularitySummary,
+    nextName ? { name: nextName.name, gender: nextName.gender } : 'skip',
+  );
+
+  // Append server batches to localQueue, skipping anything we've already
+  // queued. Initial fetch fills the queue; subsequent fetches (triggered
+  // by rotating randomSeed when localQueue is low) extend it so the user
+  // never visibly hits the bottom while more names exist.
   useEffect(() => {
-    if (serverQueue && localQueue.length === 0) {
-      setLocalQueue(serverQueue);
+    if (!serverQueue) return;
+    const fresh = serverQueue.filter((name) => !seenNameIdsRef.current.has(name._id));
+    if (fresh.length === 0) {
+      // Server returned nothing new (everything was already swiped or
+      // already in our local queue). Mark the prefetch resolved so the
+      // next low-queue event can try again with a different seed.
+      prefetchInFlightRef.current = false;
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fresh.forEach((name) => seenNameIdsRef.current.add(name._id));
+    setLocalQueue((prev) => [...prev, ...fresh]);
+    prefetchInFlightRef.current = false;
   }, [serverQueue]);
+
+  // Prefetch trigger: when the queue drops to a small remaining buffer,
+  // rotate the random seed so a fresh server query fires before the user
+  // hits the bottom and sees a transient empty state.
+  const PREFETCH_THRESHOLD = 10;
+  useEffect(() => {
+    if (prefetchInFlightRef.current) return;
+    if (localQueue.length === 0) return; // initial-load case is handled above
+    if (localQueue.length > PREFETCH_THRESHOLD) return;
+    if (!serverQueue) return; // wait for the current fetch to land first
+    prefetchInFlightRef.current = true;
+    setRandomSeed(Math.random());
+  }, [localQueue.length, serverQueue]);
 
   // Handle recording a selection — uses ref to avoid recreating on every queue change
   const handleSelection = useCallback(
@@ -140,6 +189,7 @@ export function SwipeCardStack() {
             swipeEnabled={!showDetailModal && !needsButtons}
             detailOpen={showDetailModal}
             cardHeight={needsButtons ? CARD_HEIGHT_FULL - SWIPE_ACTION_BUTTONS_HEIGHT : undefined}
+            popularitySummary={index === 0 ? topSummary : nextSummary}
             onSwipeHintShown={() => setHintEligible(false)}
             onSwipeHintReset={() => setHintEligible(true)}
             onSwipeLeft={() => handleSelection('reject')}

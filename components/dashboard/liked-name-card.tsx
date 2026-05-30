@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
@@ -18,7 +19,7 @@ interface LikedNameCardProps {
   onToggleSelect?: () => void;
 }
 
-export function LikedNameCard({
+function LikedNameCardImpl({
   name,
   likedAt,
   onRemove,
@@ -91,6 +92,19 @@ export function LikedNameCard({
     </Pressable>
   );
 }
+
+// Skip re-renders when only the parent's renderItem closures change identity
+// but the actual displayed data is unchanged (#161). Function props
+// (onRemove/onPress/onToggleSelect) are intentionally omitted from the
+// comparator — they're new closures every render but functionally identical.
+export const LikedNameCard = memo(LikedNameCardImpl, (prev, next) => {
+  return (
+    prev.name._id === next.name._id &&
+    prev.likedAt === next.likedAt &&
+    prev.selectMode === next.selectMode &&
+    prev.selected === next.selected
+  );
+});
 
 const styles = StyleSheet.create({
   checkboxContainer: {

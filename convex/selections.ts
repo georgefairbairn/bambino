@@ -61,16 +61,48 @@ async function ensureCountersBackfilled(
 }
 
 /**
+ * Recompute all three counters from the selections table and write them.
+ * Unlike ensureCountersBackfilled this ALWAYS recomputes — use it after a
+ * bulk mutation where delta tracking is error-prone, and to self-heal any
+ * historical drift. Call AFTER the bulk inserts/deletes have run.
+ */
+async function recomputeCounters(ctx: MutationCtx, userId: Id<'users'>): Promise<void> {
+  const [likes, rejects, skips] = await Promise.all([
+    ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) => q.eq('userId', userId).eq('selectionType', 'like'))
+      .collect(),
+    ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) => q.eq('userId', userId).eq('selectionType', 'reject'))
+      .collect(),
+    ctx.db
+      .query('selections')
+      .withIndex('by_user_type', (q) => q.eq('userId', userId).eq('selectionType', 'skip'))
+      .collect(),
+  ]);
+  await ctx.db.patch(userId, {
+    likedCount: likes.length,
+    rejectedCount: rejects.length,
+    skippedCount: skips.length,
+  });
+}
+
+/**
  * Apply a set of delta counter changes to the user row. Pass positive ints
  * for inserts, negative for deletes. Selection types not in deltas are
  * untouched. Floors at 0 to defend against any drift.
+ *
+ * IMPORTANT: pass the user document as it was *before* the mutation's
+ * inserts/deletes ran. Otherwise the counter math is wrong: callers
+ * pre-backfill via ensureCountersBackfilled at the TOP of their handler
+ * (before any selection writes) and pass that filled user here.
  */
 async function adjustCounters(
   ctx: MutationCtx,
   user: Doc<'users'>,
   deltas: Partial<Record<'like' | 'reject' | 'skip', number>>,
 ): Promise<void> {
-  const filled = await ensureCountersBackfilled(ctx, user);
   const patch: Partial<Pick<Doc<'users'>, 'likedCount' | 'rejectedCount' | 'skippedCount'>> = {};
   for (const [type, delta] of Object.entries(deltas) as [
     'like' | 'reject' | 'skip',
@@ -78,7 +110,7 @@ async function adjustCounters(
   ][]) {
     if (!delta) continue;
     const field = COUNTER_FIELDS[type];
-    patch[field] = Math.max(0, (filled[field] ?? 0) + delta);
+    patch[field] = Math.max(0, (user[field] ?? 0) + delta);
   }
   if (Object.keys(patch).length > 0) {
     await ctx.db.patch(user._id, patch);
@@ -206,7 +238,10 @@ export const recordSelection = mutation({
     selectionType: v.union(v.literal('like'), v.literal('reject'), v.literal('skip')),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    let user = await getCurrentUserOrThrow(ctx);
+    // Backfill running counters BEFORE any mutation runs — otherwise the
+    // backfill's post-mutation collect would double-count this write (#183).
+    user = await ensureCountersBackfilled(ctx, user);
 
     // Free tier: limit to 25 swipes total (check effective premium including partner sharing)
     const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
@@ -390,7 +425,8 @@ export const getSwipeQueue = query({
 export const undoLastSelection = mutation({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    let user = await getCurrentUserOrThrow(ctx);
+    user = await ensureCountersBackfilled(ctx, user);
 
     const mostRecent = await ctx.db
       .query('selections')
@@ -534,7 +570,8 @@ export const removeFromLiked = mutation({
     selectionId: v.id('selections'),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    let user = await getCurrentUserOrThrow(ctx);
+    user = await ensureCountersBackfilled(ctx, user);
 
     const selection = await ctx.db.get(args.selectionId);
     if (!selection) {
@@ -617,7 +654,8 @@ export const restoreToQueue = mutation({
     selectionId: v.id('selections'),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    let user = await getCurrentUserOrThrow(ctx);
+    user = await ensureCountersBackfilled(ctx, user);
 
     const selection = await ctx.db.get(args.selectionId);
     if (!selection) {
@@ -648,7 +686,6 @@ export const bulkDeleteSelections = mutation({
     const user = await getCurrentUserOrThrow(ctx);
 
     let deletedCount = 0;
-    const deltas: Partial<Record<'like' | 'reject' | 'skip', number>> = {};
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
@@ -659,17 +696,13 @@ export const bulkDeleteSelections = mutation({
 
       await ctx.db.delete(selectionId);
       deletedCount++;
-
-      const counterType = counterTypeFor(selection.selectionType);
-      if (counterType) {
-        deltas[counterType] = (deltas[counterType] ?? 0) - 1;
-      }
     }
 
-    // Counter sync (#183) — single batched user-row patch instead of per item.
-    if (Object.keys(deltas).length > 0) {
-      await adjustCounters(ctx, user, deltas);
-    }
+    // Recompute counters from scratch after the batch (#183). Bulk ops are
+    // rare and already O(n), so the extra collect is cheap relative to the
+    // deletes — and recomputing self-heals any historical counter drift
+    // instead of compounding it via deltas.
+    await recomputeCounters(ctx, user._id);
 
     return { success: true, deletedCount };
   },
@@ -684,20 +717,12 @@ export const bulkHideSelections = mutation({
     const now = Date.now();
 
     let hiddenCount = 0;
-    const deltas: Partial<Record<'like' | 'reject' | 'skip', number>> = {};
     for (const selectionId of args.selectionIds) {
       const selection = await ctx.db.get(selectionId);
       if (!selection || selection.userId !== user._id) continue;
 
       if (selection.selectionType === 'like' && user.partnerId) {
         await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
-      }
-
-      // Hidden doesn't count toward stats — decrement the original type
-      // exactly like a delete (#183).
-      const counterType = counterTypeFor(selection.selectionType);
-      if (counterType) {
-        deltas[counterType] = (deltas[counterType] ?? 0) - 1;
       }
 
       await ctx.db.patch(selectionId, {
@@ -707,9 +732,8 @@ export const bulkHideSelections = mutation({
       hiddenCount++;
     }
 
-    if (Object.keys(deltas).length > 0) {
-      await adjustCounters(ctx, user, deltas);
-    }
+    // Recompute from scratch after the batch (#183) — see bulkDeleteSelections.
+    await recomputeCounters(ctx, user._id);
 
     return { success: true, hiddenCount };
   },
@@ -720,7 +744,8 @@ export const hidePermanently = mutation({
     selectionId: v.id('selections'),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
+    let user = await getCurrentUserOrThrow(ctx);
+    user = await ensureCountersBackfilled(ctx, user);
 
     const selection = await ctx.db.get(args.selectionId);
     if (!selection) {
