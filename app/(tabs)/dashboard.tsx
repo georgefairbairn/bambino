@@ -11,7 +11,7 @@ import {
 import * as Sentry from '@sentry/react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
@@ -37,6 +37,11 @@ import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
 const BULK_BATCH_SIZE = 25;
+// Pagination batch size for liked/rejected queries (#170). Tuned for the
+// dashboard list — large enough that most users finish in 1-2 pages, small
+// enough that scrolling fast doesn't create a perceptible "load more"
+// pause for typical engagement levels.
+const LIST_PAGE_SIZE = 100;
 
 function formatTimeRemaining(endsAt: number): string {
   const remaining = Math.max(0, endsAt - Date.now());
@@ -50,7 +55,7 @@ function formatTimeRemaining(endsAt: number): string {
 export default function Dashboard() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { gracePeriodEndsAt } = useEffectivePremium();
+  const { gracePeriodEndsAt, isPremium } = useEffectivePremium();
 
   const [activeTab, setActiveTab] = useState<TabType>('liked');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -105,19 +110,57 @@ export default function Dashboard() {
     setSubmittedSearch('');
   };
 
-  const likedNamesResult = useQuery(api.selections.getLikedNames, {
-    search: submittedSearch || undefined,
-    sortBy: likedSortBy,
-  });
-  const visibleLikedNames = likedNamesResult?.names ?? [];
-  const visibleLimit = likedNamesResult?.visibleLimit;
-  const totalLikedCount = likedNamesResult?.totalCount ?? 0;
-  const gatedCount = visibleLimit != null ? Math.max(0, totalLikedCount - visibleLimit) : 0;
+  // Paginated lists (#170). usePaginatedQuery streams pages of LIST_PAGE_SIZE
+  // and exposes `loadMore` for FlatList's onEndReached. Status is one of
+  // "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted". The
+  // hook flattens pages into a single results array for us.
+  const {
+    results: allLikedItems,
+    status: likedStatus,
+    loadMore: loadMoreLiked,
+  } = usePaginatedQuery(
+    api.selections.getLikedNamesPaginated,
+    { sortBy: likedSortBy },
+    { initialNumItems: LIST_PAGE_SIZE },
+  );
+  const {
+    results: allRejectedItems,
+    status: rejectedStatus,
+    loadMore: loadMoreRejected,
+  } = usePaginatedQuery(
+    api.selections.getRejectedNamesPaginated,
+    { sortBy: rejectedSortBy },
+    { initialNumItems: LIST_PAGE_SIZE },
+  );
 
-  const rejectedNames = useQuery(api.selections.getRejectedNames, {
-    search: submittedSearch || undefined,
-    sortBy: rejectedSortBy,
-  });
+  // Counts come from the running counters (#183) — independent of how many
+  // pages have loaded so the header always shows the true total.
+  const stats = useQuery(api.selections.getSelectionStats);
+  const totalLikedCount = stats?.liked ?? 0;
+  const totalRejectedCount = stats?.rejected ?? 0;
+
+  // Free-tier visibility gate (#170): cap the list at FREE_TIER_VISIBLE_LIKES
+  // for non-premium users with more than that many likes. Computed client-side
+  // from premium status + total count instead of threading through the
+  // paginated query response — usePaginatedQuery doesn't expose page-level
+  // metadata.
+  const FREE_TIER_VISIBLE_LIKES = 25;
+  const visibleLimit = isPremium ? null : FREE_TIER_VISIBLE_LIKES;
+  const gatedCount =
+    visibleLimit !== null && totalLikedCount > visibleLimit ? totalLikedCount - visibleLimit : 0;
+  const cappedLikedItems =
+    visibleLimit !== null ? allLikedItems.slice(0, visibleLimit) : allLikedItems;
+
+  // Client-side search over loaded pages. Server-side search doesn't fit
+  // pagination cleanly; users typically search names they remember liking
+  // recently, which are in the first page anyway.
+  const searchLower = submittedSearch.trim().toLowerCase();
+  const visibleLikedNames = searchLower
+    ? cappedLikedItems.filter((item) => item.name.name.toLowerCase().includes(searchLower))
+    : cappedLikedItems;
+  const visibleRejectedNames = searchLower
+    ? allRejectedItems.filter((item) => item.name.name.toLowerCase().includes(searchLower))
+    : allRejectedItems;
 
   const removeFromLiked = useMutation(api.selections.removeFromLiked);
   const restoreToQueue = useMutation(api.selections.restoreToQueue);
@@ -190,7 +233,7 @@ export default function Dashboard() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    const data = activeTab === 'liked' ? visibleLikedNames : rejectedNames;
+    const data = activeTab === 'liked' ? visibleLikedNames : visibleRejectedNames;
     if (!data) return;
     const allIds = data.map((item) => item.selectionId);
     const allSelected = allIds.every((id) => selectedIds.has(id));
@@ -199,7 +242,7 @@ export default function Dashboard() {
     } else {
       setSelectedIds(new Set(allIds));
     }
-  }, [selectedIds, activeTab, visibleLikedNames, rejectedNames]);
+  }, [selectedIds, activeTab, visibleLikedNames, visibleRejectedNames]);
 
   const executeBulkAction = useCallback(
     async (
@@ -279,9 +322,10 @@ export default function Dashboard() {
   }, [selectedIds, bulkHide, executeBulkAction]);
 
   const isDataLoaded =
-    activeTab === 'liked' ? likedNamesResult !== undefined : rejectedNames !== undefined;
-  const isDataEmpty =
-    activeTab === 'liked' ? totalLikedCount === 0 : (rejectedNames?.length ?? 0) === 0;
+    activeTab === 'liked'
+      ? likedStatus !== 'LoadingFirstPage'
+      : rejectedStatus !== 'LoadingFirstPage';
+  const isDataEmpty = activeTab === 'liked' ? totalLikedCount === 0 : totalRejectedCount === 0;
 
   const { showLoading, loadingProps } = useGracefulLoading(isDataLoaded);
 
@@ -434,6 +478,17 @@ export default function Dashboard() {
                   />
                 </Animated.View>
               )}
+              onEndReached={() => {
+                // Don't auto-load past the free-tier cap — gatedCount > 0
+                // means we want to show the upgrade banner, not the next
+                // page. Otherwise let usePaginatedQuery decide whether
+                // there's more (CanLoadMore vs Exhausted).
+                if (gatedCount > 0) return;
+                if (likedStatus === 'CanLoadMore') {
+                  loadMoreLiked(LIST_PAGE_SIZE);
+                }
+              }}
+              onEndReachedThreshold={0.5}
               ListFooterComponent={
                 gatedCount > 0 ? (
                   <Pressable
@@ -448,6 +503,10 @@ export default function Dashboard() {
                     </View>
                     <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
                   </Pressable>
+                ) : likedStatus === 'LoadingMore' ? (
+                  <View style={styles.listFooterLoader}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
                 ) : null
               }
               contentContainerStyle={styles.listContent}
@@ -464,13 +523,13 @@ export default function Dashboard() {
               }
             >
               <RejectedNamesHeader
-                count={rejectedNames?.length ?? 0}
+                count={totalRejectedCount}
                 sortBy={rejectedSortBy}
                 onSortChange={setRejectedSortBy}
                 selectMode={selectMode}
                 onToggleSelectMode={toggleSelectMode}
                 selectedCount={selectedIds.size}
-                totalCount={rejectedNames?.length ?? 0}
+                totalCount={visibleRejectedNames.length}
                 onSelectAll={handleSelectAll}
               />
               {!selectMode && (
@@ -483,7 +542,7 @@ export default function Dashboard() {
               )}
             </Animated.View>
             <FlatList
-              data={rejectedNames}
+              data={visibleRejectedNames}
               keyExtractor={(item) => item.selectionId}
               renderItem={({ item, index }) => (
                 <Animated.View
@@ -503,6 +562,19 @@ export default function Dashboard() {
                   />
                 </Animated.View>
               )}
+              onEndReached={() => {
+                if (rejectedStatus === 'CanLoadMore') {
+                  loadMoreRejected(LIST_PAGE_SIZE);
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                rejectedStatus === 'LoadingMore' ? (
+                  <View style={styles.listFooterLoader}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                ) : null
+              }
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -718,6 +790,10 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 100,
+  },
+  listFooterLoader: {
+    paddingVertical: 24,
+    alignItems: 'center',
   },
   bulkActionBar: {
     position: 'absolute',

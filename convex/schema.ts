@@ -16,6 +16,12 @@ export default defineSchema({
     // the same device doesn't re-trigger onboarding, and a fresh device
     // doesn't skip it. (#154)
     onboardingCompleted: v.optional(v.boolean()),
+    // Running counters for getSelectionStats (#183). Kept in sync by every
+    // mutation that inserts/deletes/changes a selection. Backfilled lazily
+    // on first counter-touching mutation per user.
+    likedCount: v.optional(v.number()),
+    rejectedCount: v.optional(v.number()),
+    skippedCount: v.optional(v.number()),
     shareCode: v.optional(v.string()),
     partnerId: v.optional(v.id('users')),
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),

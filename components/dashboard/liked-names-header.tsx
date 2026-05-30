@@ -1,12 +1,14 @@
 import { NamesHeader } from './names-header';
 
-export type SortOption = 'name_asc' | 'name_desc' | 'liked_newest' | 'liked_oldest';
+// Sort options are constrained to those served by the by_user_type index
+// so the paginated query (#170) can stream pages in the right order.
+// name_asc/name_desc were removed when pagination landed; can re-add via a
+// "load all" mode if requested.
+export type SortOption = 'liked_newest' | 'liked_oldest';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'liked_newest', label: 'Recently Liked' },
   { value: 'liked_oldest', label: 'Oldest First' },
-  { value: 'name_asc', label: 'Name A-Z' },
-  { value: 'name_desc', label: 'Name Z-A' },
 ];
 
 interface LikedNamesHeaderProps {
