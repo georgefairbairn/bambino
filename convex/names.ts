@@ -168,38 +168,49 @@ export const searchNames = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
-    let results;
+    const { gender, firstLetter, minLength, maxLength, search } = args;
 
-    if (args.gender && args.firstLetter) {
+    // Require an indexed filter (gender or firstLetter). Without one this
+    // would .collect() the entire ~80k-row names table and blow past
+    // Convex's 32k read limit. search/minLength/maxLength are post-filters
+    // applied to an already-narrowed index scan (#200).
+    if (!gender && !firstLetter) {
+      throw new Error('searchNames requires at least a gender or firstLetter filter');
+    }
+
+    const normalizedLetter = firstLetter?.toUpperCase();
+
+    let results;
+    if (gender && normalizedLetter) {
       results = await ctx.db
         .query('names')
         .withIndex('by_gender_and_first_letter', (q) =>
-          q.eq('gender', args.gender!).eq('firstLetter', args.firstLetter!.toUpperCase()),
+          q.eq('gender', gender).eq('firstLetter', normalizedLetter),
         )
         .collect();
-    } else if (args.gender) {
+    } else if (gender) {
       results = await ctx.db
         .query('names')
-        .withIndex('by_gender', (q) => q.eq('gender', args.gender!))
-        .collect();
-    } else if (args.firstLetter) {
-      results = await ctx.db
-        .query('names')
-        .withIndex('by_first_letter', (q) => q.eq('firstLetter', args.firstLetter!.toUpperCase()))
+        .withIndex('by_gender', (q) => q.eq('gender', gender))
         .collect();
     } else {
-      results = await ctx.db.query('names').collect();
+      // normalizedLetter is defined here: the guard above guarantees gender
+      // or firstLetter, and we're in the else of `gender`.
+      results = await ctx.db
+        .query('names')
+        .withIndex('by_first_letter', (q) => q.eq('firstLetter', normalizedLetter as string))
+        .collect();
     }
 
-    if (args.minLength !== undefined) {
-      results = results.filter((n) => n.length >= args.minLength!);
+    if (minLength !== undefined) {
+      results = results.filter((n) => n.length >= minLength);
     }
-    if (args.maxLength !== undefined) {
-      results = results.filter((n) => n.length <= args.maxLength!);
+    if (maxLength !== undefined) {
+      results = results.filter((n) => n.length <= maxLength);
     }
 
-    if (args.search) {
-      const searchLower = args.search.toLowerCase();
+    if (search) {
+      const searchLower = search.toLowerCase();
       results = results.filter((n) => n.name.toLowerCase().includes(searchLower));
     }
 

@@ -5,6 +5,10 @@ import { Doc, Id } from './_generated/dataModel';
 import { getEffectivePremiumStatusHelper } from './premium';
 
 const FREE_TIER_SWIPE_LIMIT = 25;
+// Cap on selectionIds accepted by the bulk mutations (#203). The dashboard's
+// "select all" only ever covers the loaded list, so 200 is generous while
+// still bounding the sequential per-item DB calls a single mutation makes.
+const BULK_SELECTION_LIMIT = 200;
 
 // ---- Selection counter helpers (#183) -------------------------------------
 
@@ -243,17 +247,27 @@ export const recordSelection = mutation({
     // backfill's post-mutation collect would double-count this write (#183).
     user = await ensureCountersBackfilled(ctx, user);
 
-    // Free tier: limit to 25 swipes total (check effective premium including partner sharing)
+    // Free tier: limit total swipes via a monotonic lifetime counter (#165).
+    // Using a counter that never decrements (vs counting current selections)
+    // means undoLastSelection can't be used to ratchet back under the cap
+    // and swipe forever. Backfill once from the current selection count for
+    // users predating the field.
     const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
-    if (!premiumStatus.isPremium) {
+    let lifetimeSwipeCount = user.lifetimeSwipeCount;
+    if (lifetimeSwipeCount === undefined) {
       const existing = await ctx.db
         .query('selections')
         .withIndex('by_user', (q) => q.eq('userId', user._id))
-        .take(FREE_TIER_SWIPE_LIMIT);
-
-      if (existing.length >= FREE_TIER_SWIPE_LIMIT) {
-        return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
-      }
+        .collect();
+      lifetimeSwipeCount = existing.length;
+      // Persist the backfill immediately, even if we're about to reject for
+      // the cap below. Otherwise a capped user whose field was never written
+      // could undo (lowering the current count) and the next call would
+      // backfill to the lowered number — reopening the bypass (#165).
+      await ctx.db.patch(user._id, { lifetimeSwipeCount });
+    }
+    if (!premiumStatus.isPremium && lifetimeSwipeCount >= FREE_TIER_SWIPE_LIMIT) {
+      return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
     }
 
     const existingSelection = await ctx.db
@@ -293,6 +307,10 @@ export const recordSelection = mutation({
       }
       await ctx.db.patch(existingSelection._id, patch);
 
+      // (Re-swiping an already-recorded name doesn't consume a new swipe, so
+      // lifetimeSwipeCount isn't incremented here. Its backfill was already
+      // persisted above.)
+
       // Counter sync (#183): selection type changed → decrement old, increment new
       const oldCounterType = counterTypeFor(existingSelection.selectionType);
       const newCounterType = counterTypeFor(args.selectionType);
@@ -321,6 +339,9 @@ export const recordSelection = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // A genuinely new swipe — advance the monotonic lifetime counter (#165).
+    await ctx.db.patch(user._id, { lifetimeSwipeCount: lifetimeSwipeCount + 1 });
 
     // Counter sync (#183): new selection of countable type → increment
     const newCounterType = counterTypeFor(args.selectionType);
@@ -428,9 +449,12 @@ export const undoLastSelection = mutation({
     let user = await getCurrentUserOrThrow(ctx);
     user = await ensureCountersBackfilled(ctx, user);
 
+    // Order by updatedAt so "undo" targets the most recently *actioned*
+    // selection. Re-swiping an old name patches updatedAt (not createdAt),
+    // so ordering by createdAt would undo the wrong row (#225).
     const mostRecent = await ctx.db
       .query('selections')
-      .withIndex('by_user_createdAt', (q) => q.eq('userId', user._id))
+      .withIndex('by_user_updatedAt', (q) => q.eq('userId', user._id))
       .order('desc')
       .first();
 
@@ -666,6 +690,14 @@ export const restoreToQueue = mutation({
       throw new Error('Not authorized to restore this selection');
     }
 
+    // Defense in depth (#173): restoreToQueue is only wired up for rejected
+    // names today (which have no match), but if it's ever called on a like
+    // we must delete the corresponding match — same as removeFromLiked —
+    // or we'd leave an orphan match row that breaks match-toast suppression.
+    if (selection.selectionType === 'like' && user.partnerId) {
+      await deleteMatchForName(ctx, user._id, user.partnerId, selection.nameId);
+    }
+
     await ctx.db.delete(args.selectionId);
 
     // Counter sync (#183)
@@ -678,11 +710,21 @@ export const restoreToQueue = mutation({
   },
 });
 
+// NOTE on atomicity (#230): Convex mutations are a single transaction. If
+// any per-item call throws, the WHOLE mutation rolls back — nothing is
+// deleted/hidden. The returned count is therefore only meaningful on full
+// success; callers should treat a thrown error as "nothing happened", not a
+// partial result. We intentionally don't try/catch per item: silently
+// swallowing a mid-batch error would leave counts and matches inconsistent.
+
 export const bulkDeleteSelections = mutation({
   args: {
     selectionIds: v.array(v.id('selections')),
   },
   handler: async (ctx, args) => {
+    if (args.selectionIds.length > BULK_SELECTION_LIMIT) {
+      throw new Error(`Cannot delete more than ${BULK_SELECTION_LIMIT} selections at once`);
+    }
     const user = await getCurrentUserOrThrow(ctx);
 
     let deletedCount = 0;
@@ -713,6 +755,9 @@ export const bulkHideSelections = mutation({
     selectionIds: v.array(v.id('selections')),
   },
   handler: async (ctx, args) => {
+    if (args.selectionIds.length > BULK_SELECTION_LIMIT) {
+      throw new Error(`Cannot hide more than ${BULK_SELECTION_LIMIT} selections at once`);
+    }
     const user = await getCurrentUserOrThrow(ctx);
     const now = Date.now();
 

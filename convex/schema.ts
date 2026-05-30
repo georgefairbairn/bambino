@@ -22,6 +22,10 @@ export default defineSchema({
     likedCount: v.optional(v.number()),
     rejectedCount: v.optional(v.number()),
     skippedCount: v.optional(v.number()),
+    // Monotonic count of swipes ever recorded — only ever increments, never
+    // decremented by undo. Gates the free-tier swipe limit so undo can't be
+    // used to ratchet past the cap indefinitely (#165).
+    lifetimeSwipeCount: v.optional(v.number()),
     shareCode: v.optional(v.string()),
     partnerId: v.optional(v.id('users')),
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
@@ -100,6 +104,10 @@ export default defineSchema({
     .index('by_user_name', ['userId', 'nameId'])
     .index('by_user_type', ['userId', 'selectionType'])
     .index('by_user_createdAt', ['userId', 'createdAt'])
+    // undoLastSelection orders by this so "undo" targets the most recently
+    // *actioned* selection (re-swiping an old name patches updatedAt), not
+    // the most recently created one (#225).
+    .index('by_user_updatedAt', ['userId', 'updatedAt'])
     .index('by_name', ['nameId']),
 
   // Pre-computed total count of names per (origin, gender) so the
