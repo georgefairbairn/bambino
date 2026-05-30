@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-expo';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -38,16 +38,13 @@ async function registerToken(
 export function usePushRegistration() {
   const { isSignedIn } = useUser();
   const setPushToken = useMutation(api.users.setPushToken);
-  // Wait until the Convex user row exists before registering, otherwise
-  // setPushToken throws "User not found" (createOrUpdateUser in
-  // useStoreUser races with this hook on first sign-up).
-  const convexUser = useQuery(api.users.getCurrentUser, isSignedIn ? {} : 'skip');
+  // No user-row existence guard here: the (tabs) layout gates rendering on
+  // getCurrentUser, so this hook only mounts once the row exists (#167).
 
   useEffect(() => {
     if (!isSignedIn) return;
     if (Platform.OS !== 'ios') return;
     if (!Device.isDevice) return;
-    if (!convexUser) return;
 
     const refresh = async () => {
       try {
@@ -60,7 +57,7 @@ export function usePushRegistration() {
     };
 
     refresh();
-  }, [isSignedIn, convexUser, setPushToken]);
+  }, [isSignedIn, setPushToken]);
 }
 
 /**

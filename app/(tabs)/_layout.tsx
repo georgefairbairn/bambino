@@ -3,7 +3,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { useQuery } from 'convex/react';
 
+import { api } from '@/convex/_generated/api';
 import { useStoreUser } from '@/hooks/use-store-user';
 import { usePushRegistration } from '@/hooks/use-push-registration';
 import { useOnboarding } from '@/hooks/use-onboarding';
@@ -13,24 +15,30 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 
 export default function TabsLayout() {
   const { isSignedIn } = useAuth();
+  // useStoreUser fires createOrUpdateUser; it must stay above the gate since
+  // it's what creates the row the gate waits for.
   useStoreUser();
-  usePushRegistration();
+  // Gate the whole tab tree on the Convex user row existing (#167).
+  // getCurrentUser returns undefined while loading and null until
+  // createOrUpdateUser lands. Until it's a real row, every authenticated
+  // query/mutation in (tabs)/* that calls getCurrentUserOrThrow would throw
+  // "User not found" — so we hold the loading screen.
+  const convexUser = useQuery(api.users.getCurrentUser, isSignedIn ? {} : 'skip');
   const {
     hasCompletedOnboarding,
     isLoading: isOnboardingLoading,
     completeOnboarding,
   } = useOnboarding();
-  const { colors, gradients } = useTheme();
 
   if (!isSignedIn) {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  // Wait for the Convex user query to resolve. On a fresh launch the root
-  // AuthGate already showed the loading animation; for sign-out + sign-in
-  // on the same device we render the Bambino loading screen so the user
-  // sees a clear "still loading" signal instead of a blank gradient.
-  if (isOnboardingLoading) {
+  // Wait for the user row to exist before rendering any screen. On a fresh
+  // launch the root AuthGate already showed the loading animation; for
+  // sign-out + sign-in on the same device this shows the Bambino loading
+  // screen instead of a blank gradient.
+  if (convexUser === undefined || convexUser === null || isOnboardingLoading) {
     return <LoadingScreen isLoading />;
   }
 
@@ -38,6 +46,15 @@ export default function TabsLayout() {
   if (!hasCompletedOnboarding) {
     return <OnboardingScreens onComplete={completeOnboarding} />;
   }
+
+  // Push registration lives here, below the gate, so the user row is
+  // guaranteed to exist — the hook no longer needs its own existence guard.
+  return <TabsNavigator />;
+}
+
+function TabsNavigator() {
+  const { colors, gradients } = useTheme();
+  usePushRegistration();
 
   return (
     <Tabs
