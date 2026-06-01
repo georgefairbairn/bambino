@@ -128,10 +128,6 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: false,
     package: 'xyz.bambinobaby.app',
   },
-  web: {
-    output: 'static',
-    favicon: './assets/images/favicon.png',
-  },
   plugins: [
     'expo-router',
     [
