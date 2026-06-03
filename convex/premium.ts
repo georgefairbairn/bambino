@@ -63,10 +63,12 @@ export const getEffectivePremiumStatus = query({
       return { isPremium: false, isOwnPremium: false, isPartnerPremium: false };
     }
 
+    // #164: tolerant read — a stray duplicate clerkId row shouldn't throw and
+    // break premium gating. createOrUpdateUser self-heals duplicates.
     const user = await ctx.db
       .query('users')
       .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-      .unique();
+      .first();
 
     if (!user) {
       return { isPremium: false, isOwnPremium: false, isPartnerPremium: false };
