@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { generateUniqueShareCode } from './partners';
+import { sanitizeImageUrl } from './validation';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -73,6 +74,9 @@ export const createOrUpdateUser = mutation({
 
     const now = Date.now();
 
+    // #202: drop any imageUrl not on Clerk's CDN before it's stored or exposed.
+    const safeImageUrl = sanitizeImageUrl(args.imageUrl);
+
     if (existingUser) {
       // Only overwrite name/imageUrl when Clerk actually provides a value.
       // Otherwise we'd erase fields set elsewhere (admin seed, name-edit
@@ -82,7 +86,7 @@ export const createOrUpdateUser = mutation({
       // on subsequent sign-ins (#166).
       const patch: Record<string, unknown> = { email: args.email, updatedAt: now };
       if (args.name && existingUser.nameConfirmed !== true) patch.name = args.name;
-      if (args.imageUrl) patch.imageUrl = args.imageUrl;
+      if (safeImageUrl) patch.imageUrl = safeImageUrl;
       await ctx.db.patch(existingUser._id, patch);
       return existingUser._id;
     }
@@ -93,7 +97,7 @@ export const createOrUpdateUser = mutation({
       clerkId: identity.subject,
       email: args.email,
       name: args.name,
-      imageUrl: args.imageUrl,
+      imageUrl: safeImageUrl, // #202
       shareCode,
       genderFilter: 'both',
       createdAt: now,

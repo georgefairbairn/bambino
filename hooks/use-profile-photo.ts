@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Sentry from '@sentry/react-native';
+import { isClerkAPIResponseError } from '@clerk/clerk-expo';
 import type { UserResource } from '@clerk/types';
 
 export function useProfilePhoto(user: UserResource | null | undefined) {
@@ -36,17 +37,21 @@ export function useProfilePhoto(user: UserResource | null | undefined) {
       await user.setProfileImage({
         file: `data:${mimeType};base64,${asset.base64!}`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       Sentry.captureException(error);
       if (__DEV__) {
-        console.error('Profile photo upload failed:', {
-          message: error?.message,
-          status: error?.status,
-          code: error?.errors?.[0]?.code,
-          longMessage: error?.errors?.[0]?.longMessage,
-          clerkError: error?.clerkError,
-          raw: JSON.stringify(error, null, 2),
-        });
+        // #205: narrow with Clerk's type guard instead of `as any`, so the
+        // shape we log is type-checked and Clerk API drift surfaces at compile
+        // time. Non-Clerk errors fall through to the generic fields.
+        if (isClerkAPIResponseError(error)) {
+          console.error('Profile photo upload failed (Clerk API error):', {
+            status: error.status,
+            code: error.errors[0]?.code,
+            longMessage: error.errors[0]?.longMessage,
+          });
+        } else {
+          console.error('Profile photo upload failed:', error);
+        }
       }
       Alert.alert('Error', 'Failed to update profile photo. Please try again.');
     } finally {
@@ -60,7 +65,9 @@ export function useProfilePhoto(user: UserResource | null | undefined) {
     setIsUploading(true);
     try {
       await user.setProfileImage({ file: null });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // #205: typed catch — the message is generic, so we only need Sentry to
+      // capture the (unknown) error; no `as any` shape access required.
       Sentry.captureException(error);
       Alert.alert('Error', 'Failed to remove profile photo. Please try again.');
     } finally {
