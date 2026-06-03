@@ -167,6 +167,13 @@ export const searchNames = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // #201: require auth to drop the unauthenticated scrape surface. The app
+    // always authenticates, so this is a no-op for legitimate clients.
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Not authenticated');
+    }
+
     const limit = args.limit ?? 50;
     const { gender, firstLetter, minLength, maxLength, search } = args;
 

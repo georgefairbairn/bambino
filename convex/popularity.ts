@@ -1,5 +1,16 @@
 import { v } from 'convex/values';
-import { internalMutation, query } from './_generated/server';
+import { internalMutation, query, QueryCtx } from './_generated/server';
+
+// #201: catalog data is public-domain SSA data (no PII), but these queries
+// were reachable by anyone with the deployment URL. Require auth to drop the
+// unauthenticated scrape surface — a no-op for the app, which always
+// authenticates. internalMutations above are already private.
+async function requireAuth(ctx: QueryCtx): Promise<void> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error('Not authenticated');
+  }
+}
 
 // Tier boundaries used by the swipe queue. Keep in sync with the swipe
 // queue logic in convex/selections.ts.
@@ -295,6 +306,7 @@ export const getNamePopularity = query({
     endYear: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx); // #201
     // Map app gender to SSA gender format
     const ssaGender = args.gender === 'male' ? 'M' : args.gender === 'female' ? 'F' : args.gender;
 
@@ -331,6 +343,7 @@ export const getPopularNamesForYear = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx); // #201
     const limit = args.limit ?? 10;
     let records;
 
@@ -367,6 +380,7 @@ export const getNamePopularitySummary = query({
     gender: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx); // #201
     // Determine which SSA gender(s) to query. For 'male'/'female' it's a
     // direct mapping. For 'neutral' (or any other value), fetch both M and F
     // and pick the series whose most recent record is more recent — matches

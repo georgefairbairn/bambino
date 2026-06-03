@@ -18,6 +18,7 @@ import type * as popularity from "../popularity.js";
 import type * as premium from "../premium.js";
 import type * as selections from "../selections.js";
 import type * as users from "../users.js";
+import type * as validation from "../validation.js";
 
 import type {
   ApiFromModules,
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   premium: typeof premium;
   selections: typeof selections;
   users: typeof users;
+  validation: typeof validation;
 }>;
 
 /**

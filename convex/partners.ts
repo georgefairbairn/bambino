@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { sanitizeImageUrl } from './validation';
 
 // 31-char alphabet with confusables (I/O/0/1) removed for readability when
 // users dictate codes verbally. 31^8 ≈ 8.5e11 keyspace.
@@ -166,7 +167,9 @@ export const getPartnerInfo = query({
         partner = {
           _id: partnerDoc._id,
           name: partnerDoc.name,
-          imageUrl: partnerDoc.imageUrl,
+          // #202: strip on read too, so a legacy non-Clerk URL stored before
+          // write-validation existed can't leak the partner's IP/UA via <Image>.
+          imageUrl: sanitizeImageUrl(partnerDoc.imageUrl),
         };
       }
     }
