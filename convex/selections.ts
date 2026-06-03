@@ -136,10 +136,12 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
     throw new Error('Not authenticated');
   }
 
+  // #164: tolerant read — a stray duplicate clerkId row shouldn't throw here.
+  // createOrUpdateUser self-heals duplicates; this keeps the oldest meanwhile.
   const user = await ctx.db
     .query('users')
     .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-    .unique();
+    .first();
 
   if (!user) {
     throw new Error('User not found');
@@ -157,14 +159,17 @@ async function deleteMatchForName(
 ) {
   const [user1Id, user2Id] = userId < partnerId ? [userId, partnerId] : [partnerId, userId];
 
-  const match = await ctx.db
+  // #164: collect + delete-all rather than .unique() + delete-one. A duplicate
+  // match row (legacy data) would make .unique() throw and leave an orphan;
+  // deleting every matching row is both throw-safe and the correct cleanup.
+  const matches = await ctx.db
     .query('matches')
     .withIndex('by_name_users', (q) =>
       q.eq('nameId', nameId).eq('user1Id', user1Id).eq('user2Id', user2Id),
     )
-    .unique();
+    .collect();
 
-  if (match) {
+  for (const match of matches) {
     await ctx.db.delete(match._id);
   }
 }
@@ -173,10 +178,11 @@ async function getCurrentUserOrNull(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
 
+  // #164: tolerant read — see getCurrentUserOrThrow.
   return await ctx.db
     .query('users')
     .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-    .unique();
+    .first();
 }
 
 // Check for a match when a user likes a name
@@ -191,11 +197,12 @@ async function checkForMatchAndCreate(
   matchedAt: number;
   isFirstMatch: boolean;
 } | null> {
-  // Check if partner has liked this name
+  // Check if partner has liked this name. #164: .first() — a duplicate
+  // partner selection row shouldn't throw and block match creation.
   const partnerSelection = await ctx.db
     .query('selections')
     .withIndex('by_user_name', (q) => q.eq('userId', partnerId).eq('nameId', nameId))
-    .unique();
+    .first();
 
   if (!partnerSelection || partnerSelection.selectionType !== 'like') {
     return null;
@@ -205,12 +212,13 @@ async function checkForMatchAndCreate(
   const [user1Id, user2Id] =
     likingUserId < partnerId ? [likingUserId, partnerId] : [partnerId, likingUserId];
 
+  // #164: .first() not .unique() — tolerant of a pre-existing duplicate match.
   const existingMatch = await ctx.db
     .query('matches')
     .withIndex('by_name_users', (q) =>
       q.eq('nameId', nameId).eq('user1Id', user1Id).eq('user2Id', user2Id),
     )
-    .unique();
+    .first();
 
   if (existingMatch) {
     return null;
@@ -231,9 +239,32 @@ async function checkForMatchAndCreate(
     updatedAt: now,
   });
 
+  // #164: the highest-impact race — both partners liking the same name at the
+  // same instant. Convex OCC should serialize these (both read+write the same
+  // by_name_users range), but indexes aren't unique constraints, so re-read
+  // and collapse to the oldest match if two rows exist. Return the survivor.
+  const afterInsert = await ctx.db
+    .query('matches')
+    .withIndex('by_name_users', (q) =>
+      q.eq('nameId', nameId).eq('user1Id', user1Id).eq('user2Id', user2Id),
+    )
+    .collect();
+  let survivingMatchId = matchId;
+  if (afterInsert.length > 1) {
+    afterInsert.sort((a, b) => a._creationTime - b._creationTime);
+    survivingMatchId = afterInsert[0]._id;
+    for (let i = 1; i < afterInsert.length; i++) {
+      await ctx.db.delete(afterInsert[i]._id);
+    }
+    // A concurrent writer beat us to it — they already surfaced the match toast.
+    if (survivingMatchId !== matchId) {
+      return null;
+    }
+  }
+
   const name = await ctx.db.get(nameId);
 
-  return { matchId, name, matchedAt: now, isFirstMatch: existingPartnerMatch === null };
+  return { matchId: survivingMatchId, name, matchedAt: now, isFirstMatch: existingPartnerMatch === null };
 }
 
 export const recordSelection = mutation({
@@ -270,10 +301,19 @@ export const recordSelection = mutation({
       return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
     }
 
-    const existingSelection = await ctx.db
+    // #164: collect + heal rather than .unique(). A duplicate (user, name)
+    // selection row (legacy data) would make .unique() throw here and in
+    // getSwipeQueue's isAlreadySwiped, breaking the swipe screen. Keep the
+    // oldest, delete the rest, and treat the oldest as the existing row.
+    const existingRows = await ctx.db
       .query('selections')
       .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', args.nameId))
-      .unique();
+      .collect();
+    existingRows.sort((a, b) => a._creationTime - b._creationTime);
+    const existingSelection = existingRows[0] ?? null;
+    for (let i = 1; i < existingRows.length; i++) {
+      await ctx.db.delete(existingRows[i]._id);
+    }
 
     const now = Date.now();
 
@@ -340,6 +380,27 @@ export const recordSelection = mutation({
       updatedAt: now,
     });
 
+    // #164 belt-and-suspenders: re-read by (user, name) and collapse to the
+    // oldest if a concurrent insert also won. OCC should prevent this (both
+    // touch the same by_user_name range), but indexes aren't unique. If our
+    // row lost, delete it and bail without double-counting the swipe.
+    const afterInsert = await ctx.db
+      .query('selections')
+      .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', args.nameId))
+      .collect();
+    if (afterInsert.length > 1) {
+      afterInsert.sort((a, b) => a._creationTime - b._creationTime);
+      const survivor = afterInsert[0];
+      for (let i = 1; i < afterInsert.length; i++) {
+        await ctx.db.delete(afterInsert[i]._id);
+      }
+      if (survivor._id !== selectionId) {
+        // A concurrent call already recorded this swipe and did its own
+        // counting. Don't increment lifetime/counters again.
+        return { selectionId: survivor._id, match: null };
+      }
+    }
+
     // A genuinely new swipe — advance the monotonic lifetime counter (#165).
     await ctx.db.patch(user._id, { lifetimeSwipeCount: lifetimeSwipeCount + 1 });
 
@@ -381,10 +442,12 @@ export const getSwipeQueue = query({
     // many names the user has swiped, so the subscription doesn't bloat
     // linearly with engagement.
     const isAlreadySwiped = async (nameId: Id<'names'>): Promise<boolean> => {
+      // #164: .first() — a duplicate selection row shouldn't throw and crash
+      // the swipe queue. recordSelection self-heals duplicates on next write.
       const existing = await ctx.db
         .query('selections')
         .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', nameId))
-        .unique();
+        .first();
       return existing !== null;
     };
 

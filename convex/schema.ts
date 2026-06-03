@@ -136,6 +136,14 @@ export default defineSchema({
     lockedUntil: v.optional(v.number()),
   }).index('by_user', ['userId']),
 
+  // Per-user throttle for submitFeedback (#171). One row per user, holding the
+  // timestamp of their last successful submission. Enforces a minimum gap
+  // between feedback messages so a user can't flood the Slack channel.
+  feedbackRateLimits: defineTable({
+    userId: v.id('users'),
+    lastSubmittedAt: v.number(),
+  }).index('by_user', ['userId']),
+
   matches: defineTable({
     nameId: v.id('names'),
     user1Id: v.id('users'),

@@ -9,10 +9,12 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
     throw new Error('Not authenticated');
   }
 
+  // #164: tolerant read — a stray duplicate clerkId row shouldn't throw and
+  // break match screens. createOrUpdateUser self-heals duplicates.
   const user = await ctx.db
     .query('users')
     .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-    .unique();
+    .first();
 
   if (!user) {
     throw new Error('User not found');
@@ -25,10 +27,11 @@ async function getCurrentUserOrNull(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
 
+  // #164: tolerant read — see getCurrentUserOrThrow.
   return await ctx.db
     .query('users')
     .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-    .unique();
+    .first();
 }
 
 /**

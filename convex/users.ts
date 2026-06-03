@@ -8,10 +8,14 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
     throw new Error('Not authenticated');
   }
 
+  // #164: .first() instead of .unique() so a stray duplicate clerkId row
+  // (legacy data, before createOrUpdateUser's heal ran) can't throw and break
+  // every authed screen. by_clerk_id returns oldest-first, matching the row
+  // createOrUpdateUser keeps when it dedupes.
   const user = await ctx.db
     .query('users')
     .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-    .unique();
+    .first();
 
   if (!user) {
     throw new Error('User not found');
@@ -28,10 +32,11 @@ export const getCurrentUser = query({
       return null;
     }
 
+    // #164: tolerant read — see getCurrentUserOrThrow.
     const user = await ctx.db
       .query('users')
       .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-      .unique();
+      .first();
 
     return user;
   },
@@ -49,10 +54,22 @@ export const createOrUpdateUser = mutation({
       throw new Error('Not authenticated');
     }
 
-    const existingUser = await ctx.db
+    // #164: collect (not .unique()) so we can self-heal duplicate clerkId rows
+    // created before this guard existed (e.g. concurrent first-sign-in from two
+    // devices on the same Apple ID). Convex's OCC already prevents NEW races —
+    // the existence read and the insert below touch the same by_clerk_id range,
+    // so a concurrent second insert conflicts and retries — but a pre-existing
+    // duplicate would make .unique() throw here and everywhere else. Keep the
+    // oldest row, delete the rest.
+    const existingRows = await ctx.db
       .query('users')
       .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-      .unique();
+      .collect();
+    existingRows.sort((a, b) => a._creationTime - b._creationTime);
+    const existingUser = existingRows[0] ?? null;
+    for (let i = 1; i < existingRows.length; i++) {
+      await ctx.db.delete(existingRows[i]._id);
+    }
 
     const now = Date.now();
 
@@ -82,6 +99,21 @@ export const createOrUpdateUser = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // #164 belt-and-suspenders: if a concurrent insert somehow also won (OCC
+    // should make this impossible since both touch by_clerk_id, but indexes
+    // are not unique constraints), re-read and keep only the oldest row.
+    const afterInsert = await ctx.db
+      .query('users')
+      .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+      .collect();
+    if (afterInsert.length > 1) {
+      afterInsert.sort((a, b) => a._creationTime - b._creationTime);
+      for (let i = 1; i < afterInsert.length; i++) {
+        await ctx.db.delete(afterInsert[i]._id);
+      }
+      return afterInsert[0]._id;
+    }
 
     return userId;
   },
