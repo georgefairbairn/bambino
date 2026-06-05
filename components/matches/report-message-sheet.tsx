@@ -51,6 +51,18 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
     };
   }, []);
 
+  // Reset to a clean slate each time the sheet opens, so nothing leaks from a
+  // previous session — including when the parent force-closes it by clearing
+  // the target match (see matches.tsx). (#185)
+  useEffect(() => {
+    if (visible) {
+      setCategory(null);
+      setNotes('');
+      setErrorMessage(null);
+      setShowSuccess(false);
+    }
+  }, [visible]);
+
   const resetAndClose = () => {
     if (successTimer.current) {
       clearTimeout(successTimer.current);
