@@ -31,6 +31,7 @@ import {
   DeclineSheet,
   CelebrationModal,
 } from '@/components/matches';
+import { ReportMessageSheet } from '@/components/matches/report-message-sheet';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -38,7 +39,6 @@ import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
-import { ReportMessageSheet } from '@/components/matches/report-message-sheet';
 import * as Haptics from 'expo-haptics';
 
 import type { MatchSortOption } from '@/components/matches/matches-header';
@@ -123,6 +123,13 @@ export default function Matches() {
   const chosenName = useQuery(api.matches.getChosenName);
   const currentUser = useQuery(api.users.getCurrentUser);
   const pendingProposal = useQuery(api.matches.getPendingProposal);
+
+  // Close the report sheet if the proposal it targets disappears (partner
+  // withdrew/accepted, or unlinked) so it can't act on a stale match. (#185)
+  useEffect(() => {
+    if (!pendingProposal) setReportMatchId(null);
+  }, [pendingProposal]);
+
   const proposeNameMutation = useMutation(api.matches.proposeName);
   const respondToProposalMutation = useMutation(api.matches.respondToProposal);
   const withdrawProposalMutation = useMutation(api.matches.withdrawProposal);
