@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -43,8 +43,19 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimer.current) clearTimeout(successTimer.current);
+    };
+  }, []);
 
   const resetAndClose = () => {
+    if (successTimer.current) {
+      clearTimeout(successTimer.current);
+      successTimer.current = null;
+    }
     setCategory(null);
     setNotes('');
     setErrorMessage(null);
@@ -60,7 +71,7 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
       await reportContent({ matchId, category, notes: notes.trim() || undefined });
       trackEvent(Events.CONTENT_REPORTED, { category });
       setShowSuccess(true);
-      setTimeout(resetAndClose, 1800);
+      successTimer.current = setTimeout(resetAndClose, 1800);
     } catch (err) {
       setErrorMessage('Could not send your report. Please try again.');
       Sentry.captureException(err, { tags: { flow: 'content_report' } });
@@ -126,6 +137,7 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
                     onPress={() => setCategory(cat.key)}
                     disabled={isSubmitting}
                     accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected, disabled: isSubmitting }}
                     accessibilityLabel={`Report category: ${cat.label}`}
                   >
                     <Ionicons name={cat.icon} size={16} color={isSelected ? '#fff' : '#6B5B7B'} />
@@ -152,6 +164,7 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
               onChangeText={(t) => setNotes(t.slice(0, 2000))}
               textAlignVertical="top"
               editable={!isSubmitting}
+              accessibilityLabel="Additional context for your report"
             />
 
             <Pressable
