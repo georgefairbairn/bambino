@@ -11,6 +11,7 @@ interface ProposalBannerProps {
   onAccept: () => void;
   onDecline: () => void;
   onWithdraw: () => void;
+  onReport: () => void;
 }
 
 export function ProposalBanner({
@@ -21,6 +22,7 @@ export function ProposalBanner({
   onAccept,
   onDecline,
   onWithdraw,
+  onReport,
 }: ProposalBannerProps) {
   const { colors } = useTheme();
 
@@ -59,6 +61,15 @@ export function ProposalBanner({
           </Text>
           {message ? <Text style={styles.bannerMessage}>&ldquo;{message}&rdquo;</Text> : null}
         </View>
+        <Pressable
+          style={styles.reportTrigger}
+          onPress={onReport}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Report message"
+        >
+          <Ionicons name="ellipsis-horizontal" size={20} color={colors.primary} />
+        </Pressable>
       </View>
       <View style={styles.bannerActions}>
         <Pressable
@@ -91,6 +102,12 @@ const styles = StyleSheet.create({
   },
   bannerTextContainer: {
     flex: 1,
+  },
+  reportTrigger: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bannerText: {
     fontSize: 15,
