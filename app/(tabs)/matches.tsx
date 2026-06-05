@@ -38,6 +38,7 @@ import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
+import { ReportMessageSheet } from '@/components/matches/report-message-sheet';
 import * as Haptics from 'expo-haptics';
 
 import type { MatchSortOption } from '@/components/matches/matches-header';
@@ -81,6 +82,7 @@ export default function Matches() {
   } | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showDeclineSheet, setShowDeclineSheet] = useState(false);
+  const [reportMatchId, setReportMatchId] = useState<Id<'matches'> | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationName, setCelebrationName] = useState('');
 
@@ -476,6 +478,7 @@ export default function Matches() {
             onWithdraw={() =>
               handleWithdrawProposal(pendingProposal._id, pendingProposal.name?.name ?? '')
             }
+            onReport={() => setReportMatchId(pendingProposal._id)}
           />
         )}
 
@@ -543,6 +546,11 @@ export default function Matches() {
           nameName={pendingProposal?.name?.name ?? ''}
           onDecline={handleDeclineProposal}
           onClose={() => setShowDeclineSheet(false)}
+        />
+        <ReportMessageSheet
+          visible={reportMatchId !== null}
+          matchId={reportMatchId}
+          onClose={() => setReportMatchId(null)}
         />
 
         {/* Celebration modal */}
