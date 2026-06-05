@@ -65,6 +65,9 @@ export const Events = {
   PARTNER_LINKED: 'partner_linked',
   PARTNER_UNLINKED: 'partner_unlinked',
 
+  // Safety
+  CONTENT_REPORTED: 'content_reported',
+
   // Settings
   THEME_CHANGED: 'theme_changed',
   SKIN_TONE_CHANGED: 'skin_tone_changed',
