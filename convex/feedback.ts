@@ -291,7 +291,7 @@ export const reportContent = action({
             { type: 'plain_text', text: `${safeReporterName} (${safeReporterEmail})`, emoji: false },
             { type: 'mrkdwn', text: '*Reported user:*' },
             { type: 'plain_text', text: `${safeProposerName} (${safeProposerEmail})`, emoji: false },
-            { type: 'mrkdwn', text: `*Match:* ${args.matchId} — ${new Date().toISOString()}` },
+            { type: 'mrkdwn', text: `*Match:* ${sanitizeSlackText(String(args.matchId))} — ${new Date().toISOString()}` },
           ],
         },
       ],
