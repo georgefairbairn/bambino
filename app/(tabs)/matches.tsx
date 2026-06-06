@@ -31,6 +31,7 @@ import {
   DeclineSheet,
   CelebrationModal,
 } from '@/components/matches';
+import { ReportMessageSheet } from '@/components/matches/report-message-sheet';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -81,6 +82,7 @@ export default function Matches() {
   } | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showDeclineSheet, setShowDeclineSheet] = useState(false);
+  const [reportMatchId, setReportMatchId] = useState<Id<'matches'> | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationName, setCelebrationName] = useState('');
 
@@ -121,6 +123,13 @@ export default function Matches() {
   const chosenName = useQuery(api.matches.getChosenName);
   const currentUser = useQuery(api.users.getCurrentUser);
   const pendingProposal = useQuery(api.matches.getPendingProposal);
+
+  // Close the report sheet if the proposal it targets disappears (partner
+  // withdrew/accepted, or unlinked) so it can't act on a stale match. (#185)
+  useEffect(() => {
+    if (!pendingProposal) setReportMatchId(null);
+  }, [pendingProposal]);
+
   const proposeNameMutation = useMutation(api.matches.proposeName);
   const respondToProposalMutation = useMutation(api.matches.respondToProposal);
   const withdrawProposalMutation = useMutation(api.matches.withdrawProposal);
@@ -476,6 +485,7 @@ export default function Matches() {
             onWithdraw={() =>
               handleWithdrawProposal(pendingProposal._id, pendingProposal.name?.name ?? '')
             }
+            onReport={() => setReportMatchId(pendingProposal._id)}
           />
         )}
 
@@ -543,6 +553,11 @@ export default function Matches() {
           nameName={pendingProposal?.name?.name ?? ''}
           onDecline={handleDeclineProposal}
           onClose={() => setShowDeclineSheet(false)}
+        />
+        <ReportMessageSheet
+          visible={reportMatchId !== null}
+          matchId={reportMatchId}
+          onClose={() => setReportMatchId(null)}
         />
 
         {/* Celebration modal */}

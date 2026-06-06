@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { action, internalMutation } from './_generated/server';
+import { action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -12,6 +12,13 @@ const CATEGORY_EMOJI: Record<string, string> = {
   bug: ':bug:',
   feature: ':bulb:',
   general: ':speech_balloon:',
+};
+
+const REPORT_CATEGORY_LABELS: Record<string, string> = {
+  abusive: 'Abusive',
+  harmful: 'Harmful / Threatening',
+  spam: 'Spam',
+  other: 'Other',
 };
 
 // #171: minimum gap between feedback submissions per user, to stop a single
@@ -164,6 +171,140 @@ export const submitFeedback = action({
 
     if (!response.ok) {
       throw new Error('Failed to send feedback to Slack');
+    }
+
+    return { success: true };
+  },
+});
+
+/**
+ * #185: Authorizes a content report and resolves the reported message + its
+ * author. Internal query called by the reportContent action (actions can't
+ * touch the DB directly). Throws if the caller isn't a member of the match.
+ */
+export const getReportTarget = internalQuery({
+  args: { clerkId: v.string(), matchId: v.id('matches') },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.clerkId))
+      .first();
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) {
+      throw new Error('This match is no longer available.');
+    }
+    if (match.user1Id !== user._id && match.user2Id !== user._id) {
+      throw new Error('Not authorized');
+    }
+
+    // The proposer authored the proposalMessage. Fall back to "the other
+    // member" if proposedBy is somehow unset.
+    const proposerId =
+      match.proposedBy ?? (match.user1Id === user._id ? match.user2Id : match.user1Id);
+    const proposer = await ctx.db.get(proposerId);
+
+    return {
+      reportedMessage: match.proposalMessage ?? null,
+      proposerName: proposer?.name ?? 'Unknown',
+      proposerEmail: proposer?.email ?? 'No email',
+    };
+  },
+});
+
+/**
+ * #185: User-facing report for partner UGC (the proposal message). Reuses the
+ * feedback rate-limit gate and Slack sanitization, posting a report to the
+ * team's Slack channel with a distinct header so it's separable from feedback.
+ */
+export const reportContent = action({
+  args: {
+    matchId: v.id('matches'),
+    category: v.union(
+      v.literal('abusive'),
+      v.literal('harmful'),
+      v.literal('spam'),
+      v.literal('other'),
+    ),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Not authenticated');
+    }
+
+    const trimmedNotes = (args.notes ?? '').trim();
+    if (trimmedNotes.length > MAX_FEEDBACK_LENGTH) {
+      throw new Error(`Report notes must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
+    }
+
+    const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
+    if (!webhookUrl) {
+      throw new Error('Slack webhook URL not configured');
+    }
+
+    // Reuse the per-user feedback throttle (shared 60s window) so reports
+    // can't be flooded either. Throws ("Please wait a minute…") if too soon.
+    await ctx.runMutation(internal.feedback.checkAndRecordFeedbackRateLimit, {
+      clerkId: identity.subject,
+    });
+
+    const target = await ctx.runQuery(internal.feedback.getReportTarget, {
+      clerkId: identity.subject,
+      matchId: args.matchId,
+    });
+
+    const categoryLabel = REPORT_CATEGORY_LABELS[args.category];
+    const safeReporterName = sanitizeSlackText(identity.name ?? 'Unknown');
+    const safeReporterEmail = sanitizeSlackText(identity.email ?? 'No email');
+    const safeProposerName = sanitizeSlackText(target.proposerName);
+    const safeProposerEmail = sanitizeSlackText(target.proposerEmail);
+    const safeMessage = sanitizeSlackText(target.reportedMessage ?? '(no message)');
+    const safeNotes = trimmedNotes ? sanitizeSlackText(trimmedNotes) : '(none)';
+
+    const payload = {
+      blocks: [
+        {
+          type: 'header',
+          text: { type: 'plain_text', text: ':rotating_light: [Content Report]', emoji: true },
+        },
+        {
+          type: 'section',
+          text: { type: 'plain_text', text: `Category: ${categoryLabel}`, emoji: false },
+        },
+        {
+          type: 'section',
+          text: { type: 'plain_text', text: `Reported message:\n${safeMessage}`, emoji: false },
+        },
+        {
+          type: 'section',
+          text: { type: 'plain_text', text: `Reporter notes:\n${safeNotes}`, emoji: false },
+        },
+        {
+          type: 'context',
+          elements: [
+            { type: 'mrkdwn', text: '*Reporter:*' },
+            { type: 'plain_text', text: `${safeReporterName} (${safeReporterEmail})`, emoji: false },
+            { type: 'mrkdwn', text: '*Reported user:*' },
+            { type: 'plain_text', text: `${safeProposerName} (${safeProposerEmail})`, emoji: false },
+            { type: 'mrkdwn', text: `*Match:* ${sanitizeSlackText(String(args.matchId))} — ${new Date().toISOString()}` },
+          ],
+        },
+      ],
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send report to Slack');
     }
 
     return { success: true };
