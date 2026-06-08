@@ -39,6 +39,7 @@ import { GradientBackground } from '@/components/ui/gradient-background';
 import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
+import { ErrorToast } from '@/components/ui/error-toast';
 import { Id } from '@/convex/_generated/dataModel';
 import type { FunctionReturnType } from 'convex/server';
 import * as Haptics from 'expo-haptics';
@@ -71,6 +72,7 @@ export default function Matches() {
   const [reportMatchId, setReportMatchId] = useState<Id<'matches'> | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationName, setCelebrationName] = useState('');
+  const [showUnlinkToast, setShowUnlinkToast] = useState(false);
 
   // Track initial mount so header animations only play once
   const hasAnimated = useRef(false);
@@ -115,6 +117,26 @@ export default function Matches() {
   useEffect(() => {
     if (!pendingProposal) setReportMatchId(null);
   }, [pendingProposal]);
+
+  // Tear down any partnership-bound modal if the partner unlinks mid-session
+  // (#181). Their unlink propagates via the getPartnerInfo subscription; the
+  // screen re-renders to the empty state, but an open sheet would otherwise
+  // stay mounted with stale data — and acting on it would fail server-side
+  // (#159). Detect partner -> null, dismiss the sheets, and toast once.
+  const previousPartnerIdRef = useRef(partnerInfo?.partner?._id);
+  useEffect(() => {
+    const currentPartnerId = partnerInfo?.partner?._id;
+    const previousPartnerId = previousPartnerIdRef.current;
+    if (previousPartnerId && !currentPartnerId) {
+      setProposeTarget(null);
+      setSelectedMatch(null);
+      setShowDeclineSheet(false);
+      setProposalConflict(null);
+      setReportMatchId(null);
+      setShowUnlinkToast(true);
+    }
+    previousPartnerIdRef.current = currentPartnerId;
+  }, [partnerInfo?.partner?._id]);
 
   const proposeNameMutation = useMutation(api.matches.proposeName);
   const respondToProposalMutation = useMutation(api.matches.respondToProposal);
@@ -358,6 +380,13 @@ export default function Matches() {
             visible={showPaywall}
             onClose={() => setShowPaywall(false)}
             trigger="partner_limit"
+          />
+          {/* Shown when a partner unlinks mid-session (#181) — this empty
+              state is the view the user lands on right after the unlink. */}
+          <ErrorToast
+            visible={showUnlinkToast}
+            message="Your partner unlinked. Your liked names are saved."
+            onDismiss={() => setShowUnlinkToast(false)}
           />
         </SafeAreaView>
       </GradientBackground>
