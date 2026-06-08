@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, SharedValue } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -41,31 +41,38 @@ export function useSwipeGesture({
     onSwipeRight?.();
   }, [triggerHaptic, onSwipeRight]);
 
-  const panGesture = Gesture.Pan()
-    .enabled(enabled)
-    .onUpdate((event) => {
-      'worklet';
-      updatePosition(event.translationX, event.translationY);
-    })
-    .onEnd((event) => {
-      'worklet';
-      const { translationX, velocityX } = event;
+  // Memoized so the gesture object isn't rebuilt on every render (#213). Rebuilds
+  // only when a captured dependency changes; the callbacks are useCallback-stable
+  // and `enabled` is intentionally volatile (the gesture should re-arm on toggle).
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(enabled)
+        .onUpdate((event) => {
+          'worklet';
+          updatePosition(event.translationX, event.translationY);
+        })
+        .onEnd((event) => {
+          'worklet';
+          const { translationX, velocityX } = event;
 
-      // Check if swipe passes threshold by position or velocity
-      const shouldSwipeRight = translationX > SWIPE_THRESHOLD || velocityX > SWIPE_VELOCITY;
-      const shouldSwipeLeft = translationX < -SWIPE_THRESHOLD || velocityX < -SWIPE_VELOCITY;
+          // Check if swipe passes threshold by position or velocity
+          const shouldSwipeRight = translationX > SWIPE_THRESHOLD || velocityX > SWIPE_VELOCITY;
+          const shouldSwipeLeft = translationX < -SWIPE_THRESHOLD || velocityX < -SWIPE_VELOCITY;
 
-      if (shouldSwipeRight) {
-        swipeRight();
-        runOnJS(handleSwipeRight)();
-      } else if (shouldSwipeLeft) {
-        swipeLeft();
-        runOnJS(handleSwipeLeft)();
-      } else {
-        // Didn't pass threshold, spring back to center
-        resetPosition();
-      }
-    });
+          if (shouldSwipeRight) {
+            swipeRight();
+            runOnJS(handleSwipeRight)();
+          } else if (shouldSwipeLeft) {
+            swipeLeft();
+            runOnJS(handleSwipeLeft)();
+          } else {
+            // Didn't pass threshold, spring back to center
+            resetPosition();
+          }
+        }),
+    [enabled, updatePosition, resetPosition, swipeLeft, swipeRight, handleSwipeLeft, handleSwipeRight],
+  );
 
   return {
     panGesture,
