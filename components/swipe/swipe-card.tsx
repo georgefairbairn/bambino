@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { Doc } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
-import { LineChart } from 'react-native-gifted-charts';
+import { MiniSparkline } from './mini-sparkline';
 import { useCardAnimation } from '@/hooks/use-card-animation';
 import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
@@ -436,6 +436,8 @@ export function SwipeCard({
           <Text
             style={[styles.name, { fontSize: getNameFontSize(name.name) }]}
             onLayout={handleNameLayout}
+            numberOfLines={1}
+            adjustsFontSizeToFit
           >
             {name.name}
           </Text>
@@ -523,22 +525,12 @@ export function SwipeCard({
                     {popularitySummary && popularitySummary.sparklinePoints.length > 1 ? (
                       <>
                         <View style={styles.sparklineChart}>
-                          <LineChart
-                            data={popularitySummary.sparklinePoints.map((value) => ({ value }))}
+                          <MiniSparkline
+                            points={popularitySummary.sparklinePoints}
                             width={80}
                             height={28}
-                            hideDataPoints
-                            hideYAxisText
-                            hideAxesAndRules
                             color={underlineColor}
-                            thickness={2}
-                            curved
-                            initialSpacing={0}
-                            endSpacing={0}
-                            spacing={80 / Math.max(popularitySummary.sparklinePoints.length - 1, 1)}
-                            disableScroll
-                            adjustToWidth
-                            isAnimated={false}
+                            strokeWidth={2}
                           />
                         </View>
                         {popularitySummary.trend && (
