@@ -23,6 +23,11 @@ const ALLOWED_VOICES = ['Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa', 'Rishi'
 // Sample names to preview voice
 const SAMPLE_NAMES = ['Emma', 'Oliver', 'Sophia', 'Liam', 'Charlotte'];
 
+// Sentinel preview key for the System Default row. Its voice identifier is
+// `null`, so null alone can't tell "previewing System Default" apart from
+// "nothing playing" — track System Default previews under this key instead (#189).
+const SYSTEM_DEFAULT_PREVIEW_KEY = '__system_default__';
+
 function getRandomSampleName(): string {
   return SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)] ?? 'Emma';
 }
@@ -86,6 +91,14 @@ export function VoiceSettingsSection() {
 
   const handleSelectVoice = useCallback(
     async (identifier: string | null) => {
+      // Stop any in-flight preview so the user doesn't hear the previous voice
+      // finish after they've already picked a new one (#188).
+      try {
+        await Speech.stop();
+      } catch {
+        // best effort — stopping playback is non-critical
+      }
+      setPreviewingVoice(null);
       await setVoiceIdentifier(identifier);
       trackEvent(Events.VOICE_CHANGED, { voice_id: identifier ?? 'system_default' });
       setIsExpanded(false);
@@ -111,7 +124,7 @@ export function VoiceSettingsSection() {
       const voiceId = identifier || undefined;
       const sampleName = getRandomSampleName();
 
-      setPreviewingVoice(identifier);
+      setPreviewingVoice(identifier ?? SYSTEM_DEFAULT_PREVIEW_KEY);
       Speech.speak(sampleName, {
         voice: voiceId,
         rate: 0.9,
@@ -164,7 +177,7 @@ export function VoiceSettingsSection() {
             <VoiceOption
               label="System Default"
               isSelected={voiceIdentifier === null}
-              isPreviewing={previewingVoice === null && previewingVoice !== undefined}
+              isPreviewing={previewingVoice === SYSTEM_DEFAULT_PREVIEW_KEY}
               onSelect={() => handleSelectVoice(null)}
               onPreview={() => handlePreviewVoice(null)}
             />
