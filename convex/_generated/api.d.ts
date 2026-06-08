@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as errors from "../errors.js";
 import type * as feedback from "../feedback.js";
 import type * as matches from "../matches.js";
 import type * as names from "../names.js";
@@ -28,6 +29,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  errors: typeof errors;
   feedback: typeof feedback;
   matches: typeof matches;
   names: typeof names;

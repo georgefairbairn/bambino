@@ -20,6 +20,7 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Events, trackEvent, trackScreen } from '@/lib/analytics';
+import { alertMatchMutationError } from '@/components/matches/match-error-alert';
 import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import {
@@ -172,8 +173,7 @@ export default function Matches() {
         setProposeTarget(null);
         setProposalConflict(null);
       } catch (error) {
-        Sentry.captureException(error);
-        Alert.alert('Error', 'Failed to propose name. Please try again.');
+        alertMatchMutationError(error, 'Could not propose this name.');
       }
     },
     [proposeNameMutation],
@@ -199,8 +199,7 @@ export default function Matches() {
       setShowCelebration(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to accept proposal. Please try again.');
+      alertMatchMutationError(error, 'Could not accept this proposal.');
     }
   }, [pendingProposal, respondToProposalMutation]);
 
@@ -217,8 +216,7 @@ export default function Matches() {
         setShowDeclineSheet(false);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (error) {
-        Sentry.captureException(error);
-        Alert.alert('Error', 'Failed to decline proposal. Please try again.');
+        alertMatchMutationError(error, 'Could not decline this proposal.');
       }
     },
     [pendingProposal, respondToProposalMutation],
@@ -239,8 +237,7 @@ export default function Matches() {
                 trackEvent(Events.PROPOSAL_WITHDRAWN);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               } catch (error) {
-                Sentry.captureException(error);
-                Alert.alert('Error', 'Failed to withdraw proposal. Please try again.');
+                alertMatchMutationError(error, 'Could not withdraw this proposal.');
               }
             },
           },

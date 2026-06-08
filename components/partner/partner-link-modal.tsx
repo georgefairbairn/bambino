@@ -18,6 +18,7 @@ import { Paywall } from '@/components/paywall';
 import * as Sentry from '@sentry/react-native';
 import { useTheme } from '@/contexts/theme-context';
 import { Events, trackEvent } from '@/lib/analytics';
+import { decodeConvexError } from '@/lib/convex-errors';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 import { StyledInput } from '@/components/ui/styled-input';
 import { NameConfirmationModal } from './name-confirmation-modal';
@@ -87,9 +88,11 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
         setPreview({ name: result.name, imageUrl: result.imageUrl });
       }
     } catch (err) {
-      // Rate-limit errors come back here as plain Error messages — surface
-      // them verbatim so the user sees "Try again in N minutes".
-      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
+      // Thrown failures here are rate-limit (RATE_LIMITED) or auth errors,
+      // now ConvexError. Decode so the user sees "Try again in N minutes"
+      // rather than the raw "[CONVEX M(...)] ..." framing.
+      const { message } = decodeConvexError(err, 'An error occurred. Please try again.');
+      setError(message);
       Sentry.captureException(err, { tags: { flow: 'partner_preview' } });
     } finally {
       setIsLookingUp(false);
@@ -128,7 +131,11 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       trackEvent(Events.PARTNER_LINKED);
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to link partner');
+      // linkPartner throws specific ConvexErrors (CANNOT_LINK_SELF,
+      // TARGET_ALREADY_HAS_PARTNER, RATE_LIMITED, …) — decode to show the
+      // actionable message instead of a generic "Failed to link partner".
+      const { message } = decodeConvexError(err, 'Failed to link partner');
+      setError(message);
       Sentry.captureException(err, { tags: { flow: 'partner_link' } });
       setIsLinking(false);
     }

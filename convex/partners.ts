@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { sanitizeImageUrl } from './validation';
+import { convexError } from './errors';
 
 // 31-char alphabet with confusables (I/O/0/1) removed for readability when
 // users dictate codes verbally. 31^8 ≈ 8.5e11 keyspace.
@@ -31,13 +32,13 @@ export async function generateUniqueShareCode(ctx: QueryCtx | MutationCtx): Prom
       .unique();
     if (!existing) return code;
   }
-  throw new Error('Could not generate a unique share code');
+  throw convexError('SHARE_CODE_GENERATION_FAILED', 'Could not generate a unique share code');
 }
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error('Not authenticated');
+    throw convexError('UNAUTHENTICATED', 'Not authenticated');
   }
 
   // #164: tolerant read — a stray duplicate clerkId row shouldn't throw and
@@ -48,7 +49,7 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
     .first();
 
   if (!user) {
-    throw new Error('User not found');
+    throw convexError('USER_NOT_FOUND', 'User not found');
   }
 
   return user;
@@ -66,17 +67,15 @@ const LOCKOUT_DURATIONS_MS = [
   60 * 60 * 1000, // 60 min
 ];
 
-class RateLimitError extends Error {
-  constructor(public retryAfterMs: number) {
-    const seconds = Math.ceil(retryAfterMs / 1000);
-    const minutes = Math.ceil(seconds / 60);
-    super(
-      seconds < 60
-        ? `Too many attempts. Try again in ${seconds} seconds.`
-        : `Too many attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
-    );
-    this.name = 'RateLimitError';
-  }
+function rateLimitError(retryAfterMs: number) {
+  const seconds = Math.ceil(retryAfterMs / 1000);
+  const minutes = Math.ceil(seconds / 60);
+  const message =
+    seconds < 60
+      ? `Too many attempts. Try again in ${seconds} seconds.`
+      : `Too many attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`;
+  // Carry retryAfterMs as structured data so the client can drive a countdown.
+  return convexError('RATE_LIMITED', message, { retryAfterMs });
 }
 
 async function enforceRateLimit(ctx: MutationCtx, userId: Id<'users'>): Promise<void> {
@@ -87,7 +86,7 @@ async function enforceRateLimit(ctx: MutationCtx, userId: Id<'users'>): Promise<
     .unique();
 
   if (record?.lockedUntil && now < record.lockedUntil) {
-    throw new RateLimitError(record.lockedUntil - now);
+    throw rateLimitError(record.lockedUntil - now);
   }
 
   if (!record) {
@@ -121,7 +120,7 @@ async function enforceRateLimit(ctx: MutationCtx, userId: Id<'users'>): Promise<
       lockoutCount: nextLockoutCount,
       lockedUntil: now + lockoutMs,
     });
-    throw new RateLimitError(lockoutMs);
+    throw rateLimitError(lockoutMs);
   }
 
   await ctx.db.patch(record._id, { attempts: newAttempts });
@@ -236,7 +235,7 @@ export const linkPartner = mutation({
 
     const normalizedCode = normalizeAndValidateCode(args.code);
     if (!normalizedCode) {
-      throw new Error('Please enter a valid share code');
+      throw convexError('INVALID_SHARE_CODE', 'Please enter a valid share code');
     }
 
     const targetUser = await ctx.db
@@ -245,19 +244,19 @@ export const linkPartner = mutation({
       .unique();
 
     if (!targetUser) {
-      throw new Error('User not found. Please check the code.');
+      throw convexError('CODE_NOT_FOUND', 'User not found. Please check the code.');
     }
 
     if (targetUser._id === user._id) {
-      throw new Error("You can't link with yourself");
+      throw convexError('CANNOT_LINK_SELF', "You can't link with yourself");
     }
 
     if (user.partnerId) {
-      throw new Error('You already have a partner linked');
+      throw convexError('PARTNER_ALREADY_LINKED', 'You already have a partner linked');
     }
 
     if (targetUser.partnerId) {
-      throw new Error('This user already has a partner linked');
+      throw convexError('TARGET_ALREADY_HAS_PARTNER', 'This user already has a partner linked');
     }
 
     if (user.nameConfirmed !== true) {
@@ -355,7 +354,10 @@ export const regenerateShareCode = mutation({
     const user = await getCurrentUserOrThrow(ctx);
 
     if (user.partnerId) {
-      throw new Error('You already have a partner — share code is no longer needed');
+      throw convexError(
+        'PARTNER_ALREADY_LINKED',
+        'You already have a partner — share code is no longer needed',
+      );
     }
 
     const newCode = await generateUniqueShareCode(ctx);
@@ -373,7 +375,7 @@ export const unlinkPartner = mutation({
     const user = await getCurrentUserOrThrow(ctx);
 
     if (!user.partnerId) {
-      throw new Error('No partner linked');
+      throw convexError('NO_PARTNER_LINKED', 'No partner linked');
     }
 
     const partner = await ctx.db.get(user.partnerId);

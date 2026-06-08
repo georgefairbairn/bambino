@@ -4,6 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import { trackEvent, Events } from '@/lib/analytics';
+import { decodeConvexError } from '@/lib/convex-errors';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
@@ -85,6 +86,9 @@ export function SwipeCardStack() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
+  const [errorToastMessage, setErrorToastMessage] = useState(
+    'Something went wrong. Please try again.',
+  );
   const [hintEligible, setHintEligible] = useState(true);
   const [showPushPriming, setShowPushPriming] = useState(false);
 
@@ -181,7 +185,10 @@ export function SwipeCardStack() {
         }
       } catch (error: unknown) {
         Sentry.captureException(error);
+        // Roll back the optimistic removal so the card returns to the queue.
         setLocalQueue((prev) => [currentName, ...prev]);
+        const { message } = decodeConvexError(error, 'Something went wrong. Please try again.');
+        setErrorToastMessage(message);
         setShowErrorToast(true);
       }
     },
@@ -272,7 +279,7 @@ export function SwipeCardStack() {
       {/* Swipe error toast */}
       <ErrorToast
         visible={showErrorToast}
-        message="Something went wrong. Please try again."
+        message={errorToastMessage}
         onDismiss={() => setShowErrorToast(false)}
       />
 

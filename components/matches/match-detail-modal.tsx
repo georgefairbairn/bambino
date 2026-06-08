@@ -11,6 +11,8 @@ import * as Haptics from 'expo-haptics';
 import * as Sentry from '@sentry/react-native';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 import { Events, trackEvent } from '@/lib/analytics';
+import { alertMatchMutationError } from '@/components/matches/match-error-alert';
+import { decodeConvexError } from '@/lib/convex-errors';
 
 interface MatchDetailModalProps {
   visible: boolean;
@@ -66,8 +68,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onClose();
     } catch (error) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to save changes. Please try again.');
+      alertMatchMutationError(error, 'Could not save your changes.');
     } finally {
       setIsSaving(false);
     }
@@ -82,7 +83,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
       trackEvent(Events.MATCH_FAVORITED, { favorited: !isFavorite });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
-      Sentry.captureException(error);
+      alertMatchMutationError(error, 'Could not update this favorite.');
     }
   };
 
@@ -104,8 +105,7 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               onClose();
             } catch (error) {
-              Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to choose name. Please try again.');
+              alertMatchMutationError(error, 'Could not choose this name.');
             }
           },
         },
@@ -129,8 +129,15 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
               onClose();
             } catch (error) {
+              const { code, message } = decodeConvexError(error, 'Could not remove this match.');
+              // Already gone (removed elsewhere, or the partnership ended) —
+              // the user's goal is met, so just close quietly.
+              if (code === 'MATCH_NOT_FOUND' || code === 'MATCH_FROM_PREVIOUS_PARTNERSHIP') {
+                onClose();
+                return;
+              }
               Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to remove match. Please try again.');
+              Alert.alert("Couldn't remove match", message);
             }
           },
         },

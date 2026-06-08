@@ -29,12 +29,27 @@ import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { trackScreen } from '@/lib/analytics';
+import { decodeConvexError } from '@/lib/convex-errors';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { BubblePillsBackground } from '@/components/ui/bubble-pills-background';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
+
+/**
+ * Decode a Convex selection-mutation failure into a specific alert. A
+ * SELECTION_NOT_FOUND means the row was already gone — the dashboard's reactive
+ * queries self-heal, so it's a silent no-op rather than an error. Everything
+ * else is reported and shows the decoded message instead of a generic alert.
+ */
+function alertSelectionMutationError(error: unknown, fallback: string) {
+  const { code, message } = decodeConvexError(error, fallback);
+  if (code === 'SELECTION_NOT_FOUND') return;
+  Sentry.captureException(error);
+  Alert.alert("Couldn't update that", message);
+}
+
 const BULK_BATCH_SIZE = 25;
 // Pagination batch size for liked/rejected queries (#170). Tuned for the
 // dashboard list — large enough that most users finish in 1-2 pages, small
@@ -178,8 +193,7 @@ export default function Dashboard() {
     try {
       await removeFromLiked({ selectionId: selectedItem.selectionId });
     } catch (error) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to remove name. Please try again.');
+      alertSelectionMutationError(error, 'Could not remove this name.');
     }
     setSelectedItem(null);
   };
@@ -190,8 +204,7 @@ export default function Dashboard() {
     try {
       await restoreToQueue({ selectionId: selectedItem.selectionId });
     } catch (error) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to restore name. Please try again.');
+      alertSelectionMutationError(error, 'Could not restore this name.');
     }
     setSelectedItem(null);
   };
@@ -202,8 +215,7 @@ export default function Dashboard() {
     try {
       await hidePermanently({ selectionId: selectedItem.selectionId });
     } catch (error) {
-      Sentry.captureException(error);
-      Alert.alert('Error', 'Failed to hide name. Please try again.');
+      alertSelectionMutationError(error, 'Could not hide this name.');
     }
     setSelectedItem(null);
   };
@@ -319,7 +331,8 @@ export default function Dashboard() {
       } catch (error) {
         Sentry.captureException(error);
         setSelectedIds(new Set());
-        Alert.alert('Error', errorMessage);
+        const { message } = decodeConvexError(error, errorMessage);
+        Alert.alert("Couldn't update those", message);
       } finally {
         bulkLoadingRef.current = false;
         setBulkAction(null);
