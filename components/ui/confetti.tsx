@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -104,7 +104,15 @@ export function Confetti({ visible }: ConfettiProps) {
     [colors.primary, colors.secondary],
   );
 
-  const pieces = useMemo(() => generatePieces(confettiColors), [confettiColors]);
+  // Generate pieces only when the modal opens (visible false→true), capturing the
+  // theme colors active at that moment. Identical look to before, but it no longer
+  // regenerates — and flickers — if the theme changes mid-celebration (#215).
+  const [pieces, setPieces] = useState<ConfettiPiece[]>(() => generatePieces(confettiColors));
+  const [wasVisible, setWasVisible] = useState(visible);
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    if (visible) setPieces(generatePieces(confettiColors));
+  }
 
   // Skip the falling-pieces animation under Reduce Motion (#192). The
   // celebration modal itself still shows; only the confetti is suppressed.
