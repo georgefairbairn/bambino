@@ -198,10 +198,16 @@ export default function Profile() {
   }, [deleteAccount, signOut, user]);
 
   const handleCopyCode = useCallback(async () => {
-    if (partnerInfo?.shareCode) {
+    if (!partnerInfo?.shareCode) return;
+    try {
       await Clipboard.setStringAsync(partnerInfo.shareCode);
       trackEvent(Events.PARTNER_CODE_COPIED);
       Alert.alert('Copied', 'Share code copied to clipboard!');
+    } catch (err) {
+      // Clipboard writes can fail (restricted device profile, sandbox). Don't
+      // claim success when nothing landed on the clipboard (#223).
+      Sentry.captureException(err, { tags: { flow: 'copy_share_code' } });
+      Alert.alert("Couldn't copy", 'Tap and hold the code to copy it manually.');
     }
   }, [partnerInfo?.shareCode]);
 
