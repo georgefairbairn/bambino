@@ -25,6 +25,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
+import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
@@ -100,6 +101,7 @@ export default function Profile() {
     partnerName: premiumPartnerName,
     gracePeriodEndsAt,
   } = useEffectivePremium();
+  const { restorePurchases } = usePurchases();
   const deleteAccount = useMutation(api.users.deleteAccount);
   const clearPushToken = useMutation(api.users.clearPushToken);
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
@@ -108,6 +110,7 @@ export default function Profile() {
   const convexUser = useQuery(api.users.getCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
@@ -404,6 +407,31 @@ export default function Profile() {
               gradients={gradients}
               onPress={() => setShowPaywall(true)}
             />
+            {/* Restore Purchase lives here (account actions), moved out of the
+                Matches empty state where it was a discovery mismatch (#227). */}
+            <Pressable
+              style={styles.restoreButton}
+              disabled={isRestoring}
+              onPress={async () => {
+                setIsRestoring(true);
+                try {
+                  const success = await restorePurchases();
+                  if (success) {
+                    Alert.alert('Restored', 'Your premium purchase has been restored!');
+                  } else {
+                    Alert.alert('No Purchase Found', 'No previous purchase was found to restore.');
+                  }
+                } finally {
+                  setIsRestoring(false);
+                }
+              }}
+            >
+              {isRestoring ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+              )}
+            </Pressable>
           </Animated.View>
         )}
 
@@ -750,6 +778,16 @@ const styles = StyleSheet.create({
   /* Premium banner */
   premiumSection: {
     marginBottom: 24,
+  },
+  restoreButton: {
+    paddingVertical: 10,
+    marginTop: 4,
+    alignItems: 'center',
+  },
+  restoreButtonText: {
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    color: '#A89BB5',
   },
   premiumBannerWrap: {
     borderRadius: 16,
