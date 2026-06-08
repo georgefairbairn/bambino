@@ -12,6 +12,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { SWIPE_COLORS } from '@/constants/swipe';
+import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -44,6 +45,11 @@ const PILL_SPAWN_MAX = 1000;
 const INITIAL_SPAWN_MIN = 1200;
 const INITIAL_SPAWN_MAX = 1800;
 const INITIAL_PILL_COUNT = 5;
+// Cap TOTAL lifetime spawns, not just simultaneous pills (#182). Without this
+// the spawner runs forever while the empty state is focused, holding the GPU at
+// sustained load (shadows on animated views). After the cap, pills already on
+// screen finish rising and the background settles quiet.
+const TOTAL_SPAWN_CAP = INITIAL_PILL_COUNT * 4;
 const PILL_RISE_DURATION = 8000;
 const PILL_FADE_DURATION = 1800;
 const BADGE_DELAY = 300;
@@ -110,11 +116,9 @@ function BubblePill({
           left: config.startX,
           bottom: BOTTOM_ZONE,
           borderColor: badgeColor,
-          borderWidth: 1,
-          shadowColor: badgeColor,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.45,
-          shadowRadius: 7,
+          // #182: a colored border replaces the per-pill shadow — shadows on
+          // animated transforms force per-frame off-screen compositing on iOS.
+          borderWidth: 1.5,
         },
         pillStyle,
       ]}
@@ -140,7 +144,9 @@ function BubblePill({
 
 export function BubblePillsBackground() {
   const isFocused = useIsFocused();
-  if (!isFocused) return null;
+  const { reduceMotion } = useA11yPreferences();
+  // Purely ambient decoration — skip entirely under Reduce Motion (#192).
+  if (!isFocused || reduceMotion) return null;
   return <BubblePillsBackgroundInner />;
 }
 
@@ -177,6 +183,7 @@ function BubblePillsBackgroundInner() {
   const spawnCount = useRef(0);
 
   const scheduleNextSpawn = useCallback(() => {
+    if (spawnCount.current >= TOTAL_SPAWN_CAP) return; // stop after the initial wave (#182)
     const isInitial = spawnCount.current < INITIAL_PILL_COUNT;
     const min = isInitial ? INITIAL_SPAWN_MIN : PILL_SPAWN_MIN;
     const max = isInitial ? INITIAL_SPAWN_MAX : PILL_SPAWN_MAX;

@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '@/contexts/theme-context';
+import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PIECE_COUNT = 20;
@@ -96,6 +97,7 @@ interface ConfettiProps {
 
 export function Confetti({ visible }: ConfettiProps) {
   const { colors } = useTheme();
+  const { reduceMotion } = useA11yPreferences();
 
   const confettiColors = useMemo(
     () => [colors.primary, colors.secondary, '#FBBF24', '#34D399', '#60A5FA'],
@@ -104,7 +106,9 @@ export function Confetti({ visible }: ConfettiProps) {
 
   const pieces = useMemo(() => generatePieces(confettiColors), [confettiColors]);
 
-  if (!visible) return null;
+  // Skip the falling-pieces animation under Reduce Motion (#192). The
+  // celebration modal itself still shows; only the confetti is suppressed.
+  if (!visible || reduceMotion) return null;
 
   return (
     <Animated.View style={styles.container} pointerEvents="none">
