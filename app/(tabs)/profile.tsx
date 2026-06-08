@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Events, resetAnalytics, trackEvent, trackScreen } from '@/lib/analytics';
+import { decodeConvexError } from '@/lib/convex-errors';
 import {
   Alert,
   Pressable,
@@ -292,7 +293,8 @@ export default function Profile() {
               await regenerateShareCode();
             } catch (error) {
               Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to generate a new code. Please try again.');
+              const { message } = decodeConvexError(error, 'Could not generate a new code.');
+              Alert.alert("Couldn't generate a code", message);
             } finally {
               setIsRegeneratingCode(false);
             }
@@ -318,7 +320,8 @@ export default function Profile() {
               trackEvent(Events.PARTNER_UNLINKED);
             } catch (error) {
               Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to unlink partner. Please try again.');
+              const { message } = decodeConvexError(error, 'Could not unlink your partner.');
+              Alert.alert("Couldn't unlink", message);
             } finally {
               setIsUnlinking(false);
             }

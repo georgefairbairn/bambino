@@ -3,6 +3,7 @@ import { paginationOptsValidator } from 'convex/server';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
 import { getEffectivePremiumStatusHelper } from './premium';
+import { convexError } from './errors';
 
 const FREE_TIER_SWIPE_LIMIT = 25;
 // Cap on selectionIds accepted by the bulk mutations (#203). The dashboard's
@@ -133,7 +134,7 @@ function counterTypeFor(
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error('Not authenticated');
+    throw convexError('UNAUTHENTICATED', 'Not authenticated');
   }
 
   // #164: tolerant read — a stray duplicate clerkId row shouldn't throw here.
@@ -144,7 +145,7 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
     .first();
 
   if (!user) {
-    throw new Error('User not found');
+    throw convexError('USER_NOT_FOUND', 'User not found');
   }
 
   return user;
@@ -662,11 +663,11 @@ export const removeFromLiked = mutation({
 
     const selection = await ctx.db.get(args.selectionId);
     if (!selection) {
-      throw new Error('Selection not found');
+      throw convexError('SELECTION_NOT_FOUND', 'Selection not found');
     }
 
     if (selection.userId !== user._id) {
-      throw new Error('Not authorized to remove this selection');
+      throw convexError('NOT_AUTHORIZED', 'Not authorized to remove this selection');
     }
 
     // Delete corresponding match if the user has a partner
@@ -746,11 +747,11 @@ export const restoreToQueue = mutation({
 
     const selection = await ctx.db.get(args.selectionId);
     if (!selection) {
-      throw new Error('Selection not found');
+      throw convexError('SELECTION_NOT_FOUND', 'Selection not found');
     }
 
     if (selection.userId !== user._id) {
-      throw new Error('Not authorized to restore this selection');
+      throw convexError('NOT_AUTHORIZED', 'Not authorized to restore this selection');
     }
 
     // Defense in depth (#173): restoreToQueue is only wired up for rejected
@@ -786,7 +787,10 @@ export const bulkDeleteSelections = mutation({
   },
   handler: async (ctx, args) => {
     if (args.selectionIds.length > BULK_SELECTION_LIMIT) {
-      throw new Error(`Cannot delete more than ${BULK_SELECTION_LIMIT} selections at once`);
+      throw convexError(
+        'BULK_LIMIT_EXCEEDED',
+        `Cannot delete more than ${BULK_SELECTION_LIMIT} selections at once`,
+      );
     }
     const user = await getCurrentUserOrThrow(ctx);
 
@@ -819,7 +823,10 @@ export const bulkHideSelections = mutation({
   },
   handler: async (ctx, args) => {
     if (args.selectionIds.length > BULK_SELECTION_LIMIT) {
-      throw new Error(`Cannot hide more than ${BULK_SELECTION_LIMIT} selections at once`);
+      throw convexError(
+        'BULK_LIMIT_EXCEEDED',
+        `Cannot hide more than ${BULK_SELECTION_LIMIT} selections at once`,
+      );
     }
     const user = await getCurrentUserOrThrow(ctx);
     const now = Date.now();
@@ -857,11 +864,11 @@ export const hidePermanently = mutation({
 
     const selection = await ctx.db.get(args.selectionId);
     if (!selection) {
-      throw new Error('Selection not found');
+      throw convexError('SELECTION_NOT_FOUND', 'Selection not found');
     }
 
     if (selection.userId !== user._id) {
-      throw new Error('Not authorized to hide this selection');
+      throw convexError('NOT_AUTHORIZED', 'Not authorized to hide this selection');
     }
 
     if (selection.selectionType === 'like' && user.partnerId) {

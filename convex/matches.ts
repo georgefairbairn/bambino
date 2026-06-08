@@ -2,11 +2,12 @@ import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { Doc, Id } from './_generated/dataModel';
+import { convexError } from './errors';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error('Not authenticated');
+    throw convexError('UNAUTHENTICATED', 'Not authenticated');
   }
 
   // #164: tolerant read — a stray duplicate clerkId row shouldn't throw and
@@ -17,7 +18,7 @@ async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
     .first();
 
   if (!user) {
-    throw new Error('User not found');
+    throw convexError('USER_NOT_FOUND', 'User not found');
   }
 
   return user;
@@ -50,11 +51,11 @@ function getOtherUserId(match: Doc<'matches'>, userId: Id<'users'>): Id<'users'>
 
 function assertCurrentPartner(user: Doc<'users'>, match: Doc<'matches'>) {
   if (match.user1Id !== user._id && match.user2Id !== user._id) {
-    throw new Error('Not authorized to update this match');
+    throw convexError('NOT_AUTHORIZED', 'Not authorized to update this match');
   }
   const otherId = getOtherUserId(match, user._id);
   if (user.partnerId !== otherId) {
-    throw new Error('This match is from a previous partnership');
+    throw convexError('MATCH_FROM_PREVIOUS_PARTNERSHIP', 'This match is from a previous partnership');
   }
 }
 
@@ -167,14 +168,14 @@ export const updateMatch = mutation({
   },
   handler: async (ctx, args) => {
     if (args.notes !== undefined && args.notes.length > 2000) {
-      throw new Error('Notes must be 2000 characters or fewer');
+      throw convexError('NOTES_TOO_LONG', 'Notes must be 2000 characters or fewer');
     }
 
     const user = await getCurrentUserOrThrow(ctx);
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
-      throw new Error('Match not found');
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
     }
 
     assertCurrentPartner(user, match);
@@ -224,18 +225,18 @@ export const proposeName = mutation({
   },
   handler: async (ctx, args) => {
     if (args.message !== undefined && args.message.length > 200) {
-      throw new Error('Message must be 200 characters or fewer');
+      throw convexError('MESSAGE_TOO_LONG', 'Message must be 200 characters or fewer');
     }
 
     const user = await getCurrentUserOrThrow(ctx);
 
     if (!user.partnerId) {
-      throw new Error('No partner linked');
+      throw convexError('NO_PARTNER_LINKED', 'No partner linked');
     }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
-      throw new Error('Match not found');
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
     }
 
     assertCurrentPartner(user, match);
@@ -334,24 +335,24 @@ export const respondToProposal = mutation({
   },
   handler: async (ctx, args) => {
     if (args.message !== undefined && args.message.length > 200) {
-      throw new Error('Message must be 200 characters or fewer');
+      throw convexError('MESSAGE_TOO_LONG', 'Message must be 200 characters or fewer');
     }
 
     const user = await getCurrentUserOrThrow(ctx);
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
-      throw new Error('Match not found');
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
     }
 
     assertCurrentPartner(user, match);
 
     if (match.proposalStatus !== 'pending') {
-      throw new Error('No pending proposal on this match');
+      throw convexError('NO_PENDING_PROPOSAL', 'No pending proposal on this match');
     }
 
     if (match.proposedBy === user._id) {
-      throw new Error('Cannot respond to your own proposal');
+      throw convexError('CANNOT_RESPOND_OWN_PROPOSAL', 'Cannot respond to your own proposal');
     }
 
     const now = Date.now();
@@ -409,15 +410,15 @@ export const withdrawProposal = mutation({
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
-      throw new Error('Match not found');
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
     }
 
     if (match.proposedBy !== user._id) {
-      throw new Error('Only the proposer can withdraw');
+      throw convexError('NOT_PROPOSER', 'Only the proposer can withdraw');
     }
 
     if (match.proposalStatus !== 'pending') {
-      throw new Error('Proposal is not pending');
+      throw convexError('PROPOSAL_NOT_PENDING', 'Proposal is not pending');
     }
 
     await ctx.db.patch(args.matchId, {
@@ -443,7 +444,7 @@ export const deleteMatch = mutation({
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
-      throw new Error('Match not found');
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
     }
 
     assertCurrentPartner(user, match);

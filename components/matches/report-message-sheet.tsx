@@ -17,6 +17,7 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 import { Events, trackEvent } from '@/lib/analytics';
+import { decodeConvexError } from '@/lib/convex-errors';
 
 const CATEGORIES = [
   { key: 'abusive' as const, label: 'Abusive', icon: 'alert-circle-outline' as const },
@@ -108,7 +109,8 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
               resetAndClose();
             } catch (error) {
               Sentry.captureException(error);
-              Alert.alert('Error', 'Failed to unlink partner. Please try again.');
+              const { message } = decodeConvexError(error, 'Could not unlink your partner.');
+              Alert.alert("Couldn't unlink", message);
             }
           },
         },
