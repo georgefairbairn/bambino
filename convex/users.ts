@@ -281,7 +281,21 @@ export const setPushToken = mutation({
     if (!EXPO_PUSH_TOKEN_REGEX.test(args.token)) {
       throw new Error('Invalid push token format');
     }
-    const user = await getCurrentUserOrThrow(ctx);
+    // Best-effort background write. Push registration round-trips to Expo for
+    // a token before calling this, and that window is wide enough for the
+    // Convex/Clerk JWT to lapse transiently (token rotation, app backgrounded,
+    // a fresh review session). A null identity (or a row that hasn't synced
+    // yet) is recoverable, not exceptional: skip silently and let the next
+    // cold-start re-register. Throwing here surfaced as a generic Convex
+    // "Server Error" and spammed Sentry (BAMBINO-1). Mirrors the tolerant
+    // read in the getCurrentUser query above.
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return;
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+      .first();
+    if (!user) return;
     await ctx.db.patch(user._id, {
       pushToken: args.token,
       pushTokenPlatform: args.platform,
