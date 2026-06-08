@@ -5,6 +5,7 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { Confetti } from '@/components/ui/confetti';
 import * as Haptics from 'expo-haptics';
+import * as Sentry from '@sentry/react-native';
 
 interface CelebrationModalProps {
   visible: boolean;
@@ -51,8 +52,11 @@ export function CelebrationModal({
         message: `We've chosen a name! ${nameName}\n\nDiscovered together on Bambino`,
         title: "We've chosen a name!",
       });
-    } catch {
-      // User cancelled share
+    } catch (err: unknown) {
+      // RN Share resolves (not throws) on user cancel — any throw here is a
+      // real failure (no share extension on simulator, sandbox/asset errors),
+      // so report it instead of swallowing silently (#206).
+      Sentry.captureException(err, { tags: { flow: 'share_match' } });
     }
   };
 
