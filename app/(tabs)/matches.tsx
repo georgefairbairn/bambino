@@ -39,31 +39,16 @@ import { GradientBackground } from '@/components/ui/gradient-background';
 import { MatchAnimation } from '@/components/ui/match-animation';
 import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
 import { LoadingIndicator } from '@/components/ui/loading-indicator';
-import { Doc, Id } from '@/convex/_generated/dataModel';
+import { Id } from '@/convex/_generated/dataModel';
+import type { FunctionReturnType } from 'convex/server';
 import * as Haptics from 'expo-haptics';
 
 import type { MatchSortOption } from '@/components/matches/matches-header';
 
-type MatchWithName = {
-  _id: Id<'matches'>;
-  nameId: Id<'names'>;
-  user1Id: Id<'users'>;
-  user2Id: Id<'users'>;
-  isFavorite?: boolean;
-  notes?: string;
-  rank?: number;
-  isChosen?: boolean;
-  proposedBy?: Id<'users'>;
-  proposedAt?: number;
-  proposalMessage?: string;
-  proposalStatus?: 'pending' | 'accepted' | 'declined';
-  respondedAt?: number;
-  declineMessage?: string;
-  matchedAt: number;
-  createdAt: number;
-  updatedAt: number;
-  name: Doc<'names'>;
-};
+// Inferred from the server so the client can't silently drift from the actual
+// getMatches return shape (#179). Adding/removing/renaming a field there now
+// fails tsc at the consumer sites instead of being hidden behind a cast.
+type MatchWithName = FunctionReturnType<typeof api.matches.getMatches>[number];
 
 export default function Matches() {
   const { colors } = useTheme();
@@ -506,7 +491,7 @@ export default function Matches() {
 
         {/* Match list */}
         <FlatList
-          data={matches as MatchWithName[]}
+          data={matches}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
