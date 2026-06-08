@@ -14,7 +14,13 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
   const { colors } = useTheme();
 
   return (
-    <Pressable onPress={onToggle} style={[styles.row, { shadowColor: colors.secondary }]}>
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: isActive }}
+      accessibilityLabel={`${origin}, ${count.toLocaleString()} ${count === 1 ? 'name' : 'names'}`}
+      style={[styles.row, { shadowColor: colors.secondary }]}
+    >
       <View style={styles.textContainer}>
         <Text style={[styles.name, isActive && styles.nameActive]}>
           {getOriginFlag(origin)} {origin}
@@ -23,13 +29,18 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
           {count.toLocaleString()} {count === 1 ? 'name' : 'names'}
         </Text>
       </View>
-      <Switch
-        value={isActive}
-        onValueChange={onToggle}
-        trackColor={{ false: '#E5DDD0', true: colors.primary }}
-        thumbColor="#FFFFFF"
-        ios_backgroundColor="#E5DDD0"
-      />
+      {/* Visual indicator only. The row Pressable owns the tap; without this the
+          Switch's own onValueChange fired alongside the row press, double-firing
+          onToggle and reverting the change (#191). pointerEvents="none" lets
+          taps on the switch fall through to the Pressable. */}
+      <View pointerEvents="none">
+        <Switch
+          value={isActive}
+          trackColor={{ false: '#E5DDD0', true: colors.primary }}
+          thumbColor="#FFFFFF"
+          ios_backgroundColor="#E5DDD0"
+        />
+      </View>
     </Pressable>
   );
 }
