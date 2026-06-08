@@ -601,7 +601,9 @@ export default function Profile() {
           <ThemePickerSection />
           <SkinToneSection />
           <VoiceSettingsSection />
-          <NotificationsSection />
+          {/* Notifications are partner match/proposal alerts — only relevant to
+              premium users, who are the ones that can link a partner (#229). */}
+          {isPremium && <NotificationsSection />}
         </Animated.View>
 
         {/* Other */}
