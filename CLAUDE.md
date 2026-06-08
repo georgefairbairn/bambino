@@ -6,9 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm start                # Start Expo dev server
-npm run ios              # Start on iOS simulator
-npm run android          # Start on Android emulator
-npm run web              # Start web version
+npm run ios              # Build & run on iOS (dev client)
+npm run android          # Build & run on Android (dev client)
 npm run lint             # Run ESLint with Prettier
 npx convex dev           # Start Convex backend dev server (must run alongside Expo)
 npm run seed:names       # Seed baby names into Convex
@@ -26,7 +25,7 @@ npm run enrich-names     # Enrich extracted names via Claude API (needs ANTHROPI
 
 - **Expo SDK 54** with React Native 0.81 (new architecture enabled)
 - **Convex** - Backend (database, server functions, real-time sync)
-- **Clerk** - Authentication (email/password + Google SSO)
+- **Clerk** - Authentication (email/password + Google SSO + Apple SSO)
 - **NativeWind 4** - Tailwind CSS for React Native via `className` props
 - **expo-router** - File-based routing with typed routes
 - **react-native-reanimated** + **react-native-gesture-handler** - Swipe card animations
@@ -41,37 +40,45 @@ app/
   (tabs)/                  # Main app with bottom tab navigator
     dashboard.tsx          # Liked/rejected names lists
     matches.tsx            # Mutual matches with partner
-    profile.tsx            # User settings and account
-    explore/               # Search management + swipe interface
-      index.tsx            # Search list
-      new.tsx              # Create new search
-      [id]/index.tsx       # Swipe card interface
-      [id]/edit.tsx        # Edit search filters
+    profile.tsx            # User settings, account, partner linking
+    explore/               # Swipe interface
+      index.tsx            # Swipe card stack
+      filters.tsx          # Gender/origin filters
 components/                # UI components organized by feature
-  swipe/                   # Card stack, swipe buttons, search header
+  swipe/                   # Card stack, swipe buttons, header
   dashboard/               # Liked/rejected name cards, headers
-  matches/                 # Match cards, celebration modal
+  matches/                 # Match cards, proposals, celebration modal
   name-detail/             # Name detail modal, gender badge
-  search/                  # Gender filter, origin picker, join modal
+  partner/                 # Share code, link/unlink UI
+  search/                  # Gender filter, origin picker
   popularity/              # Charts, sparklines, rank badges
   onboarding/              # First-time user screens
-  settings/                # Voice settings
+  push/                    # Push notification priming
+  settings/                # Theme picker, voice settings
+  ui/                      # Shared primitives (loading screen, offline banner)
+  paywall.tsx              # RevenueCat premium paywall
 contexts/
-  search-context.tsx       # Active search ID (persisted to AsyncStorage)
+  theme-context.tsx        # Candy theme (persisted to AsyncStorage)
   voice-settings-context.tsx  # TTS voice preference (persisted to AsyncStorage)
+  skin-tone-context.tsx    # Emoji skin tone (persisted to AsyncStorage)
+  onboarding-context.tsx   # Onboarding completion state
 convex/
-  schema.ts                # Database schema (7 tables)
+  schema.ts                # Database schema (8 tables)
   auth.config.ts           # Clerk JWT configuration
-  users.ts                 # User sync with Clerk
-  searches.ts              # Search CRUD + share codes
+  users.ts                 # User sync with Clerk + filters + share codes
   selections.ts            # Swipe decisions + queue management
-  matches.ts               # Mutual match detection
+  matches.ts               # Mutual match detection + proposals
+  partners.ts              # Partner linking via share code
+  premium.ts               # RevenueCat premium status
   names.ts                 # Name lookup + seeding
   popularity.ts            # Historical popularity queries
+  notifications.ts         # Push notification registration
+  feedback.ts              # In-app feedback submissions
 constants/
-  theme.ts                 # Colors (light/dark) and platform-specific fonts
+  theme.ts                 # Candy themes, colors, platform-specific fonts
   swipe.ts                 # Card dimensions, gesture thresholds, animation config
-hooks/                     # useActiveSearch, useStoreUser, useCardAnimation, useSwipeGesture, useOnboarding
+hooks/                     # useStoreUser, useCardAnimation, useSwipeGesture, useOnboarding, usePurchases, useEffectivePremium
+lib/                       # Shared utilities (analytics, formatting, SSO, convex errors)
 scripts/                   # Data processing and seeding (seed-names, seed-popularity, process-ssa-data)
 ```
 
@@ -79,33 +86,38 @@ scripts/                   # Data processing and seeding (seed-names, seed-popul
 
 ```
 GestureHandlerRootView
-  ErrorBoundary
+  ErrorBoundary (bare fallback)
     ClerkProvider
-      ClerkLoaded
-        ConvexProviderWithClerk
-          VoiceSettingsProvider
-            SearchProvider
-              Slot (expo-router)
+      ThemeProvider
+        ErrorBoundary (themed)
+          AuthGate
+            ConvexProviderWithClerk (keyed on Clerk user.id)
+              SkinToneProvider
+                VoiceSettingsProvider
+                  OnboardingProvider
+                    Slot (expo-router) + OfflineBanner
 ```
 
 ### Convex Backend
 
-**Schema tables:** `users`, `names`, `namePopularity`, `searches`, `searchMembers`, `selections`, `matches`
+**Schema tables:** `users`, `names`, `namePopularity`, `selections`, `matches`, `nameOriginStats`, `shareCodeAttempts`, `feedbackRateLimits`
+
+**Data model:** Each user has a single global liked/rejected list (filtered by gender/origin on the `users` record); there is no per-search model. Partners link at the account level via an 8-character share code, and mutual likes create `matches` (stored with canonical `user1Id < user2Id` ordering).
 
 **Data fetching pattern:** Use `useQuery` and `useMutation` from `convex/react` with function references from `@/convex/_generated/api`:
 
 ```ts
-const searches = useQuery(api.searches.getUserSearches);
-const createSearch = useMutation(api.searches.createSearch);
+const partner = useQuery(api.partners.getPartnerInfo);
+const updateFilters = useMutation(api.users.updateFilters);
 ```
 
 Auth is handled via Clerk JWT tokens passed to Convex automatically by `ConvexProviderWithClerk`. Server functions access the authenticated user via `ctx.auth.getUserIdentity()`.
 
 ### State Management
 
-- **Convex** - All persistent data (names, searches, selections, matches)
-- **AsyncStorage** - Local preferences (active search ID, voice settings)
-- **React Context** - `SearchContext` (active search), `VoiceSettingsContext` (TTS voice)
+- **Convex** - All persistent data (names, selections, matches, partner links)
+- **AsyncStorage** - Local preferences (candy theme, voice settings, skin tone)
+- **React Context** - `ThemeContext`, `VoiceSettingsContext`, `SkinToneContext`, `OnboardingContext`
 
 ### Styling Pattern
 
