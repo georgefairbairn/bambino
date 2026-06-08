@@ -12,6 +12,7 @@ import { StyledInput } from '@/components/ui/styled-input';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { trackEvent, Events } from '@/lib/analytics';
+import { SSO_REDIRECT_URL } from '@/lib/sso';
 
 function getClerkError(err: unknown, fallback: string): string {
   const clerkError = err as { errors?: { message: string }[] };
@@ -91,8 +92,12 @@ export default function SignUp() {
     setError('');
 
     try {
+      // redirectUrl must be in Clerk Dashboard → Native applications → Allowed
+      // redirect URLs. A "redirect url mismatch" error means it's missing there
+      // (see docs/clerk-setup.md).
       const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
         strategy: 'oauth_google',
+        redirectUrl: SSO_REDIRECT_URL,
       });
 
       if (createdSessionId && ssoSetActive) {
