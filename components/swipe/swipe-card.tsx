@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, LayoutChangeEvent, Alert } from 'react-native';
 import * as Speech from 'expo-speech';
 import Animated, {
@@ -135,6 +135,16 @@ export function SwipeCard({
     onSwipeRight,
     enabled: isTop && swipeEnabled,
   });
+
+  // Memoized so the popularity-row tap gesture isn't rebuilt every render (#213).
+  const popularityTapGesture = useMemo(
+    () =>
+      Gesture.Tap().onEnd(() => {
+        'worklet';
+        if (onDetailPress) runOnJS(onDetailPress)();
+      }),
+    [onDetailPress],
+  );
 
   // Animated style to fade content during swipe
   const contentOpacityStyle = useAnimatedStyle(() => {
@@ -487,12 +497,7 @@ export function SwipeCard({
           )}
 
           {/* Popularity row — pinned to bottom; tappable to open detail */}
-          <GestureDetector
-            gesture={Gesture.Tap().onEnd(() => {
-              'worklet';
-              if (onDetailPress) runOnJS(onDetailPress)();
-            })}
-          >
+          <GestureDetector gesture={popularityTapGesture}>
             <Animated.View style={[styles.popularityRow, isTop && popularityAnimatedStyle]}>
               {/* Rank tile */}
               <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
