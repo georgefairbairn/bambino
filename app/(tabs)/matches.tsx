@@ -1,14 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Pressable,
-  Share,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useQuery, useMutation } from 'convex/react';
@@ -21,7 +12,6 @@ import { useTheme } from '@/contexts/theme-context';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Events, trackEvent, trackScreen } from '@/lib/analytics';
 import { alertMatchMutationError } from '@/components/matches/match-error-alert';
-import { usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import {
   MatchCard,
@@ -54,7 +44,6 @@ type MatchWithName = FunctionReturnType<typeof api.matches.getMatches>[number];
 export default function Matches() {
   const { colors } = useTheme();
   const { isPremium } = useEffectivePremium();
-  const { restorePurchases } = usePurchases();
   const router = useRouter();
   const [sortBy, setSortBy] = useState<MatchSortOption>('newest');
   const [searchInput, setSearchInput] = useState('');
@@ -67,7 +56,6 @@ export default function Matches() {
     message: string | undefined;
     partnerProposalName: string;
   } | null>(null);
-  const [isRestoring, setIsRestoring] = useState(false);
   const [showDeclineSheet, setShowDeclineSheet] = useState(false);
   const [reportMatchId, setReportMatchId] = useState<Id<'matches'> | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -338,32 +326,6 @@ export default function Matches() {
                   onPress={() => setShowPaywall(true)}
                 >
                   <Text style={styles.ctaButtonText}>Upgrade to Premium</Text>
-                </Pressable>
-                <Pressable
-                  style={styles.restoreButton}
-                  disabled={isRestoring}
-                  onPress={async () => {
-                    setIsRestoring(true);
-                    try {
-                      const success = await restorePurchases();
-                      if (success) {
-                        Alert.alert('Restored', 'Your premium purchase has been restored!');
-                      } else {
-                        Alert.alert(
-                          'No Purchase Found',
-                          'No previous purchase was found to restore.',
-                        );
-                      }
-                    } finally {
-                      setIsRestoring(false);
-                    }
-                  }}
-                >
-                  {isRestoring ? (
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  ) : (
-                    <Text style={styles.restoreButtonText}>Restore Purchase</Text>
-                  )}
                 </Pressable>
               </View>
             )}
@@ -657,14 +619,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#fff',
-  },
-  restoreButton: {
-    paddingVertical: 8,
-    zIndex: 10,
-  },
-  restoreButtonText: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#A89BB5',
   },
 });
