@@ -72,6 +72,7 @@ export const Events = {
   THEME_CHANGED: 'theme_changed',
   SKIN_TONE_CHANGED: 'skin_tone_changed',
   VOICE_CHANGED: 'voice_changed',
+  NOTIFICATIONS_TOGGLED: 'notifications_toggled',
   FILTERS_CHANGED: 'filters_changed',
 
   // Paywall & purchases
