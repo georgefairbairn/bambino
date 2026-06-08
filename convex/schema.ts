@@ -32,6 +32,8 @@ export default defineSchema({
     originFilter: v.optional(v.array(v.string())),
     pushToken: v.optional(v.string()),
     pushTokenPlatform: v.optional(v.union(v.literal('ios'), v.literal('android'))),
+    // Absent = enabled; only an explicit false opts out of push (#229).
+    pushNotificationsEnabled: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

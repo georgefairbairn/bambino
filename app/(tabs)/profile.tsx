@@ -33,6 +33,7 @@ import {
   ThemePickerSection,
   SkinToneSection,
   VoiceSettingsSection,
+  NotificationsSection,
   FeedbackSection,
 } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -600,6 +601,7 @@ export default function Profile() {
           <ThemePickerSection />
           <SkinToneSection />
           <VoiceSettingsSection />
+          <NotificationsSection />
         </Animated.View>
 
         {/* Other */}

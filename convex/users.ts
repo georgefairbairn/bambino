@@ -304,6 +304,19 @@ export const setOnboardingCompleted = mutation({
   },
 });
 
+/** In-app toggle for push notifications (#229). Absent = enabled; only an
+ *  explicit false suppresses sends (enforced in notifications.sendPushNotification). */
+export const setPushNotificationsEnabled = mutation({
+  args: { enabled: v.boolean() },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    await ctx.db.patch(user._id, {
+      pushNotificationsEnabled: args.enabled,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** Drop the device's push token from this user's row. Called on sign-out
  *  to prevent cross-user notifications on shared devices (#172). */
 export const clearPushToken = mutation({

@@ -16,6 +16,8 @@ export const getRecipientPushToken = internalQuery({
     return {
       token: user.pushToken,
       platform: user.pushTokenPlatform ?? null,
+      // Absent = enabled; only an explicit false opts out (#229).
+      enabled: user.pushNotificationsEnabled !== false,
     };
   },
 });
@@ -28,13 +30,21 @@ export const sendPushNotification = internalAction({
     data: v.optional(v.any()),
   },
   handler: async (ctx, args): Promise<{ sent: boolean; reason?: string }> => {
-    const recipient: { token: string; platform: 'ios' | 'android' | null } | null =
-      await ctx.runQuery(internal.notifications.getRecipientPushToken, {
-        userId: args.userId as Id<'users'>,
-      });
+    const recipient: {
+      token: string;
+      platform: 'ios' | 'android' | null;
+      enabled: boolean;
+    } | null = await ctx.runQuery(internal.notifications.getRecipientPushToken, {
+      userId: args.userId as Id<'users'>,
+    });
 
     if (!recipient) {
       return { sent: false, reason: 'no_token' };
+    }
+
+    // Respect the user's in-app notifications toggle (#229).
+    if (!recipient.enabled) {
+      return { sent: false, reason: 'disabled' };
     }
 
     try {
