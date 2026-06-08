@@ -50,7 +50,13 @@ function ThemeCard({
 
   return (
     <Animated.View style={[styles.themeCard, cardBorderStyle]}>
-      <Pressable style={styles.themeCardInner} onPress={onSelect}>
+      <Pressable
+        style={styles.themeCardInner}
+        onPress={onSelect}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isSelected }}
+        accessibilityLabel={`Select ${meta.name} theme`}
+      >
         <View style={styles.swatchWrap}>
           <LinearGradient
             colors={[...meta.previewColors]}

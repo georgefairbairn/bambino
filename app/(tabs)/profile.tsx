@@ -356,7 +356,13 @@ export default function Profile() {
           entering={FadeInDown.duration(500).springify()}
           style={styles.userInfoSection}
         >
-          <Pressable onPress={handleAvatarPress} disabled={isUploading}>
+          <Pressable
+            onPress={handleAvatarPress}
+            disabled={isUploading}
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile photo"
+            accessibilityState={{ disabled: isUploading }}
+          >
             {user?.hasImage ? (
               <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
                 <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
@@ -387,7 +393,12 @@ export default function Profile() {
             )}
           </Pressable>
 
-          <Pressable onPress={handleEditName} style={styles.nameRow}>
+          <Pressable
+            onPress={handleEditName}
+            style={styles.nameRow}
+            accessibilityRole="button"
+            accessibilityLabel="Edit name"
+          >
             <Text style={styles.userName}>{convexUser?.name || user?.fullName || 'User'}</Text>
             <Ionicons name="pencil" size={16} color="#A89BB5" />
           </Pressable>
@@ -598,7 +609,12 @@ export default function Profile() {
         >
           <Text style={styles.sectionTitle}>Other</Text>
           <View style={styles.settingsCard}>
-            <Pressable style={styles.settingsCardRow} onPress={resetOnboarding}>
+            <Pressable
+              style={styles.settingsCardRow}
+              onPress={resetOnboarding}
+              accessibilityRole="button"
+              accessibilityLabel="How It Works"
+            >
               <Ionicons
                 name="help-circle-outline"
                 size={22}
@@ -613,6 +629,8 @@ export default function Profile() {
           <View style={styles.settingsCard}>
             <Pressable
               style={styles.settingsCardRow}
+              accessibilityRole="button"
+              accessibilityLabel="Privacy Policy"
               onPress={() =>
                 WebBrowser.openBrowserAsync(
                   'https://bambino-baby.notion.site/325d3b58308281158ce6c6cbdd562734',
@@ -632,6 +650,8 @@ export default function Profile() {
           <View style={styles.settingsCard}>
             <Pressable
               style={styles.settingsCardRow}
+              accessibilityRole="button"
+              accessibilityLabel="Terms of Service"
               onPress={() =>
                 WebBrowser.openBrowserAsync(
                   'https://bambino-baby.notion.site/325d3b58308281768597f8bd57581eb7',
