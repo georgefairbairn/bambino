@@ -10,6 +10,8 @@ import { useStoreUser } from '@/hooks/use-store-user';
 import { usePushRegistration } from '@/hooks/use-push-registration';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
+import { useSkinTone } from '@/contexts/skin-tone-context';
+import { useVoiceSettings } from '@/contexts/voice-settings-context';
 import { OnboardingScreens } from '@/components/onboarding';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
@@ -29,6 +31,13 @@ export default function TabsLayout() {
     isLoading: isOnboardingLoading,
     completeOnboarding,
   } = useOnboarding();
+  // AsyncStorage-backed prefs (#177). These hydrate well before the Convex
+  // getCurrentUser query, so gating on them here adds ~0ms — it just guarantees
+  // no flash of the default skin tone before the first screen renders. (They
+  // stay inside the user-keyed providers so they still reset on user switch —
+  // #154/#175 — which is why we gate here rather than hoisting them.)
+  const { isLoading: isSkinToneLoading } = useSkinTone();
+  const { isLoading: isVoiceLoading } = useVoiceSettings();
 
   if (!isSignedIn) {
     return <Redirect href="/(auth)/sign-in" />;
@@ -38,7 +47,13 @@ export default function TabsLayout() {
   // launch the root AuthGate already showed the loading animation; for
   // sign-out + sign-in on the same device this shows the Bambino loading
   // screen instead of a blank gradient.
-  if (convexUser === undefined || convexUser === null || isOnboardingLoading) {
+  if (
+    convexUser === undefined ||
+    convexUser === null ||
+    isOnboardingLoading ||
+    isSkinToneLoading ||
+    isVoiceLoading
+  ) {
     return <LoadingScreen isLoading />;
   }
 
