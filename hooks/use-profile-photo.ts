@@ -30,30 +30,58 @@ export function useProfilePhoto(user: UserResource | null | undefined) {
 
     if (result.canceled) return;
 
+    const asset = result.assets[0];
+    // ImagePicker can return no asset (multi-pick race) or an asset with no
+    // base64 — HEIC images are the common offender, where encoding fails. Bail
+    // with an actionable message instead of sending `base64,undefined` to Clerk
+    // and trapping the user in a retry loop (#180).
+    if (!asset || !asset.base64) {
+      Alert.alert(
+        'Could not read image',
+        'Please try a different photo. (HEIC images sometimes fail — try converting to JPG.)',
+      );
+      Sentry.captureMessage('Profile photo: missing asset or base64', {
+        level: 'warning',
+        extra: {
+          hasAssets: !!result.assets,
+          length: result.assets?.length,
+          assetKeys: asset ? Object.keys(asset) : null,
+        },
+      });
+      return;
+    }
+
+    const mimeType = asset.mimeType ?? 'image/jpeg';
     setIsUploading(true);
     try {
-      const asset = result.assets[0];
-      const mimeType = asset.mimeType || 'image/jpeg';
       await user.setProfileImage({
-        file: `data:${mimeType};base64,${asset.base64!}`,
+        file: `data:${mimeType};base64,${asset.base64}`,
       });
     } catch (error: unknown) {
       Sentry.captureException(error);
-      if (__DEV__) {
-        // #205: narrow with Clerk's type guard instead of `as any`, so the
-        // shape we log is type-checked and Clerk API drift surfaces at compile
-        // time. Non-Clerk errors fall through to the generic fields.
-        if (isClerkAPIResponseError(error)) {
+      // #205: narrow with Clerk's type guard instead of `as any`, so the shape
+      // we read is type-checked and Clerk API drift surfaces at compile time.
+      if (isClerkAPIResponseError(error)) {
+        const code = error.errors[0]?.code;
+        if (__DEV__) {
           console.error('Profile photo upload failed (Clerk API error):', {
             status: error.status,
-            code: error.errors[0]?.code,
+            code,
             longMessage: error.errors[0]?.longMessage,
           });
-        } else {
+        }
+        Alert.alert(
+          'Error',
+          code === 'image_too_large'
+            ? 'That photo is too large. Try a smaller one.'
+            : 'Failed to update profile photo. Please try again.',
+        );
+      } else {
+        if (__DEV__) {
           console.error('Profile photo upload failed:', error);
         }
+        Alert.alert('Error', 'Failed to update profile photo. Please try again.');
       }
-      Alert.alert('Error', 'Failed to update profile photo. Please try again.');
     } finally {
       setIsUploading(false);
     }
