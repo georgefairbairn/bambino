@@ -12,18 +12,28 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 
 const LOOP_DURATION = 5000;
 const MATCH_GREEN = '#4ADE80';
+// Mid-timeline "hold" frame (cards together, green borders, banner shown) used
+// as the static composition under Reduce Motion.
+const STATIC_FRAME = 0.5;
 
 export function MatchAnimation() {
   const { colors } = useTheme();
+  const { reduceMotion } = useA11yPreferences();
   const progress = useSharedValue(0);
 
   useEffect(() => {
+    // Reduce Motion: hold the matched frame instead of looping (#192).
+    if (reduceMotion) {
+      progress.value = STATIC_FRAME;
+      return;
+    }
     progress.value = 0;
     progress.value = withRepeat(withTiming(1, { duration: LOOP_DURATION }), -1, false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [reduceMotion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timeline (5s): Slide together 0-10% | Border fades green 10-18% |
   //   Banner pop 18-24% | Hold 24-70% | Dismiss 70-82% | Rest 82-100%

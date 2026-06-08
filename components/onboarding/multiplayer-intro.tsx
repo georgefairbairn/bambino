@@ -14,21 +14,31 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 
 const { width } = Dimensions.get('window');
 
 const LOOP_DURATION = 5000;
 const MATCH_GREEN = '#4ADE80';
+// Mid-timeline "hold" frame (cards together, green borders, banner shown) used
+// as the static composition under Reduce Motion.
+const STATIC_FRAME = 0.5;
 
 export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
   const { colors } = useTheme();
+  const { reduceMotion } = useA11yPreferences();
   const progress = useSharedValue(0);
 
   useEffect(() => {
     if (!isActive) return;
+    // Reduce Motion: hold the matched frame instead of looping (#192).
+    if (reduceMotion) {
+      progress.value = STATIC_FRAME;
+      return;
+    }
     progress.value = 0;
     progress.value = withRepeat(withTiming(1, { duration: LOOP_DURATION }), -1, false);
-  }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isActive, reduceMotion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Card animations ──────────────────────────────────────────────
   // Timeline (5s): Slide together 0-10% | Border fades green 10-18% |
