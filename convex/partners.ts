@@ -15,7 +15,8 @@ function generateShareCode(): string {
   crypto.getRandomValues(bytes);
   let code = '';
   for (let i = 0; i < SHARE_CODE_LENGTH; i++) {
-    code += SHARE_CODE_ALPHABET.charAt(bytes[i] % SHARE_CODE_ALPHABET.length);
+    const byte = bytes[i] ?? 0;
+    code += SHARE_CODE_ALPHABET.charAt(byte % SHARE_CODE_ALPHABET.length);
   }
   return code;
 }
@@ -114,7 +115,8 @@ async function enforceRateLimit(ctx: MutationCtx, userId: Id<'users'>): Promise<
   if (newAttempts > RATE_MAX_ATTEMPTS) {
     const nextLockoutCount = record.lockoutCount + 1;
     const lockoutMs =
-      LOCKOUT_DURATIONS_MS[Math.min(nextLockoutCount - 1, LOCKOUT_DURATIONS_MS.length - 1)];
+      LOCKOUT_DURATIONS_MS[Math.min(nextLockoutCount - 1, LOCKOUT_DURATIONS_MS.length - 1)] ??
+      60 * 60 * 1000;
     await ctx.db.patch(record._id, {
       attempts: newAttempts,
       lockoutCount: nextLockoutCount,

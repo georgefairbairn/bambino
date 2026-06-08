@@ -34,7 +34,7 @@ export const seedNames = internalMutation({
         meaning: nameData.meaning,
         phonetic: nameData.phonetic,
         length: nameData.name.length,
-        firstLetter: nameData.name[0].toUpperCase(),
+        firstLetter: nameData.name.charAt(0).toUpperCase(),
         sortKey: Math.random(),
         createdAt: now,
       });
@@ -295,6 +295,7 @@ export const populateOriginStats = internalMutation({
     const now = Date.now();
     for (const [key, increment] of Object.entries(pageTally)) {
       const [origin, gender] = key.split('|');
+      if (origin === undefined || gender === undefined) continue;
       const existing = await ctx.db
         .query('nameOriginStats')
         .withIndex('by_origin_gender', (q) => q.eq('origin', origin).eq('gender', gender))

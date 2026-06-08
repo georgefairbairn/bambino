@@ -156,6 +156,7 @@ export function SwipeCardStack() {
       if (queue.length === 0) return;
 
       const currentName = queue[0];
+      if (!currentName) return;
 
       // Optimistic update - remove from queue
       setLocalQueue((prev) => prev.slice(1));

@@ -55,10 +55,11 @@ export function usePurchases() {
   }, []);
 
   const purchasePremium = useCallback(async () => {
-    if (packages.length === 0) return false;
+    const pkg = packages[0];
+    if (!pkg) return false;
 
     try {
-      const { customerInfo } = await Purchases.purchasePackage(packages[0]);
+      const { customerInfo } = await Purchases.purchasePackage(pkg);
       const hasPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
 
       if (hasPremium) {

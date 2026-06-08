@@ -409,25 +409,35 @@ export const getNamePopularitySummary = query({
       else records = m.length >= f.length ? m : f;
     }
 
+    const emptyResult = {
+      currentRank: null,
+      trend: null as 'rising' | 'falling' | 'steady' | null,
+      peakYear: null as number | null,
+      peakRank: null as number | null,
+      sparklinePoints: [] as number[],
+      totalRankedNames: 0,
+    };
+
     if (records.length === 0) {
-      return {
-        currentRank: null,
-        trend: null as 'rising' | 'falling' | 'steady' | null,
-        peakYear: null as number | null,
-        peakRank: null as number | null,
-        sparklinePoints: [] as number[],
-      };
+      return emptyResult;
     }
 
     // Sort by year ascending
     records.sort((a, b) => a.year - b.year);
 
-    // Current rank: most recent year's rank
+    // records is non-empty here, but indexed access is still `T | undefined`
+    // under noUncheckedIndexedAccess — pull the endpoints once, with a guard.
     const mostRecent = records[records.length - 1];
+    const first = records[0];
+    if (!mostRecent || !first) {
+      return emptyResult; // unreachable: records.length > 0
+    }
+
+    // Current rank: most recent year's rank
     const currentRank = mostRecent.rank;
 
     // Peak year: year with lowest (best) rank
-    const peak = records.reduce((best, r) => (r.rank < best.rank ? r : best), records[0]);
+    const peak = records.reduce((best, r) => (r.rank < best.rank ? r : best), first);
     const peakYear = peak.year;
 
     // Trend: compare most recent rank to rank 5 years prior

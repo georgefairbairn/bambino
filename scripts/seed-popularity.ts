@@ -40,7 +40,8 @@ async function seedPopularity() {
   const totalBatches = Math.ceil(records.length / BATCH_SIZE);
 
   const startBatchArg = process.argv.find((a) => a.startsWith('--start='));
-  const startBatch = startBatchArg ? parseInt(startBatchArg.split('=')[1], 10) : 1;
+  const startValue = startBatchArg?.split('=')[1];
+  const startBatch = startValue ? parseInt(startValue, 10) : 1;
   const startIndex = (startBatch - 1) * BATCH_SIZE;
 
   const isProd = process.argv.includes('--prod');
