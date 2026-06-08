@@ -85,10 +85,16 @@ export function OnboardingScreens({ onComplete }: OnboardingScreensProps) {
       {/* Bottom area: dots + button */}
       <View style={styles.bottomArea}>
         {/* Pagination dots */}
-        <View style={styles.dotsRow}>
+        <View
+          style={styles.dotsRow}
+          accessibilityRole="progressbar"
+          accessibilityLabel={`Page ${currentIndex + 1} of ${TOTAL_SCREENS}`}
+        >
           {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
             <View
               key={i}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
               style={[styles.dot, i === currentIndex ? styles.dotActive : styles.dotInactive]}
             />
           ))}

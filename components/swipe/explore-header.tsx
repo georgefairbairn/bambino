@@ -20,9 +20,9 @@ export function ExploreHeader({ liked, activeFilterCount, onFilterPress }: Explo
       <Pressable
         style={[styles.filterPill, { shadowColor: colors.secondary }]}
         onPress={onFilterPress}
-        accessibilityLabel="Filters"
+        accessibilityLabel={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ''}`}
         accessibilityRole="button"
-        hitSlop={8}
+        hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
       >
         <Ionicons name="options-outline" size={16} color="#2D1B4E" />
         <Text style={styles.filterLabel}>Filters</Text>

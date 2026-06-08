@@ -498,7 +498,13 @@ export function SwipeCard({
 
           {/* Popularity row — pinned to bottom; tappable to open detail */}
           <GestureDetector gesture={popularityTapGesture}>
-            <Animated.View style={[styles.popularityRow, isTop && popularityAnimatedStyle]}>
+            <Animated.View
+              style={[styles.popularityRow, isTop && popularityAnimatedStyle]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Popularity and ranking"
+              accessibilityHint="Double tap to view name details"
+            >
               {/* Rank tile */}
               <View style={[styles.statTile, { backgroundColor: colors.surfaceSubtle }]}>
                 <Text style={styles.statLabel}>RANK</Text>
