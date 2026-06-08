@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation } from 'convex/react';
@@ -16,11 +17,20 @@ export function NotificationsSection() {
   const user = useQuery(api.users.getCurrentUser);
   const setEnabled = useMutation(api.users.setPushNotificationsEnabled);
 
-  const enabled = user?.pushNotificationsEnabled !== false;
+  const serverEnabled = user?.pushNotificationsEnabled !== false;
+  // Optimistic override so the switch flips instantly instead of waiting for the
+  // Convex round-trip; cleared once the server value catches up, reverted on error.
+  const [optimistic, setOptimistic] = useState<boolean | null>(null);
+  const enabled = optimistic ?? serverEnabled;
+
+  useEffect(() => {
+    if (optimistic !== null && serverEnabled === optimistic) setOptimistic(null);
+  }, [serverEnabled, optimistic]);
 
   const handleToggle = (value: boolean) => {
+    setOptimistic(value);
     trackEvent(Events.NOTIFICATIONS_TOGGLED, { enabled: value });
-    setEnabled({ enabled: value });
+    setEnabled({ enabled: value }).catch(() => setOptimistic(null));
   };
 
   return (
@@ -34,7 +44,7 @@ export function NotificationsSection() {
         />
         <View style={styles.textWrap}>
           <Text style={styles.title}>Notifications</Text>
-          <Text style={styles.subtitle}>Match & proposal alerts from your partner</Text>
+          <Text style={styles.subtitle}>Partner matches & proposals</Text>
         </View>
         <Switch
           value={enabled}
