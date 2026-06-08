@@ -58,20 +58,47 @@ export default function Filters() {
     [updateFilters],
   );
 
+  // Debounce the mutation so rapidly toggling N origins is ~1 write, not N
+  // (#190). Local state still updates immediately, so the live name count below
+  // stays instant — only the persisted write is coalesced.
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queueSave = useCallback(
+    (gender: GenderFilter, origin: string[] | null) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        saveTimerRef.current = null;
+        saveFilters(gender, origin);
+      }, 400);
+    },
+    [saveFilters],
+  );
+
+  // Flush a pending save when leaving the screen so a quick exit (back button)
+  // doesn't drop the last change.
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+        saveFilters(genderRef.current, originRef.current);
+      }
+    };
+  }, [saveFilters]);
+
   const handleGenderChange = useCallback(
     (value: GenderFilter) => {
       setGenderFilter(value);
-      saveFilters(value, originRef.current);
+      queueSave(value, originRef.current);
     },
-    [saveFilters],
+    [queueSave],
   );
 
   const handleOriginChange = useCallback(
     (value: string[] | null) => {
       setOriginFilter(value);
-      saveFilters(genderRef.current, value);
+      queueSave(genderRef.current, value);
     },
-    [saveFilters],
+    [queueSave],
   );
 
   // Live names count based on current filter state
