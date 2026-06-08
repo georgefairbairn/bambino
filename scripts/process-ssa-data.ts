@@ -36,6 +36,7 @@ function processYearFile(
 
   for (const line of lines) {
     const [name, gender, countStr] = line.split(',');
+    if (!name || !gender || !countStr) continue;
     const count = parseInt(countStr, 10);
 
     if (!validNames.has(name)) {

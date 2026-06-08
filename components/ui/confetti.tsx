@@ -28,7 +28,7 @@ function generatePieces(themeColors: string[]): ConfettiPiece[] {
     x: Math.random() * SCREEN_WIDTH,
     width: 6 + Math.random() * 4,
     height: 8 + Math.random() * 6,
-    color: themeColors[Math.floor(Math.random() * themeColors.length)],
+    color: themeColors[Math.floor(Math.random() * themeColors.length)] ?? '#FF8FAB',
     delay: Math.random() * 600,
     duration: 2500 + Math.random() * 1000,
     rotation: Math.random() * 720,

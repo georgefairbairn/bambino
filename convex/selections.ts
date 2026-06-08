@@ -253,9 +253,11 @@ async function checkForMatchAndCreate(
   let survivingMatchId = matchId;
   if (afterInsert.length > 1) {
     afterInsert.sort((a, b) => a._creationTime - b._creationTime);
-    survivingMatchId = afterInsert[0]._id;
+    const survivor = afterInsert[0];
+    if (survivor) survivingMatchId = survivor._id;
     for (let i = 1; i < afterInsert.length; i++) {
-      await ctx.db.delete(afterInsert[i]._id);
+      const dup = afterInsert[i];
+      if (dup) await ctx.db.delete(dup._id);
     }
     // A concurrent writer beat us to it — they already surfaced the match toast.
     if (survivingMatchId !== matchId) {
@@ -313,7 +315,8 @@ export const recordSelection = mutation({
     existingRows.sort((a, b) => a._creationTime - b._creationTime);
     const existingSelection = existingRows[0] ?? null;
     for (let i = 1; i < existingRows.length; i++) {
-      await ctx.db.delete(existingRows[i]._id);
+      const dup = existingRows[i];
+      if (dup) await ctx.db.delete(dup._id);
     }
 
     const now = Date.now();
@@ -393,9 +396,10 @@ export const recordSelection = mutation({
       afterInsert.sort((a, b) => a._creationTime - b._creationTime);
       const survivor = afterInsert[0];
       for (let i = 1; i < afterInsert.length; i++) {
-        await ctx.db.delete(afterInsert[i]._id);
+        const dup = afterInsert[i];
+        if (dup) await ctx.db.delete(dup._id);
       }
-      if (survivor._id !== selectionId) {
+      if (survivor && survivor._id !== selectionId) {
         // A concurrent call already recorded this swipe and did its own
         // counting. Don't increment lifetime/counters again.
         return { selectionId: survivor._id, match: null };

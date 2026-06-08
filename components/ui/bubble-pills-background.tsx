@@ -162,6 +162,7 @@ function BubblePillsBackgroundInner() {
       const available = NAME_POOL.filter((n) => !usedNames.has(n));
       const pool = available.length > 0 ? available : NAME_POOL;
       const name = pool[Math.floor(Math.random() * pool.length)];
+      if (!name) return prev;
       const startX = 20 + Math.random() * (SCREEN_WIDTH - 140);
       const rotation = (Math.random() - 0.5) * 12;
       const isLike = Math.random() > 0.5;

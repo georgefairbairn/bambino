@@ -47,6 +47,7 @@ app-example
 
 # Claude Code
 .claude/
+.mcp.json
 
 # Superpowers
 .superpowers/

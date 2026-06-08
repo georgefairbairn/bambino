@@ -269,8 +269,8 @@ export const auditPopularityYears = internalQuery({
       perYear.push({
         year,
         recordsTaken: records.length,
-        topRank: ranks[0],
-        bottomRank: ranks[ranks.length - 1],
+        topRank: ranks[0] ?? 0,
+        bottomRank: ranks[ranks.length - 1] ?? 0,
       });
     }
 

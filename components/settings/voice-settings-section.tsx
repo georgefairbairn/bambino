@@ -24,7 +24,7 @@ const ALLOWED_VOICES = ['Samantha', 'Karen', 'Daniel', 'Moira', 'Tessa', 'Rishi'
 const SAMPLE_NAMES = ['Emma', 'Oliver', 'Sophia', 'Liam', 'Charlotte'];
 
 function getRandomSampleName(): string {
-  return SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)];
+  return SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)] ?? 'Emma';
 }
 
 // Format language code to friendly name

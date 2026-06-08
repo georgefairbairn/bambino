@@ -41,6 +41,7 @@ function extractNames() {
 
     for (const line of lines) {
       const [name, gender] = line.split(',');
+      if (!name) continue;
       if (gender === 'M') maleEntries.push(name);
       else if (gender === 'F') femaleEntries.push(name);
     }

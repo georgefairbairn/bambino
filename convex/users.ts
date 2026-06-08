@@ -69,7 +69,8 @@ export const createOrUpdateUser = mutation({
     existingRows.sort((a, b) => a._creationTime - b._creationTime);
     const existingUser = existingRows[0] ?? null;
     for (let i = 1; i < existingRows.length; i++) {
-      await ctx.db.delete(existingRows[i]._id);
+      const dup = existingRows[i];
+      if (dup) await ctx.db.delete(dup._id);
     }
 
     const now = Date.now();
@@ -113,10 +114,12 @@ export const createOrUpdateUser = mutation({
       .collect();
     if (afterInsert.length > 1) {
       afterInsert.sort((a, b) => a._creationTime - b._creationTime);
+      const survivor = afterInsert[0];
       for (let i = 1; i < afterInsert.length; i++) {
-        await ctx.db.delete(afterInsert[i]._id);
+        const dup = afterInsert[i];
+        if (dup) await ctx.db.delete(dup._id);
       }
-      return afterInsert[0]._id;
+      if (survivor) return survivor._id;
     }
 
     return userId;

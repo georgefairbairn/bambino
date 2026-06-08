@@ -19,7 +19,8 @@ function runWithRetry(command: string): string {
 
 async function updateRanks() {
   const yearArg = process.argv.find((a) => a.startsWith('--year='));
-  const year = yearArg ? parseInt(yearArg.split('=')[1], 10) : 2023;
+  const yearValue = yearArg?.split('=')[1];
+  const year = yearValue ? parseInt(yearValue, 10) : 2023;
   const prod = process.argv.includes('--prod');
   const deploymentFlag = prod ? ' --prod' : '';
   const target = prod ? 'PRODUCTION' : 'dev';
