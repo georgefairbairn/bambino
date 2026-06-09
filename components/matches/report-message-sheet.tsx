@@ -86,8 +86,16 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
       setShowSuccess(true);
       successTimer.current = setTimeout(resetAndClose, 1800);
     } catch (err) {
-      setErrorMessage('Could not send your report. Please try again.');
-      Sentry.captureException(err, { tags: { flow: 'content_report' } });
+      const { code, message } = decodeConvexError(
+        err,
+        'Could not send your report. Please try again.',
+      );
+      setErrorMessage(message);
+      // Expected structured failures (e.g. rate limit) skip Sentry; only
+      // unstructured/infra errors are reported. Mirrors match-error-alert.ts.
+      if (!code) {
+        Sentry.captureException(err, { tags: { flow: 'content_report' } });
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
+import { convexError } from './errors';
 
 const CATEGORY_LABELS: Record<string, string> = {
   bug: 'Bug Report',
@@ -58,7 +59,7 @@ export const checkAndRecordFeedbackRateLimit = internalMutation({
       .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.clerkId))
       .first();
     if (!user) {
-      throw new Error('User not found');
+      throw convexError('USER_NOT_FOUND', 'User not found');
     }
 
     const now = Date.now();
@@ -68,7 +69,9 @@ export const checkAndRecordFeedbackRateLimit = internalMutation({
       .first();
 
     if (record && now - record.lastSubmittedAt < FEEDBACK_RATE_WINDOW_MS) {
-      throw new Error('Please wait a minute before sending more feedback.');
+      throw convexError('RATE_LIMITED', 'Please wait a minute before sending more feedback.', {
+        retryAfterMs: FEEDBACK_RATE_WINDOW_MS - (now - record.lastSubmittedAt),
+      });
     }
 
     if (record) {
@@ -87,20 +90,24 @@ export const submitFeedback = action({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error('Not authenticated');
+      throw convexError('UNAUTHENTICATED', 'Not authenticated');
     }
 
     const trimmed = args.message.trim();
     if (!trimmed) {
-      throw new Error('Message cannot be empty');
+      throw convexError('MESSAGE_EMPTY', 'Message cannot be empty');
     }
     // #171: length cap.
     if (trimmed.length > MAX_FEEDBACK_LENGTH) {
-      throw new Error(`Feedback must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
+      throw convexError('MESSAGE_TOO_LONG', `Feedback must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
     }
 
     const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
     if (!webhookUrl) {
+      // Operational misconfiguration (not user-actionable): keep this a plain
+      // Error so Convex redacts it to "Server Error" on the wire and it stays
+      // loud in logs/Sentry. This was the BAMBINO feedback-webhook incident —
+      // do NOT convert to convexError().
       throw new Error('Slack webhook URL not configured');
     }
 
@@ -190,15 +197,15 @@ export const getReportTarget = internalQuery({
       .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.clerkId))
       .first();
     if (!user) {
-      throw new Error('User not found');
+      throw convexError('USER_NOT_FOUND', 'User not found');
     }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
-      throw new Error('This match is no longer available.');
+      throw convexError('MATCH_NOT_FOUND', 'This match is no longer available.');
     }
     if (match.user1Id !== user._id && match.user2Id !== user._id) {
-      throw new Error('Not authorized');
+      throw convexError('NOT_AUTHORIZED', 'Not authorized');
     }
 
     // The proposer authored the proposalMessage. Fall back to "the other
@@ -234,16 +241,19 @@ export const reportContent = action({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error('Not authenticated');
+      throw convexError('UNAUTHENTICATED', 'Not authenticated');
     }
 
     const trimmedNotes = (args.notes ?? '').trim();
     if (trimmedNotes.length > MAX_FEEDBACK_LENGTH) {
-      throw new Error(`Report notes must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
+      throw convexError('NOTES_TOO_LONG', `Report notes must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
     }
 
     const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
     if (!webhookUrl) {
+      // Operational misconfiguration (not user-actionable): keep as a plain
+      // Error so it redacts to "Server Error" and stays loud in logs/Sentry.
+      // Do NOT convert to convexError().
       throw new Error('Slack webhook URL not configured');
     }
 

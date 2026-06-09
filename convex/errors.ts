@@ -39,7 +39,10 @@ export type ConvexErrorCode =
   | 'PROPOSAL_NOT_PENDING'
   // selections.ts
   | 'SELECTION_NOT_FOUND'
-  | 'BULK_LIMIT_EXCEEDED';
+  | 'BULK_LIMIT_EXCEEDED'
+  // feedback.ts (also reuses UNAUTHENTICATED, USER_NOT_FOUND, RATE_LIMITED,
+  // MESSAGE_TOO_LONG, NOTES_TOO_LONG, MATCH_NOT_FOUND, NOT_AUTHORIZED above)
+  | 'MESSAGE_EMPTY';
 
 export interface ConvexErrorData {
   code: ConvexErrorCode;
