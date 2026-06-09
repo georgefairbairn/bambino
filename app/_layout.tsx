@@ -120,9 +120,19 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (themeLoading) return null;
 
-  // Always show at least one full animation cycle on app launch
+  // Always show at least one full animation cycle on app launch. Hand off
+  // without fading (fadeOnExit={false}): the tabs/swipe gates below render
+  // their own LoadingScreen, and the shared bounce clock keeps them in-phase,
+  // so an instant swap is seamless. Fading to blank here then snapping the
+  // next loader back to full opacity is the flash we're removing.
   if (!animationDone) {
-    return <LoadingScreen isLoading={!isLoaded} onFinished={() => setAnimationDone(true)} />;
+    return (
+      <LoadingScreen
+        isLoading={!isLoaded}
+        onFinished={() => setAnimationDone(true)}
+        fadeOnExit={false}
+      />
+    );
   }
 
   // Key the Convex provider + the user-scoped contexts on Clerk's user.id.

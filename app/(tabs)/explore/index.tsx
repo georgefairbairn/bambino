@@ -9,7 +9,7 @@ import { SwipeCardStack } from '@/components/swipe/swipe-card-stack';
 import { ExploreHeader } from '@/components/swipe/explore-header';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { GradientBackground } from '@/components/ui/gradient-background';
-import { LoadingScreen, useGracefulLoading } from '@/components/ui/loading-screen';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 export default function ExploreView() {
   const router = useRouter();
@@ -22,10 +22,17 @@ export default function ExploreView() {
     }, []),
   );
 
+  // Remount the swipe stack only when the FILTERS change — gender/origin are
+  // the sole inputs to getSwipeQueue's result set, so a fresh seed/queue is
+  // only warranted then. Deliberately excludes user.updatedAt: it's bumped by
+  // every unrelated user-row write (push-token registration on tab mount,
+  // onboarding completion, name confirmation, createOrUpdateUser), each of
+  // which would otherwise remount the stack mid-session and flash the loading
+  // screen — cards -> loading -> cards.
   const swipeQueueKey = useMemo(() => {
     if (!user) return '';
     const originKey = (user.originFilter ?? []).sort().join(',');
-    return `${user.genderFilter ?? 'both'}-${originKey}-${user.updatedAt}`;
+    return `${user.genderFilter ?? 'both'}-${originKey}`;
   }, [user]);
 
   const activeFilterCount = useMemo(() => {
@@ -36,18 +43,18 @@ export default function ExploreView() {
     return count;
   }, [user]);
 
-  const { showLoading, loadingProps } = useGracefulLoading(user !== undefined);
-
-  if (showLoading) {
-    return <LoadingScreen {...loadingProps} />;
-  }
-
+  // The tabs-layout gate (app/(tabs)/_layout.tsx) already holds the loader
+  // until getCurrentUser resolves, so `user` is a cached Doc by the time this
+  // screen mounts — no graceful-loading dance needed. Keep a cheap guard for
+  // the edge where the row briefly goes null (e.g. account deletion).
   if (!user) {
     return <LoadingScreen isLoading />;
   }
 
   return (
-    <GradientBackground>
+    // No entrance fade: this screen mounts straight out of the full-screen
+    // loader (same gradient), so fading it in re-flashes the background.
+    <GradientBackground animateEntrance={false}>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
         <ExploreHeader
           liked={stats?.liked ?? 0}
