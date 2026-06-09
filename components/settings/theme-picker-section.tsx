@@ -18,6 +18,9 @@ import { Events, trackEvent } from '@/lib/analytics';
 const SPRING_CONFIG = { damping: 20, stiffness: 200 };
 const COLOR_TIMING = { duration: 350, easing: Easing.out(Easing.cubic) };
 
+// Olivia (the preview name) is female — underline matches the swipe card's gender color.
+const PREVIEW_UNDERLINE_COLOR = '#FF8FAB'; // = genderFemale in constants/theme.ts
+
 function ThemeCard({
   themeKey,
   isSelected,
@@ -78,7 +81,6 @@ function ThemeCard({
 
 function PreviewCard({ themeKey }: { themeKey: ThemeKey }) {
   const theme = CANDY_THEMES[themeKey];
-  const meta = THEME_META.find((m) => m.key === themeKey)!;
 
   const progress = useSharedValue(0);
   const contentOpacity = useSharedValue(1);
@@ -104,7 +106,7 @@ function PreviewCard({ themeKey }: { themeKey: ThemeKey }) {
       <Animated.View style={contentFade}>
         <Text style={styles.previewLabel}>Preview</Text>
         <Text style={styles.previewName}>Olivia</Text>
-        <View style={[styles.previewUnderline, { backgroundColor: meta.previewColors[0] }]} />
+        <View style={[styles.previewUnderline, { backgroundColor: PREVIEW_UNDERLINE_COLOR }]} />
         <Text style={styles.previewDescription}>A classic name meaning &quot;olive tree&quot;</Text>
         <View style={[styles.previewPill, { backgroundColor: theme.surfaceSubtle }]}>
           <Text style={styles.previewPillText}>{'\u{1F1EC}\u{1F1E7}'} English</Text>
