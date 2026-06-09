@@ -1,12 +1,26 @@
 name: Convex deploy (prod)
 
 on:
+  # Auto-deploy prod whenever backend code lands on master, so prod stays in
+  # sync with the app. Prevents a build shipping ahead of the backend — e.g.
+  # build 10 called users:setOnboardingCompleted before it existed in prod.
+  push:
+    branches: [master]
+    paths:
+      - "convex/**"
+  # Manual hotfix / redeploy of an arbitrary ref.
   workflow_dispatch:
     inputs:
       ref:
         description: "Branch, tag, or commit SHA to deploy (defaults to master)"
         required: false
         default: "master"
+
+# Never run two prod deploys at once; queue them so a later merge can't race
+# an in-flight deploy.
+concurrency:
+  group: convex-deploy-prod
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -28,7 +42,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.inputs.ref }}
+          # workflow_dispatch supplies an explicit ref; push events leave the
+          # input empty, so fall back to the pushed commit.
+          ref: ${{ github.event.inputs.ref || github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
