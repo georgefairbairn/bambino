@@ -9,12 +9,20 @@ interface GradientBackgroundProps {
   variant?: 'screen' | 'auth';
   style?: ViewStyle;
   children: React.ReactNode;
+  /**
+   * Fade the gradient in on mount. Defaults to true. Set false where the
+   * background is shown repeatedly across remounts (e.g. the LoadingScreen,
+   * which mounts at several sequential loading gates) — re-fading the
+   * background on each new instance reads as a flash/restart.
+   */
+  animateEntrance?: boolean;
 }
 
 export function GradientBackground({
   variant = 'screen',
   style,
   children,
+  animateEntrance = true,
 }: GradientBackgroundProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -25,7 +33,7 @@ export function GradientBackground({
 
   return (
     <AnimatedGradient
-      entering={FadeIn.duration(250)}
+      entering={animateEntrance ? FadeIn.duration(250) : undefined}
       colors={[...colors]}
       style={[{ flex: 1 }, style]}
     >
