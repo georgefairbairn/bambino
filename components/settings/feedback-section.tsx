@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAction } from 'convex/react';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
+import { decodeConvexError } from '@/lib/convex-errors';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -54,8 +55,14 @@ export function FeedbackSection() {
         setMessage('');
       }, 2000);
     } catch (err) {
-      setErrorMessage('Something went wrong. Try again.');
-      Sentry.captureException(err, { tags: { flow: 'feedback_submit' } });
+      const { code, message } = decodeConvexError(err, 'Something went wrong. Try again.');
+      setErrorMessage(message);
+      // Structured failures (validation, rate limit) are expected user flow, not
+      // bugs — only report unstructured/infra errors (Slack delivery failed,
+      // missing webhook) to Sentry. Mirrors components/matches/match-error-alert.ts.
+      if (!code) {
+        Sentry.captureException(err, { tags: { flow: 'feedback_submit' } });
+      }
     } finally {
       setIsSubmitting(false);
     }
