@@ -68,7 +68,6 @@ async function getActionedSelections(ctx: QueryCtx) {
     .collect();
 }
 
-
 /**
  * Sum total counts from nameOriginStats grouped by origin. When a gender
  * filter is provided, sums only matching rows. Returns Record<origin, count>.
@@ -374,6 +373,125 @@ export const backfillSelectionOriginGender = internalMutation({
 });
 
 /**
+ * Batch correction of name data (origin and/or meaning). Used by the data
+ * audit to fix AI-generated seed errors at scale. Keyed by `name` (names are
+ * globally unique in this DB). For each correction:
+ *   - Patches `meaning` if provided and different.
+ *   - If `origin` provided and different, applies the same atomic bookkeeping
+ *     as updateNameOrigin: patches the row, adjusts nameOriginStats
+ *     (decrement old / increment new), and patches every referencing
+ *     selection's denormalized origin.
+ *
+ * Idempotent: a correction whose values already match is reported `noop`.
+ * Apply in batches of ~100 to stay under Convex's per-mutation limits.
+ */
+export const applyNameCorrections = internalMutation({
+  args: {
+    corrections: v.array(
+      v.object({
+        name: v.string(),
+        origin: v.optional(v.string()),
+        meaning: v.optional(v.string()),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const results: Record<string, unknown>[] = [];
+
+    for (const c of args.corrections) {
+      const row = await ctx.db
+        .query('names')
+        .withIndex('by_name', (q) => q.eq('name', c.name))
+        .first();
+      if (!row) {
+        results.push({ name: c.name, status: 'not_found' });
+        continue;
+      }
+
+      const patch: { origin?: string; meaning?: string } = {};
+      if (c.meaning !== undefined && c.meaning !== row.meaning) {
+        patch.meaning = c.meaning;
+      }
+      const originChanged = c.origin !== undefined && c.origin !== row.origin;
+      if (originChanged) {
+        patch.origin = c.origin;
+      }
+
+      if (patch.origin === undefined && patch.meaning === undefined) {
+        results.push({ name: c.name, status: 'noop' });
+        continue;
+      }
+
+      await ctx.db.patch(row._id, patch);
+
+      let selectionsUpdated = 0;
+      if (originChanged) {
+        const oldOrigin = row.origin;
+        const newOrigin = c.origin as string;
+
+        const oldStat = await ctx.db
+          .query('nameOriginStats')
+          .withIndex('by_origin_gender', (q) => q.eq('origin', oldOrigin).eq('gender', row.gender))
+          .unique();
+        if (oldStat) {
+          const nextCount = oldStat.count - 1;
+          if (nextCount <= 0) {
+            await ctx.db.delete(oldStat._id);
+          } else {
+            await ctx.db.patch(oldStat._id, { count: nextCount, updatedAt: now });
+          }
+        }
+
+        const newStat = await ctx.db
+          .query('nameOriginStats')
+          .withIndex('by_origin_gender', (q) => q.eq('origin', newOrigin).eq('gender', row.gender))
+          .unique();
+        if (newStat) {
+          await ctx.db.patch(newStat._id, { count: newStat.count + 1, updatedAt: now });
+        } else {
+          await ctx.db.insert('nameOriginStats', {
+            origin: newOrigin,
+            gender: row.gender,
+            count: 1,
+            updatedAt: now,
+          });
+        }
+
+        const referencing = await ctx.db
+          .query('selections')
+          .withIndex('by_name', (q) => q.eq('nameId', row._id))
+          .collect();
+        for (const sel of referencing) {
+          await ctx.db.patch(sel._id, { origin: newOrigin });
+          selectionsUpdated++;
+        }
+      }
+
+      results.push({
+        name: c.name,
+        status: 'applied',
+        meaningChanged: patch.meaning !== undefined,
+        originChanged,
+        oldOrigin: originChanged ? row.origin : undefined,
+        newOrigin: originChanged ? c.origin : undefined,
+        selectionsUpdated,
+      });
+    }
+
+    const summary = {
+      total: results.length,
+      applied: results.filter((r) => r.status === 'applied').length,
+      noop: results.filter((r) => r.status === 'noop').length,
+      notFound: results.filter((r) => r.status === 'not_found').length,
+      meaningChanges: results.filter((r) => r.meaningChanged === true).length,
+      originChanges: results.filter((r) => r.originChanged === true).length,
+    };
+    return { summary, results };
+  },
+});
+
+/**
  * Correct a name's origin (e.g. fixing seed-data bugs). Atomically:
  *   1. Patches the names row.
  *   2. Decrements the old (origin, gender) stats row.
@@ -414,9 +532,7 @@ export const updateNameOrigin = internalMutation({
     const now = Date.now();
     const oldStat = await ctx.db
       .query('nameOriginStats')
-      .withIndex('by_origin_gender', (q) =>
-        q.eq('origin', oldOrigin).eq('gender', name.gender),
-      )
+      .withIndex('by_origin_gender', (q) => q.eq('origin', oldOrigin).eq('gender', name.gender))
       .unique();
     if (oldStat) {
       const nextCount = oldStat.count - 1;
