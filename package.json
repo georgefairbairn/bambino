@@ -16,6 +16,7 @@
     "populate:origin-stats": "npx tsx scripts/populate-origin-stats.ts",
     "backfill:selection-origin-gender": "npx tsx scripts/backfill-selection-origin-gender.ts",
     "update:name-origin": "npx tsx scripts/update-name-origin.ts",
+    "apply:name-corrections": "npx tsx scripts/apply-name-corrections.ts",
     "extract-names": "npx tsx scripts/extract-ssa-names.ts",
     "enrich-names": "npx tsx scripts/enrich-names.ts"
   },
