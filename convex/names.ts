@@ -110,26 +110,61 @@ export const getFilteredNameCount = query({
   args: {
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
     originFilter: v.optional(v.array(v.string())),
+    categoryFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const genderFilter = args.genderFilter ?? 'both';
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
 
-    // undefined = no filter (all origins), [] = no origins (0 results), [...] = specific origins
-    if (args.originFilter !== undefined && args.originFilter.length === 0) {
-      return 0;
-    }
-
-    const totals = await readOriginTotals(ctx, genderValue);
-    const selections = await getActionedSelections(ctx);
-    const actioned = tallyActionedByOrigin(selections, genderValue);
+    // undefined = no filter, [] = none selected (0 results), [...] = specific
+    if (args.originFilter !== undefined && args.originFilter.length === 0) return 0;
+    if (args.categoryFilter !== undefined && args.categoryFilter.length === 0) return 0;
 
     const originSet = args.originFilter !== undefined ? new Set(args.originFilter) : null;
+    const selectedMask = args.categoryFilter !== undefined ? maskFor(args.categoryFilter) : null;
+
+    // No category constraint → existing origin-only path (cheaper, common case).
+    if (selectedMask === null) {
+      const totals = await readOriginTotals(ctx, genderValue);
+      const selections = await getActionedSelections(ctx);
+      const actioned = tallyActionedByOrigin(selections, genderValue);
+      let count = 0;
+      for (const [origin, total] of Object.entries(totals)) {
+        if (originSet && !originSet.has(origin)) continue;
+        const remaining = total - (actioned[origin] ?? 0);
+        if (remaining > 0) count += remaining;
+      }
+      return count;
+    }
+
+    // Category subset selected → mask-stats path. A name sits in exactly one
+    // (categoryMask, gender, origin) bucket, so summing rows whose mask intersects
+    // the selected set is exact even when categories overlap.
+    const statRows = await ctx.db.query('nameCategoryStats').collect();
+    const totals: Record<string, number> = {};
+    for (const row of statRows) {
+      if (genderValue !== null && row.gender !== genderValue) continue;
+      if (originSet && !originSet.has(row.origin)) continue;
+      if ((row.categoryMask & selectedMask) === 0) continue;
+      const key = `${row.categoryMask}|${row.gender}|${row.origin}`;
+      totals[key] = (totals[key] ?? 0) + row.count;
+    }
+
+    const selections = await getActionedSelections(ctx);
+    const actioned: Record<string, number> = {};
+    for (const s of selections) {
+      if (!s.origin || !s.gender) continue;
+      if (genderValue !== null && s.gender !== genderValue) continue;
+      if (originSet && !originSet.has(s.origin)) continue;
+      const mask = s.categoryMask ?? 0;
+      if ((mask & selectedMask) === 0) continue;
+      const key = `${mask}|${s.gender}|${s.origin}`;
+      actioned[key] = (actioned[key] ?? 0) + 1;
+    }
 
     let count = 0;
-    for (const [origin, total] of Object.entries(totals)) {
-      if (originSet && !originSet.has(origin)) continue;
-      const remaining = total - (actioned[origin] ?? 0);
+    for (const [key, total] of Object.entries(totals)) {
+      const remaining = total - (actioned[key] ?? 0);
       if (remaining > 0) count += remaining;
     }
     return count;
