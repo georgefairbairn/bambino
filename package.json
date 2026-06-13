@@ -13,6 +13,8 @@
     "update:ranks": "npx tsx scripts/update-ranks.ts",
     "backfill:ranks": "npx tsx scripts/backfill-ranks.ts",
     "backfill:tiers": "npx tsx scripts/backfill-popularity-tiers.ts",
+    "analyze:categories": "npx tsx scripts/analyze-categories.ts",
+    "categories:compute": "npx tsx scripts/compute-categories.ts",
     "populate:origin-stats": "npx tsx scripts/populate-origin-stats.ts",
     "backfill:selection-origin-gender": "npx tsx scripts/backfill-selection-origin-gender.ts",
     "update:name-origin": "npx tsx scripts/update-name-origin.ts",

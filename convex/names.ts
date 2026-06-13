@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalMutation, query, QueryCtx } from './_generated/server';
+import { CATEGORY_KEYS, deriveCategories, maskFor, orderCategories, type PopPoint } from './categories';
 
 const nameValidator = v.object({
   name: v.string(),
@@ -576,6 +577,118 @@ export const updateNameOrigin = internalMutation({
       nameUpdated: true,
       selectionsUpdated: referencingSelections.length,
       statsUpdated: true,
+    };
+  },
+});
+
+/**
+ * Read-only distribution report for derived categories (#293). Paginated; the
+ * analyze-categories script loops pages and sums. Does NOT write. Use it on dev
+ * to calibrate CATEGORY_THRESHOLDS before running computeDerivedCategories.
+ */
+export const analyzeCategoryDistribution = query({
+  args: { limit: v.optional(v.number()), cursor: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 75;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    const counts: Record<string, number> = {};
+    for (const k of CATEGORY_KEYS) counts[k] = 0;
+    let uncategorized = 0;
+    let multi = 0;
+
+    for (const name of result.page) {
+      const seriesM = (
+        await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', 'M'))
+          .collect()
+      ).map((r): PopPoint => ({ year: r.year, rank: r.rank, count: r.count }));
+      const seriesF = (
+        await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', 'F'))
+          .collect()
+      ).map((r): PopPoint => ({ year: r.year, rank: r.rank, count: r.count }));
+
+      const derived = deriveCategories({
+        gender: name.gender,
+        primaryGender: name.primaryGender,
+        currentRank: name.currentRank,
+        seriesM,
+        seriesF,
+      });
+      for (const k of derived) counts[k] = (counts[k] ?? 0) + 1;
+      if (derived.length === 0) uncategorized++;
+      if (derived.length > 1) multi++;
+    }
+
+    return {
+      processed: result.page.length,
+      counts,
+      uncategorized,
+      multi,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+/**
+ * Compute & store derived categories for every name (#293). Paginated; small
+ * page size because each name reads its full M+F popularity series (~140 rows
+ * each) and the per-mutation read cap is ~32k. Idempotent: only patches when the
+ * category set or mask changes. Preserves any existing 'celebrity' tag so this
+ * pass and the Celebrity pass are order-independent and independently re-runnable.
+ */
+export const computeDerivedCategories = internalMutation({
+  args: { limit: v.optional(v.number()), cursor: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 75;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    let updated = 0;
+    for (const name of result.page) {
+      const fetchSeries = async (g: 'M' | 'F'): Promise<PopPoint[]> =>
+        (
+          await ctx.db
+            .query('namePopularity')
+            .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', g))
+            .collect()
+        ).map((r) => ({ year: r.year, rank: r.rank, count: r.count }));
+
+      const seriesM = await fetchSeries('M');
+      const seriesF = await fetchSeries('F');
+
+      const derived = deriveCategories({
+        gender: name.gender,
+        primaryGender: name.primaryGender,
+        currentRank: name.currentRank,
+        seriesM,
+        seriesF,
+      });
+      const hadCelebrity = (name.categories ?? []).includes('celebrity');
+      const next = orderCategories(hadCelebrity ? [...derived, 'celebrity'] : derived);
+      const mask = maskFor(next);
+
+      const prev = name.categories ?? [];
+      const sameSet =
+        prev.length === next.length && CATEGORY_KEYS.every((k) => prev.includes(k) === next.includes(k));
+      if (!sameSet || name.categoryMask !== mask) {
+        await ctx.db.patch(name._id, { categories: next, categoryMask: mask });
+        updated++;
+      }
+    }
+
+    return {
+      processed: result.page.length,
+      updated,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
     };
   },
 });
