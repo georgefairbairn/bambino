@@ -1,5 +1,5 @@
 import { execFileSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import * as path from 'path';
 
 const BATCH_SIZE = 100;
@@ -12,6 +12,10 @@ interface CelebEntry {
 
 async function main() {
   const prod = process.argv.includes('--prod');
+  if (!existsSync(FILE)) {
+    console.error(`${FILE} not found. Run "npm run celebrity:generate" first.`);
+    process.exit(1);
+  }
   const raw: unknown = JSON.parse(readFileSync(FILE, 'utf-8'));
   if (!Array.isArray(raw)) {
     console.error('celebrity-names.json must be a JSON array.');

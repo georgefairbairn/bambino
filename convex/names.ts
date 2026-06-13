@@ -786,10 +786,14 @@ export const backfillSelectionCategoryMask = internalMutation({
 
     let patched = 0;
     for (const sel of result.page) {
-      if (sel.categoryMask !== undefined) continue;
       const name = await ctx.db.get(sel.nameId);
       if (!name) continue;
-      await ctx.db.patch(sel._id, { categoryMask: name.categoryMask ?? 0 });
+      const expectedMask = name.categoryMask ?? 0;
+      // Re-sync on every run (not just first-time): if categories are recomputed
+      // later, a selection's denormalized mask can go stale. Skip only when it's
+      // already correct, so a re-run after a recompute actually re-syncs.
+      if (sel.categoryMask === expectedMask) continue;
+      await ctx.db.patch(sel._id, { categoryMask: expectedMask });
       patched++;
     }
     return {
