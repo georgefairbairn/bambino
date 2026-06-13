@@ -692,3 +692,45 @@ export const computeDerivedCategories = internalMutation({
     };
   },
 });
+
+/**
+ * Tag curated celebrity-associated names (#293). For each entry whose name exists
+ * in the DB, add 'celebrity' to its categories (dedup, canonical order), update
+ * categoryMask, and set celebrityNote. Idempotent: re-applying identical tags is a
+ * noop. Names not in the DB are reported, not created. Apply in batches of ~100.
+ */
+export const applyCelebrityTags = internalMutation({
+  args: {
+    entries: v.array(v.object({ name: v.string(), note: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    let applied = 0;
+    let noop = 0;
+    const notFound: string[] = [];
+
+    for (const entry of args.entries) {
+      const row = await ctx.db
+        .query('names')
+        .withIndex('by_name', (q) => q.eq('name', entry.name))
+        .first();
+      if (!row) {
+        notFound.push(entry.name);
+        continue;
+      }
+      const hasTag = (row.categories ?? []).includes('celebrity');
+      if (hasTag && row.celebrityNote === entry.note) {
+        noop++;
+        continue;
+      }
+      const next = orderCategories([...(row.categories ?? []), 'celebrity']);
+      await ctx.db.patch(row._id, {
+        categories: next,
+        categoryMask: maskFor(next),
+        celebrityNote: entry.note,
+      });
+      applied++;
+    }
+
+    return { total: args.entries.length, applied, noop, notFound };
+  },
+});
