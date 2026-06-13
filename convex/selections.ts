@@ -109,10 +109,7 @@ async function adjustCounters(
   deltas: Partial<Record<'like' | 'reject' | 'skip', number>>,
 ): Promise<void> {
   const patch: Partial<Pick<Doc<'users'>, 'likedCount' | 'rejectedCount' | 'skippedCount'>> = {};
-  for (const [type, delta] of Object.entries(deltas) as [
-    'like' | 'reject' | 'skip',
-    number,
-  ][]) {
+  for (const [type, delta] of Object.entries(deltas) as ['like' | 'reject' | 'skip', number][]) {
     if (!delta) continue;
     const field = COUNTER_FIELDS[type];
     patch[field] = Math.max(0, (user[field] ?? 0) + delta);
@@ -267,7 +264,12 @@ async function checkForMatchAndCreate(
 
   const name = await ctx.db.get(nameId);
 
-  return { matchId: survivingMatchId, name, matchedAt: now, isFirstMatch: existingPartnerMatch === null };
+  return {
+    matchId: survivingMatchId,
+    name,
+    matchedAt: now,
+    isFirstMatch: existingPartnerMatch === null,
+  };
 }
 
 export const recordSelection = mutation({
@@ -595,6 +597,52 @@ export const getSelectionStats = query({
     const skipped = skippedDocs.length;
 
     return { liked, rejected, skipped, total: liked + rejected + skipped };
+  },
+});
+
+/**
+ * Selection state for a set of names (#292). Powers the Shortlist
+ * search-to-add results: each search hit needs to know whether the current
+ * user already has a selection for it (so the row can show a remove vs add
+ * affordance) and, if so, the selectionId to act on. Bounded to
+ * BULK_SELECTION_LIMIT name ids so a single query can't fan out unboundedly.
+ */
+export const getSelectionStatesForNames = query({
+  args: {
+    nameIds: v.array(v.id('names')),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return [];
+
+    const ids = args.nameIds.slice(0, BULK_SELECTION_LIMIT);
+    const states = await Promise.all(
+      ids.map(async (nameId) => {
+        // collect + oldest, mirroring recordSelection's dup-healing read so a
+        // legacy duplicate (user, name) row doesn't throw .unique() here (#164).
+        const rows = await ctx.db
+          .query('selections')
+          .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', nameId))
+          .collect();
+        const row = rows.sort((a, b) => a._creationTime - b._creationTime)[0];
+        if (!row) return null;
+        return {
+          nameId,
+          selectionType: row.selectionType,
+          selectionId: row._id,
+        };
+      }),
+    );
+
+    return states.filter(
+      (
+        s,
+      ): s is {
+        nameId: Id<'names'>;
+        selectionType: Doc<'selections'>['selectionType'];
+        selectionId: Id<'selections'>;
+      } => s !== null,
+    );
   },
 });
 

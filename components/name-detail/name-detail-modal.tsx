@@ -82,7 +82,7 @@ const TREND_CONFIG = {
   steady: { label: 'Steady', arrow: '→', color: '#A89BB5' },
 };
 
-type Context = 'swipe' | 'liked' | 'rejected' | 'match';
+type Context = 'swipe' | 'liked' | 'rejected' | 'match' | 'detail';
 
 interface NameDetailModalProps {
   visible: boolean;

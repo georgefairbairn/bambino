@@ -20,6 +20,8 @@ interface NamesHeaderProps<T extends string> {
   selectedCount?: number;
   totalCount?: number;
   onSelectAll?: () => void;
+  /** Hide sort/select/count actions, leaving just the title (used while searching). */
+  hideActions?: boolean;
 }
 
 export function NamesHeader<T extends string>({
@@ -33,6 +35,7 @@ export function NamesHeader<T extends string>({
   selectedCount = 0,
   totalCount = 0,
   onSelectAll,
+  hideActions = false,
 }: NamesHeaderProps<T>) {
   const { colors } = useTheme();
   const [showSortPicker, setShowSortPicker] = useState(false);
@@ -44,93 +47,97 @@ export function NamesHeader<T extends string>({
     <View style={styles.container}>
       <View style={styles.topRow}>
         <Text style={styles.title}>{selectMode ? `${selectedCount} Selected` : title}</Text>
-        <View style={styles.headerActions}>
-          {selectMode && totalCount > 0 && (
-            <Pressable style={styles.selectAllButton} onPress={onSelectAll}>
+        {!hideActions && (
+          <View style={styles.headerActions}>
+            {selectMode && totalCount > 0 && (
+              <Pressable style={styles.selectAllButton} onPress={onSelectAll}>
+                <Ionicons
+                  name={allSelected ? 'checkbox' : 'square-outline'}
+                  size={18}
+                  color={allSelected ? colors.primary : '#6B5B7B'}
+                />
+                <Text style={[styles.sortButtonText, allSelected && { color: colors.primary }]}>
+                  All
+                </Text>
+              </Pressable>
+            )}
+            {!selectMode && (
+              <Pressable style={styles.sortButton} onPress={() => setShowSortPicker(true)}>
+                <Ionicons name="swap-vertical" size={16} color="#6B5B7B" />
+                <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
+                <Ionicons name="chevron-down" size={14} color="#6B5B7B" />
+              </Pressable>
+            )}
+            <Pressable
+              style={[
+                styles.selectButton,
+                selectMode && { backgroundColor: colors.primaryLight },
+                count === 0 && { opacity: 0.4 },
+              ]}
+              onPress={onToggleSelectMode}
+              disabled={count === 0}
+            >
               <Ionicons
-                name={allSelected ? 'checkbox' : 'square-outline'}
-                size={18}
-                color={allSelected ? colors.primary : '#6B5B7B'}
+                name={selectMode ? 'close' : 'checkmark-circle-outline'}
+                size={16}
+                color={selectMode ? colors.primary : '#6B5B7B'}
               />
-              <Text style={[styles.sortButtonText, allSelected && { color: colors.primary }]}>
-                All
+              <Text style={[styles.sortButtonText, selectMode && { color: colors.primary }]}>
+                {selectMode ? 'Cancel' : 'Select'}
               </Text>
             </Pressable>
-          )}
-          {!selectMode && (
-            <Pressable style={styles.sortButton} onPress={() => setShowSortPicker(true)}>
-              <Ionicons name="swap-vertical" size={16} color="#6B5B7B" />
-              <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
-              <Ionicons name="chevron-down" size={14} color="#6B5B7B" />
-            </Pressable>
-          )}
-          <Pressable
-            style={[
-              styles.selectButton,
-              selectMode && { backgroundColor: colors.primaryLight },
-              count === 0 && { opacity: 0.4 },
-            ]}
-            onPress={onToggleSelectMode}
-            disabled={count === 0}
-          >
-            <Ionicons
-              name={selectMode ? 'close' : 'checkmark-circle-outline'}
-              size={16}
-              color={selectMode ? colors.primary : '#6B5B7B'}
-            />
-            <Text style={[styles.sortButtonText, selectMode && { color: colors.primary }]}>
-              {selectMode ? 'Cancel' : 'Select'}
-            </Text>
-          </Pressable>
-        </View>
+          </View>
+        )}
       </View>
 
-      {!selectMode && (
+      {!selectMode && !hideActions && (
         <View style={styles.countRow}>
           <Text style={[styles.countText, count === 0 && { opacity: 0 }]}>{count} names</Text>
         </View>
       )}
 
-      <Modal
-        visible={showSortPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowSortPicker(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setShowSortPicker(false)}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Sort by</Text>
-            {sortOptions.map((option) => (
-              <Pressable
-                key={option.value}
-                style={[
-                  styles.sortOption,
-                  sortBy === option.value && { backgroundColor: colors.primaryLight },
-                ]}
-                onPress={() => {
-                  onSortChange(option.value);
-                  setShowSortPicker(false);
-                }}
-              >
-                <Text
+      {!hideActions && (
+        <Modal
+          visible={showSortPicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSortPicker(false)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setShowSortPicker(false)}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Sort by</Text>
+              {sortOptions.map((option) => (
+                <Pressable
+                  key={option.value}
                   style={[
-                    styles.sortOptionText,
-                    sortBy === option.value && {
-                      color: colors.primary,
-                      fontWeight: '600' as const,
-                    },
+                    styles.sortOption,
+                    sortBy === option.value && { backgroundColor: colors.primaryLight },
                   ]}
+                  onPress={() => {
+                    onSortChange(option.value);
+                    setShowSortPicker(false);
+                  }}
                 >
-                  {option.label}
-                </Text>
-                {sortBy === option.value && (
-                  <Ionicons name="checkmark" size={20} color={colors.primary} />
-                )}
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
+                  <Text
+                    style={[
+                      styles.sortOptionText,
+                      sortBy === option.value && {
+                        color: colors.primary,
+                        fontWeight: '600' as const,
+                      },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {sortBy === option.value && (
+                    <Ionicons name="checkmark" size={20} color={colors.primary} />
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 }

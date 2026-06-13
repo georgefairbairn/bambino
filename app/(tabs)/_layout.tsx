@@ -116,10 +116,10 @@ function TabsNavigator() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'History',
-          tabBarAccessibilityLabel: 'Swipe history',
+          title: 'Shortlist',
+          tabBarAccessibilityLabel: 'Shortlist',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'archive' : 'archive-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'bookmark' : 'bookmark-outline'} size={size} color={color} />
           ),
         }}
       />

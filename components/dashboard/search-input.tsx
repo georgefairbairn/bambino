@@ -30,7 +30,7 @@ export function SearchInput({
       placeholder={placeholder}
       autoCapitalize="none"
       autoCorrect={false}
-      style={styles.container}
+      containerStyle={styles.container}
     />
   );
 }

@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
-type Context = 'swipe' | 'liked' | 'rejected' | 'match';
+type Context = 'swipe' | 'liked' | 'rejected' | 'match' | 'detail';
 
 interface QuickActionButtonsProps {
   context: Context;
@@ -59,7 +59,8 @@ export function QuickActionButtons({
     );
   };
 
-  if (context === 'match') {
+  // 'detail' opens read-only from a search result; 'match' has no actions.
+  if (context === 'match' || context === 'detail') {
     return null;
   }
 
