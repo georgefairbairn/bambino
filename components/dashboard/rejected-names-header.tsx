@@ -18,6 +18,7 @@ interface RejectedNamesHeaderProps {
   selectedCount?: number;
   totalCount?: number;
   onSelectAll?: () => void;
+  hideActions?: boolean;
 }
 
 export function RejectedNamesHeader(props: RejectedNamesHeaderProps) {

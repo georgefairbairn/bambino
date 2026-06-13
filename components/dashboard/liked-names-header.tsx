@@ -20,6 +20,7 @@ interface LikedNamesHeaderProps {
   selectedCount?: number;
   totalCount?: number;
   onSelectAll?: () => void;
+  hideActions?: boolean;
 }
 
 export function LikedNamesHeader(props: LikedNamesHeaderProps) {

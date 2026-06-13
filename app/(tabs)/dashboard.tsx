@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import {
 import { SearchInput } from '@/components/dashboard/search-input';
 import { LikedNameCard } from '@/components/dashboard/liked-name-card';
 import { RejectedNameCard } from '@/components/dashboard/rejected-name-card';
+import { SearchResultCard } from '@/components/dashboard/search-result-card';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
@@ -36,6 +37,24 @@ import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 type TabType = 'liked' | 'rejected';
+type SelectionType = 'like' | 'reject' | 'skip' | 'hidden';
+
+// Search placeholder doubles as the manual-add hint (#292): the box filters
+// your swiped list AND surfaces names from the DB you can add.
+const SEARCH_PLACEHOLDER = 'Search your list, or find a name to add…';
+// Debounce before a keystroke drives the Convex search query — keeps us from
+// re-subscribing on every character while staying responsive.
+const SEARCH_DEBOUNCE_MS = 200;
+// Cap on DB suggestions surfaced per search (paging deferred, #292).
+const SEARCH_RESULT_LIMIT = 30;
+
+// Local optimistic record for a search row the user just tapped. selectionType
+// null means "removed"; selectionId is captured from recordSelection's return
+// so the row can be removed again without waiting for the reactive query.
+type OptimisticState = {
+  selectionType: SelectionType | null;
+  selectionId: Id<'selections'> | null;
+};
 
 /**
  * Decode a Convex selection-mutation failure into a specific alert. A
@@ -48,6 +67,20 @@ function alertSelectionMutationError(error: unknown, fallback: string) {
   if (code === 'SELECTION_NOT_FOUND') return;
   Sentry.captureException(error);
   Alert.alert("Couldn't update that", message);
+}
+
+// Hint shown when a search hit is in the *other* sub-tab, so the user knows a
+// tap will move it across lists rather than add it fresh. Hidden names are
+// filtered out of search entirely (#292), so they never reach this.
+function otherTabLabelFor(type: SelectionType): string | null {
+  switch (type) {
+    case 'like':
+      return 'In Liked';
+    case 'reject':
+      return 'In Rejected';
+    default:
+      return null;
+  }
 }
 
 const BULK_BATCH_SIZE = 25;
@@ -73,10 +106,15 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState<TabType>('liked');
   const [showPaywall, setShowPaywall] = useState(false);
+  // searchInput is the live text field; searchQuery is the debounced value that
+  // actually drives the Convex search (#292, was submit-gated pre-#292).
   const [searchInput, setSearchInput] = useState('');
-  const [submittedSearch, setSubmittedSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [likedSortBy, setLikedSortBy] = useState<SortOption>('liked_newest');
   const [rejectedSortBy, setRejectedSortBy] = useState<RejectedSortOption>('rejected_newest');
+
+  // Optimistic add/remove state for search rows, keyed by nameId.
+  const [optimistic, setOptimistic] = useState<Record<string, OptimisticState>>({});
 
   // Multi-select state
   const [selectMode, setSelectMode] = useState(false);
@@ -90,38 +128,52 @@ export default function Dashboard() {
     hasAnimated.current = true;
   }, []);
 
-  // Modal state
+  // Modal state. context drives which actions the detail sheet shows:
+  // 'liked'/'rejected' come from a list card (with a selectionId for the
+  // action buttons); 'detail' is opened from a search result and is
+  // info-only (no selectionId, no action buttons).
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
     name: Doc<'names'>;
-    selectionId: Id<'selections'>;
+    selectionId?: Id<'selections'>;
+    context: 'liked' | 'rejected' | 'detail';
   } | null>(null);
+
+  const resetSearchAndSelection = useCallback(() => {
+    setSearchInput('');
+    setSearchQuery('');
+    setOptimistic({});
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }, []);
 
   // Reset search and select mode when switching liked/rejected tabs
   useEffect(() => {
-    setSearchInput('');
-    setSubmittedSearch('');
-    setSelectMode(false);
-    setSelectedIds(new Set());
-  }, [activeTab]);
+    resetSearchAndSelection();
+  }, [activeTab, resetSearchAndSelection]);
 
   // Clear search when returning to this tab from another tab
   useFocusEffect(
     useCallback(() => {
       trackScreen('Dashboard');
-      setSearchInput('');
-      setSubmittedSearch('');
-      setSelectMode(false);
-      setSelectedIds(new Set());
-    }, []),
+      resetSearchAndSelection();
+    }, [resetSearchAndSelection]),
   );
 
+  // Debounce the live input into the query that drives Convex search.
+  useEffect(() => {
+    const handle = setTimeout(() => setSearchQuery(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [searchInput]);
+
   const handleSearchSubmit = () => {
-    setSubmittedSearch(searchInput);
+    // Return key flushes the debounce so results appear immediately.
+    setSearchQuery(searchInput);
   };
 
   const handleSearchClear = () => {
-    setSubmittedSearch('');
+    setSearchQuery('');
+    setOptimistic({});
   };
 
   // Paginated lists (#170). usePaginatedQuery streams pages of LIST_PAGE_SIZE
@@ -154,41 +206,228 @@ export default function Dashboard() {
   const totalRejectedCount = stats?.rejected ?? 0;
 
   // Free-tier visibility gate (#170): cap the list at FREE_TIER_VISIBLE_LIKES
-  // for non-premium users with more than that many likes. Computed client-side
-  // from premium status + total count instead of threading through the
-  // paginated query response — usePaginatedQuery doesn't expose page-level
-  // metadata.
+  // for non-premium users with more than that many likes.
   const FREE_TIER_VISIBLE_LIKES = 25;
   const visibleLimit = isPremium ? null : FREE_TIER_VISIBLE_LIKES;
   const gatedCount =
     visibleLimit !== null && totalLikedCount > visibleLimit ? totalLikedCount - visibleLimit : 0;
-  const cappedLikedItems =
+  const likedListData =
     visibleLimit !== null ? allLikedItems.slice(0, visibleLimit) : allLikedItems;
+  const rejectedListData = allRejectedItems;
 
-  // Client-side search over loaded pages. Server-side search doesn't fit
-  // pagination cleanly; users typically search names they remember liking
-  // recently, which are in the first page anyway.
-  const searchLower = submittedSearch.trim().toLowerCase();
-  const visibleLikedNames = searchLower
-    ? cappedLikedItems.filter((item) => item.name.name.toLowerCase().includes(searchLower))
-    : cappedLikedItems;
-  const visibleRejectedNames = searchLower
-    ? allRejectedItems.filter((item) => item.name.name.toLowerCase().includes(searchLower))
-    : allRejectedItems;
+  // ---- Search-to-add (#292) ------------------------------------------------
+  const trimmedQuery = searchQuery.trim();
+  const firstChar = trimmedQuery[0] ?? '';
+  // searchNames needs an indexed filter; we anchor on the first letter (names
+  // are letter-initial). Non-letter first chars can't match a firstLetter
+  // bucket, so don't fire.
+  const searchActive = trimmedQuery.length >= 1 && /[a-zA-Z]/.test(firstChar);
+
+  const searchResults = useQuery(
+    api.names.searchNames,
+    searchActive
+      ? { search: trimmedQuery, firstLetter: firstChar, limit: SEARCH_RESULT_LIMIT }
+      : 'skip',
+  );
+
+  // Alphabetical for predictable "type Soph → Sophia, Sophie…" ordering.
+  const sortedResults = useMemo(
+    () =>
+      searchResults ? [...searchResults].sort((a, b) => a.name.localeCompare(b.name)) : undefined,
+    [searchResults],
+  );
+
+  const resultIds = useMemo(() => sortedResults?.map((n) => n._id) ?? [], [sortedResults]);
+
+  const serverStates = useQuery(
+    api.selections.getSelectionStatesForNames,
+    searchActive && resultIds.length > 0 ? { nameIds: resultIds } : 'skip',
+  );
+
+  const serverStateMap = useMemo(() => {
+    const map = new Map<string, { selectionType: SelectionType; selectionId: Id<'selections'> }>();
+    serverStates?.forEach((s) =>
+      map.set(s.nameId, { selectionType: s.selectionType, selectionId: s.selectionId }),
+    );
+    return map;
+  }, [serverStates]);
+
+  // Instant fallback from the already-loaded liked/rejected pages, so a name
+  // the user recently swiped shows the right icon the moment results render —
+  // before the getSelectionStatesForNames round-trip resolves. serverStateMap
+  // still covers names beyond the first loaded page.
+  const localStateMap = useMemo(() => {
+    const map = new Map<string, { selectionType: SelectionType; selectionId: Id<'selections'> }>();
+    allLikedItems.forEach((it) =>
+      map.set(it.name._id, { selectionType: 'like', selectionId: it.selectionId }),
+    );
+    allRejectedItems.forEach((it) =>
+      map.set(it.name._id, { selectionType: 'reject', selectionId: it.selectionId }),
+    );
+    return map;
+  }, [allLikedItems, allRejectedItems]);
 
   const removeFromLiked = useMutation(api.selections.removeFromLiked);
   const restoreToQueue = useMutation(api.selections.restoreToQueue);
   const hidePermanently = useMutation(api.selections.hidePermanently);
+  const recordSelection = useMutation(api.selections.recordSelection);
   const bulkDelete = useMutation(api.selections.bulkDeleteSelections);
   const bulkHide = useMutation(api.selections.bulkHideSelections);
 
+  // Effective selection state for a search row: optimistic override (if the
+  // user just tapped it) wins, then the scoped server query, then the instant
+  // local-page fallback. All three carry a selectionId so the remove path
+  // never needs a second lookup.
+  const effectiveStateFor = useCallback(
+    (nameId: Id<'names'>): OptimisticState => {
+      const opt = optimistic[nameId];
+      if (opt) return opt;
+      const known = serverStateMap.get(nameId) ?? localStateMap.get(nameId);
+      return known
+        ? { selectionType: known.selectionType, selectionId: known.selectionId }
+        : { selectionType: null, selectionId: null };
+    },
+    [optimistic, serverStateMap, localStateMap],
+  );
+
+  // Tapping the ＋ on a search row adds it (or moves it from the other list).
+  // recordSelection is the same mutation swiping uses, so partner
+  // match-detection comes free.
+  const handleAddSearchResult = useCallback(
+    async (name: Doc<'names'>) => {
+      const nameId = name._id;
+      const tabType: 'like' | 'reject' = activeTab === 'liked' ? 'like' : 'reject';
+      setOptimistic((prev) => ({
+        ...prev,
+        [nameId]: { selectionType: tabType, selectionId: null },
+      }));
+      try {
+        const result = await recordSelection({ nameId, selectionType: tabType });
+        if (result && 'error' in result) {
+          // Free-tier swipe cap — revert and surface the paywall.
+          setOptimistic((prev) => {
+            const next = { ...prev };
+            delete next[nameId];
+            return next;
+          });
+          setShowPaywall(true);
+          return;
+        }
+        setOptimistic((prev) => ({
+          ...prev,
+          [nameId]: { selectionType: tabType, selectionId: result.selectionId },
+        }));
+      } catch (error) {
+        setOptimistic((prev) => {
+          const next = { ...prev };
+          delete next[nameId];
+          return next;
+        });
+        Sentry.captureException(error);
+        Alert.alert("Couldn't add that", 'Please try again.');
+      }
+    },
+    [activeTab, recordSelection],
+  );
+
+  // Shared confirm-then-mutate for the manage actions on an already-in-list
+  // search row (mirrors the liked/rejected list cards). optimisticType is the
+  // selection's state after the action: null = deleted, 'hidden' = hidden.
+  const runSearchRowAction = useCallback(
+    (
+      name: Doc<'names'>,
+      opts: {
+        title: string;
+        message: string;
+        confirmText: string;
+        destructive?: boolean;
+        optimisticType: SelectionType | null;
+        run: (selectionId: Id<'selections'>) => Promise<unknown>;
+        errorMessage: string;
+      },
+    ) => {
+      const nameId = name._id;
+      const selectionId = effectiveStateFor(nameId).selectionId;
+      // Add hasn't resolved yet (no id) — nothing to act on.
+      if (!selectionId) return;
+      Alert.alert(opts.title, opts.message, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: opts.confirmText,
+          style: opts.destructive ? 'destructive' : 'default',
+          onPress: async () => {
+            setOptimistic((prev) => ({
+              ...prev,
+              [nameId]: {
+                selectionType: opts.optimisticType,
+                selectionId: opts.optimisticType ? selectionId : null,
+              },
+            }));
+            try {
+              await opts.run(selectionId);
+            } catch (error) {
+              setOptimistic((prev) => {
+                const next = { ...prev };
+                delete next[nameId];
+                return next;
+              });
+              alertSelectionMutationError(error, opts.errorMessage);
+            }
+          },
+        },
+      ]);
+    },
+    [effectiveStateFor],
+  );
+
+  // 🗑 on a liked search row → remove (mirrors LikedNameCard).
+  const handleRemoveSearchResult = (name: Doc<'names'>) =>
+    runSearchRowAction(name, {
+      title: 'Remove from Liked',
+      message: `Remove "${name.name}" from your liked names? It will reappear in your swipe queue.`,
+      confirmText: 'Remove',
+      destructive: true,
+      optimisticType: null,
+      run: (selectionId) => removeFromLiked({ selectionId }),
+      errorMessage: 'Could not remove this name.',
+    });
+
+  // Restore on a rejected search row → back to the swipe queue (mirrors RejectedNameCard).
+  const handleRestoreSearchResult = (name: Doc<'names'>) =>
+    runSearchRowAction(name, {
+      title: 'Restore to Queue',
+      message: `Restore "${name.name}" to your swipe queue? You'll be able to reconsider this name.`,
+      confirmText: 'Restore',
+      optimisticType: null,
+      run: (selectionId) => restoreToQueue({ selectionId }),
+      errorMessage: 'Could not restore this name.',
+    });
+
+  // Hide on a rejected search row → permanently hidden (mirrors RejectedNameCard).
+  const handleHideSearchResult = (name: Doc<'names'>) =>
+    runSearchRowAction(name, {
+      title: 'Hide Permanently',
+      message: `Hide "${name.name}" permanently? It will never appear in your swipe queue again.`,
+      confirmText: 'Hide',
+      destructive: true,
+      optimisticType: 'hidden',
+      run: (selectionId) => hidePermanently({ selectionId }),
+      errorMessage: 'Could not hide this name.',
+    });
+
+  // Tapping the body of a search row opens the read-only detail sheet.
+  const handleSearchResultPress = (name: Doc<'names'>) => {
+    setSelectedItem({ name, context: 'detail' });
+    setDetailModalVisible(true);
+  };
+
   const handleCardPress = (name: Doc<'names'>, selectionId: Id<'selections'>) => {
-    setSelectedItem({ name, selectionId });
+    setSelectedItem({ name, selectionId, context: activeTab });
     setDetailModalVisible(true);
   };
 
   const handleModalRemove = async () => {
-    if (!selectedItem) return;
+    if (!selectedItem?.selectionId) return;
     setDetailModalVisible(false);
     try {
       await removeFromLiked({ selectionId: selectedItem.selectionId });
@@ -199,7 +438,7 @@ export default function Dashboard() {
   };
 
   const handleModalRestore = async () => {
-    if (!selectedItem) return;
+    if (!selectedItem?.selectionId) return;
     setDetailModalVisible(false);
     try {
       await restoreToQueue({ selectionId: selectedItem.selectionId });
@@ -210,7 +449,7 @@ export default function Dashboard() {
   };
 
   const handleModalHide = async () => {
-    if (!selectedItem) return;
+    if (!selectedItem?.selectionId) return;
     setDetailModalVisible(false);
     try {
       await hidePermanently({ selectionId: selectedItem.selectionId });
@@ -243,12 +482,21 @@ export default function Dashboard() {
     });
   }, []);
 
+  // Searching and select mode are mutually exclusive — drop out of select mode
+  // when a search starts so the (hidden) bulk bar can't act on a stale set.
+  useEffect(() => {
+    if (searchActive && selectMode) {
+      setSelectMode(false);
+      setSelectedIds(new Set());
+    }
+  }, [searchActive, selectMode]);
+
   // Track an in-flight "Select all" request so we can show progress and
   // prevent reentry while pages are still loading.
   const [isSelectingAll, setIsSelectingAll] = useState(false);
 
   const handleSelectAll = useCallback(async () => {
-    const items = activeTab === 'liked' ? visibleLikedNames : visibleRejectedNames;
+    const items = activeTab === 'liked' ? likedListData : rejectedListData;
     const allLoadedIds = items.map((item) => item.selectionId);
     const allSelected = allLoadedIds.length > 0 && allLoadedIds.every((id) => selectedIds.has(id));
 
@@ -277,8 +525,8 @@ export default function Dashboard() {
   }, [
     selectedIds,
     activeTab,
-    visibleLikedNames,
-    visibleRejectedNames,
+    likedListData,
+    rejectedListData,
     likedStatus,
     rejectedStatus,
     loadMoreLiked,
@@ -297,7 +545,7 @@ export default function Dashboard() {
       return;
     }
     if (status === 'Exhausted') {
-      const items = activeTab === 'liked' ? visibleLikedNames : visibleRejectedNames;
+      const items = activeTab === 'liked' ? likedListData : rejectedListData;
       setSelectedIds(new Set(items.map((item) => item.selectionId)));
       setIsSelectingAll(false);
     }
@@ -308,8 +556,8 @@ export default function Dashboard() {
     rejectedStatus,
     loadMoreLiked,
     loadMoreRejected,
-    visibleLikedNames,
-    visibleRejectedNames,
+    likedListData,
+    rejectedListData,
   ]);
 
   const executeBulkAction = useCallback(
@@ -403,6 +651,248 @@ export default function Dashboard() {
   const loadedCount = activeTab === 'liked' ? allLikedItems.length : allRejectedItems.length;
   const isDataEmpty = isDataLoaded && loadedCount === 0;
 
+  const showSearchInput = !selectMode;
+  const currentTabSelectionType: 'like' | 'reject' = activeTab === 'liked' ? 'like' : 'reject';
+
+  const renderHeader = () => (
+    <>
+      <Animated.View
+        entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}
+      >
+        <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
+      </Animated.View>
+      <Animated.View
+        entering={
+          !hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined
+        }
+      >
+        {activeTab === 'liked' ? (
+          <LikedNamesHeader
+            count={totalLikedCount}
+            sortBy={likedSortBy}
+            onSortChange={setLikedSortBy}
+            selectMode={selectMode}
+            onToggleSelectMode={toggleSelectMode}
+            selectedCount={selectedIds.size}
+            totalCount={likedListData.length}
+            onSelectAll={handleSelectAll}
+            hideActions={searchActive}
+          />
+        ) : (
+          <RejectedNamesHeader
+            count={totalRejectedCount}
+            sortBy={rejectedSortBy}
+            onSortChange={setRejectedSortBy}
+            selectMode={selectMode}
+            onToggleSelectMode={toggleSelectMode}
+            selectedCount={selectedIds.size}
+            totalCount={rejectedListData.length}
+            onSelectAll={handleSelectAll}
+            hideActions={searchActive}
+          />
+        )}
+        {showSearchInput && (
+          <SearchInput
+            value={searchInput}
+            onChangeText={setSearchInput}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+            placeholder={SEARCH_PLACEHOLDER}
+          />
+        )}
+      </Animated.View>
+    </>
+  );
+
+  // ---- Body renderers ------------------------------------------------------
+
+  const renderSearchBody = () => {
+    if (sortedResults === undefined) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={colors.primary} />
+        </View>
+      );
+    }
+    // Hidden names are excluded from search (#292): hiding is permanent, so a
+    // hidden name disappears on confirm and won't resurface on a later search.
+    const visibleResults = sortedResults.filter(
+      (n) => effectiveStateFor(n._id).selectionType !== 'hidden',
+    );
+    if (visibleResults.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>No Names Found</Text>
+          <Text style={styles.emptyDescription}>
+            No names match “{trimmedQuery}”. Try a different spelling.
+          </Text>
+        </View>
+      );
+    }
+    return (
+      <FlatList
+        data={visibleResults}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => {
+          const state = effectiveStateFor(item._id);
+          const inThisTab = state.selectionType === currentTabSelectionType;
+          const otherTabLabel =
+            !inThisTab && state.selectionType ? otherTabLabelFor(state.selectionType) : null;
+          return (
+            <SearchResultCard
+              name={item}
+              tab={activeTab}
+              inThisTab={inThisTab}
+              otherTabLabel={otherTabLabel}
+              onPress={() => handleSearchResultPress(item)}
+              onAdd={() => handleAddSearchResult(item)}
+              onRemove={() => handleRemoveSearchResult(item)}
+              onRestore={() => handleRestoreSearchResult(item)}
+              onHide={() => handleHideSearchResult(item)}
+            />
+          );
+        }}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      />
+    );
+  };
+
+  const renderEmptyBody = () => (
+    <View style={styles.emptyContainer}>
+      <BubblePillsBackground />
+      <Text style={styles.emptyTitle}>
+        {activeTab === 'liked' ? 'No Liked Names Yet' : 'No Rejected Names'}
+      </Text>
+      <Text style={styles.emptyDescription}>
+        {activeTab === 'liked'
+          ? "Swipe right on names you love — they'll land right here!"
+          : 'Names you swipe left on will drift over here.'}
+      </Text>
+      <Pressable
+        style={[styles.createButton, { backgroundColor: colors.primary }]}
+        onPress={() => router.push('/(tabs)/explore')}
+      >
+        <Text style={styles.createButtonText}>
+          {activeTab === 'liked' ? 'Start Swiping' : 'Start Exploring'}
+        </Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderLikedList = () => (
+    <>
+      {gracePeriodEndsAt && (
+        <View style={[styles.graceBanner, { borderColor: '#F0D060' }]}>
+          <Ionicons name="time-outline" size={16} color="#856404" />
+          <Text style={styles.graceBannerText}>
+            Premium expires in {formatTimeRemaining(gracePeriodEndsAt)}
+          </Text>
+        </View>
+      )}
+      <FlatList
+        data={likedListData}
+        keyExtractor={(item) => item.selectionId}
+        renderItem={({ item, index }) => (
+          <Animated.View
+            entering={FadeInUp.delay(index * 50)
+              .duration(400)
+              .springify()}
+          >
+            <LikedNameCard
+              name={item.name}
+              likedAt={item.likedAt}
+              onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
+              onPress={() => handleCardPress(item.name, item.selectionId)}
+              selectMode={selectMode}
+              selected={selectedIds.has(item.selectionId)}
+              onToggleSelect={() => toggleSelect(item.selectionId)}
+            />
+          </Animated.View>
+        )}
+        onEndReached={() => {
+          // Don't auto-load past the free-tier cap — gatedCount > 0
+          // means we want to show the upgrade banner, not the next
+          // page. Otherwise let usePaginatedQuery decide whether
+          // there's more (CanLoadMore vs Exhausted).
+          if (gatedCount > 0) return;
+          if (likedStatus === 'CanLoadMore') {
+            loadMoreLiked(LIST_PAGE_SIZE);
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          gatedCount > 0 ? (
+            <Pressable
+              style={[styles.gatedBanner, { borderColor: colors.border }]}
+              onPress={() => setShowPaywall(true)}
+            >
+              <View style={styles.gatedIconRow}>
+                <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+                <Text style={[styles.gatedText, { color: colors.textSecondary }]}>
+                  +{gatedCount} more name{gatedCount !== 1 ? 's' : ''} — upgrade to view all
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </Pressable>
+          ) : likedStatus === 'LoadingMore' ? (
+            <View style={styles.listFooterLoader}>
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+          ) : null
+        }
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      />
+    </>
+  );
+
+  const renderRejectedList = () => (
+    <FlatList
+      data={rejectedListData}
+      keyExtractor={(item) => item.selectionId}
+      renderItem={({ item, index }) => (
+        <Animated.View
+          entering={FadeInUp.delay(index * 50)
+            .duration(400)
+            .springify()}
+        >
+          <RejectedNameCard
+            name={item.name}
+            rejectedAt={item.rejectedAt}
+            onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
+            onHide={() => hidePermanently({ selectionId: item.selectionId })}
+            onPress={() => handleCardPress(item.name, item.selectionId)}
+            selectMode={selectMode}
+            selected={selectedIds.has(item.selectionId)}
+            onToggleSelect={() => toggleSelect(item.selectionId)}
+          />
+        </Animated.View>
+      )}
+      onEndReached={() => {
+        if (rejectedStatus === 'CanLoadMore') {
+          loadMoreRejected(LIST_PAGE_SIZE);
+        }
+      }}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        rejectedStatus === 'LoadingMore' ? (
+          <View style={styles.listFooterLoader}>
+            <ActivityIndicator size="small" color={colors.primary} />
+          </View>
+        ) : null
+      }
+      contentContainerStyle={styles.listContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+    />
+  );
+
   if (!isDataLoaded) {
     return (
       <GradientBackground>
@@ -417,73 +907,8 @@ export default function Dashboard() {
               onSortChange={setRejectedSortBy}
             />
           )}
-          <SearchInput
-            value={searchInput}
-            onChangeText={setSearchInput}
-            onSubmit={handleSearchSubmit}
-            onClear={handleSearchClear}
-          />
           <View style={styles.loadingContainer}>
             <LoadingIndicator size="small" />
-          </View>
-        </SafeAreaView>
-      </GradientBackground>
-    );
-  }
-
-  // Empty state
-  if (isDataEmpty) {
-    const isSearching = submittedSearch.length > 0;
-    return (
-      <GradientBackground>
-        <SafeAreaView style={styles.flexContainer} edges={['top']}>
-          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-          {activeTab === 'liked' ? (
-            <LikedNamesHeader count={0} sortBy={likedSortBy} onSortChange={setLikedSortBy} />
-          ) : (
-            <RejectedNamesHeader
-              count={0}
-              sortBy={rejectedSortBy}
-              onSortChange={setRejectedSortBy}
-            />
-          )}
-          {/* Keep the search bar only when the emptiness is a no-results
-              state — the user needs it to edit/clear their query. When the
-              list is genuinely empty, hide it; there's nothing to search. */}
-          {isSearching && (
-            <SearchInput
-              value={searchInput}
-              onChangeText={setSearchInput}
-              onSubmit={handleSearchSubmit}
-              onClear={handleSearchClear}
-            />
-          )}
-          <View style={styles.emptyContainer}>
-            {!isSearching && <BubblePillsBackground />}
-            <Text style={styles.emptyTitle}>
-              {isSearching
-                ? 'No Results Found'
-                : activeTab === 'liked'
-                  ? 'No Liked Names Yet'
-                  : 'No Rejected Names'}
-            </Text>
-            <Text style={styles.emptyDescription}>
-              {isSearching
-                ? `No names match "${submittedSearch}"`
-                : activeTab === 'liked'
-                  ? "Swipe right on names you love — they'll land right here!"
-                  : 'Names you swipe left on will drift over here.'}
-            </Text>
-            {!isSearching && (
-              <Pressable
-                style={[styles.createButton, { backgroundColor: colors.primary }]}
-                onPress={() => router.push('/(tabs)/explore')}
-              >
-                <Text style={styles.createButtonText}>
-                  {activeTab === 'liked' ? 'Start Swiping' : 'Start Exploring'}
-                </Text>
-              </Pressable>
-            )}
           </View>
         </SafeAreaView>
       </GradientBackground>
@@ -493,172 +918,18 @@ export default function Dashboard() {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.flexContainer} edges={['top']}>
-        <Animated.View
-          entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}
-        >
-          <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
-        </Animated.View>
-        {activeTab === 'liked' ? (
-          <>
-            <Animated.View
-              entering={
-                !hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined
-              }
-            >
-              <LikedNamesHeader
-                count={totalLikedCount}
-                sortBy={likedSortBy}
-                onSortChange={setLikedSortBy}
-                selectMode={selectMode}
-                onToggleSelectMode={toggleSelectMode}
-                selectedCount={selectedIds.size}
-                totalCount={visibleLikedNames.length}
-                onSelectAll={handleSelectAll}
-              />
-              {!selectMode && (
-                <SearchInput
-                  value={searchInput}
-                  onChangeText={setSearchInput}
-                  onSubmit={handleSearchSubmit}
-                  onClear={handleSearchClear}
-                />
-              )}
-            </Animated.View>
-            {gracePeriodEndsAt && (
-              <View style={[styles.graceBanner, { borderColor: '#F0D060' }]}>
-                <Ionicons name="time-outline" size={16} color="#856404" />
-                <Text style={styles.graceBannerText}>
-                  Premium expires in {formatTimeRemaining(gracePeriodEndsAt)}
-                </Text>
-              </View>
-            )}
-            <FlatList
-              data={visibleLikedNames}
-              keyExtractor={(item) => item.selectionId}
-              renderItem={({ item, index }) => (
-                <Animated.View
-                  entering={FadeInUp.delay(index * 50)
-                    .duration(400)
-                    .springify()}
-                >
-                  <LikedNameCard
-                    name={item.name}
-                    likedAt={item.likedAt}
-                    onRemove={() => removeFromLiked({ selectionId: item.selectionId })}
-                    onPress={() => handleCardPress(item.name, item.selectionId)}
-                    selectMode={selectMode}
-                    selected={selectedIds.has(item.selectionId)}
-                    onToggleSelect={() => toggleSelect(item.selectionId)}
-                  />
-                </Animated.View>
-              )}
-              onEndReached={() => {
-                // Don't auto-load past the free-tier cap — gatedCount > 0
-                // means we want to show the upgrade banner, not the next
-                // page. Otherwise let usePaginatedQuery decide whether
-                // there's more (CanLoadMore vs Exhausted).
-                if (gatedCount > 0) return;
-                if (likedStatus === 'CanLoadMore') {
-                  loadMoreLiked(LIST_PAGE_SIZE);
-                }
-              }}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={
-                gatedCount > 0 ? (
-                  <Pressable
-                    style={[styles.gatedBanner, { borderColor: colors.border }]}
-                    onPress={() => setShowPaywall(true)}
-                  >
-                    <View style={styles.gatedIconRow}>
-                      <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
-                      <Text style={[styles.gatedText, { color: colors.textSecondary }]}>
-                        +{gatedCount} more name{gatedCount !== 1 ? 's' : ''} — upgrade to view all
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-                  </Pressable>
-                ) : likedStatus === 'LoadingMore' ? (
-                  <View style={styles.listFooterLoader}>
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  </View>
-                ) : null
-              }
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-            />
-          </>
-        ) : (
-          <>
-            <Animated.View
-              entering={
-                !hasAnimated.current ? FadeInDown.delay(100).duration(400).springify() : undefined
-              }
-            >
-              <RejectedNamesHeader
-                count={totalRejectedCount}
-                sortBy={rejectedSortBy}
-                onSortChange={setRejectedSortBy}
-                selectMode={selectMode}
-                onToggleSelectMode={toggleSelectMode}
-                selectedCount={selectedIds.size}
-                totalCount={visibleRejectedNames.length}
-                onSelectAll={handleSelectAll}
-              />
-              {!selectMode && (
-                <SearchInput
-                  value={searchInput}
-                  onChangeText={setSearchInput}
-                  onSubmit={handleSearchSubmit}
-                  onClear={handleSearchClear}
-                />
-              )}
-            </Animated.View>
-            <FlatList
-              data={visibleRejectedNames}
-              keyExtractor={(item) => item.selectionId}
-              renderItem={({ item, index }) => (
-                <Animated.View
-                  entering={FadeInUp.delay(index * 50)
-                    .duration(400)
-                    .springify()}
-                >
-                  <RejectedNameCard
-                    name={item.name}
-                    rejectedAt={item.rejectedAt}
-                    onRestore={() => restoreToQueue({ selectionId: item.selectionId })}
-                    onHide={() => hidePermanently({ selectionId: item.selectionId })}
-                    onPress={() => handleCardPress(item.name, item.selectionId)}
-                    selectMode={selectMode}
-                    selected={selectedIds.has(item.selectionId)}
-                    onToggleSelect={() => toggleSelect(item.selectionId)}
-                  />
-                </Animated.View>
-              )}
-              onEndReached={() => {
-                if (rejectedStatus === 'CanLoadMore') {
-                  loadMoreRejected(LIST_PAGE_SIZE);
-                }
-              }}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={
-                rejectedStatus === 'LoadingMore' ? (
-                  <View style={styles.listFooterLoader}>
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  </View>
-                ) : null
-              }
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-            />
-          </>
-        )}
+        {renderHeader()}
+
+        {searchActive
+          ? renderSearchBody()
+          : isDataEmpty
+            ? renderEmptyBody()
+            : activeTab === 'liked'
+              ? renderLikedList()
+              : renderRejectedList()}
 
         {/* Floating bulk action bar */}
-        {selectMode && (selectedIds.size > 0 || bulkAction) && (
+        {!searchActive && selectMode && (selectedIds.size > 0 || bulkAction) && (
           <Animated.View
             entering={FadeInDown.duration(300).springify()}
             style={styles.bulkActionBar}
@@ -713,18 +984,19 @@ export default function Dashboard() {
           </Animated.View>
         )}
 
-        {/* Name detail modal */}
+        {/* Name detail modal. A list card opens it with its tab context +
+            actions; a search row opens it in read-only 'detail' context. */}
         <NameDetailModal
           visible={detailModalVisible}
           name={selectedItem?.name ?? null}
-          context={activeTab}
+          context={selectedItem?.context ?? 'liked'}
           onClose={() => {
             setDetailModalVisible(false);
             setSelectedItem(null);
           }}
-          onRemove={activeTab === 'liked' ? handleModalRemove : undefined}
-          onRestore={activeTab === 'rejected' ? handleModalRestore : undefined}
-          onHide={activeTab === 'rejected' ? handleModalHide : undefined}
+          onRemove={selectedItem?.context === 'liked' ? handleModalRemove : undefined}
+          onRestore={selectedItem?.context === 'rejected' ? handleModalRestore : undefined}
+          onHide={selectedItem?.context === 'rejected' ? handleModalHide : undefined}
         />
 
         <Paywall
