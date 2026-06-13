@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { GenderFilterSelector } from '@/components/search/gender-filter-selector';
 import { OriginToggleList } from '@/components/search/origin-toggle-list';
+import { CategoryPanelGrid } from '@/components/search/category-panel-grid';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { SlotCounter } from '@/components/ui/slot-counter';
 import { Fonts } from '@/constants/theme';
@@ -25,6 +26,8 @@ export default function Filters() {
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('both');
   // null = all origins, [] = none, [...] = specific
   const [originFilter, setOriginFilter] = useState<string[] | null>(null);
+  // null = all categories, [...] = specific
+  const [categoryFilter, setCategoryFilter] = useState<string[] | null>(null);
   // Load saved filters from DB exactly once (not on every user query update)
   const loaded = useRef(false);
   useEffect(() => {
@@ -32,23 +35,32 @@ export default function Filters() {
     loaded.current = true;
     setGenderFilter((user.genderFilter as GenderFilter) ?? 'both');
     setOriginFilter(user.originFilter?.length ? user.originFilter : null);
+    setCategoryFilter(user.categoryFilter?.length ? user.categoryFilter : null);
   }, [user]);
 
   // Refs track latest state so saveFilters can read current values
   const genderRef = useRef(genderFilter);
   const originRef = useRef(originFilter);
+  const categoryRef = useRef(categoryFilter);
   genderRef.current = genderFilter;
   originRef.current = originFilter;
+  categoryRef.current = categoryFilter;
 
   // Save explicitly — called by interaction handlers, never by effects
   const saveFilters = useCallback(
-    async (gender: GenderFilter, origin: string[] | null) => {
+    async (gender: GenderFilter, origin: string[] | null, category: string[] | null) => {
       try {
-        await updateFilters({ genderFilter: gender, originFilter: origin ?? [] });
+        await updateFilters({
+          genderFilter: gender,
+          originFilter: origin ?? [],
+          categoryFilter: category ?? [],
+        });
         trackEvent(Events.FILTERS_CHANGED, {
           gender_filter: gender,
           origin_count: origin?.length ?? 0,
           all_origins: origin === null,
+          category_count: category?.length ?? 0,
+          all_categories: category === null,
         });
       } catch (error) {
         Sentry.captureException(error);
@@ -63,11 +75,11 @@ export default function Filters() {
   // stays instant — only the persisted write is coalesced.
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const queueSave = useCallback(
-    (gender: GenderFilter, origin: string[] | null) => {
+    (gender: GenderFilter, origin: string[] | null, category: string[] | null) => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
         saveTimerRef.current = null;
-        saveFilters(gender, origin);
+        saveFilters(gender, origin, category);
       }, 400);
     },
     [saveFilters],
@@ -80,7 +92,7 @@ export default function Filters() {
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
         saveTimerRef.current = null;
-        saveFilters(genderRef.current, originRef.current);
+        saveFilters(genderRef.current, originRef.current, categoryRef.current);
       }
     };
   }, [saveFilters]);
@@ -88,7 +100,7 @@ export default function Filters() {
   const handleGenderChange = useCallback(
     (value: GenderFilter) => {
       setGenderFilter(value);
-      queueSave(value, originRef.current);
+      queueSave(value, originRef.current, categoryRef.current);
     },
     [queueSave],
   );
@@ -96,7 +108,15 @@ export default function Filters() {
   const handleOriginChange = useCallback(
     (value: string[] | null) => {
       setOriginFilter(value);
-      queueSave(genderRef.current, value);
+      queueSave(genderRef.current, value, categoryRef.current);
+    },
+    [queueSave],
+  );
+
+  const handleCategoryChange = useCallback(
+    (value: string[] | null) => {
+      setCategoryFilter(value);
+      queueSave(genderRef.current, originRef.current, value);
     },
     [queueSave],
   );
@@ -106,6 +126,7 @@ export default function Filters() {
   const nameCount = useQuery(api.names.getFilteredNameCount, {
     genderFilter,
     ...(originFilter !== null ? { originFilter } : {}),
+    ...(categoryFilter !== null ? { categoryFilter } : {}),
   });
 
   // Keep previous count alive during query transitions so SlotCounter
@@ -171,6 +192,9 @@ export default function Filters() {
             <Text style={styles.sectionTitle}>Gender</Text>
             <GenderFilterSelector value={genderFilter} onChange={handleGenderChange} />
           </View>
+
+          {/* Category filter — grid renders its own section title */}
+          <CategoryPanelGrid value={categoryFilter} onChange={handleCategoryChange} />
 
           {/* Origin filter — toggle list handles its own section title */}
           <OriginToggleList
