@@ -340,15 +340,21 @@ export const recordSelection = mutation({
         updatedAt: number;
         origin?: string;
         gender?: string;
+        categoryMask?: number;
       } = {
         selectionType: args.selectionType,
         updatedAt: now,
       };
-      if (!existingSelection.origin || !existingSelection.gender) {
+      if (
+        !existingSelection.origin ||
+        !existingSelection.gender ||
+        existingSelection.categoryMask === undefined
+      ) {
         const nameDoc = await ctx.db.get(args.nameId);
         if (nameDoc) {
           patch.origin = nameDoc.origin;
           patch.gender = nameDoc.gender;
+          patch.categoryMask = nameDoc.categoryMask ?? 0;
         }
       }
       await ctx.db.patch(existingSelection._id, patch);
@@ -382,6 +388,7 @@ export const recordSelection = mutation({
       selectionType: args.selectionType,
       origin: nameDoc?.origin,
       gender: nameDoc?.gender,
+      categoryMask: nameDoc?.categoryMask,
       createdAt: now,
       updatedAt: now,
     });
@@ -462,6 +469,9 @@ export const getSwipeQueue = query({
     const originFilter = user.originFilter;
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
     const originSet = originFilter && originFilter.length > 0 ? new Set(originFilter) : null;
+    const categoryFilter = user.categoryFilter;
+    const categorySet =
+      categoryFilter && categoryFilter.length > 0 ? new Set(categoryFilter) : null;
 
     const buildTierQuery = (tier: number, startKey: number) =>
       genderValue !== null
@@ -483,6 +493,7 @@ export const getSwipeQueue = query({
       if (results.length >= limit) return false;
       if (seen.has(name._id)) return false;
       if (originSet && !originSet.has(name.origin)) return false;
+      if (categorySet && !(name.categories ?? []).some((c) => categorySet.has(c))) return false;
       if (await isAlreadySwiped(name._id)) return false;
       seen.add(name._id);
       results.push(name);
