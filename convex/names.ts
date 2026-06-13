@@ -734,3 +734,87 @@ export const applyCelebrityTags = internalMutation({
     return { total: args.entries.length, applied, noop, notFound };
   },
 });
+
+/**
+ * One-time backfill (#293): set selections.categoryMask from the referenced
+ * name's categoryMask. Run AFTER categories are computed/applied. Idempotent —
+ * skips rows that already have a mask. Paginated. (Re-run this any time
+ * categories are recomputed, since masks are denormalized onto selections.)
+ */
+export const backfillSelectionCategoryMask = internalMutation({
+  args: { limit: v.optional(v.number()), cursor: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 500;
+    const result = await ctx.db
+      .query('selections')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    let patched = 0;
+    for (const sel of result.page) {
+      if (sel.categoryMask !== undefined) continue;
+      const name = await ctx.db.get(sel.nameId);
+      if (!name) continue;
+      await ctx.db.patch(sel._id, { categoryMask: name.categoryMask ?? 0 });
+      patched++;
+    }
+    return {
+      processed: result.page.length,
+      patched,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+/**
+ * Rebuild nameCategoryStats from the names table (#293). Keyed by
+ * (categoryMask, gender, origin). Pass accumulate=false on the first page to
+ * clear, true on subsequent pages. Paginated. Run after categories are final.
+ */
+export const rebuildNameCategoryStats = internalMutation({
+  args: {
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+    accumulate: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 1000;
+    const accumulate = args.accumulate ?? false;
+
+    if (!accumulate) {
+      const existing = await ctx.db.query('nameCategoryStats').collect();
+      for (const row of existing) await ctx.db.delete(row._id);
+    }
+
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    const pageTally: Record<string, number> = {};
+    for (const name of result.page) {
+      const mask = name.categoryMask ?? 0;
+      const key = `${mask}|${name.gender}|${name.origin}`;
+      pageTally[key] = (pageTally[key] ?? 0) + 1;
+    }
+
+    const now = Date.now();
+    for (const [key, increment] of Object.entries(pageTally)) {
+      const [maskStr, gender, origin] = key.split('|');
+      if (maskStr === undefined || gender === undefined || origin === undefined) continue;
+      const mask = Number(maskStr);
+      const existing = await ctx.db
+        .query('nameCategoryStats')
+        .withIndex('by_mask_gender_origin', (q) =>
+          q.eq('categoryMask', mask).eq('gender', gender).eq('origin', origin),
+        )
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, { count: existing.count + increment, updatedAt: now });
+      } else {
+        await ctx.db.insert('nameCategoryStats', { categoryMask: mask, gender, origin, count: increment, updatedAt: now });
+      }
+    }
+
+    return { processed: result.page.length, isDone: result.isDone, continueCursor: result.continueCursor };
+  },
+});
