@@ -49,7 +49,12 @@ export const CATEGORY_THRESHOLDS = {
   classicMinDecades: 6, // of the 8 decades 1950s..2020s
   classicMaxCurrentRank: 500,
   vintagePeakTopN: 300,
-  vintageMaxCurrentRank: 1000, // currentRank must be > this (or unranked)
+  // Vintage = had an old peak but has now fallen past the "still-current" line.
+  // Set to complement classicMaxCurrentRank (500): a name is Classic if still
+  // <=500, Vintage if it has dropped past >500 (or is unranked). This pulls
+  // faded mid-century names (e.g. Linda, #841 now) into Vintage rather than
+  // leaving them uncategorized.
+  vintageMaxCurrentRank: 500, // currentRank must be > this (or unranked)
   unisexMinorityShare: 0.25,
   unisexBothTopN: 1000,
   rareMinBestEver: 1000, // best-ever rank must be > this
