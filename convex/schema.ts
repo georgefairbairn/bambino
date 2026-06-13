@@ -30,6 +30,9 @@ export default defineSchema({
     partnerId: v.optional(v.id('users')),
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
     originFilter: v.optional(v.array(v.string())),
+    // Category filter (#293). Same semantics as originFilter: undefined/empty = all-on
+    // (no filter), a subset = name must match >=1 selected category.
+    categoryFilter: v.optional(v.array(v.string())),
     pushToken: v.optional(v.string()),
     pushTokenPlatform: v.optional(v.union(v.literal('ios'), v.literal('android'))),
     // Absent = enabled; only an explicit false opts out of push (#229).
@@ -56,6 +59,13 @@ export default defineSchema({
     // 0 = top 1000, 1 = ranks 1001–5000, 2 = ranks 5001+, undefined = no rank.
     // Kept in sync by update-ranks.ts and backfill-ranks.ts.
     popularityTier: v.optional(v.number()),
+    // Category membership (#293). Readable array is the source of truth for the
+    // swipe-queue post-filter and name-detail display; categoryMask is the same
+    // set as a bitmask (see convex/categories.ts) used for filtered counts.
+    categories: v.optional(v.array(v.string())),
+    categoryMask: v.optional(v.number()),
+    // Curated celebrity association string, shown in name-detail when present.
+    celebrityNote: v.optional(v.string()),
     sortKey: v.number(),
     createdAt: v.number(),
   })
@@ -99,6 +109,10 @@ export default defineSchema({
     //   - names:updateNameOrigin (when a name's origin is corrected)
     origin: v.optional(v.string()),
     gender: v.optional(v.string()),
+    // Denormalized from names.categoryMask at insert (#293), mirroring origin/gender,
+    // so getFilteredNameCount can subtract actioned names per category without
+    // fetching each name doc.
+    categoryMask: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -125,6 +139,20 @@ export default defineSchema({
     count: v.number(),
     updatedAt: v.number(),
   }).index('by_origin_gender', ['origin', 'gender']),
+
+  // Pre-computed name counts per (categoryMask, gender, origin) so the Filters
+  // screen's "Names available" counter can reflect the category selection in
+  // O(stats + actioned) instead of scanning names. Rebuilt by
+  // names:rebuildNameCategoryStats after categories are (re)computed. A name sits
+  // in exactly one categoryMask bucket, so summing rows whose mask intersects the
+  // selected set is exact even when categories overlap.
+  nameCategoryStats: defineTable({
+    categoryMask: v.number(),
+    gender: v.string(),
+    origin: v.string(),
+    count: v.number(),
+    updatedAt: v.number(),
+  }).index('by_mask_gender_origin', ['categoryMask', 'gender', 'origin']),
 
   // Per-user rate limit state for share-code lookups and linking.
   // Tracks attempts within a 1-minute sliding window; on too many failures,
