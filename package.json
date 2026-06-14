@@ -17,6 +17,7 @@
     "categories:compute": "npx tsx scripts/compute-categories.ts",
     "celebrity:generate": "npx tsx scripts/tag-celebrity-names.ts",
     "celebrity:apply": "npx tsx scripts/apply-celebrity-tags.ts",
+    "celebrity:insert": "npx tsx scripts/insert-celebrity-names.ts",
     "backfill:selection-category-mask": "npx tsx scripts/backfill-selection-category-mask.ts",
     "rebuild:category-stats": "npx tsx scripts/rebuild-category-stats.ts",
     "populate:origin-stats": "npx tsx scripts/populate-origin-stats.ts",

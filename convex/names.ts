@@ -857,3 +857,63 @@ export const rebuildNameCategoryStats = internalMutation({
     return { processed: result.page.length, isDone: result.isDone, continueCursor: result.continueCursor };
   },
 });
+
+/**
+ * Insert curated celebrity names that are NOT in the SSA-derived catalog (#293).
+ * Each record is given the long-tail tier (2) so it's reachable in the swipe
+ * deck, plus the 'celebrity' category. Names that already exist are skipped
+ * (applyCelebrityTags handles tagging those + setting the celebrityNote).
+ * Idempotent: re-running skips anything already present. After running, re-run
+ * populateOriginStats + rebuildNameCategoryStats so the new names are counted.
+ */
+export const insertCelebrityNames = internalMutation({
+  args: {
+    entries: v.array(
+      v.object({
+        name: v.string(),
+        gender: v.union(v.literal('male'), v.literal('female'), v.literal('neutral')),
+        origin: v.string(),
+        meaning: v.string(),
+        phonetic: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const cats = ['celebrity'];
+    const mask = maskFor(cats);
+    let inserted = 0;
+    let existed = 0;
+
+    for (const e of args.entries) {
+      const existing = await ctx.db
+        .query('names')
+        .withIndex('by_name', (q) => q.eq('name', e.name))
+        .first();
+      if (existing) {
+        existed++;
+        continue;
+      }
+      await ctx.db.insert('names', {
+        name: e.name,
+        gender: e.gender,
+        origin: e.origin,
+        meaning: e.meaning,
+        phonetic: e.phonetic,
+        length: e.name.length,
+        firstLetter: e.name.charAt(0).toUpperCase(),
+        sortKey: Math.random(),
+        // Long-tail tier so the name is reachable by the swipe queue (which only
+        // walks tiers 0-2). No SSA rank, so currentRank stays undefined.
+        popularityTier: 2,
+        primaryGender: e.gender === 'neutral' ? undefined : e.gender,
+        categories: cats,
+        categoryMask: mask,
+        createdAt: now,
+      });
+      inserted++;
+    }
+
+    return { total: args.entries.length, inserted, existed };
+  },
+});
