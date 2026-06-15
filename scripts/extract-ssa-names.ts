@@ -8,7 +8,7 @@ interface NameCandidate {
 
 const SSA_DIR = path.join(__dirname, '../data/ssa-raw');
 const OUTPUT_PATH = path.join(__dirname, '../data/names-extracted.json');
-const MIN_YEAR = 1950;
+const MIN_YEAR = 1920;
 const MAX_YEAR = 2023;
 const TOP_N = 2000;
 
