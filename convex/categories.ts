@@ -48,7 +48,10 @@ export const CATEGORY_THRESHOLDS = {
   classicDecadeTopN: 200,
   classicMinDecades: 6, // of the 8 decades 1950s..2020s
   classicMaxCurrentRank: 500,
-  vintagePeakTopN: 300,
+  // Vintage = ever reached the top 1000 in an old decade (1900-1969) and has
+  // since faded. Pairs cleanly with rareMinBestEver (1000): a name that cracked
+  // the old-era top 1000 and faded is Vintage; one that never did is Rare.
+  vintagePeakTopN: 1000,
   // Vintage = had an old peak but has now fallen past the "still-current" line.
   // Set to complement classicMaxCurrentRank (500): a name is Classic if still
   // <=500, Vintage if it has dropped past >500 (or is unranked). This pulls
