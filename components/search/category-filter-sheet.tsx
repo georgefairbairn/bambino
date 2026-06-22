@@ -1,6 +1,7 @@
 import { View, Text, Switch, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { CATEGORY_KEYS, CATEGORY_META, type CategoryKey } from '@/constants/categories';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
@@ -39,7 +40,10 @@ export function CategoryFilterSheet({
     }
   };
 
-  const handleViewOnly = () => onChange([category]);
+  const handleViewOnly = () => {
+    onChange([category]);
+    onClose();
+  };
 
   return (
     <AnimatedBottomSheet
@@ -79,18 +83,12 @@ export function CategoryFilterSheet({
         </View>
       </View>
 
-      <Pressable
+      <GradientButton
+        title={isSolo ? `Viewing only ${meta.label}` : `View only ${meta.label}`}
         onPress={handleViewOnly}
-        accessibilityRole="button"
-        style={[
-          styles.viewOnly,
-          { backgroundColor: isSolo ? colors.primaryLight : colors.surfaceSubtle },
-        ]}
-      >
-        <Text style={[styles.viewOnlyText, { color: isSolo ? colors.tabActive : colors.primary }]}>
-          {isSolo ? `Viewing only ${meta.label}` : `View only ${meta.label}`}
-        </Text>
-      </Pressable>
+        variant="primary"
+        disabled={isSolo}
+      />
     </AnimatedBottomSheet>
   );
 }
@@ -127,6 +125,4 @@ const styles = StyleSheet.create({
   },
   rowLabel: { fontSize: 14, fontWeight: '700', color: '#2D1B4E' },
   rowSub: { fontSize: 10, color: '#A89BB5', marginTop: 2 },
-  viewOnly: { paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
-  viewOnlyText: { fontSize: 14, fontWeight: '700' },
 });

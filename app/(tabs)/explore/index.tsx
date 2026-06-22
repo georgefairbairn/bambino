@@ -22,9 +22,9 @@ export default function ExploreView() {
     }, []),
   );
 
-  // Remount the swipe stack only when the FILTERS change — gender/origin are
-  // the sole inputs to getSwipeQueue's result set, so a fresh seed/queue is
-  // only warranted then. Deliberately excludes user.updatedAt: it's bumped by
+  // Remount the swipe stack only when the FILTERS change — gender/origin/category
+  // are the inputs to getSwipeQueue's result set, so a fresh seed/queue is only
+  // warranted then. Deliberately excludes user.updatedAt: it's bumped by
   // every unrelated user-row write (push-token registration on tab mount,
   // onboarding completion, name confirmation, createOrUpdateUser), each of
   // which would otherwise remount the stack mid-session and flash the loading
@@ -32,7 +32,8 @@ export default function ExploreView() {
   const swipeQueueKey = useMemo(() => {
     if (!user) return '';
     const originKey = (user.originFilter ?? []).sort().join(',');
-    return `${user.genderFilter ?? 'both'}-${originKey}`;
+    const categoryKey = (user.categoryFilter ?? []).sort().join(',');
+    return `${user.genderFilter ?? 'both'}-${originKey}-${categoryKey}`;
   }, [user]);
 
   const activeFilterCount = useMemo(() => {
@@ -40,6 +41,7 @@ export default function ExploreView() {
     let count = 0;
     if (user.genderFilter && user.genderFilter !== 'both') count += 1;
     if (user.originFilter) count += user.originFilter.length;
+    if (user.categoryFilter) count += user.categoryFilter.length;
     return count;
   }, [user]);
 
