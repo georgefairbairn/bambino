@@ -1,8 +1,7 @@
 import { execSync } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import popularityData from '../data/popularity.json';
 
 const BATCH_SIZE = 100;
 const MAX_RETRIES = 5;
@@ -36,7 +35,11 @@ function runWithRetry(command: string, batchNumber: number): string {
 }
 
 async function seedPopularity() {
-  const records = popularityData as PopularityRecord[];
+  // Default to the full dataset; --file=path seeds a subset (e.g. only the
+  // popularity rows for newly added names, to avoid re-scanning all ~1.4M rows).
+  const fileArg = process.argv.find((a) => a.startsWith('--file='));
+  const filePath = fileArg ? fileArg.split('=')[1]! : join(__dirname, '../data/popularity.json');
+  const records = JSON.parse(readFileSync(filePath, 'utf-8')) as PopularityRecord[];
   const totalBatches = Math.ceil(records.length / BATCH_SIZE);
 
   const startBatchArg = process.argv.find((a) => a.startsWith('--start='));

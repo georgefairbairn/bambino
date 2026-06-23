@@ -56,3 +56,7 @@ docs/superpowers/
 # SSA raw data files (download from ssa.gov)
 data/ssa-raw/*.txt
 data/names-extracted.json
+
+# Category-expansion working artifacts (intermediate; names.json is the committed output)
+data/enrich-out/
+data/names-to-enrich*.json

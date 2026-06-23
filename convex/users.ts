@@ -194,6 +194,7 @@ export const updateFilters = mutation({
   args: {
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
     originFilter: v.optional(v.array(v.string())),
+    categoryFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -201,6 +202,7 @@ export const updateFilters = mutation({
     const updates: {
       genderFilter?: 'boy' | 'girl' | 'both';
       originFilter?: string[];
+      categoryFilter?: string[];
       updatedAt: number;
     } = {
       updatedAt: Date.now(),
@@ -208,6 +210,7 @@ export const updateFilters = mutation({
 
     if (args.genderFilter !== undefined) updates.genderFilter = args.genderFilter;
     if (args.originFilter !== undefined) updates.originFilter = args.originFilter;
+    if (args.categoryFilter !== undefined) updates.categoryFilter = args.categoryFilter;
 
     await ctx.db.patch(user._id, updates);
 

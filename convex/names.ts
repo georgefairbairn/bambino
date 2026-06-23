@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalMutation, query, QueryCtx } from './_generated/server';
+import { CATEGORY_KEYS, deriveCategories, maskFor, orderCategories, type PopPoint } from './categories';
 
 const nameValidator = v.object({
   name: v.string(),
@@ -109,26 +110,61 @@ export const getFilteredNameCount = query({
   args: {
     genderFilter: v.optional(v.union(v.literal('boy'), v.literal('girl'), v.literal('both'))),
     originFilter: v.optional(v.array(v.string())),
+    categoryFilter: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const genderFilter = args.genderFilter ?? 'both';
     const genderValue = genderFilter === 'boy' ? 'male' : genderFilter === 'girl' ? 'female' : null;
 
-    // undefined = no filter (all origins), [] = no origins (0 results), [...] = specific origins
-    if (args.originFilter !== undefined && args.originFilter.length === 0) {
-      return 0;
-    }
-
-    const totals = await readOriginTotals(ctx, genderValue);
-    const selections = await getActionedSelections(ctx);
-    const actioned = tallyActionedByOrigin(selections, genderValue);
+    // undefined = no filter, [] = none selected (0 results), [...] = specific
+    if (args.originFilter !== undefined && args.originFilter.length === 0) return 0;
+    if (args.categoryFilter !== undefined && args.categoryFilter.length === 0) return 0;
 
     const originSet = args.originFilter !== undefined ? new Set(args.originFilter) : null;
+    const selectedMask = args.categoryFilter !== undefined ? maskFor(args.categoryFilter) : null;
+
+    // No category constraint → existing origin-only path (cheaper, common case).
+    if (selectedMask === null) {
+      const totals = await readOriginTotals(ctx, genderValue);
+      const selections = await getActionedSelections(ctx);
+      const actioned = tallyActionedByOrigin(selections, genderValue);
+      let count = 0;
+      for (const [origin, total] of Object.entries(totals)) {
+        if (originSet && !originSet.has(origin)) continue;
+        const remaining = total - (actioned[origin] ?? 0);
+        if (remaining > 0) count += remaining;
+      }
+      return count;
+    }
+
+    // Category subset selected → mask-stats path. A name sits in exactly one
+    // (categoryMask, gender, origin) bucket, so summing rows whose mask intersects
+    // the selected set is exact even when categories overlap.
+    const statRows = await ctx.db.query('nameCategoryStats').collect();
+    const totals: Record<string, number> = {};
+    for (const row of statRows) {
+      if (genderValue !== null && row.gender !== genderValue) continue;
+      if (originSet && !originSet.has(row.origin)) continue;
+      if ((row.categoryMask & selectedMask) === 0) continue;
+      const key = `${row.categoryMask}|${row.gender}|${row.origin}`;
+      totals[key] = (totals[key] ?? 0) + row.count;
+    }
+
+    const selections = await getActionedSelections(ctx);
+    const actioned: Record<string, number> = {};
+    for (const s of selections) {
+      if (!s.origin || !s.gender) continue;
+      if (genderValue !== null && s.gender !== genderValue) continue;
+      if (originSet && !originSet.has(s.origin)) continue;
+      const mask = s.categoryMask ?? 0;
+      if ((mask & selectedMask) === 0) continue;
+      const key = `${mask}|${s.gender}|${s.origin}`;
+      actioned[key] = (actioned[key] ?? 0) + 1;
+    }
 
     let count = 0;
-    for (const [origin, total] of Object.entries(totals)) {
-      if (originSet && !originSet.has(origin)) continue;
-      const remaining = total - (actioned[origin] ?? 0);
+    for (const [key, total] of Object.entries(totals)) {
+      const remaining = total - (actioned[key] ?? 0);
       if (remaining > 0) count += remaining;
     }
     return count;
@@ -577,5 +613,307 @@ export const updateNameOrigin = internalMutation({
       selectionsUpdated: referencingSelections.length,
       statsUpdated: true,
     };
+  },
+});
+
+/**
+ * Read-only distribution report for derived categories (#293). Paginated; the
+ * analyze-categories script loops pages and sums. Does NOT write. Use it on dev
+ * to calibrate CATEGORY_THRESHOLDS before running computeDerivedCategories.
+ */
+export const analyzeCategoryDistribution = query({
+  args: { limit: v.optional(v.number()), cursor: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 75;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    const counts: Record<string, number> = {};
+    for (const k of CATEGORY_KEYS) counts[k] = 0;
+    let uncategorized = 0;
+    let multi = 0;
+
+    for (const name of result.page) {
+      const seriesM = (
+        await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', 'M'))
+          .collect()
+      ).map((r): PopPoint => ({ year: r.year, rank: r.rank, count: r.count }));
+      const seriesF = (
+        await ctx.db
+          .query('namePopularity')
+          .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', 'F'))
+          .collect()
+      ).map((r): PopPoint => ({ year: r.year, rank: r.rank, count: r.count }));
+
+      const derived = deriveCategories({
+        gender: name.gender,
+        primaryGender: name.primaryGender,
+        currentRank: name.currentRank,
+        seriesM,
+        seriesF,
+      });
+      for (const k of derived) counts[k] = (counts[k] ?? 0) + 1;
+      if (derived.length === 0) uncategorized++;
+      if (derived.length > 1) multi++;
+    }
+
+    return {
+      processed: result.page.length,
+      counts,
+      uncategorized,
+      multi,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+/**
+ * Compute & store derived categories for every name (#293). Paginated; small
+ * page size because each name reads its full M+F popularity series (~140 rows
+ * each) and the per-mutation read cap is ~32k. Idempotent: only patches when the
+ * category set or mask changes. Preserves any existing 'celebrity' tag so this
+ * pass and the Celebrity pass are order-independent and independently re-runnable.
+ */
+export const computeDerivedCategories = internalMutation({
+  args: { limit: v.optional(v.number()), cursor: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 75;
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    let updated = 0;
+    for (const name of result.page) {
+      const fetchSeries = async (g: 'M' | 'F'): Promise<PopPoint[]> =>
+        (
+          await ctx.db
+            .query('namePopularity')
+            .withIndex('by_name_gender', (q) => q.eq('name', name.name).eq('gender', g))
+            .collect()
+        ).map((r) => ({ year: r.year, rank: r.rank, count: r.count }));
+
+      const seriesM = await fetchSeries('M');
+      const seriesF = await fetchSeries('F');
+
+      const derived = deriveCategories({
+        gender: name.gender,
+        primaryGender: name.primaryGender,
+        currentRank: name.currentRank,
+        seriesM,
+        seriesF,
+      });
+      const hadCelebrity = (name.categories ?? []).includes('celebrity');
+      const next = orderCategories(hadCelebrity ? [...derived, 'celebrity'] : derived);
+      const mask = maskFor(next);
+
+      const prev = name.categories ?? [];
+      const sameSet =
+        prev.length === next.length && CATEGORY_KEYS.every((k) => prev.includes(k) === next.includes(k));
+      if (!sameSet || name.categoryMask !== mask) {
+        await ctx.db.patch(name._id, { categories: next, categoryMask: mask });
+        updated++;
+      }
+    }
+
+    return {
+      processed: result.page.length,
+      updated,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+/**
+ * Tag curated celebrity-associated names (#293). For each entry whose name exists
+ * in the DB, add 'celebrity' to its categories (dedup, canonical order), update
+ * categoryMask, and set celebrityNote. Idempotent: re-applying identical tags is a
+ * noop. Names not in the DB are reported, not created. Apply in batches of ~100.
+ */
+export const applyCelebrityTags = internalMutation({
+  args: {
+    entries: v.array(v.object({ name: v.string(), note: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    let applied = 0;
+    let noop = 0;
+    const notFound: string[] = [];
+
+    for (const entry of args.entries) {
+      const row = await ctx.db
+        .query('names')
+        .withIndex('by_name', (q) => q.eq('name', entry.name))
+        .first();
+      if (!row) {
+        notFound.push(entry.name);
+        continue;
+      }
+      const hasTag = (row.categories ?? []).includes('celebrity');
+      if (hasTag && row.celebrityNote === entry.note) {
+        noop++;
+        continue;
+      }
+      const next = orderCategories([...(row.categories ?? []), 'celebrity']);
+      await ctx.db.patch(row._id, {
+        categories: next,
+        categoryMask: maskFor(next),
+        celebrityNote: entry.note,
+      });
+      applied++;
+    }
+
+    return { total: args.entries.length, applied, noop, notFound };
+  },
+});
+
+/**
+ * One-time backfill (#293): set selections.categoryMask from the referenced
+ * name's categoryMask. Run AFTER categories are computed/applied. Idempotent —
+ * skips rows that already have a mask. Paginated. (Re-run this any time
+ * categories are recomputed, since masks are denormalized onto selections.)
+ */
+export const backfillSelectionCategoryMask = internalMutation({
+  args: { limit: v.optional(v.number()), cursor: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 500;
+    const result = await ctx.db
+      .query('selections')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    let patched = 0;
+    for (const sel of result.page) {
+      const name = await ctx.db.get(sel.nameId);
+      if (!name) continue;
+      const expectedMask = name.categoryMask ?? 0;
+      // Re-sync on every run (not just first-time): if categories are recomputed
+      // later, a selection's denormalized mask can go stale. Skip only when it's
+      // already correct, so a re-run after a recompute actually re-syncs.
+      if (sel.categoryMask === expectedMask) continue;
+      await ctx.db.patch(sel._id, { categoryMask: expectedMask });
+      patched++;
+    }
+    return {
+      processed: result.page.length,
+      patched,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+/**
+ * Rebuild nameCategoryStats from the names table (#293). Keyed by
+ * (categoryMask, gender, origin). Pass accumulate=false on the first page to
+ * clear, true on subsequent pages. Paginated. Run after categories are final.
+ */
+export const rebuildNameCategoryStats = internalMutation({
+  args: {
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+    accumulate: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = args.limit ?? 1000;
+    const accumulate = args.accumulate ?? false;
+
+    if (!accumulate) {
+      const existing = await ctx.db.query('nameCategoryStats').collect();
+      for (const row of existing) await ctx.db.delete(row._id);
+    }
+
+    const result = await ctx.db
+      .query('names')
+      .paginate({ numItems: pageSize, cursor: (args.cursor as string | null) ?? null });
+
+    const pageTally: Record<string, number> = {};
+    for (const name of result.page) {
+      const mask = name.categoryMask ?? 0;
+      const key = `${mask}|${name.gender}|${name.origin}`;
+      pageTally[key] = (pageTally[key] ?? 0) + 1;
+    }
+
+    const now = Date.now();
+    for (const [key, increment] of Object.entries(pageTally)) {
+      const [maskStr, gender, origin] = key.split('|');
+      if (maskStr === undefined || gender === undefined || origin === undefined) continue;
+      const mask = Number(maskStr);
+      const existing = await ctx.db
+        .query('nameCategoryStats')
+        .withIndex('by_mask_gender_origin', (q) =>
+          q.eq('categoryMask', mask).eq('gender', gender).eq('origin', origin),
+        )
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, { count: existing.count + increment, updatedAt: now });
+      } else {
+        await ctx.db.insert('nameCategoryStats', { categoryMask: mask, gender, origin, count: increment, updatedAt: now });
+      }
+    }
+
+    return { processed: result.page.length, isDone: result.isDone, continueCursor: result.continueCursor };
+  },
+});
+
+/**
+ * Insert curated celebrity names that are NOT in the SSA-derived catalog (#293).
+ * Each record is given the long-tail tier (2) so it's reachable in the swipe
+ * deck, plus the 'celebrity' category. Names that already exist are skipped
+ * (applyCelebrityTags handles tagging those + setting the celebrityNote).
+ * Idempotent: re-running skips anything already present. After running, re-run
+ * populateOriginStats + rebuildNameCategoryStats so the new names are counted.
+ */
+export const insertCelebrityNames = internalMutation({
+  args: {
+    entries: v.array(
+      v.object({
+        name: v.string(),
+        gender: v.union(v.literal('male'), v.literal('female'), v.literal('neutral')),
+        origin: v.string(),
+        meaning: v.string(),
+        phonetic: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const cats = ['celebrity'];
+    const mask = maskFor(cats);
+    let inserted = 0;
+    let existed = 0;
+
+    for (const e of args.entries) {
+      const existing = await ctx.db
+        .query('names')
+        .withIndex('by_name', (q) => q.eq('name', e.name))
+        .first();
+      if (existing) {
+        existed++;
+        continue;
+      }
+      await ctx.db.insert('names', {
+        name: e.name,
+        gender: e.gender,
+        origin: e.origin,
+        meaning: e.meaning,
+        phonetic: e.phonetic,
+        length: e.name.length,
+        firstLetter: e.name.charAt(0).toUpperCase(),
+        sortKey: Math.random(),
+        // Long-tail tier so the name is reachable by the swipe queue (which only
+        // walks tiers 0-2). No SSA rank, so currentRank stays undefined.
+        popularityTier: 2,
+        primaryGender: e.gender === 'neutral' ? undefined : e.gender,
+        categories: cats,
+        categoryMask: mask,
+        createdAt: now,
+      });
+      inserted++;
+    }
+
+    return { total: args.entries.length, inserted, existed };
   },
 });

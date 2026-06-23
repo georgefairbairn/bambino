@@ -272,6 +272,13 @@ export function NameDetailModal({
                 </View>
               )}
 
+              {name.celebrityNote && (
+                <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Text style={styles.infoLabel}>Famous namesakes</Text>
+                  <Text style={styles.infoValue}>{name.celebrityNote}</Text>
+                </View>
+              )}
+
               {name.phonetic && (
                 <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
                   <Text style={styles.infoLabel}>Pronunciation</Text>
