@@ -76,7 +76,8 @@ function SlotDigit({ digit, digitHeight, fontSize, textStyle }: SlotDigitProps) 
       duration: 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [digit, digitHeight]);
+    // translateY is a stable useSharedValue ref; intentionally omitted from deps.
+  }, [digit, digitHeight]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

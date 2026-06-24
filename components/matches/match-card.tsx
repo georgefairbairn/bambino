@@ -31,7 +31,7 @@ interface MatchCardProps {
 function MatchCardImpl({ match, currentUserId, onPress, onPropose, onWithdraw }: MatchCardProps) {
   const { colors } = useTheme();
   const { skinTone } = useSkinTone();
-  const { name, isFavorite, isChosen, proposalStatus, proposedBy, matchedAt } = match;
+  const { name, isChosen, proposalStatus, proposedBy, matchedAt } = match;
   const genderEmoji = getGenderEmoji(name.gender, skinTone);
   const relativeTime = getRelativeTime(matchedAt);
 
