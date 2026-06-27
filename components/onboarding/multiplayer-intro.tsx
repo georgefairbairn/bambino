@@ -115,7 +115,7 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
     <View style={styles.container}>
       {/* Title */}
       <Animated.Text entering={FadeIn.delay(200).duration(400)} style={styles.title}>
-        Join Your Partner
+        Matching takes two
       </Animated.Text>
 
       {/* PRO pill */}
@@ -176,8 +176,10 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
             <Text style={[styles.stepNumText, { color: colors.tabActive }]}>1</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Swipe at your own pace</Text>
-            <Text style={styles.stepDesc}>Each of you browses names and likes your favorites</Text>
+            <Text style={styles.stepTitle}>You&apos;ll both need the app</Text>
+            <Text style={styles.stepDesc}>
+              Your partner downloads Bambino too, then links to you with a code.
+            </Text>
           </View>
         </View>
 
@@ -188,10 +190,8 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
             <Text style={[styles.stepNumText, { color: colors.tabActive }]}>2</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Find common ground</Text>
-            <Text style={styles.stepDesc}>
-              Love the same name? It&apos;s added to your shared list
-            </Text>
+            <Text style={styles.stepTitle}>You each swipe</Text>
+            <Text style={styles.stepDesc}>On your own phones, in your own time.</Text>
           </View>
         </View>
 
@@ -202,10 +202,8 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
             <Text style={[styles.stepNumText, { color: colors.tabActive }]}>3</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Pick the one</Text>
-            <Text style={styles.stepDesc}>
-              Review your matches together and choose your favorite
-            </Text>
+            <Text style={styles.stepTitle}>You both like a name? Match!</Text>
+            <Text style={styles.stepDesc}>Names you both swipe right on land in Matches.</Text>
           </View>
         </View>
       </Animated.View>
