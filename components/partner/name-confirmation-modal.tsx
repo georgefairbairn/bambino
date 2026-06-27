@@ -54,7 +54,9 @@ export function NameConfirmationModal({
       setError(null);
       setIsConfirming(false);
     }
-  }, [visible, user?.firstName, user?.lastName]);
+    // Keyed on the primitive name fields (not the `user` object identity) so a
+    // new Clerk user ref doesn't re-trigger the reset. eslint-disable-line below.
+  }, [visible, user?.firstName, user?.lastName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConfirm = async () => {
     const trimmedFirst = firstName.trim();

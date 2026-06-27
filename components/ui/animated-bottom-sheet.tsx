@@ -1,6 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
 import {
-  View,
   Pressable,
   StyleSheet,
   Modal,
@@ -52,7 +51,8 @@ export function AnimatedBottomSheet({
         easing: Easing.out(Easing.cubic),
       });
     }
-  }, [visible]);
+    // backdropOpacity & sheetTranslateY are stable useSharedValue refs; omitted from deps.
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animateOut = () => {
     Keyboard.dismiss();
@@ -88,7 +88,8 @@ export function AnimatedBottomSheet({
       backdropOpacity.value = 0;
       sheetTranslateY.value = SCREEN_HEIGHT;
     }
-  }, [visible]);
+    // backdropOpacity & sheetTranslateY are stable useSharedValue refs; omitted from deps.
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Modal visible={visible} transparent statusBarTranslucent onRequestClose={animateOut}>

@@ -20,7 +20,6 @@ import { useTheme } from '@/contexts/theme-context';
 import { Events, trackEvent } from '@/lib/analytics';
 import { decodeConvexError } from '@/lib/convex-errors';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
-import { StyledInput } from '@/components/ui/styled-input';
 import { NameConfirmationModal } from './name-confirmation-modal';
 
 interface PartnerLinkModalProps {
