@@ -75,6 +75,10 @@ export const Events = {
   NOTIFICATIONS_TOGGLED: 'notifications_toggled',
   FILTERS_CHANGED: 'filters_changed',
 
+  // Filter discovery nudge
+  FILTER_NUDGE_SHOWN: 'filter_nudge_shown',
+  FILTER_NUDGE_TAPPED: 'filter_nudge_tapped',
+
   // Paywall & purchases
   PAYWALL_SHOWN: 'paywall_shown',
   PURCHASE_ATTEMPTED: 'purchase_attempted',

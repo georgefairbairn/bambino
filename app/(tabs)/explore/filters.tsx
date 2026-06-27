@@ -22,6 +22,19 @@ export default function Filters() {
   const { colors } = useTheme();
   const user = useQuery(api.users.getCurrentUser);
   const updateFilters = useMutation(api.users.updateFilters);
+  const markFiltersOpened = useMutation(api.users.markFiltersOpened);
+
+  // First visit to this screen → show the explanatory banner. Capture the
+  // decision once, BEFORE markFiltersOpened flips the flag, so a re-read of
+  // `user` doesn't make the banner vanish on mount.
+  const [showBanner, setShowBanner] = useState(false);
+  const bannerDecided = useRef(false);
+  useEffect(() => {
+    if (bannerDecided.current || !user) return;
+    bannerDecided.current = true;
+    if (user.hasOpenedFilters !== true) setShowBanner(true);
+    void markFiltersOpened();
+  }, [user, markFiltersOpened]);
 
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('both');
   // null = all origins, [] = none, [...] = specific
@@ -161,6 +174,32 @@ export default function Filters() {
 
         {/* Scrollable content */}
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {/* First-visit explainer banner */}
+          {showBanner && (
+            <View
+              style={[
+                styles.banner,
+                {
+                  backgroundColor: colors.surfaceSubtle,
+                  borderColor: colors.border,
+                  shadowColor: colors.secondary,
+                },
+              ]}
+            >
+              <Text style={styles.bannerText}>
+                Filter by gender, origin, or category to see names that fit you.
+              </Text>
+              <Pressable
+                onPress={() => setShowBanner(false)}
+                accessibilityLabel="Dismiss"
+                accessibilityRole="button"
+                hitSlop={8}
+              >
+                <Ionicons name="close" size={18} color="#6B5B7B" />
+              </Pressable>
+            </View>
+          )}
+
           {/* Names counter card */}
           <View
             style={[
@@ -247,6 +286,26 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 100,
     gap: 28,
+  },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  bannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: Fonts?.sans,
+    color: '#2D1B4E',
+    lineHeight: 18,
   },
   counterCard: {
     flexDirection: 'row',

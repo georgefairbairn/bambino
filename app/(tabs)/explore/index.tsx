@@ -3,8 +3,9 @@ import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useQuery } from 'convex/react';
-import { trackScreen } from '@/lib/analytics';
+import { trackScreen, trackEvent, Events } from '@/lib/analytics';
 import { api } from '@/convex/_generated/api';
+import { useFilterNudge } from '@/hooks/use-filter-nudge';
 import { SwipeCardStack } from '@/components/swipe/swipe-card-stack';
 import { ExploreHeader } from '@/components/swipe/explore-header';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -45,6 +46,19 @@ export default function ExploreView() {
     return count;
   }, [user]);
 
+  const { bannerVisible, pulseActive, registerSwipe, onFilterPressed } = useFilterNudge({
+    hasOpenedFilters: user?.hasOpenedFilters,
+    filterNudgeShown: user?.filterNudgeShown,
+  });
+
+  const handleFilterPress = useCallback(() => {
+    if (pulseActive || bannerVisible) {
+      trackEvent(Events.FILTER_NUDGE_TAPPED);
+    }
+    onFilterPressed();
+    router.push('/(tabs)/explore/filters');
+  }, [pulseActive, bannerVisible, onFilterPressed, router]);
+
   // The tabs-layout gate (app/(tabs)/_layout.tsx) already holds the loader
   // until getCurrentUser resolves, so `user` is a cached Doc by the time this
   // screen mounts — no graceful-loading dance needed. Keep a cheap guard for
@@ -61,10 +75,16 @@ export default function ExploreView() {
         <ExploreHeader
           liked={stats?.liked ?? 0}
           activeFilterCount={activeFilterCount}
-          onFilterPress={() => router.push('/(tabs)/explore/filters')}
+          pulseActive={pulseActive}
+          onFilterPress={handleFilterPress}
         />
         <ErrorBoundary>
-          <SwipeCardStack key={swipeQueueKey} />
+          <SwipeCardStack
+            key={swipeQueueKey}
+            onSwipeResult={registerSwipe}
+            nudgeBannerVisible={bannerVisible}
+            onNudgeBannerPress={handleFilterPress}
+          />
         </ErrorBoundary>
       </SafeAreaView>
     </GradientBackground>

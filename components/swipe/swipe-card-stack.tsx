@@ -11,6 +11,7 @@ import { SwipeCard } from './swipe-card';
 import { SwipeActionButtons, SWIPE_ACTION_BUTTONS_HEIGHT } from './swipe-action-buttons';
 import { EmptyState } from './empty-state';
 import { MatchToast } from '@/components/matches/match-toast';
+import { FilterNudgeBanner } from './filter-nudge-banner';
 import { ErrorToast } from '@/components/ui/error-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
@@ -21,7 +22,21 @@ import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 import { usePushPriming } from '@/hooks/use-push-priming';
 import { usePushRequestPermission } from '@/hooks/use-push-registration';
 
-export function SwipeCardStack() {
+interface SwipeCardStackProps {
+  // Fired once per successfully-recorded swipe. Used by the filter-discovery
+  // nudge to count consecutive rejects; the stack itself stays nudge-agnostic.
+  onSwipeResult?: (type: 'like' | 'reject') => void;
+  // Filter-discovery nudge banner. Controlled by the parent: shown on the
+  // trigger swipe, removed on the next swipe.
+  nudgeBannerVisible?: boolean;
+  onNudgeBannerPress?: () => void;
+}
+
+export function SwipeCardStack({
+  onSwipeResult,
+  nudgeBannerVisible = false,
+  onNudgeBannerPress,
+}: SwipeCardStackProps) {
   const router = useRouter();
 
   // Stable per mount. getSwipeQueue is reactive: every recordSelection
@@ -176,6 +191,7 @@ export function SwipeCardStack() {
         }
 
         trackEvent(Events.NAME_SWIPED, { direction: selectionType });
+        onSwipeResult?.(selectionType);
 
         // Check if we got a match
         if (result.match && result.match.name) {
@@ -193,7 +209,7 @@ export function SwipeCardStack() {
         setShowErrorToast(true);
       }
     },
-    [recordSelection],
+    [recordSelection, onSwipeResult],
   );
 
   // Check for empty state
@@ -242,6 +258,9 @@ export function SwipeCardStack() {
           reduceMotion={reduceMotion}
         />
       )}
+
+      {/* Filter-discovery nudge banner (same drop-down family as MatchToast) */}
+      <FilterNudgeBanner visible={nudgeBannerVisible} onPress={onNudgeBannerPress ?? (() => {})} />
 
       {/* Subsequent match toast */}
       <MatchToast

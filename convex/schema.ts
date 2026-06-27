@@ -16,6 +16,13 @@ export default defineSchema({
     // the same device doesn't re-trigger onboarding, and a fresh device
     // doesn't skip it. (#154)
     onboardingCompleted: v.optional(v.boolean()),
+    // Filter-discovery nudge (one-time). hasOpenedFilters: true once the user
+    // has ever opened the Filters screen — disqualifies the swipe-screen nudge
+    // and retires its first-visit banner. filterNudgeShown: true once the nudge
+    // has been shown. On the user row (not AsyncStorage) so "show once" means
+    // once per user across devices/reinstalls, like onboardingCompleted.
+    hasOpenedFilters: v.optional(v.boolean()),
+    filterNudgeShown: v.optional(v.boolean()),
     // Running counters for getSelectionStats (#183). Kept in sync by every
     // mutation that inserts/deletes/changes a selection. Backfilled lazily
     // on first counter-touching mutation per user.
