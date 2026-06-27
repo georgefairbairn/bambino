@@ -321,6 +321,33 @@ export const setOnboardingCompleted = mutation({
   },
 });
 
+/** Mark that the user has opened the Filters screen at least once. Disqualifies
+ *  the filter-discovery nudge and retires its first-visit banner. Idempotent. */
+export const markFiltersOpened = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    if (user.hasOpenedFilters === true) return;
+    await ctx.db.patch(user._id, {
+      hasOpenedFilters: true,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Mark that the one-time filter-discovery nudge has been shown. Idempotent. */
+export const markFilterNudgeShown = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    if (user.filterNudgeShown === true) return;
+    await ctx.db.patch(user._id, {
+      filterNudgeShown: true,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** In-app toggle for push notifications (#229). Absent = enabled; only an
  *  explicit false suppresses sends (enforced in notifications.sendPushNotification). */
 export const setPushNotificationsEnabled = mutation({
