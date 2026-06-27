@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { GenderFilterSelector } from '@/components/search/gender-filter-selector';
 import { OriginToggleList } from '@/components/search/origin-toggle-list';
-import { CategoryPanelGrid } from '@/components/search/category-panel-grid';
+import { CategoryToggleList } from '@/components/search/category-toggle-list';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { SlotCounter } from '@/components/ui/slot-counter';
 import { Fonts } from '@/constants/theme';
@@ -193,8 +193,8 @@ export default function Filters() {
             <GenderFilterSelector value={genderFilter} onChange={handleGenderChange} />
           </View>
 
-          {/* Category filter — grid renders its own section title */}
-          <CategoryPanelGrid value={categoryFilter} onChange={handleCategoryChange} />
+          {/* Category filter — toggle list renders its own section title */}
+          <CategoryToggleList value={categoryFilter} onChange={handleCategoryChange} />
 
           {/* Origin filter — toggle list handles its own section title */}
           <OriginToggleList
