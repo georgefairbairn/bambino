@@ -75,7 +75,7 @@ function PremiumBanner({
           </View>
           <View style={styles.premiumTextWrap}>
             <Text style={styles.premiumTitle}>Go Premium</Text>
-            <Text style={styles.premiumDesc}>Unlimited likes & partner linking</Text>
+            <Text style={styles.premiumDesc}>Unlimited likes + partner matching</Text>
           </View>
           <LinearGradient
             colors={gradients.buttonPrimary as [string, string]}
@@ -219,7 +219,7 @@ export default function Profile() {
     if (partnerInfo?.shareCode) {
       try {
         await Share.share({
-          message: `Join me on Bambino! Use my partner code: ${partnerInfo.shareCode}`,
+          message: `I'm using Bambino to pick a baby name — join me! Download the app, then enter my code to link up: ${partnerInfo.shareCode}`,
         });
         trackEvent(Events.PARTNER_CODE_SHARED);
       } catch (error) {
@@ -532,7 +532,7 @@ export default function Profile() {
               <View style={styles.noPartner}>
                 {partnerInfo?.shareCode && (
                   <>
-                    <Text style={styles.shareCodeLabel}>Your Share Code</Text>
+                    <Text style={styles.shareCodeLabel}>Your Partner Code</Text>
                     <View style={styles.shareCodeWrap}>
                       <Text style={[styles.shareCode, { color: colors.primary }]}>
                         {partnerInfo.shareCode}
@@ -578,6 +578,10 @@ export default function Profile() {
                         )}
                       </Pressable>
                     </View>
+                    <Text style={styles.shareCodeHint}>
+                      Send this to your partner. They&apos;ll need Bambino installed, then they
+                      enter it under &quot;Link Partner&quot;.
+                    </Text>
                   </>
                 )}
                 <View style={styles.linkPartnerWrap}>
@@ -981,6 +985,15 @@ const styles = StyleSheet.create({
     color: '#6B5B7B',
     textTransform: 'uppercase',
     letterSpacing: 1,
+  },
+  shareCodeHint: {
+    fontFamily: Fonts?.sans,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#6B5B7B',
+    textAlign: 'center',
+    marginTop: 12,
+    paddingHorizontal: 8,
   },
   shareCode: {
     fontSize: 32,
