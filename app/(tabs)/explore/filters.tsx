@@ -179,7 +179,11 @@ export default function Filters() {
             <View
               style={[
                 styles.banner,
-                { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+                {
+                  backgroundColor: colors.surfaceSubtle,
+                  borderColor: colors.border,
+                  shadowColor: colors.secondary,
+                },
               ]}
             >
               <Text style={styles.bannerText}>
@@ -288,9 +292,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    padding: 14,
-    borderRadius: 14,
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1.5,
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   bannerText: {
     flex: 1,

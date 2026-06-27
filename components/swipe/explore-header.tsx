@@ -92,7 +92,14 @@ export function ExploreHeader({
           pointerEvents="box-none"
         >
           <Pressable
-            style={styles.tooltip}
+            style={[
+              styles.tooltip,
+              {
+                backgroundColor: colors.secondaryLight,
+                borderColor: colors.primary,
+                shadowColor: colors.primary,
+              },
+            ]}
             onPress={onFilterPress}
             accessibilityRole="button"
             accessibilityLiveRegion="polite"
@@ -173,21 +180,20 @@ const styles = StyleSheet.create({
     left: 16,
   },
   tooltip: {
-    backgroundColor: '#2D1B4E',
+    borderWidth: 2,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 14,
     maxWidth: 260,
-    shadowColor: '#2D1B4E',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   tooltipText: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#fff',
+    color: '#2D1B4E',
   },
 });
