@@ -315,8 +315,8 @@ export default function Matches() {
             </Text>
             <Text style={styles.emptyDescription}>
               {isFreeUser
-                ? 'Upgrade to connect with your partner and discover the baby names you both love.'
-                : 'Share your partner code and start discovering the names you both love. Matches appear when you both swipe right!'}
+                ? 'You and your partner each swipe on names, and the ones you both like become matches. You’ll each need the app, and one Premium plan covers you both.'
+                : 'Your partner needs to download Bambino too, then enter your code to link up. Once you’re connected, any name you both like shows up here.'}
             </Text>
             <MatchAnimation key={focusCount} />
             {isFreeUser && (
@@ -407,7 +407,7 @@ export default function Matches() {
             <Text style={styles.emptyDescription}>
               {isSearching
                 ? `No names match "${submittedSearch}"`
-                : "When you and your partner both love the same name — it's a match! Keep swiping to find your favourites."}
+                : 'A match is any name you and your partner both swipe right on. Keep swiping — they’ll show up here.'}
             </Text>
             {!isSearching && (
               <Pressable

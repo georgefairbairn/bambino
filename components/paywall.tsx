@@ -17,14 +17,14 @@ interface PaywallProps {
 
 const TRIGGER_MESSAGES: Record<NonNullable<PaywallProps['trigger']>, string> = {
   swipe_limit: "You've used all 25 free swipes",
-  partner_limit: 'Connect with your partner',
+  partner_limit: 'Connect your partner — one plan covers you both',
   dashboard_limit: 'See all your liked names',
 };
 
 const COMPARISON_ROWS = [
   { label: 'Swipes', free: '25', premium: 'Unlimited' },
   { label: 'Liked names', free: '25', premium: 'Unlimited' },
-  { label: 'Partner', free: '\u2014', premium: 'Yes' },
+  { label: 'Partner matching', free: '\u2014', premium: 'Yes' },
 ];
 
 export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallProps) {
