@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { trackEvent, Events } from '@/lib/analytics';
@@ -11,22 +11,26 @@ interface UseFilterNudgeArgs {
 }
 
 interface UseFilterNudge {
-  nudgeVisible: boolean;
+  // Drop-down banner over the card stack. Shown on the trigger swipe, removed
+  // on the next swipe.
+  bannerVisible: boolean;
+  // Filters-pill pulse. Shown on the trigger swipe, persists until the user
+  // presses Filters (onFilterPressed).
+  pulseActive: boolean;
   registerSwipe: (type: 'like' | 'reject') => void;
-  dismissNudge: () => void;
+  onFilterPressed: () => void;
 }
-
-// How long the tooltip lingers before auto-dismissing.
-const AUTO_DISMISS_MS = 6000;
 
 /**
  * One-time "Adjust your filters" nudge. Counts consecutive rejects (a like
- * resets the count) and reveals the tooltip when the user has hit the threshold
- * without ever opening Filters and without having seen the nudge before.
+ * resets the count) and, once the user hits the threshold without ever opening
+ * Filters and without having seen the nudge, drops in a banner and starts the
+ * Filters-pill pulse.
  *
- * Two guarantees combine: `firedThisSessionRef` blocks a second reveal within
- * the session (synchronous, no round-trip), and `markFilterNudgeShown` persists
- * the flag on the user row so it never reappears on any device. Eligibility
+ * The two cues dismiss differently: the banner clears on the very next swipe,
+ * while the pulse keeps going until the user actually opens Filters. Both fire
+ * at most once per user — `firedThisSessionRef` blocks a repeat within the
+ * session and `markFilterNudgeShown` persists it across devices. Eligibility
  * flags are read via a ref so `registerSwipe` keeps a stable identity and never
  * forces the swipe stack to re-render mid-session.
  */
@@ -43,33 +47,44 @@ export function useFilterNudge({
     },
   );
 
-  const [nudgeVisible, setNudgeVisible] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(false);
+  const [pulseActive, setPulseActive] = useState(false);
+
   const consecutiveRejectsRef = useRef(0);
   const firedThisSessionRef = useRef(false);
-  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Synchronous mirror of bannerVisible so registerSwipe can tell whether the
+  // banner is already showing (and should be dismissed) without depending on
+  // the async state value.
+  const bannerVisibleRef = useRef(false);
 
   // Latest eligibility flags, read inside the stable registerSwipe callback.
   const flagsRef = useRef({ hasOpenedFilters, filterNudgeShown });
   flagsRef.current = { hasOpenedFilters, filterNudgeShown };
 
-  const clearTimer = useCallback(() => {
-    if (dismissTimerRef.current) {
-      clearTimeout(dismissTimerRef.current);
-      dismissTimerRef.current = null;
-    }
+  const setBanner = useCallback((value: boolean) => {
+    bannerVisibleRef.current = value;
+    setBannerVisible(value);
   }, []);
 
-  const dismissNudge = useCallback(() => {
-    clearTimer();
-    setNudgeVisible(false);
-  }, [clearTimer]);
+  const onFilterPressed = useCallback(() => {
+    setPulseActive(false);
+    setBanner(false);
+  }, [setBanner]);
 
   const registerSwipe = useCallback(
     (type: 'like' | 'reject') => {
+      // Any swipe AFTER the banner appeared dismisses it (it was shown on a
+      // prior swipe). The trigger swipe below won't hit this because the banner
+      // isn't visible yet at this point.
+      if (bannerVisibleRef.current) {
+        setBanner(false);
+      }
+
       if (type === 'like') {
         consecutiveRejectsRef.current = 0;
         return;
       }
+
       consecutiveRejectsRef.current += 1;
       const { hasOpenedFilters: opened, filterNudgeShown: shown } = flagsRef.current;
       if (
@@ -80,20 +95,15 @@ export function useFilterNudge({
       ) {
         return;
       }
+
       firedThisSessionRef.current = true;
-      setNudgeVisible(true);
+      setBanner(true);
+      setPulseActive(true);
       trackEvent(Events.FILTER_NUDGE_SHOWN);
       void markFilterNudgeShown();
-      dismissTimerRef.current = setTimeout(() => {
-        dismissTimerRef.current = null;
-        setNudgeVisible(false);
-      }, AUTO_DISMISS_MS);
     },
-    [markFilterNudgeShown],
+    [markFilterNudgeShown, setBanner],
   );
 
-  // Clear any pending timer if the hook unmounts.
-  useEffect(() => clearTimer, [clearTimer]);
-
-  return { nudgeVisible, registerSwipe, dismissNudge };
+  return { bannerVisible, pulseActive, registerSwipe, onFilterPressed };
 }

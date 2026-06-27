@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Text, StyleSheet, Pressable, View } from 'react-native';
 import Animated, {
   FadeInDown,
-  FadeIn,
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
@@ -19,25 +18,26 @@ import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 interface ExploreHeaderProps {
   liked: number;
   activeFilterCount: number;
-  nudgeVisible: boolean;
+  // Pulses the Filters pill while the discovery nudge is active. Persists until
+  // the user opens Filters (cleared by the parent's onFilterPress handler).
+  pulseActive: boolean;
   onFilterPress: () => void;
 }
 
 export function ExploreHeader({
   liked,
   activeFilterCount,
-  nudgeVisible,
+  pulseActive,
   onFilterPress,
 }: ExploreHeaderProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { reduceMotion } = useA11yPreferences();
 
-  // Pulse the Filters pill while the discovery nudge is showing. Reduce Motion
-  // users get no animation — just the static tooltip below.
+  // Reduce Motion users get no animation — the banner still conveys the nudge.
   const pulse = useSharedValue(1);
   useEffect(() => {
-    if (nudgeVisible && !reduceMotion) {
+    if (pulseActive && !reduceMotion) {
       pulse.value = withRepeat(
         withSequence(withTiming(1.06, { duration: 600 }), withTiming(1, { duration: 600 })),
         -1,
@@ -48,76 +48,45 @@ export function ExploreHeader({
       pulse.value = withTiming(1, { duration: 200 });
     }
     return () => cancelAnimation(pulse);
-  }, [nudgeVisible, reduceMotion, pulse]);
+  }, [pulseActive, reduceMotion, pulse]);
 
   const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
 
   return (
-    <View style={styles.wrapper}>
-      <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.container}>
-        <Animated.View style={pulseStyle}>
-          <Pressable
-            style={[styles.filterPill, { shadowColor: colors.secondary }]}
-            onPress={onFilterPress}
-            accessibilityLabel={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ''}`}
-            accessibilityRole="button"
-            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-          >
-            <Ionicons name="options-outline" size={16} color="#2D1B4E" />
-            <Text style={styles.filterLabel}>Filters</Text>
-            {activeFilterCount > 0 && (
-              <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
-                <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
-              </View>
-            )}
-          </Pressable>
-        </Animated.View>
-
+    <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.container}>
+      <Animated.View style={pulseStyle}>
         <Pressable
-          style={[styles.likedButton, { shadowColor: colors.secondary }]}
-          onPress={() => router.push('/(tabs)/dashboard')}
-          accessibilityLabel="Liked names"
+          style={[styles.filterPill, { shadowColor: colors.secondary }]}
+          onPress={onFilterPress}
+          accessibilityLabel={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ''}`}
           accessibilityRole="button"
-          hitSlop={8}
+          hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
         >
-          <Text style={styles.likedText}>{liked}</Text>
-          <Ionicons name="heart" size={16} color={colors.primary} />
+          <Ionicons name="options-outline" size={16} color="#2D1B4E" />
+          <Text style={styles.filterLabel}>Filters</Text>
+          {activeFilterCount > 0 && (
+            <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
+              <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+            </View>
+          )}
         </Pressable>
       </Animated.View>
 
-      {nudgeVisible && (
-        <Animated.View
-          entering={FadeIn.duration(250)}
-          style={styles.tooltipAnchor}
-          pointerEvents="box-none"
-        >
-          <Pressable
-            style={[
-              styles.tooltip,
-              {
-                backgroundColor: colors.secondaryLight,
-                borderColor: colors.primary,
-                shadowColor: colors.primary,
-              },
-            ]}
-            onPress={onFilterPress}
-            accessibilityRole="button"
-            accessibilityLiveRegion="polite"
-            accessibilityLabel="Not feeling these? Adjust your filters"
-          >
-            <Text style={styles.tooltipText}>Not feeling these? Adjust your filters</Text>
-          </Pressable>
-        </Animated.View>
-      )}
-    </View>
+      <Pressable
+        style={[styles.likedButton, { shadowColor: colors.secondary }]}
+        onPress={() => router.push('/(tabs)/dashboard')}
+        accessibilityLabel="Liked names"
+        accessibilityRole="button"
+        hitSlop={8}
+      >
+        <Text style={styles.likedText}>{liked}</Text>
+        <Ionicons name="heart" size={16} color={colors.primary} />
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-    zIndex: 10,
-  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -173,27 +142,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#6B5B7B',
-  },
-  tooltipAnchor: {
-    position: 'absolute',
-    top: 48,
-    left: 16,
-  },
-  tooltip: {
-    borderWidth: 2,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 14,
-    maxWidth: 260,
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  tooltipText: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-    color: '#2D1B4E',
   },
 });
