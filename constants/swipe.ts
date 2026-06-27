@@ -6,6 +6,10 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const SWIPE_THRESHOLD = 120; // px to trigger action
 export const SWIPE_VELOCITY = 800; // velocity threshold for quick swipes
 
+// Filter-discovery nudge: consecutive rejects (no like in between) that trigger
+// the one-time "Adjust your filters" nudge on the swipe screen.
+export const FILTER_NUDGE_REJECT_THRESHOLD = 5;
+
 // Layout heights (approximate safe area + header + tab bar)
 export const HEADER_HEIGHT = 64; // Compact header row
 export const TAB_BAR_HEIGHT = 80; // Bottom tab bar
