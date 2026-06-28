@@ -122,6 +122,9 @@ export default function Profile() {
   const { resetOnboarding } = useOnboarding();
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
+  // Live scroll offset, so FeedbackSection can scroll its (deeply nested) form
+  // above the keyboard on focus via measureInWindow + this offset.
+  const scrollYRef = useRef(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -348,6 +351,10 @@ export default function Profile() {
         style={styles.scrollView}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        onScroll={(event) => {
+          scrollYRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: 120,
@@ -635,7 +642,7 @@ export default function Profile() {
               <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
             </Pressable>
           </View>
-          <FeedbackSection />
+          <FeedbackSection scrollRef={scrollRef} scrollYRef={scrollYRef} />
           <View style={styles.settingsCard}>
             <Pressable
               style={styles.settingsCardRow}

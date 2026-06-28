@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet, Keyboard } from 'react-native';
+import { useCallback, useRef, useState, type RefObject } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet, Keyboard, ScrollView } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAction } from 'convex/react';
@@ -24,9 +24,18 @@ const PLACEHOLDERS: Record<string, string> = {
 
 type Category = 'bug' | 'feature' | 'general';
 
-export function FeedbackSection() {
+type FeedbackSectionProps = {
+  // The profile screen's ScrollView + its live scroll offset, so the input and
+  // submit button can be lifted above the keyboard on focus. The form sits near
+  // the bottom of a long scroll view that doesn't auto-scroll to a focused field.
+  scrollRef?: RefObject<ScrollView | null>;
+  scrollYRef?: RefObject<number>;
+};
+
+export function FeedbackSection({ scrollRef, scrollYRef }: FeedbackSectionProps) {
   const { colors } = useTheme();
   const submitFeedback = useAction(api.feedback.submitFeedback);
+  const containerRef = useRef<View>(null);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [category, setCategory] = useState<Category | null>(null);
@@ -69,8 +78,25 @@ export function FeedbackSection() {
     }
   }, [category, message, submitFeedback]);
 
+  // Lift the whole feedback form above the keyboard on focus. measureInWindow
+  // returns the section's true on-screen position regardless of how deeply it's
+  // nested (Fabric-safe, unlike measureLayout/findNodeHandle). Combine it with
+  // the live scroll offset to recover a content offset, then scroll the
+  // section's top near the top of the screen so the header, input, and submit
+  // button all clear the keyboard.
+  const handleInputFocus = useCallback(() => {
+    const scroll = scrollRef?.current;
+    const container = containerRef.current;
+    if (!scroll || !container) return;
+    container.measureInWindow((_x, winY) => {
+      const currentScrollY = scrollYRef?.current ?? 0;
+      const targetTopY = 80; // desired on-screen Y for the section's top
+      scroll.scrollTo({ y: Math.max(currentScrollY + winY - targetTopY, 0), animated: true });
+    });
+  }, [scrollRef, scrollYRef]);
+
   return (
-    <View style={styles.container}>
+    <View ref={containerRef} style={styles.container}>
       <Pressable style={styles.headerRow} onPress={() => setIsExpanded(!isExpanded)}>
         <Ionicons name="chatbubble-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
         <View style={styles.headerContent}>
@@ -123,6 +149,7 @@ export function FeedbackSection() {
               </View>
 
               <TextInput
+                onFocus={handleInputFocus}
                 style={[
                   styles.textInput,
                   {
