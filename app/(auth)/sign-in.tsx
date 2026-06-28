@@ -34,6 +34,10 @@ export default function SignIn() {
 
   const handleSignIn = useCallback(async () => {
     if (!isLoaded) return;
+    if (!email || !password) {
+      setError('Enter your email and password');
+      return;
+    }
 
     setIsLoading(true);
     setLoadingMethod('email');
