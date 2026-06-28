@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -39,6 +39,20 @@ export function AnimatedBottomSheet({
 }: AnimatedBottomSheetProps) {
   const backdropOpacity = useSharedValue(0);
   const sheetTranslateY = useSharedValue(SCREEN_HEIGHT);
+  // Track keyboard visibility so a tap outside the sheet collapses the keyboard
+  // first (keeping the sheet open and any typed text), instead of closing the
+  // sheet. Without this, with a multiline input up there's no way to dismiss
+  // the keyboard to reach the action buttons it overlaps.
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -74,6 +88,16 @@ export function AnimatedBottomSheet({
     );
   };
 
+  // A tap outside the sheet collapses the keyboard if it's up (keeping the
+  // sheet open); only when the keyboard is already down does it close the sheet.
+  const handleBackdropPress = () => {
+    if (keyboardVisible) {
+      Keyboard.dismiss();
+    } else {
+      animateOut();
+    }
+  };
+
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
@@ -101,7 +125,7 @@ export function AnimatedBottomSheet({
 
         <Pressable
           style={{ flex: 1 }}
-          onPress={animateOut}
+          onPress={handleBackdropPress}
           accessibilityLabel="Close"
           accessibilityRole="button"
         />

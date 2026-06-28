@@ -2,7 +2,7 @@ import { useSignIn, useSignInWithApple, useSSO } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Keyboard, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -187,7 +187,11 @@ export default function SignIn() {
 
   return (
     <GradientBackground variant="auth">
-      <View className="flex-1 justify-center px-8">
+      <Pressable
+        className="flex-1 justify-center px-8"
+        onPress={() => Keyboard.dismiss()}
+        accessible={false}
+      >
         <Animated.Text
           entering={FadeInDown.duration(500).springify()}
           className="mb-2 text-center text-4xl"
@@ -375,7 +379,7 @@ export default function SignIn() {
             </Animated.View>
           </>
         )}
-      </View>
+      </Pressable>
     </GradientBackground>
   );
 }
