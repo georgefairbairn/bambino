@@ -30,6 +30,8 @@ const EXPECTED_CLERK_ERROR_CODES = new Set<string>([
   'verification_failed', // bad/too-many verification attempts
   'verification_expired', // code expired
   'form_param_format_invalid', // malformed email/identifier
+  'form_param_nil', // required field left empty, e.g. "Enter password." (BAMBINO-2)
+  'form_param_missing', // required field absent from the request
   'authorization_invalid', // "You are not authorized to perform this request"
   'session_exists', // already signed in
 ]);
