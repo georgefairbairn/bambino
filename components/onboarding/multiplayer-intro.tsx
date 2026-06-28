@@ -118,7 +118,7 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
         Matching takes two
       </Animated.Text>
 
-      {/* PRO pill */}
+      {/* Premium pill */}
       <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.proPillWrap}>
         <LinearGradient
           colors={[colors.primaryLight, colors.secondaryLight]}
@@ -126,7 +126,7 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Text style={[styles.proPillText, { color: colors.tabActive }]}>{'\u2B50'} PRO</Text>
+          <Text style={[styles.proPillText, { color: colors.tabActive }]}>Premium</Text>
         </LinearGradient>
       </Animated.View>
 
