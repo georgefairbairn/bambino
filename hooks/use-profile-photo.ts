@@ -38,7 +38,7 @@ export function useProfilePhoto(user: UserResource | null | undefined) {
     if (!asset || !asset.base64) {
       Alert.alert(
         'Could not read image',
-        'Please try a different photo. (HEIC images sometimes fail — try converting to JPG.)',
+        'Please try a different photo. (HEIC images sometimes fail; try converting to JPG.)',
       );
       Sentry.captureMessage('Profile photo: missing asset or base64', {
         level: 'warning',

@@ -17,7 +17,7 @@ interface PaywallProps {
 
 const TRIGGER_MESSAGES: Record<NonNullable<PaywallProps['trigger']>, string> = {
   swipe_limit: "You've used all 25 of your free swipes",
-  partner_limit: 'Connect your partner — one plan covers you both',
+  partner_limit: 'Connect your partner. One plan covers you both',
   dashboard_limit: 'See all your liked names',
 };
 

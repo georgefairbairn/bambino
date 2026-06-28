@@ -222,7 +222,7 @@ export default function Profile() {
     if (partnerInfo?.shareCode) {
       try {
         await Share.share({
-          message: `I'm using Bambino to pick a baby name — join me! Download the app, then enter my code to link up: ${partnerInfo.shareCode}`,
+          message: `I'm using Bambino to pick a baby name. Join me! Download the app, then enter my code to link up: ${partnerInfo.shareCode}`,
         });
         trackEvent(Events.PARTNER_CODE_SHARED);
       } catch (error) {

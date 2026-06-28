@@ -450,7 +450,7 @@ export default function Matches() {
                 <>
                   A match is any name you and your partner{' '}
                   <Text style={styles.emptyDescriptionBold}>both swipe right</Text> on.{' '}
-                  <Text style={styles.emptyDescriptionBold}>Keep swiping</Text> — they’ll show up
+                  <Text style={styles.emptyDescriptionBold}>Keep swiping</Text> and they’ll show up
                   here.
                 </>
               )}
