@@ -621,6 +621,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   listContent: {
+    // Top padding so the first card's overhanging "Proposed"/"Chosen" badge
+    // (position absolute, top: -8) isn't clipped by the list's top edge —
+    // mirrors the inter-card gap every other card already has above it.
+    paddingTop: 12,
     paddingBottom: 100,
   },
   ctaContainer: {
