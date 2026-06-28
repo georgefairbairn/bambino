@@ -314,9 +314,23 @@ export default function Matches() {
               {isFreeUser ? 'Match With Your Partner' : 'Invite Your Partner'}
             </Text>
             <Text style={styles.emptyDescription}>
-              {isFreeUser
-                ? 'You and your partner each swipe on names, and the ones you both like become matches. You’ll each need the app, and one Premium plan covers you both.'
-                : 'Your partner needs to download Bambino too, then enter your code to link up. Once you’re connected, any name you both like shows up here.'}
+              {isFreeUser ? (
+                <>
+                  You and your partner each swipe on names, and the ones{' '}
+                  <Text style={styles.emptyDescriptionBold}>you both like</Text> become{' '}
+                  <Text style={styles.emptyDescriptionBold}>matches</Text>. You’ll each need the
+                  app, and{' '}
+                  <Text style={styles.emptyDescriptionBold}>one Premium plan covers you both</Text>.
+                </>
+              ) : (
+                <>
+                  Your partner needs to{' '}
+                  <Text style={styles.emptyDescriptionBold}>download Bambino</Text> too, then{' '}
+                  <Text style={styles.emptyDescriptionBold}>enter your code</Text> to link up. Once
+                  you’re connected, any name{' '}
+                  <Text style={styles.emptyDescriptionBold}>you both like</Text> shows up here.
+                </>
+              )}
             </Text>
             <MatchAnimation key={focusCount} />
             {isFreeUser && (
@@ -405,9 +419,16 @@ export default function Matches() {
               {isSearching ? 'No Results Found' : 'No Matches Yet'}
             </Text>
             <Text style={styles.emptyDescription}>
-              {isSearching
-                ? `No names match "${submittedSearch}"`
-                : 'A match is any name you and your partner both swipe right on. Keep swiping — they’ll show up here.'}
+              {isSearching ? (
+                `No names match "${submittedSearch}"`
+              ) : (
+                <>
+                  A match is any name you and your partner{' '}
+                  <Text style={styles.emptyDescriptionBold}>both swipe right</Text> on.{' '}
+                  <Text style={styles.emptyDescriptionBold}>Keep swiping</Text> — they’ll show up
+                  here.
+                </>
+              )}
             </Text>
             {!isSearching && (
               <Pressable
@@ -595,6 +616,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     zIndex: 10,
+  },
+  emptyDescriptionBold: {
+    fontWeight: '700',
   },
   listContent: {
     paddingBottom: 100,
