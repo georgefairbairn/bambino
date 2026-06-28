@@ -78,11 +78,8 @@ export function ProposalBanner({
         >
           <Text style={styles.acceptButtonText}>Accept</Text>
         </Pressable>
-        <Pressable
-          style={[styles.declineButton, { borderColor: colors.border }]}
-          onPress={onDecline}
-        >
-          <Text style={[styles.declineButtonText, { color: '#6B5B7B' }]}>Decline</Text>
+        <Pressable style={[styles.declineButton, { borderColor: '#FF6B6B' }]} onPress={onDecline}>
+          <Text style={[styles.declineButtonText, { color: '#FF6B6B' }]}>Decline</Text>
         </Pressable>
       </View>
     </View>

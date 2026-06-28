@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { getRelativeTime } from '@/lib/format';
 import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
@@ -37,6 +37,7 @@ function MatchCardImpl({ match, currentUserId, onPress, onPropose, onWithdraw }:
 
   const isPending = proposalStatus === 'pending';
   const isCurrentUserProposer = isPending && proposedBy === currentUserId;
+  const isRejected = proposalStatus === 'declined';
 
   return (
     <Pressable
@@ -50,7 +51,7 @@ function MatchCardImpl({ match, currentUserId, onPress, onPropose, onWithdraw }:
     >
       {isChosen && (
         <View style={styles.chosenBadge}>
-          <Ionicons name="trophy" size={14} color="#fff" />
+          <Ionicons name="star" size={14} color="#fff" />
           <Text style={styles.chosenText}>Chosen</Text>
         </View>
       )}
@@ -63,6 +64,12 @@ function MatchCardImpl({ match, currentUserId, onPress, onPropose, onWithdraw }:
           ]}
         >
           <Text style={styles.chosenText}>Proposed</Text>
+        </View>
+      )}
+
+      {isRejected && !isChosen && (
+        <View style={[styles.chosenBadge, styles.rejectedBadge]}>
+          <Text style={styles.chosenText}>Rejected</Text>
         </View>
       )}
 
@@ -95,13 +102,15 @@ function MatchCardImpl({ match, currentUserId, onPress, onPropose, onWithdraw }:
         </Pressable>
       ) : !isChosen && !isPending && onPropose ? (
         <Pressable
-          style={styles.actionButton}
+          style={[styles.proposeButton, { backgroundColor: colors.primary }]}
           onPress={onPropose}
           hitSlop={8}
-          accessibilityLabel="Propose name"
+          accessibilityLabel={isRejected ? 'Re-propose name' : 'Propose name'}
           accessibilityRole="button"
         >
-          <Ionicons name="checkmark-circle-outline" size={24} color="#A89BB5" />
+          <Text style={[BUTTON_TEXT.pill, styles.proposeButtonText]}>
+            {isRejected ? 'Re-propose' : 'Propose'}
+          </Text>
         </Pressable>
       ) : null}
     </Pressable>
@@ -164,6 +173,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
+  rejectedBadge: {
+    backgroundColor: '#FF6B6B',
+    left: undefined,
+    right: 16,
+  },
   mainContent: {
     flex: 1,
   },
@@ -202,5 +216,13 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 8,
+  },
+  proposeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  proposeButtonText: {
+    color: '#fff',
   },
 });

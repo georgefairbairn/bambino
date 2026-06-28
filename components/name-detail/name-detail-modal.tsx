@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useSkinTone } from '@/contexts/skin-tone-context';
 import { getGenderEmoji } from '@/constants/skin-tone';
@@ -94,6 +94,13 @@ interface NameDetailModalProps {
   onRemove?: () => void;
   onRestore?: () => void;
   onHide?: () => void;
+  // 'match' context only: surfaces a Propose action near the top. Provided
+  // (and eligible) by the Matches screen; absent when the name can't be
+  // proposed right now (already chosen, pending, or another proposal in flight).
+  onPropose?: () => void;
+  proposeLabel?: string;
+  // Partner's optional note when this match's proposal was declined.
+  declineMessage?: string;
 }
 
 function PopularityDetailContent({ name }: { name: Doc<'names'> }) {
@@ -204,6 +211,9 @@ export function NameDetailModal({
   onRemove,
   onRestore,
   onHide,
+  onPropose,
+  proposeLabel,
+  declineMessage,
 }: NameDetailModalProps) {
   const { colors } = useTheme();
   const [listSelectedGender, setListSelectedGender] = useState<'male' | 'female'>(
@@ -256,8 +266,29 @@ export function NameDetailModal({
             {/* Name */}
             <Text style={styles.name}>{name.name}</Text>
 
+            {/* Propose action (match context) */}
+            {context === 'match' && onPropose && (
+              <Pressable
+                style={[styles.proposeButton, { backgroundColor: colors.primary }]}
+                onPress={onPropose}
+                accessibilityRole="button"
+                accessibilityLabel={proposeLabel ?? 'Propose'}
+              >
+                <Text style={[BUTTON_TEXT.cta, styles.proposeButtonText]}>
+                  {proposeLabel ?? 'Propose'}
+                </Text>
+              </Pressable>
+            )}
+
             {/* Info cards */}
             <View style={styles.infoCards}>
+              {declineMessage && (
+                <View style={[styles.infoCard, styles.declineNoteCard]}>
+                  <Text style={styles.infoLabel}>Partner’s note</Text>
+                  <Text style={styles.infoValue}>{declineMessage}</Text>
+                </View>
+              )}
+
               {name.origin && (
                 <View style={[styles.infoCard, { backgroundColor: colors.surfaceSubtle }]}>
                   <Text style={styles.infoLabel}>Origin</Text>
@@ -352,8 +383,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
+  proposeButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  proposeButtonText: {
+    color: '#fff',
+  },
   infoCards: {
     gap: 12,
+  },
+  declineNoteCard: {
+    backgroundColor: '#FFF0F0',
   },
   infoCard: {
     borderRadius: 12,

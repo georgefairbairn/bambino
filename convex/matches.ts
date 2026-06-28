@@ -139,6 +139,19 @@ export const getMatches = query({
         break;
     }
 
+    // Status-priority overlay (independent of the user's chosen sort): the
+    // chosen name pins to the very top, then pending proposals, then normal
+    // matches, with declined (rejected) names sunk to the bottom.
+    // Array.prototype.sort is stable, so names within each band keep the order
+    // the switch above produced.
+    const statusBand = (m: { isChosen?: boolean; proposalStatus?: string }) => {
+      if (m.isChosen) return 0;
+      if (m.proposalStatus === 'pending') return 1;
+      if (m.proposalStatus === 'declined') return 3;
+      return 2;
+    };
+    results.sort((a, b) => statusBand(a) - statusBand(b));
+
     return results;
   },
 });
@@ -499,75 +512,20 @@ export const getPendingProposal = query({
   },
 });
 
-// The proposer's view of a proposal the partner declined. Surfaced as a
-// dismissable banner so the proposer actually learns the outcome (previously
-// the proposal just vanished from getPendingProposal with no trace).
+// Retained for backward-compatibility with older app builds only. The
+// declined-proposal banner is retired in favor of the persistent "Rejected"
+// tag on the match card, so current clients no longer call these. They return
+// inert values so a build pinned to this API degrades gracefully (shows no
+// banner) instead of erroring on a missing function when prod redeploys.
+// Safe to delete once those builds have aged out.
 export const getDeclinedProposal = query({
   args: {},
-  handler: async (ctx) => {
-    const user = await getCurrentUserOrNull(ctx);
-    if (!user) return null;
-
-    if (!user.partnerId) {
-      return null;
-    }
-
-    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
-    // Only the proposer sees their own declined proposal — until they dismiss.
-    const declinedMatch = matches.find(
-      (m) => m.proposalStatus === 'declined' && m.proposedBy === user._id,
-    );
-
-    if (!declinedMatch) {
-      return null;
-    }
-
-    const name = await ctx.db.get(declinedMatch.nameId);
-    const decliner = await ctx.db.get(getOtherUserId(declinedMatch, user._id));
-
-    return {
-      ...declinedMatch,
-      name,
-      declinerName: decliner?.name ?? 'Your partner',
-    };
-  },
+  handler: async () => null,
 });
 
 export const dismissDeclinedProposal = mutation({
-  args: {
-    matchId: v.id('matches'),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
-
-    const match = await ctx.db.get(args.matchId);
-    if (!match) {
-      throw convexError('MATCH_NOT_FOUND', 'Match not found');
-    }
-
-    // Only the proposer can dismiss their own declined proposal.
-    if (match.proposedBy !== user._id) {
-      throw convexError('NOT_PROPOSER', 'Only the proposer can dismiss this proposal');
-    }
-
-    if (match.proposalStatus !== 'declined') {
-      throw convexError('PROPOSAL_NOT_DECLINED', 'Proposal is not declined');
-    }
-
-    // Clear all proposal fields (same as a withdraw) so the banner goes away
-    // and either partner can propose this name again.
-    await ctx.db.patch(args.matchId, {
-      proposedBy: undefined,
-      proposedAt: undefined,
-      proposalMessage: undefined,
-      proposalStatus: undefined,
-      respondedAt: undefined,
-      declineMessage: undefined,
-      updatedAt: Date.now(),
-    });
-
-    return { success: true };
-  },
+  args: { matchId: v.id('matches') },
+  handler: async () => ({ success: true as const }),
 });
 
 export const getChosenName = query({
@@ -593,5 +551,52 @@ export const getChosenName = query({
       ...chosenMatch,
       name,
     };
+  },
+});
+
+// Clear the partnership's chosen name (#item5). Returns the match to a clean
+// "matched" row — any lingering proposal state is wiped so it can be proposed
+// again fresh — and notifies the partner that the agreed name was cleared.
+export const clearChosenName = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    if (!user.partnerId) {
+      throw convexError('NO_PARTNER_LINKED', 'No partner linked');
+    }
+
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+    const chosenMatch = matches.find((m) => m.isChosen);
+
+    // Idempotent: nothing chosen is a no-op, not an error.
+    if (!chosenMatch) {
+      return { success: true as const };
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(chosenMatch._id, {
+      isChosen: false,
+      proposedBy: undefined,
+      proposedAt: undefined,
+      proposalMessage: undefined,
+      proposalStatus: undefined,
+      respondedAt: undefined,
+      declineMessage: undefined,
+      updatedAt: now,
+    });
+
+    const partnerId = getOtherUserId(chosenMatch, user._id);
+    const name = await ctx.db.get(chosenMatch.nameId);
+    const actorName = user.name ?? 'Your partner';
+
+    await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
+      userId: partnerId,
+      title: `${actorName} cleared your chosen name`,
+      body: name ? `${name.name} is no longer set as chosen.` : 'Your chosen name was cleared.',
+      data: { type: 'chosen_cleared', matchId: chosenMatch._id },
+    });
+
+    return { success: true as const };
   },
 });

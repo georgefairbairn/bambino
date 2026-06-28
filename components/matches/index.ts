@@ -4,7 +4,6 @@ export { MatchDetailModal } from './match-detail-modal';
 export { MatchesHeader } from './matches-header';
 export { MatchToast } from './match-toast';
 export { ProposalBanner } from './proposal-banner';
-export { DeclinedBanner } from './declined-banner';
 export { ProposeSheet } from './propose-sheet';
 export { ProposalConflictSheet } from './proposal-conflict-sheet';
 export { DeclineSheet } from './decline-sheet';
