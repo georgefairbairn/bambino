@@ -78,8 +78,11 @@ export function ProposalBanner({
         >
           <Text style={styles.acceptButtonText}>Accept</Text>
         </Pressable>
-        <Pressable style={styles.declineButton} onPress={onDecline}>
-          <Text style={[styles.declineButtonText, { color: '#A89BB5' }]}>Decline</Text>
+        <Pressable
+          style={[styles.declineButton, { borderColor: colors.border }]}
+          onPress={onDecline}
+        >
+          <Text style={[styles.declineButtonText, { color: '#6B5B7B' }]}>Decline</Text>
         </Pressable>
       </View>
     </View>
@@ -142,10 +145,13 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   declineButton: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1.5,
   },
   declineButtonText: {
     fontSize: 15,
