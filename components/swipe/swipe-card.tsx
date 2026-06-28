@@ -705,9 +705,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
   },
   swipeHint: {
+    // Fill the leftover space but bottom-align the hint so it parks just
+    // above the rank/trend tiles, with the free space pooling above it
+    // (rather than centering the hint in the middle of the gap). marginBottom
+    // keeps a small, consistent gap above the tiles on every card.
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    marginBottom: 12,
   },
   popularityRow: {
     flexDirection: 'row',
