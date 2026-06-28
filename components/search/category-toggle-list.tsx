@@ -1,4 +1,7 @@
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Switch, Pressable, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { CATEGORY_KEYS, CATEGORY_META } from '@/constants/categories';
@@ -12,10 +15,15 @@ interface CategoryToggleListProps {
 
 export function CategoryToggleList({ value, onChange }: CategoryToggleListProps) {
   const { colors } = useTheme();
+  const [collapsed, setCollapsed] = useState(false);
 
   const isAllSelected = value === null;
   const selectedSet = new Set(value ?? []);
   const selectedCount = value?.length ?? 0;
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: withTiming(collapsed ? '0deg' : '180deg', { duration: 250 }) }],
+  }));
 
   // All ON → OFF: deselect everything. All OFF → ON: select all.
   const handleToggleAll = () => {
@@ -53,40 +61,48 @@ export function CategoryToggleList({ value, onChange }: CategoryToggleListProps)
 
   return (
     <View style={styles.container}>
-      {/* Header (always expanded — only 6 categories) */}
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <View style={[styles.badge, { backgroundColor: badgeStyle.backgroundColor }]}>
-          <Text style={[styles.badgeText, { color: badgeStyle.color }]}>{badgeText}</Text>
-        </View>
-      </View>
-
-      <View style={styles.body}>
-        {/* All Categories master row */}
-        <View style={[styles.allRow, { shadowColor: colors.secondary }]}>
-          <View>
-            <Text style={styles.allRowLabel}>All Categories</Text>
-            <Text style={styles.allRowSub}>Include every category</Text>
+      {/* Collapsible header */}
+      <Pressable style={styles.header} onPress={() => setCollapsed(!collapsed)}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.sectionTitle}>Categories</Text>
+          <View style={[styles.badge, { backgroundColor: badgeStyle.backgroundColor }]}>
+            <Text style={[styles.badgeText, { color: badgeStyle.color }]}>{badgeText}</Text>
           </View>
-          <Switch
-            value={isAllSelected}
-            onValueChange={handleToggleAll}
-            trackColor={{ false: '#E5DDD0', true: colors.primary }}
-            thumbColor="#FFFFFF"
-            ios_backgroundColor="#E5DDD0"
-          />
         </View>
+        <Animated.View style={chevronStyle}>
+          <Ionicons name="chevron-down" size={16} color="#A89BB5" />
+        </Animated.View>
+      </Pressable>
 
-        {/* Individual category rows */}
-        {CATEGORY_KEYS.map((key) => (
-          <CategoryToggleRow
-            key={key}
-            label={CATEGORY_META[key].label}
-            isActive={isCategoryActive(key)}
-            onToggle={() => handleToggleCategory(key)}
-          />
-        ))}
-      </View>
+      {/* Collapsible body */}
+      {!collapsed && (
+        <View style={styles.body}>
+          {/* All Categories master row */}
+          <View style={[styles.allRow, { shadowColor: colors.secondary }]}>
+            <View>
+              <Text style={styles.allRowLabel}>All Categories</Text>
+              <Text style={styles.allRowSub}>Include every category</Text>
+            </View>
+            <Switch
+              value={isAllSelected}
+              onValueChange={handleToggleAll}
+              trackColor={{ false: '#E5DDD0', true: colors.primary }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor="#E5DDD0"
+            />
+          </View>
+
+          {/* Individual category rows */}
+          {CATEGORY_KEYS.map((key) => (
+            <CategoryToggleRow
+              key={key}
+              label={CATEGORY_META[key].label}
+              isActive={isCategoryActive(key)}
+              onToggle={() => handleToggleCategory(key)}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -96,6 +112,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
