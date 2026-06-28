@@ -160,9 +160,11 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
           accessibilityRole="button"
         >
           {isRestoring ? (
-            <ActivityIndicator size="small" color="#6B5B7B" />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
-            <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+            <Text style={[styles.restoreButtonText, { color: colors.primary }]}>
+              Restore Purchase
+            </Text>
           )}
         </Pressable>
       </AnimatedBottomSheet>

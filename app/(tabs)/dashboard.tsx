@@ -826,16 +826,16 @@ export default function Dashboard() {
         ListFooterComponent={
           gatedCount > 0 ? (
             <Pressable
-              style={[styles.gatedBanner, { borderColor: colors.border }]}
+              style={[styles.gatedBanner, { borderColor: colors.primary }]}
               onPress={() => setShowPaywall(true)}
             >
               <View style={styles.gatedIconRow}>
                 <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
-                <Text style={[styles.gatedText, { color: colors.textSecondary }]}>
+                <Text style={[styles.gatedText, { color: colors.primary }]}>
                   +{gatedCount} more name{gatedCount !== 1 ? 's' : ''}. Upgrade to view all
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
             </Pressable>
           ) : likedStatus === 'LoadingMore' ? (
             <View style={styles.listFooterLoader}>
