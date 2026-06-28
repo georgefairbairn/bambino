@@ -202,7 +202,7 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
             <Text style={[styles.stepNumText, { color: colors.tabActive }]}>3</Text>
           </View>
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>You both like a name? Match!</Text>
+            <Text style={styles.stepTitle}>When you both like a name, it&apos;s a match!</Text>
             <Text style={styles.stepDesc}>Names you both swipe right on land in Matches.</Text>
           </View>
         </View>

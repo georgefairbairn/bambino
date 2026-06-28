@@ -14,7 +14,7 @@ export function EmptyState({ onOpenFilters }: EmptyStateProps) {
       <BubblePillsBackground />
 
       <Animated.Text entering={FadeInUp.delay(200).duration(400).springify()} style={styles.title}>
-        You&apos;ve Reviewed All Names!
+        You&apos;ve reviewed every name!
       </Animated.Text>
 
       <Animated.Text entering={FadeInUp.delay(300).duration(400)} style={styles.description}>
