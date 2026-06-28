@@ -769,7 +769,7 @@ export default function Dashboard() {
       <Text style={styles.emptyDescription}>
         {activeTab === 'liked'
           ? "Swipe right on names you love — they'll land right here!"
-          : 'Names you swipe left on will drift over here.'}
+          : 'Names you swipe left on will appear here.'}
       </Text>
       <Pressable
         style={[styles.createButton, { backgroundColor: colors.primary }]}
