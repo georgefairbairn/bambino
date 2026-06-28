@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { internalMutation, internalQuery } from './_generated/server';
 import { Id } from './_generated/dataModel';
+import { generateUniqueShareCode } from './partners';
 
 // All admin utilities are internal functions.
 // Run via: npx convex run admin:<functionName> '{"arg": "value"}'
@@ -528,6 +529,39 @@ export const seedAppReviewDemo = internalMutation({
         totalMatches: sortedMatches.length,
       },
     };
+  },
+});
+
+// Migrates any user whose share code is missing or not exactly 8 characters
+// (legacy 6-char codes predate the #149 hardening) to a fresh, unique 8-char
+// code. Users already on an 8-char code are left untouched, so this is safe to
+// re-run. Pass {"dryRun":true} to preview which users would change first.
+//
+//   npx convex run admin:migrateShortShareCodes --prod '{"dryRun":true}'
+//   npx convex run admin:migrateShortShareCodes --prod '{}'
+export const migrateShortShareCodes = internalMutation({
+  args: { dryRun: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const dryRun = args.dryRun ?? false;
+    const users = await ctx.db.query('users').collect();
+
+    const migrated: { email: string; oldCode: string | null; newCode: string | null }[] = [];
+
+    for (const user of users) {
+      const code = user.shareCode ?? null;
+      if (code !== null && code.length === 8) continue;
+
+      if (dryRun) {
+        migrated.push({ email: user.email, oldCode: code, newCode: null });
+        continue;
+      }
+
+      const newCode = await generateUniqueShareCode(ctx);
+      await ctx.db.patch(user._id, { shareCode: newCode, updatedAt: Date.now() });
+      migrated.push({ email: user.email, oldCode: code, newCode });
+    }
+
+    return { dryRun, scanned: users.length, migratedCount: migrated.length, migrated };
   },
 });
 
