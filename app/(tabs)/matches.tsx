@@ -17,6 +17,7 @@ import {
   MatchCard,
   MatchesHeader,
   ProposalBanner,
+  DeclinedBanner,
   ProposeSheet,
   ProposalConflictSheet,
   DeclineSheet,
@@ -99,6 +100,7 @@ export default function Matches() {
   const chosenName = useQuery(api.matches.getChosenName);
   const currentUser = useQuery(api.users.getCurrentUser);
   const pendingProposal = useQuery(api.matches.getPendingProposal);
+  const declinedProposal = useQuery(api.matches.getDeclinedProposal);
 
   // Close the report sheet if the proposal it targets disappears (partner
   // withdrew/accepted, or unlinked) so it can't act on a stale match. (#185)
@@ -129,6 +131,7 @@ export default function Matches() {
   const proposeNameMutation = useMutation(api.matches.proposeName);
   const respondToProposalMutation = useMutation(api.matches.respondToProposal);
   const withdrawProposalMutation = useMutation(api.matches.withdrawProposal);
+  const dismissDeclinedProposalMutation = useMutation(api.matches.dismissDeclinedProposal);
 
   // Task 13: Trigger celebration for proposer when partner accepts
   useEffect(() => {
@@ -216,6 +219,15 @@ export default function Matches() {
     },
     [pendingProposal, respondToProposalMutation],
   );
+
+  const handleDismissDeclined = useCallback(async () => {
+    if (!declinedProposal) return;
+    try {
+      await dismissDeclinedProposalMutation({ matchId: declinedProposal._id });
+    } catch (error) {
+      alertMatchMutationError(error, 'Could not dismiss this.');
+    }
+  }, [declinedProposal, dismissDeclinedProposalMutation]);
 
   const handleWithdrawProposal = useCallback(
     async (matchId: Id<'matches'>, nameName: string) => {
@@ -480,6 +492,16 @@ export default function Matches() {
               handleWithdrawProposal(pendingProposal._id, pendingProposal.name?.name ?? '')
             }
             onReport={() => setReportMatchId(pendingProposal._id)}
+          />
+        )}
+
+        {/* Declined proposal banner — shown to the proposer */}
+        {declinedProposal && declinedProposal.name && (
+          <DeclinedBanner
+            declinerName={declinedProposal.declinerName}
+            nameName={declinedProposal.name.name}
+            message={declinedProposal.declineMessage}
+            onDismiss={handleDismissDeclined}
           />
         )}
 

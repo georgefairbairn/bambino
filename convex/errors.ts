@@ -37,6 +37,7 @@ export type ConvexErrorCode =
   | 'CANNOT_RESPOND_OWN_PROPOSAL'
   | 'NOT_PROPOSER'
   | 'PROPOSAL_NOT_PENDING'
+  | 'PROPOSAL_NOT_DECLINED'
   // selections.ts
   | 'SELECTION_NOT_FOUND'
   | 'BULK_LIMIT_EXCEEDED'

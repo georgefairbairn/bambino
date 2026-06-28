@@ -395,6 +395,21 @@ export const respondToProposal = mutation({
         declineMessage: args.message,
         updatedAt: now,
       });
+
+      // Notify the proposer their proposal was declined — the accept path
+      // already notifies; decline previously sent nothing, so the proposer
+      // got no signal at all.
+      if (match.proposedBy) {
+        const name = await ctx.db.get(match.nameId);
+        const responderName = user.name ?? 'Your partner';
+
+        await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
+          userId: match.proposedBy,
+          title: `${responderName} declined your proposal`,
+          body: name ? `They passed on ${name.name}.` : 'They passed on your suggestion.',
+          data: { type: 'proposal_declined', matchId: args.matchId },
+        });
+      }
     }
 
     return { success: true };
@@ -481,6 +496,77 @@ export const getPendingProposal = query({
       proposerName: proposer?.name ?? 'Your partner',
       isCurrentUserProposer: pendingMatch.proposedBy === user._id,
     };
+  },
+});
+
+// The proposer's view of a proposal the partner declined. Surfaced as a
+// dismissable banner so the proposer actually learns the outcome (previously
+// the proposal just vanished from getPendingProposal with no trace).
+export const getDeclinedProposal = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return null;
+
+    if (!user.partnerId) {
+      return null;
+    }
+
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+    // Only the proposer sees their own declined proposal — until they dismiss.
+    const declinedMatch = matches.find(
+      (m) => m.proposalStatus === 'declined' && m.proposedBy === user._id,
+    );
+
+    if (!declinedMatch) {
+      return null;
+    }
+
+    const name = await ctx.db.get(declinedMatch.nameId);
+    const decliner = await ctx.db.get(getOtherUserId(declinedMatch, user._id));
+
+    return {
+      ...declinedMatch,
+      name,
+      declinerName: decliner?.name ?? 'Your partner',
+    };
+  },
+});
+
+export const dismissDeclinedProposal = mutation({
+  args: {
+    matchId: v.id('matches'),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) {
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
+    }
+
+    // Only the proposer can dismiss their own declined proposal.
+    if (match.proposedBy !== user._id) {
+      throw convexError('NOT_PROPOSER', 'Only the proposer can dismiss this proposal');
+    }
+
+    if (match.proposalStatus !== 'declined') {
+      throw convexError('PROPOSAL_NOT_DECLINED', 'Proposal is not declined');
+    }
+
+    // Clear all proposal fields (same as a withdraw) so the banner goes away
+    // and either partner can propose this name again.
+    await ctx.db.patch(args.matchId, {
+      proposedBy: undefined,
+      proposedAt: undefined,
+      proposalMessage: undefined,
+      proposalStatus: undefined,
+      respondedAt: undefined,
+      declineMessage: undefined,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
   },
 });
 
