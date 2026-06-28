@@ -450,7 +450,9 @@ export default function Profile() {
               {isRestoring ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : (
-                <Text style={styles.restoreButtonText}>Restore Purchase</Text>
+                <Text style={[styles.restoreButtonText, { color: colors.primary }]}>
+                  Restore Purchase
+                </Text>
               )}
             </Pressable>
           </Animated.View>
