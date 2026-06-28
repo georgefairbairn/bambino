@@ -278,8 +278,6 @@ export const recordSelection = mutation({
     selectionType: v.union(v.literal('like'), v.literal('reject'), v.literal('skip')),
   },
   handler: async (ctx, args) => {
-    // TEMP timing instrumentation (match-latency diagnosis) — remove once done.
-    const t0 = Date.now();
     let user = await getCurrentUserOrThrow(ctx);
     // Backfill running counters BEFORE any mutation runs — otherwise the
     // backfill's post-mutation collect would double-count this write (#183).
@@ -377,9 +375,6 @@ export const recordSelection = mutation({
 
       if (args.selectionType === 'like' && user.partnerId) {
         const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
-        console.log(
-          `[recordSelection] path=existing matched=${!!match} elapsedMs=${Date.now() - t0}`,
-        );
         return { selectionId: existingSelection._id, match };
       }
 
@@ -431,7 +426,6 @@ export const recordSelection = mutation({
 
     if (args.selectionType === 'like' && user.partnerId) {
       const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
-      console.log(`[recordSelection] path=new matched=${!!match} elapsedMs=${Date.now() - t0}`);
       return { selectionId, match };
     }
 
@@ -527,6 +521,38 @@ export const getSwipeQueue = query({
     }
 
     return results;
+  },
+});
+
+/**
+ * Which of the given names has the current user's PARTNER already liked?
+ * Powers optimistic match detection on the swipe screen: if the partner
+ * already liked a queued name, the client shows the match banner the instant
+ * the user swipes right, instead of waiting for recordSelection. Reactive and
+ * bounded to the rendered cards, so it's a handful of indexed reads.
+ */
+export const getPartnerLikedNames = query({
+  args: {
+    nameIds: v.array(v.id('names')),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user || !user.partnerId) return [];
+
+    const partnerId = user.partnerId;
+    const ids = args.nameIds.slice(0, BULK_SELECTION_LIMIT);
+
+    const results = await Promise.all(
+      ids.map(async (nameId) => {
+        const sel = await ctx.db
+          .query('selections')
+          .withIndex('by_user_name', (q) => q.eq('userId', partnerId).eq('nameId', nameId))
+          .first();
+        return sel?.selectionType === 'like' ? nameId : null;
+      }),
+    );
+
+    return results.filter((id): id is Id<'names'> => id !== null);
   },
 });
 

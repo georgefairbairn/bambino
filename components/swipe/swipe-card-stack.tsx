@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { trackEvent, Events } from '@/lib/analytics';
 import { decodeConvexError } from '@/lib/convex-errors';
 import { api } from '@/convex/_generated/api';
-import { Doc } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import { SwipeCard } from './swipe-card';
 import { SwipeActionButtons, SWIPE_ACTION_BUTTONS_HEIGHT } from './swipe-action-buttons';
 import { EmptyState } from './empty-state';
@@ -125,6 +125,22 @@ export function SwipeCardStack({
     nextName ? { name: nextName.name, gender: nextName.gender } : 'skip',
   );
 
+  // Optimistic match detection: which of the rendered top cards has the
+  // partner ALREADY liked? A right swipe on one of those is a guaranteed
+  // match, so the banner can show instantly instead of waiting for the
+  // recordSelection round-trip. Reactive + bounded to the two rendered cards.
+  const renderedNameIds = useMemo(
+    () => [topName?._id, nextName?._id].filter((id): id is Id<'names'> => !!id),
+    [topName?._id, nextName?._id],
+  );
+  const partnerLikedIds = useQuery(
+    api.selections.getPartnerLikedNames,
+    renderedNameIds.length > 0 ? { nameIds: renderedNameIds } : 'skip',
+  );
+  const partnerLikedSet = useMemo(() => new Set(partnerLikedIds ?? []), [partnerLikedIds]);
+  const partnerLikedSetRef = useRef(partnerLikedSet);
+  partnerLikedSetRef.current = partnerLikedSet;
+
   // Append newly-eligible names from the reactive query to localQueue. The
   // query re-runs on every swipe (and whenever selections change), returning
   // the current eligible set minus already-seen names; we append only the
@@ -173,6 +189,19 @@ export function SwipeCardStack({
       const currentName = queue[0];
       if (!currentName) return;
 
+      // Optimistic match: if the partner already liked this name, a right
+      // swipe is a guaranteed match — surface the banner immediately instead
+      // of waiting for the recordSelection round-trip. The server still runs
+      // below to persist the like + create the match row; we reconcile if it
+      // disagrees (rare: partner un-liked in the window, or swipe rejected).
+      const optimisticMatch =
+        selectionType === 'like' && partnerLikedSetRef.current.has(currentName._id);
+      if (optimisticMatch) {
+        setMatchToastName(currentName.name);
+        setShowMatchToast(true);
+        trackEvent(Events.MATCH_FOUND);
+      }
+
       // Optimistic update - remove from queue
       setLocalQueue((prev) => prev.slice(1));
 
@@ -187,6 +216,7 @@ export function SwipeCardStack({
         if (result && 'error' in result) {
           setShowPaywall(true);
           setLocalQueue((prev) => [currentName, ...prev]);
+          if (optimisticMatch) setShowMatchToast(false);
           return;
         }
 
@@ -195,15 +225,23 @@ export function SwipeCardStack({
 
         // Check if we got a match
         if (result.match && result.match.name) {
-          const matchName = result.match.name as Doc<'names'>;
-          setMatchToastName(matchName.name);
-          setShowMatchToast(true);
-          trackEvent(Events.MATCH_FOUND);
+          // Server confirmed it — surface now only if the optimistic check
+          // didn't already (e.g. the prediction query hadn't caught up).
+          if (!optimisticMatch) {
+            const matchName = result.match.name as Doc<'names'>;
+            setMatchToastName(matchName.name);
+            setShowMatchToast(true);
+            trackEvent(Events.MATCH_FOUND);
+          }
+        } else if (optimisticMatch) {
+          // Predicted a match but the server disagreed — retract the banner.
+          setShowMatchToast(false);
         }
       } catch (error: unknown) {
         Sentry.captureException(error);
         // Roll back the optimistic removal so the card returns to the queue.
         setLocalQueue((prev) => [currentName, ...prev]);
+        if (optimisticMatch) setShowMatchToast(false);
         const { message } = decodeConvexError(error, 'Something went wrong. Please try again.');
         setErrorToastMessage(message);
         setShowErrorToast(true);
