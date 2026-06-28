@@ -278,6 +278,8 @@ export const recordSelection = mutation({
     selectionType: v.union(v.literal('like'), v.literal('reject'), v.literal('skip')),
   },
   handler: async (ctx, args) => {
+    // TEMP timing instrumentation (match-latency diagnosis) — remove once done.
+    const t0 = Date.now();
     let user = await getCurrentUserOrThrow(ctx);
     // Backfill running counters BEFORE any mutation runs — otherwise the
     // backfill's post-mutation collect would double-count this write (#183).
@@ -375,6 +377,9 @@ export const recordSelection = mutation({
 
       if (args.selectionType === 'like' && user.partnerId) {
         const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
+        console.log(
+          `[recordSelection] path=existing matched=${!!match} elapsedMs=${Date.now() - t0}`,
+        );
         return { selectionId: existingSelection._id, match };
       }
 
@@ -426,6 +431,7 @@ export const recordSelection = mutation({
 
     if (args.selectionType === 'like' && user.partnerId) {
       const match = await checkForMatchAndCreate(ctx, args.nameId, user._id, user.partnerId);
+      console.log(`[recordSelection] path=new matched=${!!match} elapsedMs=${Date.now() - t0}`);
       return { selectionId, match };
     }
 
