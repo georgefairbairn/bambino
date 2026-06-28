@@ -56,7 +56,7 @@ export function DeclineSheet({ visible, nameName, onDecline, onClose }: DeclineS
         <View style={styles.buttons}>
           <Pressable style={styles.declineButton} onPress={handleDecline} disabled={isDeclining}>
             {isDeclining ? (
-              <ActivityIndicator size="small" color="#6B5B7B" />
+              <ActivityIndicator size="small" color="#FF6B6B" />
             ) : (
               <Text style={styles.declineButtonText}>Decline</Text>
             )}
@@ -120,13 +120,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#FFF0F0',
+    borderWidth: 1.5,
+    borderColor: '#FF6B6B',
   },
   declineButtonText: {
     fontSize: 16,
     fontFamily: Fonts?.sans,
     fontWeight: '600',
-    color: '#6B5B7B',
+    color: '#FF6B6B',
   },
   cancelButton: {
     alignItems: 'center',

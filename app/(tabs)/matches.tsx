@@ -17,7 +17,6 @@ import {
   MatchCard,
   MatchesHeader,
   ProposalBanner,
-  DeclinedBanner,
   ProposeSheet,
   ProposalConflictSheet,
   DeclineSheet,
@@ -100,7 +99,6 @@ export default function Matches() {
   const chosenName = useQuery(api.matches.getChosenName);
   const currentUser = useQuery(api.users.getCurrentUser);
   const pendingProposal = useQuery(api.matches.getPendingProposal);
-  const declinedProposal = useQuery(api.matches.getDeclinedProposal);
 
   // Close the report sheet if the proposal it targets disappears (partner
   // withdrew/accepted, or unlinked) so it can't act on a stale match. (#185)
@@ -131,7 +129,7 @@ export default function Matches() {
   const proposeNameMutation = useMutation(api.matches.proposeName);
   const respondToProposalMutation = useMutation(api.matches.respondToProposal);
   const withdrawProposalMutation = useMutation(api.matches.withdrawProposal);
-  const dismissDeclinedProposalMutation = useMutation(api.matches.dismissDeclinedProposal);
+  const clearChosenNameMutation = useMutation(api.matches.clearChosenName);
 
   // Task 13: Trigger celebration for proposer when partner accepts
   useEffect(() => {
@@ -220,14 +218,29 @@ export default function Matches() {
     [pendingProposal, respondToProposalMutation],
   );
 
-  const handleDismissDeclined = useCallback(async () => {
-    if (!declinedProposal) return;
-    try {
-      await dismissDeclinedProposalMutation({ matchId: declinedProposal._id });
-    } catch (error) {
-      alertMatchMutationError(error, 'Could not dismiss this.');
-    }
-  }, [declinedProposal, dismissDeclinedProposalMutation]);
+  const handleClearChosen = useCallback(() => {
+    if (!chosenName || !chosenName.name) return;
+    const nameName = chosenName.name.name;
+    Alert.alert(
+      'Clear Chosen Name?',
+      `"${nameName}" will no longer be marked as your chosen name. You can choose a name again anytime.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearChosenNameMutation();
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch (error) {
+              alertMatchMutationError(error, 'Could not clear the chosen name.');
+            }
+          },
+        },
+      ],
+    );
+  }, [chosenName, clearChosenNameMutation]);
 
   const handleWithdrawProposal = useCallback(
     async (matchId: Id<'matches'>, nameName: string) => {
@@ -291,7 +304,7 @@ export default function Matches() {
           currentUserId={currentUser?._id}
           onPress={() => setSelectedMatch(item)}
           onPropose={
-            !item.isChosen && item.proposalStatus !== 'pending' && !pendingProposal
+            !item.isChosen && item.proposalStatus !== 'pending' && !pendingProposal && !chosenName
               ? () => setProposeTarget(item)
               : undefined
           }
@@ -303,7 +316,7 @@ export default function Matches() {
         />
       </Animated.View>
     ),
-    [handleWithdrawProposal, currentUser?._id, pendingProposal],
+    [handleWithdrawProposal, currentUser?._id, pendingProposal, chosenName],
   );
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
@@ -495,16 +508,6 @@ export default function Matches() {
           />
         )}
 
-        {/* Declined proposal banner — shown to the proposer */}
-        {declinedProposal && declinedProposal.name && (
-          <DeclinedBanner
-            declinerName={declinedProposal.declinerName}
-            nameName={declinedProposal.name.name}
-            message={declinedProposal.declineMessage}
-            onDismiss={handleDismissDeclined}
-          />
-        )}
-
         {/* Chosen name banner */}
         {chosenName && chosenName.name && (
           <View
@@ -513,13 +516,22 @@ export default function Matches() {
               { backgroundColor: colors.secondaryLight, borderColor: colors.secondary },
             ]}
           >
-            <Ionicons name="trophy" size={20} color={colors.primary} />
+            <Ionicons name="star" size={20} color={colors.primary} />
             <Text style={[styles.chosenBannerText, { color: colors.tabActive }]}>
               Chosen:{' '}
               <Text style={[styles.chosenName, { color: colors.tabActive }]}>
                 {chosenName.name.name}
               </Text>
             </Text>
+            <Pressable
+              style={styles.chosenClearButton}
+              onPress={handleClearChosen}
+              hitSlop={8}
+              accessibilityLabel="Clear chosen name"
+              accessibilityRole="button"
+            >
+              <Text style={[BUTTON_TEXT.link, { color: colors.tabActive }]}>Clear</Text>
+            </Pressable>
           </View>
         )}
 
@@ -540,6 +552,25 @@ export default function Matches() {
           name={selectedMatch?.name ?? null}
           context="match"
           onClose={() => setSelectedMatch(null)}
+          onPropose={
+            selectedMatch &&
+            !selectedMatch.isChosen &&
+            selectedMatch.proposalStatus !== 'pending' &&
+            !pendingProposal &&
+            !chosenName
+              ? () => {
+                  const target = selectedMatch;
+                  setSelectedMatch(null);
+                  setProposeTarget(target);
+                }
+              : undefined
+          }
+          proposeLabel={selectedMatch?.proposalStatus === 'declined' ? 'Re-propose' : 'Propose'}
+          declineMessage={
+            selectedMatch?.proposalStatus === 'declined'
+              ? (selectedMatch.declineMessage ?? undefined)
+              : undefined
+          }
         />
 
         {/* Propose sheet */}
@@ -615,6 +646,14 @@ const styles = StyleSheet.create({
   },
   chosenName: {
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
+  },
+  chosenClearButton: {
+    position: 'absolute',
+    right: 8,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
   },
   emptyContainer: {
     flex: 1,
