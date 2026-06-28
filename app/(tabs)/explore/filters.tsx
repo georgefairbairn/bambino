@@ -150,12 +150,11 @@ export default function Filters() {
   }
   const displayCount = nameCount ?? lastCount.current;
 
-  // Counter sublabel
-  const isAllOrigins = originFilter === null;
-  const originCount = originFilter?.length ?? 0;
-  const counterSub = isAllOrigins
-    ? 'All origins'
-    : `${originCount} origin${originCount !== 1 ? 's' : ''} selected`;
+  // Counter sublabel — "no filters" only when nothing narrows the list:
+  // gender Both, all origins (null), and all categories (null).
+  const hasActiveFilter =
+    genderFilter !== 'both' || originFilter !== null || categoryFilter !== null;
+  const counterSub = hasActiveFilter ? 'Filters applied' : 'No filters applied';
 
   return (
     <GradientBackground>
@@ -170,6 +169,34 @@ export default function Filters() {
           </Pressable>
           <Text style={styles.title}>Filters</Text>
           <View style={styles.spacer} />
+        </View>
+
+        {/* Pinned names counter — stays visible while the filters scroll below */}
+        <View style={styles.pinnedCounter}>
+          <View
+            style={[
+              styles.counterCard,
+              {
+                backgroundColor: colors.surfaceSubtle,
+                borderColor: colors.border,
+                shadowColor: colors.secondary,
+              },
+            ]}
+          >
+            <View>
+              <Text style={styles.counterLabel}>Names available</Text>
+              <Text style={styles.counterSub}>{counterSub}</Text>
+            </View>
+            {displayCount !== undefined ? (
+              <SlotCounter
+                value={displayCount}
+                fontSize={28}
+                textStyle={[styles.counterNum, { color: colors.primary }]}
+              />
+            ) : (
+              <Text style={[styles.counterNum, { color: colors.primary }]}>—</Text>
+            )}
+          </View>
         </View>
 
         {/* Scrollable content */}
@@ -199,32 +226,6 @@ export default function Filters() {
               </Pressable>
             </View>
           )}
-
-          {/* Names counter card */}
-          <View
-            style={[
-              styles.counterCard,
-              {
-                backgroundColor: colors.surfaceSubtle,
-                borderColor: colors.border,
-                shadowColor: colors.secondary,
-              },
-            ]}
-          >
-            <View>
-              <Text style={styles.counterLabel}>Names available</Text>
-              <Text style={styles.counterSub}>{counterSub}</Text>
-            </View>
-            {displayCount !== undefined ? (
-              <SlotCounter
-                value={displayCount}
-                fontSize={28}
-                textStyle={[styles.counterNum, { color: colors.primary }]}
-              />
-            ) : (
-              <Text style={[styles.counterNum, { color: colors.primary }]}>—</Text>
-            )}
-          </View>
 
           {/* Gender filter */}
           <View style={styles.section}>
@@ -277,6 +278,11 @@ const styles = StyleSheet.create({
   },
   spacer: {
     width: 40,
+  },
+  pinnedCounter: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
   scrollView: {
     flex: 1,
