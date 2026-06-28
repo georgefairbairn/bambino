@@ -346,6 +346,8 @@ export default function Profile() {
       <ScrollView
         ref={scrollRef}
         style={styles.scrollView}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: 120,
