@@ -5,8 +5,9 @@ import {
   Modal,
   Dimensions,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
+  View,
+  type KeyboardEvent,
   type ViewStyle,
 } from 'react-native';
 import Animated, {
@@ -39,6 +40,11 @@ export function AnimatedBottomSheet({
 }: AnimatedBottomSheetProps) {
   const backdropOpacity = useSharedValue(0);
   const sheetTranslateY = useSharedValue(SCREEN_HEIGHT);
+  // Lift the sheet above the keyboard manually. KeyboardAvoidingView is
+  // unreliable inside a <Modal> on iOS (the modal presents in a separate view
+  // controller, so KAV measures the wrong origin and applies no inset), which
+  // left action buttons hidden behind the keyboard on device.
+  const keyboardHeight = useSharedValue(0);
   // Track keyboard visibility so a tap outside the sheet collapses the keyboard
   // first (keeping the sheet open and any typed text), instead of closing the
   // sheet. Without this, with a multiline input up there's no way to dismiss
@@ -46,13 +52,31 @@ export function AnimatedBottomSheet({
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    // iOS fires `Will*` events ahead of the keyboard animation, letting the
+    // sheet rise in sync; Android only reliably reports the final frame.
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e: KeyboardEvent) => {
+      setKeyboardVisible(true);
+      keyboardHeight.value = withTiming(e.endCoordinates.height, {
+        duration: e.duration || DURATION,
+        easing: Easing.out(Easing.ease),
+      });
+    });
+    const hideSub = Keyboard.addListener(hideEvent, (e: KeyboardEvent) => {
+      setKeyboardVisible(false);
+      keyboardHeight.value = withTiming(0, {
+        duration: e.duration || DURATION,
+        easing: Easing.out(Easing.ease),
+      });
+    });
     return () => {
       showSub.remove();
       hideSub.remove();
     };
-  }, []);
+    // keyboardHeight is a stable useSharedValue ref; omitted from deps.
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (visible) {
@@ -103,7 +127,7 @@ export function AnimatedBottomSheet({
   }));
 
   const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: sheetTranslateY.value }],
+    transform: [{ translateY: sheetTranslateY.value - keyboardHeight.value }],
   }));
 
   // Reset values when modal becomes invisible to prepare for next open
@@ -111,16 +135,14 @@ export function AnimatedBottomSheet({
     if (!visible) {
       backdropOpacity.value = 0;
       sheetTranslateY.value = SCREEN_HEIGHT;
+      keyboardHeight.value = 0;
     }
-    // backdropOpacity & sheetTranslateY are stable useSharedValue refs; omitted from deps.
+    // shared values are stable useSharedValue refs; omitted from deps.
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Modal visible={visible} transparent statusBarTranslucent onRequestClose={animateOut}>
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <View style={styles.overlay}>
         <Animated.View style={[styles.backdrop, backdropStyle]} pointerEvents="none" />
 
         <Pressable
@@ -140,7 +162,7 @@ export function AnimatedBottomSheet({
         >
           {children}
         </Animated.View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
