@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, TextInput, StyleSheet, Keyboard } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAction } from 'convex/react';
@@ -43,6 +43,7 @@ export function FeedbackSection() {
 
   const handleSubmit = useCallback(async () => {
     if (!category || !message.trim()) return;
+    Keyboard.dismiss();
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
