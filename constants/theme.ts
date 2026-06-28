@@ -3,7 +3,7 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-import { Platform } from 'react-native';
+import { Platform, type TextStyle } from 'react-native';
 
 export type ThemeKey = 'pink' | 'mint' | 'blue' | 'yellow';
 
@@ -195,3 +195,25 @@ export const Fonts = Platform.select({
     title: 'Gabarito_800ExtraBold',
   },
 });
+
+/**
+ * Canonical button-label typography. Buttons must read as one design language,
+ * so all tappable labels share the system `sans` family and a fixed weight —
+ * color/background carry state (selected, variant), never the font family or weight.
+ *
+ * Spread a token into a label's style and set color at the call site:
+ *   <Text style={[BUTTON_TEXT.cta, { color: '#fff' }]}>…</Text>
+ *
+ * Override `fontSize` only where a layout is genuinely space-constrained
+ * (e.g. a compact 3-up segmented control); keep family and weight intact.
+ */
+export const BUTTON_TEXT: Record<'cta' | 'pill' | 'link' | 'badge', TextStyle> = {
+  /** Full-width primary / secondary / danger calls-to-action. */
+  cta: { fontFamily: Fonts?.sans, fontSize: 16, fontWeight: '600' },
+  /** Segmented controls, filter chips, and tab labels. */
+  pill: { fontFamily: Fonts?.sans, fontSize: 14, fontWeight: '600' },
+  /** Inline text links ("Forgot password?", "Cancel"). */
+  link: { fontFamily: Fonts?.sans, fontSize: 14, fontWeight: '600' },
+  /** Small status badges and counters. */
+  badge: { fontFamily: Fonts?.sans, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
+};

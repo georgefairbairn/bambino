@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 type YearRange = '20' | '50' | 'all';
@@ -28,9 +28,7 @@ export function YearRangeSelector({ selected, onSelect }: YearRangeSelectorProps
             style={[styles.pill, isActive && { backgroundColor: colors.primaryLight }]}
             onPress={() => onSelect(option.value)}
           >
-            <Text
-              style={[styles.pillText, isActive && { color: colors.primary, fontWeight: '600' }]}
-            >
+            <Text style={[styles.pillText, isActive && { color: colors.primary }]}>
               {option.label}
             </Text>
           </Pressable>
@@ -53,8 +51,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   pillText: {
-    fontSize: 12,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.pill,
+    fontSize: 12, // compact 3-up control; keep tight to avoid overflow
     color: '#6B5B7B', // textSecondary
   },
 });

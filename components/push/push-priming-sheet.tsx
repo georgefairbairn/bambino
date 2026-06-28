@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 
@@ -109,9 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   allowButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
+    ...BUTTON_TEXT.cta,
     color: '#fff',
   },
   dismissButton: {
@@ -119,9 +117,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
   },
-  dismissButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-  },
+  dismissButtonText: BUTTON_TEXT.cta,
 });

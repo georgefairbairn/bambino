@@ -6,7 +6,7 @@ import { useAction } from 'convex/react';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
 import { decodeConvexError } from '@/lib/convex-errors';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { GradientButton } from '@/components/ui/gradient-button';
 
@@ -230,9 +230,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   categoryLabel: {
-    fontSize: 11,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
+    ...BUTTON_TEXT.pill,
+    fontSize: 11, // 3-up row with long labels; keep tight to avoid wrapping
     textAlign: 'center',
   },
   textInput: {

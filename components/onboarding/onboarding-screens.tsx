@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { Events, trackEvent } from '@/lib/analytics';
 import { WelcomeSplash } from './welcome-splash';
@@ -158,9 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaText: {
-    fontSize: 15,
-    fontWeight: '700',
+    ...BUTTON_TEXT.cta,
     color: '#FFFFFF',
-    fontFamily: Fonts?.sans,
   },
 });

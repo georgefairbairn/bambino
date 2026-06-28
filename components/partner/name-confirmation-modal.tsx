@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
@@ -198,7 +198,7 @@ export function NameConfirmationModal({
           {isConfirming ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={styles.confirmButtonText}>{mode === 'edit' ? 'Save' : 'Looks Good!'}</Text>
+            <Text style={styles.confirmButtonText}>{mode === 'edit' ? 'Save' : 'Looks Good'}</Text>
           )}
         </Pressable>
 
@@ -320,8 +320,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   confirmButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
+    ...BUTTON_TEXT.cta,
     color: '#fff',
   },
   buttonDisabled: {

@@ -1,5 +1,5 @@
 import { View, Text, Switch, Pressable, StyleSheet } from 'react-native';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 interface CategoryToggleRowProps {
@@ -19,7 +19,7 @@ export function CategoryToggleRow({ label, isActive, onToggle }: CategoryToggleR
       accessibilityLabel={label}
       style={[styles.row, { shadowColor: colors.secondary }]}
     >
-      <Text style={[styles.name, isActive && styles.nameActive]}>{label}</Text>
+      <Text style={styles.name}>{label}</Text>
       {/* Visual indicator only. The row Pressable owns the tap; without this the
           Switch's own onValueChange fired alongside the row press, double-firing
           onToggle and reverting the change (#191). pointerEvents="none" lets
@@ -50,14 +50,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   name: {
+    ...BUTTON_TEXT.pill,
     flex: 1,
     marginRight: 12,
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
     color: '#2D1B4E',
-    fontWeight: '500',
-  },
-  nameActive: {
-    fontWeight: '700',
   },
 });

@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation } from 'convex/react';
 import { Image } from 'expo-image';
 import { api } from '@/convex/_generated/api';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { Paywall } from '@/components/paywall';
 import * as Sentry from '@sentry/react-native';
 import { useTheme } from '@/contexts/theme-context';
@@ -352,10 +352,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.cta,
     color: '#ffffff',
-    fontWeight: '600',
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -402,8 +400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.link,
     color: '#6B5B7B',
   },
 });
