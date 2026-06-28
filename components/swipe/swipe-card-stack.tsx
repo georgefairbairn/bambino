@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
@@ -12,6 +13,7 @@ import { SwipeActionButtons, SWIPE_ACTION_BUTTONS_HEIGHT } from './swipe-action-
 import { EmptyState } from './empty-state';
 import { MatchToast } from '@/components/matches/match-toast';
 import { FilterNudgeBanner } from './filter-nudge-banner';
+import { ListenHintBanner } from './listen-hint-banner';
 import { ErrorToast } from '@/components/ui/error-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
@@ -31,6 +33,10 @@ interface SwipeCardStackProps {
   nudgeBannerVisible?: boolean;
   onNudgeBannerPress?: () => void;
 }
+
+// One-time flag: the silent-mode listen hint is shown on the user's first-ever
+// tap of the Listen button, then never again.
+const LISTEN_HINT_SEEN_KEY = 'bambino_listen_hint_seen';
 
 export function SwipeCardStack({
   onSwipeResult,
@@ -106,8 +112,20 @@ export function SwipeCardStack({
   );
   const [hintEligible, setHintEligible] = useState(true);
   const [showPushPriming, setShowPushPriming] = useState(false);
+  const [showListenHint, setShowListenHint] = useState(false);
 
   const { shouldPrime, markAsked, markDismissed } = usePushPriming();
+
+  // Show the silent-mode hint once, the first time the user taps Listen.
+  const handleListenPress = useCallback(async () => {
+    try {
+      if (await AsyncStorage.getItem(LISTEN_HINT_SEEN_KEY)) return;
+      setShowListenHint(true);
+      await AsyncStorage.setItem(LISTEN_HINT_SEEN_KEY, 'true');
+    } catch {
+      // Non-fatal: if storage is unavailable, just skip the hint.
+    }
+  }, []);
   const requestPermission = usePushRequestPermission();
   const { needsButtons, reduceMotion } = useA11yPreferences();
 
@@ -282,6 +300,7 @@ export function SwipeCardStack({
             onSwipeLeft={() => handleSelection('reject')}
             onSwipeRight={() => handleSelection('like')}
             onDetailPress={() => setShowDetailModal(true)}
+            onListenPress={index === 0 ? handleListenPress : undefined}
           />
         ))}
       </View>
@@ -299,6 +318,9 @@ export function SwipeCardStack({
 
       {/* Filter-discovery nudge banner (same drop-down family as MatchToast) */}
       <FilterNudgeBanner visible={nudgeBannerVisible} onPress={onNudgeBannerPress ?? (() => {})} />
+
+      {/* One-time silent-mode hint on first Listen tap (same drop-down family) */}
+      <ListenHintBanner visible={showListenHint} onDismiss={() => setShowListenHint(false)} />
 
       {/* Subsequent match toast */}
       <MatchToast

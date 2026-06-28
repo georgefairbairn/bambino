@@ -42,6 +42,9 @@ interface SwipeCardProps {
   onSwipeRight?: () => void;
   onSwipeComplete?: (direction: 'left' | 'right') => void;
   onDetailPress?: () => void;
+  /** Fired when the user taps the Listen (pronounce) button to start speech.
+   *  The parent uses this to show the one-time silent-mode hint. */
+  onListenPress?: () => void;
   swipeEnabled?: boolean;
   detailOpen?: boolean;
   /** Override the default card height. Used when accessibility buttons need
@@ -97,6 +100,7 @@ export function SwipeCard({
   onSwipeRight,
   onSwipeComplete,
   onDetailPress,
+  onListenPress,
   swipeEnabled = true,
   detailOpen = false,
   cardHeight,
@@ -370,6 +374,9 @@ export function SwipeCard({
         return;
       }
 
+      // First-listen silent-mode hint (parent shows it once, then persists).
+      onListenPress?.();
+
       const voice = await getBestVoice();
       setIsSpeaking(true);
       Speech.speak(name.name, {
@@ -385,7 +392,7 @@ export function SwipeCard({
       setIsSpeaking(false);
       Alert.alert('Speech Unavailable', 'Unable to pronounce this name right now.');
     }
-  }, [name.name, getBestVoice]);
+  }, [name.name, getBestVoice, onListenPress]);
 
   return (
     <GestureDetector gesture={panGesture}>
