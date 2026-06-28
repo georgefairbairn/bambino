@@ -5,12 +5,11 @@ import { useTheme } from '@/contexts/theme-context';
 
 interface OriginToggleRowProps {
   origin: string;
-  count: number;
   isActive: boolean;
   onToggle: () => void;
 }
 
-export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginToggleRowProps) {
+export function OriginToggleRow({ origin, isActive, onToggle }: OriginToggleRowProps) {
   const { colors } = useTheme();
 
   return (
@@ -18,15 +17,12 @@ export function OriginToggleRow({ origin, count, isActive, onToggle }: OriginTog
       onPress={onToggle}
       accessibilityRole="switch"
       accessibilityState={{ checked: isActive }}
-      accessibilityLabel={`${origin}, ${count.toLocaleString()} ${count === 1 ? 'name' : 'names'}`}
+      accessibilityLabel={origin}
       style={[styles.row, { shadowColor: colors.secondary }]}
     >
       <View style={styles.textContainer}>
         <Text style={[styles.name, isActive && styles.nameActive]}>
           {getOriginFlag(origin)} {origin}
-        </Text>
-        <Text style={styles.count}>
-          {count.toLocaleString()} {count === 1 ? 'name' : 'names'}
         </Text>
       </View>
       {/* Visual indicator only. The row Pressable owns the tap; without this the
@@ -70,11 +66,5 @@ const styles = StyleSheet.create({
   },
   nameActive: {
     fontWeight: '700',
-  },
-  count: {
-    fontSize: 10,
-    fontFamily: Fonts?.sans,
-    color: '#A89BB5',
-    marginTop: 2,
   },
 });

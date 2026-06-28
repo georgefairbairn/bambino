@@ -113,7 +113,6 @@ export function OriginToggleList({ value, onChange, genderFilter }: OriginToggle
             <OriginToggleRow
               key={origin}
               origin={origin}
-              count={originCounts[origin] ?? 0}
               isActive={isOriginActive(origin)}
               onToggle={() => handleToggleOrigin(origin)}
             />
