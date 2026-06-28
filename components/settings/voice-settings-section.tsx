@@ -198,7 +198,7 @@ export function VoiceSettingsSection() {
 
           {/* Info note */}
           <View style={[styles.infoNote, { backgroundColor: colors.surfaceSubtle }]}>
-            <Ionicons name="information-circle" size={20} color="#FFB86C" />
+            <Ionicons name="information-circle-outline" size={20} color="#6B5B7B" />
             <Text style={styles.infoNoteText}>
               If you cannot hear the voice, make sure your device is not on silent mode. On iOS,
               also check that Spoken Content is enabled (Settings → Accessibility → Spoken Content).
