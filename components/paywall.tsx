@@ -35,7 +35,10 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
   const [showCelebration, setShowCelebration] = useState(false);
 
   const hasPackages = packages.length > 0;
-  const price = packages[0]?.product.priceString ?? '$4.99';
+  // No hardcoded fallback: priceString is region-localized (e.g. CA$6.99),
+  // so a hardcoded "$4.99" would show a wrong US-dollar figure to non-US
+  // users until offerings load. Show no price until the real one resolves.
+  const price = packages[0]?.product.priceString;
 
   useEffect(() => {
     if (visible) trackEvent(Events.PAYWALL_SHOWN, { trigger });
@@ -138,7 +141,7 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
             </View>
           ) : (
             <GradientButton
-              title={`Unlock Premium - ${price}`}
+              title={price ? `Unlock Premium - ${price}` : 'Unlock Premium'}
               onPress={handlePurchase}
               loading={isPurchasing}
               disabled={isPurchasing || isLoading}
