@@ -768,7 +768,7 @@ export default function Dashboard() {
       </Text>
       <Text style={styles.emptyDescription}>
         {activeTab === 'liked'
-          ? "Swipe right on names you love — they'll land right here!"
+          ? "Swipe right on names you love and they'll land right here!"
           : 'Names you swipe left on will appear here.'}
       </Text>
       <Pressable
@@ -832,7 +832,7 @@ export default function Dashboard() {
               <View style={styles.gatedIconRow}>
                 <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
                 <Text style={[styles.gatedText, { color: colors.textSecondary }]}>
-                  +{gatedCount} more name{gatedCount !== 1 ? 's' : ''} — upgrade to view all
+                  +{gatedCount} more name{gatedCount !== 1 ? 's' : ''}. Upgrade to view all
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />

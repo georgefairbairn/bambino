@@ -358,7 +358,7 @@ export const regenerateShareCode = mutation({
     if (user.partnerId) {
       throw convexError(
         'PARTNER_ALREADY_LINKED',
-        'You already have a partner — share code is no longer needed',
+        'You already have a partner, so the share code is no longer needed',
       );
     }
 

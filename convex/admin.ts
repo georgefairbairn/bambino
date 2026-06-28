@@ -488,7 +488,7 @@ export const seedAppReviewDemo = internalMutation({
     if (sortedMatches[0]) {
       await ctx.db.patch(sortedMatches[0]._id, {
         isFavorite: true,
-        notes: 'Love this one — strong and classic.',
+        notes: 'Love this one, strong and classic.',
         rank: 1,
         updatedAt: Date.now(),
       });
