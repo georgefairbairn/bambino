@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, Text, View, StyleSheet } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Fonts, Gradients as DefaultGradients } from '@/constants/theme';
+import { BUTTON_TEXT, Gradients as DefaultGradients } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
@@ -106,9 +106,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   gradientText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
+    ...BUTTON_TEXT.cta,
     color: '#ffffff',
   },
   secondaryButton: {
@@ -119,11 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1.5,
   },
-  secondaryText: {
-    fontSize: 16,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-  },
+  secondaryText: BUTTON_TEXT.cta,
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',

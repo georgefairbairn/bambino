@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { api } from '@/convex/_generated/api';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Events, trackEvent, trackScreen } from '@/lib/analytics';
@@ -666,8 +666,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   ctaButtonText: {
-    fontSize: 15,
-    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
+    ...BUTTON_TEXT.cta,
     color: '#fff',
   },
 });

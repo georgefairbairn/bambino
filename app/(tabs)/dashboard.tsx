@@ -27,7 +27,7 @@ import { SearchResultCard } from '@/components/dashboard/search-result-card';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
 import { Paywall } from '@/components/paywall';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { trackScreen } from '@/lib/analytics';
 import { decodeConvexError } from '@/lib/convex-errors';
@@ -1027,12 +1027,7 @@ function TabBar({ activeTab, onTabChange }: TabBarProps) {
           size={20}
           color={activeTab === 'liked' ? colors.primary : '#6B5B7B'}
         />
-        <Text
-          style={[
-            styles.tabText,
-            activeTab === 'liked' && { color: colors.primary, fontWeight: '600' as const },
-          ]}
-        >
+        <Text style={[styles.tabText, activeTab === 'liked' && { color: colors.primary }]}>
           Liked
         </Text>
       </Pressable>
@@ -1045,12 +1040,7 @@ function TabBar({ activeTab, onTabChange }: TabBarProps) {
           size={20}
           color={activeTab === 'rejected' ? colors.primary : '#6B5B7B'}
         />
-        <Text
-          style={[
-            styles.tabText,
-            activeTab === 'rejected' && { color: colors.primary, fontWeight: '600' as const },
-          ]}
-        >
+        <Text style={[styles.tabText, activeTab === 'rejected' && { color: colors.primary }]}>
           Rejected
         </Text>
       </Pressable>
@@ -1086,8 +1076,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tabText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.pill,
     color: '#6B5B7B',
   },
   loadingContainer: {
@@ -1130,8 +1119,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   createButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...BUTTON_TEXT.cta,
     color: '#fff',
   },
   listContent: {
@@ -1166,8 +1154,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   bulkActionText: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...BUTTON_TEXT.cta,
     color: '#fff',
   },
   graceBanner: {

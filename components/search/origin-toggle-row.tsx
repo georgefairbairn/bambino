@@ -1,5 +1,5 @@
 import { View, Text, Switch, Pressable, StyleSheet } from 'react-native';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT } from '@/constants/theme';
 import { getOriginFlag } from '@/constants/origins';
 import { useTheme } from '@/contexts/theme-context';
 
@@ -21,7 +21,7 @@ export function OriginToggleRow({ origin, isActive, onToggle }: OriginToggleRowP
       style={[styles.row, { shadowColor: colors.secondary }]}
     >
       <View style={styles.textContainer}>
-        <Text style={[styles.name, isActive && styles.nameActive]}>
+        <Text style={styles.name}>
           {getOriginFlag(origin)} {origin}
         </Text>
       </View>
@@ -59,12 +59,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   name: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.pill,
     color: '#2D1B4E',
-    fontWeight: '500',
-  },
-  nameActive: {
-    fontWeight: '700',
   },
 });

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePurchases } from '@/hooks/use-purchases';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -276,8 +276,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   restoreButtonText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.link,
     color: '#6B5B7B',
   },
   errorState: {

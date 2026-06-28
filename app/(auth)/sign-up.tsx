@@ -8,7 +8,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { StyledInput } from '@/components/ui/styled-input';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { trackEvent, Events } from '@/lib/analytics';
 import { getClerkErrorMessage, reportClerkError } from '@/lib/clerk-errors';
@@ -203,9 +203,7 @@ export default function SignUp() {
                 setError('');
               }}
             >
-              <Text className="font-semibold" style={{ color: colors.primary }}>
-                Back to Sign Up
-              </Text>
+              <Text style={[BUTTON_TEXT.link, { color: colors.primary }]}>Back to Sign Up</Text>
             </Pressable>
           </Animated.View>
         </Pressable>
@@ -304,9 +302,7 @@ export default function SignUp() {
         >
           <Text className="text-gray-600">Already have an account? </Text>
           <Pressable onPress={() => router.replace('/(auth)/sign-in')}>
-            <Text className="font-semibold" style={{ color: colors.primary }}>
-              Sign In
-            </Text>
+            <Text style={[BUTTON_TEXT.link, { color: colors.primary }]}>Sign In</Text>
           </Pressable>
         </Animated.View>
 

@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { useSkinTone } from '@/contexts/skin-tone-context';
 import { getGenderEmoji } from '@/constants/skin-tone';
@@ -68,12 +68,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   label: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.pill,
     color: '#6B5B7B',
   },
   labelSelected: {
     color: '#2D1B4E',
-    fontWeight: '600',
   },
 });

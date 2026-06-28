@@ -38,7 +38,7 @@ import {
 } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
-import { Fonts } from '@/constants/theme';
+import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
@@ -822,8 +822,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   restoreButtonText: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.link,
     color: '#A89BB5',
   },
   premiumBannerWrap: {
@@ -872,10 +871,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   premiumUpgradeText: {
+    ...BUTTON_TEXT.pill,
     color: '#fff',
-    fontFamily: Fonts?.sans,
-    fontWeight: '700',
-    fontSize: 13,
   },
   premiumActiveRow: {
     borderRadius: 16,
@@ -979,9 +976,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fef2f2',
   },
   unlinkButtonText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
+    ...BUTTON_TEXT.link,
     color: '#ef4444',
   },
   noPartner: {
@@ -1028,11 +1023,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  shareActionText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
-    fontWeight: '600',
-  },
+  shareActionText: BUTTON_TEXT.pill,
   linkPartnerWrap: {
     alignSelf: 'stretch',
   },
@@ -1044,8 +1035,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   deleteAccountText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
+    ...BUTTON_TEXT.link,
     color: '#A89BB5',
   },
 });
