@@ -322,14 +322,28 @@ export function SwipeCard({
       onSwipeHintShown?.();
     }, 10000);
 
+    // Cleanup only clears the pending timer. It must NOT cancel the hint
+    // animations here: firing the hint calls onSwipeHintShown(), which flips
+    // the parent's `showSwipeHint` to false (the once-only guard) and re-runs
+    // this effect — cancelling in cleanup would kill the fade-in the instant
+    // it starts, leaving the hint invisible. Animation teardown is owned by
+    // the detail-open reset effect above and the unmount effect below.
     return () => {
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
-      if (!hintActivatedRef.current) return;
-      cancelAnimation(hintOpacity);
-      cancelAnimation(hintTranslateX);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTop, showSwipeHint, detailOpen]);
+
+  // Cancel the hint animations on unmount so the infinite wiggle doesn't
+  // outlive the card (e.g. once a swipe removes it from the stack).
+  useEffect(
+    () => () => {
+      cancelAnimation(hintOpacity);
+      cancelAnimation(hintTranslateX);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // Hide hint as soon as user starts swiping
   const hintContainerStyle = useAnimatedStyle(() => {
