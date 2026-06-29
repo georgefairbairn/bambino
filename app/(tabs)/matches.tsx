@@ -17,6 +17,7 @@ import {
   MatchCard,
   MatchesHeader,
   ProposalBanner,
+  DeclinedNoteBanner,
   ProposeSheet,
   ProposalConflictSheet,
   DeclineSheet,
@@ -99,6 +100,7 @@ export default function Matches() {
   const chosenName = useQuery(api.matches.getChosenName);
   const currentUser = useQuery(api.users.getCurrentUser);
   const pendingProposal = useQuery(api.matches.getPendingProposal);
+  const declinedNote = useQuery(api.matches.getLatestDeclinedProposal);
 
   // Close the report sheet if the proposal it targets disappears (partner
   // withdrew/accepted, or unlinked) so it can't act on a stale match. (#185)
@@ -130,6 +132,7 @@ export default function Matches() {
   const respondToProposalMutation = useMutation(api.matches.respondToProposal);
   const withdrawProposalMutation = useMutation(api.matches.withdrawProposal);
   const clearChosenNameMutation = useMutation(api.matches.clearChosenName);
+  const dismissDeclinedNoteMutation = useMutation(api.matches.dismissDeclinedNote);
 
   // Task 13: Trigger celebration for proposer when partner accepts
   useEffect(() => {
@@ -241,6 +244,17 @@ export default function Matches() {
       ],
     );
   }, [chosenName, clearChosenNameMutation]);
+
+  // Dismiss the declined-note banner. Non-destructive (the Rejected tag + the
+  // detail note stay), so no confirmation — just hide it.
+  const handleDismissDeclinedNote = useCallback(async () => {
+    if (!declinedNote) return;
+    try {
+      await dismissDeclinedNoteMutation({ matchId: declinedNote.matchId });
+    } catch (error) {
+      alertMatchMutationError(error, 'Could not dismiss the note.');
+    }
+  }, [declinedNote, dismissDeclinedNoteMutation]);
 
   const handleWithdrawProposal = useCallback(
     async (matchId: Id<'matches'>, nameName: string) => {
@@ -533,6 +547,18 @@ export default function Matches() {
               <Text style={[BUTTON_TEXT.link, { color: colors.tabActive }]}>Clear</Text>
             </Pressable>
           </View>
+        )}
+
+        {/* Declined-note banner — proposer's most recent declined proposal.
+            Hidden while a name is chosen or a proposal is pending (those banners
+            take precedence; a pending proposal can't also be the latest declined). */}
+        {!chosenName && !pendingProposal && declinedNote && declinedNote.name && (
+          <DeclinedNoteBanner
+            declinerName={declinedNote.declinerName}
+            nameName={declinedNote.name.name}
+            message={declinedNote.declineMessage}
+            onDismiss={handleDismissDeclinedNote}
+          />
         )}
 
         {/* Match list */}

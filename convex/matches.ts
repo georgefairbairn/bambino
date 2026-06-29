@@ -322,6 +322,9 @@ export const proposeName = mutation({
       proposalStatus: 'pending',
       respondedAt: undefined,
       declineMessage: undefined,
+      // Fresh slate on (re-)propose: any prior decline note + its dismissed
+      // banner state are cleared so a new decline starts clean.
+      declineNoteDismissed: undefined,
       updatedAt: now,
     });
 
@@ -415,11 +418,18 @@ export const respondToProposal = mutation({
       if (match.proposedBy) {
         const name = await ctx.db.get(match.nameId);
         const responderName = user.name ?? 'Your partner';
+        // Signal that a note exists (nudging the proposer into the app to read
+        // it) without putting the raw, unmoderated message on the lock screen —
+        // the note + Report affordance both live in the match detail sheet.
+        const hasNote = !!args.message?.trim();
+        const subject = name ? name.name : 'your suggestion';
 
         await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
           userId: match.proposedBy,
           title: `${responderName} declined your proposal`,
-          body: name ? `They passed on ${name.name}.` : 'They passed on your suggestion.',
+          body: hasNote
+            ? `They passed on ${subject} and left a note.`
+            : `They passed on ${subject}.`,
           data: { type: 'proposal_declined', matchId: args.matchId },
         });
       }
@@ -509,6 +519,70 @@ export const getPendingProposal = query({
       proposerName: proposer?.name ?? 'Your partner',
       isCurrentUserProposer: pendingMatch.proposedBy === user._id,
     };
+  },
+});
+
+// The proposer's declined-note banner. Returns their MOST RECENT proposal (by
+// proposedAt) only when it was declined with a non-empty note and the proposer
+// hasn't dismissed it. Keying on the latest proposal means making a newer
+// proposal automatically supersedes this (the "Waiting for response" banner
+// takes over) and there's only ever one to show. Older declined notes remain
+// in each card's detail sheet. Distinct from the legacy getDeclinedProposal
+// stub below: dismissing here hides the banner but keeps the Rejected tag and
+// the note (both persist until the name is re-proposed).
+export const getLatestDeclinedProposal = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user || !user.partnerId) return null;
+
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+
+    // The latest proposal *I* made, by proposedAt.
+    let latest: Doc<'matches'> | null = null;
+    for (const m of matches) {
+      if (m.proposedBy !== user._id || m.proposedAt === undefined) continue;
+      if (!latest || m.proposedAt > (latest.proposedAt ?? 0)) latest = m;
+    }
+
+    const note = latest?.declineMessage?.trim();
+    if (!latest || latest.proposalStatus !== 'declined' || latest.declineNoteDismissed || !note) {
+      return null;
+    }
+
+    const name = await ctx.db.get(latest.nameId);
+    const decliner = await ctx.db.get(getOtherUserId(latest, user._id));
+
+    return {
+      matchId: latest._id,
+      name,
+      declineMessage: note,
+      declinerName: decliner?.name ?? 'Your partner',
+    };
+  },
+});
+
+// Dismiss the declined-note banner: hides the banner only. The Rejected tag and
+// the detail-sheet note stay until the name is re-proposed (which resets this).
+// Auth-gated + partnership-checked like every other match write.
+export const dismissDeclinedNote = mutation({
+  args: { matchId: v.id('matches') },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) {
+      throw convexError('MATCH_NOT_FOUND', 'Match not found');
+    }
+
+    assertCurrentPartner(user, match);
+
+    await ctx.db.patch(args.matchId, {
+      declineNoteDismissed: true,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true as const };
   },
 });
 

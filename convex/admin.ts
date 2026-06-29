@@ -587,3 +587,109 @@ export const unlinkUsers = internalMutation({
     return { success: true };
   },
 });
+
+// Dev helper: set up the declined-note banner for a proposer so it can be
+// tested end-to-end. Converts one existing match between the proposer and their
+// partner into "proposed by <proposer>, then declined with a note" as the
+// proposer's most recent proposal. Also clears any chosen name / pending
+// proposal in the partnership, since both take banner precedence over the
+// declined-note banner. Run:
+//   npx convex run admin:seedDeclinedNoteDemo '{"proposerEmail":"george5793@gmail.com"}'
+export const seedDeclinedNoteDemo = internalMutation({
+  args: {
+    proposerEmail: v.string(),
+    // Optional: target a specific matched name; defaults to the first match.
+    name: v.optional(v.string()),
+    // Optional: the decline note; defaults to a realistic sample.
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const proposer = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', args.proposerEmail))
+      .unique();
+    if (!proposer) return { error: `Proposer not found: ${args.proposerEmail}` };
+    if (!proposer.partnerId) return { error: `${args.proposerEmail} has no linked partner` };
+
+    const partner = await ctx.db.get(proposer.partnerId);
+    if (!partner) return { error: 'Partner record missing' };
+
+    const [u1, u2] =
+      proposer._id < partner._id ? [proposer._id, partner._id] : [partner._id, proposer._id];
+
+    const matches = await ctx.db
+      .query('matches')
+      .withIndex('by_user1_user2', (q) => q.eq('user1Id', u1).eq('user2Id', u2))
+      .collect();
+    if (matches.length === 0) {
+      return { error: 'No matches between these partners to convert. Create a match first.' };
+    }
+
+    const now = Date.now();
+    const note =
+      args.message ??
+      'Not sure about this one, it reminds me of someone from school. Can we keep looking?';
+
+    // Clear anything that would take banner precedence (chosen name / pending
+    // proposal both hide the declined-note banner).
+    let clearedChosen = 0;
+    let clearedPending = 0;
+    for (const m of matches) {
+      if (m.isChosen) {
+        await ctx.db.patch(m._id, { isChosen: false, updatedAt: now });
+        clearedChosen++;
+      }
+      if (m.proposalStatus === 'pending') {
+        await ctx.db.patch(m._id, {
+          proposedBy: undefined,
+          proposedAt: undefined,
+          proposalMessage: undefined,
+          proposalStatus: undefined,
+          respondedAt: undefined,
+          declineMessage: undefined,
+          declineNoteDismissed: undefined,
+          updatedAt: now,
+        });
+        clearedPending++;
+      }
+    }
+
+    // Pick the target match (by name if provided, else the first one).
+    let target = matches[0];
+    if (args.name) {
+      for (const m of matches) {
+        const nm = await ctx.db.get(m.nameId);
+        if (nm?.name.toLowerCase() === args.name.toLowerCase()) {
+          target = m;
+          break;
+        }
+      }
+    }
+
+    // Make it the proposer's most recent proposal, declined with a note.
+    await ctx.db.patch(target._id, {
+      proposedBy: proposer._id,
+      proposedAt: now,
+      proposalMessage: 'What do you think of this one?',
+      proposalStatus: 'declined',
+      respondedAt: now,
+      declineMessage: note,
+      declineNoteDismissed: undefined,
+      isChosen: false,
+      updatedAt: now,
+    });
+
+    const nameDoc = await ctx.db.get(target.nameId);
+
+    return {
+      ok: true,
+      proposer: proposer.email,
+      proposerName: proposer.name,
+      declinerName: partner.name,
+      declinedName: nameDoc?.name,
+      note,
+      clearedChosen,
+      clearedPending,
+    };
+  },
+});

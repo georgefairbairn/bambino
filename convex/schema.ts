@@ -197,6 +197,10 @@ export default defineSchema({
     ),
     respondedAt: v.optional(v.number()),
     declineMessage: v.optional(v.string()),
+    // Set true when the proposer dismisses the declined-note banner. Hides the
+    // banner only — the Rejected tag and the detail-sheet note persist until
+    // the name is re-proposed (which clears this back to undefined).
+    declineNoteDismissed: v.optional(v.boolean()),
     matchedAt: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
