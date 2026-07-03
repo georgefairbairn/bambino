@@ -179,6 +179,8 @@ export default function SignUp() {
               onChangeText={setCode}
               keyboardType="number-pad"
               maxLength={6}
+              textContentType="oneTimeCode"
+              autoComplete="one-time-code"
             />
           </Animated.View>
 
@@ -242,6 +244,9 @@ export default function SignUp() {
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            textContentType="username"
+            autoComplete="email"
+            autoCorrect={false}
           />
         </Animated.View>
 
@@ -252,6 +257,8 @@ export default function SignUp() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            textContentType="newPassword"
+            autoComplete="new-password"
           />
         </Animated.View>
 

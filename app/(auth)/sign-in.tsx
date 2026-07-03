@@ -224,6 +224,9 @@ export default function SignIn() {
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                textContentType="username"
+                autoComplete="email"
+                autoCorrect={false}
               />
             </Animated.View>
 
@@ -234,6 +237,8 @@ export default function SignIn() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                textContentType="password"
+                autoComplete="password"
               />
             </Animated.View>
 
@@ -317,6 +322,8 @@ export default function SignIn() {
                 value={code}
                 onChangeText={setCode}
                 keyboardType="number-pad"
+                textContentType="oneTimeCode"
+                autoComplete="one-time-code"
               />
             </Animated.View>
 
@@ -360,6 +367,8 @@ export default function SignIn() {
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry
+                textContentType="newPassword"
+                autoComplete="new-password"
               />
             </Animated.View>
 
