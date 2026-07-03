@@ -656,6 +656,7 @@ export const seedDeclinedNoteDemo = internalMutation({
 
     // Pick the target match (by name if provided, else the first one).
     let target = matches[0];
+    if (!target) return { error: 'Proposer has no matches to seed a declined note on' };
     if (args.name) {
       for (const m of matches) {
         const nm = await ctx.db.get(m.nameId);
