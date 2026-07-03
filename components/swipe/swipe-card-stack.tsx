@@ -23,6 +23,7 @@ import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
 import { usePushPriming } from '@/hooks/use-push-priming';
 import { usePushRequestPermission } from '@/hooks/use-push-registration';
+import { useReviewPrompt } from '@/hooks/use-review-prompt';
 
 interface SwipeCardStackProps {
   // Fired once per successfully-recorded swipe. Used by the filter-discovery
@@ -87,6 +88,12 @@ export function SwipeCardStack({
       }
     },
   );
+
+  // Reactive like count → drives the once-ever in-app review prompt (Apple's
+  // native card) after 10 likes. The optimistic update above bumps this in
+  // lockstep with the swipe, so it fires right as the 10th like lands.
+  const selectionStats = useQuery(api.selections.getSelectionStats);
+  useReviewPrompt(selectionStats?.liked);
 
   // Local state for optimistic updates
   const [localQueue, setLocalQueue] = useState<Doc<'names'>[]>([]);
