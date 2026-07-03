@@ -693,3 +693,85 @@ export const seedDeclinedNoteDemo = internalMutation({
     };
   },
 });
+
+// One-off cleanup: delete every user EXCEPT the hardcoded demo/review accounts,
+// cascading their selections, matches, share-code attempts, and feedback rate
+// limits (mirrors users.deleteAccount). The demo allowlist is hardcoded so this
+// can never nuke the App Review accounts. Clerk users are NOT touched — delete
+// those separately in the Clerk dashboard.
+export const deleteUsersExcept = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const KEEP = new Set([
+      'appreview@bambinobaby.xyz',
+      'appreview-partner@bambinobaby.xyz',
+      'appreview-iap@bambinobaby.xyz',
+    ]);
+
+    const users = await ctx.db.query('users').collect();
+    const now = Date.now();
+    const deleted: string[] = [];
+    const kept: string[] = [];
+
+    for (const user of users) {
+      if (KEEP.has(user.email)) {
+        kept.push(user.email);
+        continue;
+      }
+
+      // Unlink the partner this user points to.
+      if (user.partnerId) {
+        const partner = await ctx.db.get(user.partnerId);
+        if (partner) {
+          await ctx.db.patch(partner._id, { partnerId: undefined, updatedAt: now });
+        }
+      }
+      // Unlink anyone pointing back at this user.
+      const pointingBack = await ctx.db
+        .query('users')
+        .withIndex('by_partner_id', (q) => q.eq('partnerId', user._id))
+        .collect();
+      for (const p of pointingBack) {
+        await ctx.db.patch(p._id, { partnerId: undefined, updatedAt: now });
+      }
+
+      // Delete all selections by this user.
+      const selections = await ctx.db
+        .query('selections')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .collect();
+      for (const s of selections) await ctx.db.delete(s._id);
+
+      // Delete all matches involving this user (both canonical sides).
+      const m1 = await ctx.db
+        .query('matches')
+        .withIndex('by_user1', (q) => q.eq('user1Id', user._id))
+        .collect();
+      for (const m of m1) await ctx.db.delete(m._id);
+      const m2 = await ctx.db
+        .query('matches')
+        .withIndex('by_user2', (q) => q.eq('user2Id', user._id))
+        .collect();
+      for (const m of m2) await ctx.db.delete(m._id);
+
+      // Delete rate-limit bookkeeping rows keyed to this user.
+      const attempts = await ctx.db
+        .query('shareCodeAttempts')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .collect();
+      for (const a of attempts) await ctx.db.delete(a._id);
+
+      const limits = await ctx.db
+        .query('feedbackRateLimits')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .collect();
+      for (const l of limits) await ctx.db.delete(l._id);
+
+      // Delete the user record itself.
+      await ctx.db.delete(user._id);
+      deleted.push(user.email);
+    }
+
+    return { deletedCount: deleted.length, keptCount: kept.length, deleted, kept };
+  },
+});
