@@ -17,6 +17,7 @@ import {
   StyleSheet,
   Share,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -203,6 +204,23 @@ export default function Profile() {
       ],
     );
   }, [deleteAccount, signOut, user]);
+
+  const handleRateApp = useCallback(() => {
+    // Opens the App Store straight to Bambino's rating screen (stars only, no
+    // writing required). Deep link rather than SKStoreReviewController: a
+    // settings-row tap must always land on the review UI, and Apple rate-limits
+    // the in-app prompt and discourages triggering it from a button.
+    const nativeUrl = 'itms-apps://apps.apple.com/app/id6773164657?action=write-review';
+    const webUrl = 'https://apps.apple.com/app/id6773164657?action=write-review';
+    Linking.openURL(nativeUrl).catch(() => {
+      // itms-apps:// has no handler (e.g. the iOS Simulator has no App Store) —
+      // fall back to https, which opens the App Store app on a real device and
+      // Safari on the simulator.
+      Linking.openURL(webUrl).catch((err) =>
+        Sentry.captureException(err, { tags: { phase: 'rate_app' } }),
+      );
+    });
+  }, []);
 
   const handleCopyCode = useCallback(async () => {
     if (!partnerInfo?.shareCode) return;
@@ -641,6 +659,18 @@ export default function Profile() {
                 style={{ marginRight: 12 }}
               />
               <Text style={styles.settingsCardTitle}>How It Works</Text>
+              <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
+            </Pressable>
+          </View>
+          <View style={styles.settingsCard}>
+            <Pressable
+              style={styles.settingsCardRow}
+              onPress={handleRateApp}
+              accessibilityRole="button"
+              accessibilityLabel="Rate Bambino"
+            >
+              <Ionicons name="star-outline" size={22} color="#6B5B7B" style={{ marginRight: 12 }} />
+              <Text style={styles.settingsCardTitle}>Rate Bambino</Text>
               <Ionicons name="chevron-forward" size={22} color="#A89BB5" />
             </Pressable>
           </View>
