@@ -149,10 +149,12 @@ describe('partner linking', () => {
 async function seedLinkedPairWithMatches(
   t: ReturnType<typeof convexTest>,
   matchCount: number,
-  isPremium: boolean,
+  isPremium: boolean | { aPremium?: boolean; bPremium?: boolean } = false,
 ) {
-  const aId = await seedUser(t, { clerkId: 'clerk_m_a', isPremium });
-  const bId = await seedUser(t, { clerkId: 'clerk_m_b', isPremium });
+  const aPremium = typeof isPremium === 'boolean' ? isPremium : (isPremium.aPremium ?? false);
+  const bPremium = typeof isPremium === 'boolean' ? isPremium : (isPremium.bPremium ?? false);
+  const aId = await seedUser(t, { clerkId: 'clerk_m_a', isPremium: aPremium });
+  const bId = await seedUser(t, { clerkId: 'clerk_m_b', isPremium: bPremium });
   await t.run(async (ctx) => {
     await ctx.db.patch(aId, { partnerId: bId });
     await ctx.db.patch(bId, { partnerId: aId });
@@ -232,5 +234,56 @@ describe('free tier match visibility', () => {
       .query(api.matches.getMatchAccess, {});
 
     expect(access).toEqual({ total: 0, visible: 0, locked: 0, isPremium: false });
+  });
+
+  // Regression test for finding 1: the no-partner early return must still
+  // reflect the real premium status (a payer without a linked partner was
+  // previously shown isPremium: false).
+  test('getMatchAccess returns isPremium: true for a premium solo user (no partner)', async () => {
+    const t = convexTest(schema, modules);
+    await seedUser(t, { clerkId: 'clerk_premium_solo', isPremium: true });
+
+    const access = await t
+      .withIdentity({ subject: 'clerk_premium_solo' })
+      .query(api.matches.getMatchAccess, {});
+
+    expect(access).toEqual({ total: 0, visible: 0, locked: 0, isPremium: true });
+  });
+
+  // Finding 4 (second case): a premium user who IS linked sees all matches
+  // visible with locked: 0.
+  test('getMatchAccess shows all matches unlocked for a premium linked user', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 5, true);
+
+    const access = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatchAccess, {});
+
+    expect(access).toEqual({ total: 5, visible: 5, locked: 0, isPremium: true });
+  });
+});
+
+// Finding 5: the highest-risk uncovered seam — free user linked to a PREMIUM
+// partner gets full match access via reciprocal premium.
+describe('reciprocal premium match access', () => {
+  test('free user with premium partner sees all matches (getMatches + getMatchAccess)', async () => {
+    const t = convexTest(schema, modules);
+    // clerk_m_a = free, clerk_m_b = premium
+    await seedLinkedPairWithMatches(t, 7, { aPremium: false, bPremium: true });
+
+    // As the FREE side, all 7 matches should be returned by getMatches
+    const matches = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatches, {});
+
+    expect(matches).toHaveLength(7);
+
+    // And getMatchAccess should report isPremium: true with locked: 0
+    const access = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatchAccess, {});
+
+    expect(access).toEqual({ total: 7, visible: 7, locked: 0, isPremium: true });
   });
 });

@@ -195,13 +195,24 @@ export const getMatchAccess = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrNull(ctx);
+
+    // Compute premium status before the early return so a paying user who has
+    // not yet linked a partner still receives isPremium: true (finding 1).
+    const premiumStatus = user
+      ? await getEffectivePremiumStatusHelper(ctx, user._id)
+      : { isPremium: false };
+
     if (!user || !user.partnerId) {
-      return { total: 0, visible: 0, locked: 0, isPremium: false };
+      return { total: 0, visible: 0, locked: 0, isPremium: premiumStatus.isPremium };
     }
 
-    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
     const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
-    const total = matches.length;
+
+    // Align with getMatches: drop rows whose name document is missing so the
+    // total/visible/locked counts agree with what the UI actually renders
+    // (finding 3 — a dangling nameId would otherwise overstate locked).
+    const nameDocs = await Promise.all(matches.map((m) => ctx.db.get(m.nameId)));
+    const total = matches.filter((_, i) => nameDocs[i] !== null).length;
 
     if (premiumStatus.isPremium) {
       return { total, visible: total, locked: 0, isPremium: true };
