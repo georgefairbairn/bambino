@@ -3,6 +3,13 @@ import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { Doc, Id } from './_generated/dataModel';
 import { convexError } from './errors';
+import { getEffectivePremiumStatusHelper } from './premium';
+
+/**
+ * Free couples see their three earliest matches. Earliest — not newest — so
+ * the visible set is stable: a new match never displaces one they've seen.
+ */
+export const FREE_TIER_VISIBLE_MATCHES = 3;
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -110,6 +117,19 @@ export const getMatches = query({
       (m): m is typeof m & { name: NonNullable<typeof m.name> } => m.name !== null,
     );
 
+    // Free tier: withhold everything past the three earliest matches. Applied
+    // before the search filter so a search term can't surface a locked match.
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    if (!premiumStatus.isPremium) {
+      const visibleIds = new Set(
+        [...results]
+          .sort((a, b) => a.matchedAt - b.matchedAt)
+          .slice(0, FREE_TIER_VISIBLE_MATCHES)
+          .map((m) => m._id),
+      );
+      results = results.filter((m) => visibleIds.has(m._id));
+    }
+
     // Filter by search term
     if (args.search) {
       const searchLower = args.search.toLowerCase();
@@ -168,6 +188,27 @@ export const getMatchCount = query({
 
     const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
     return matches.length;
+  },
+});
+
+export const getMatchAccess = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user || !user.partnerId) {
+      return { total: 0, visible: 0, locked: 0, isPremium: false };
+    }
+
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
+    const total = matches.length;
+
+    if (premiumStatus.isPremium) {
+      return { total, visible: total, locked: 0, isPremium: true };
+    }
+
+    const visible = Math.min(total, FREE_TIER_VISIBLE_MATCHES);
+    return { total, visible, locked: total - visible, isPremium: false };
   },
 });
 

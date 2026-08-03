@@ -10,9 +10,9 @@ import { ConvexError } from 'convex/values';
  * wire, which is why every user-facing mutation failure goes through here.
  *
  * NOTE: returned-object discriminants (e.g. `NAME_NOT_CONFIRMED`,
- * `FREE_TIER_PARTNER_LIMIT`, `PARTNER_HAS_PENDING_PROPOSAL`) are a separate,
- * intentional pattern — they are *values returned* from mutations, not thrown
- * errors, so they are NOT part of this union.
+ * `PARTNER_HAS_PENDING_PROPOSAL`) are a separate, intentional pattern — they
+ * are *values returned* from mutations, not thrown errors, so they are NOT
+ * part of this union.
  */
 export type ConvexErrorCode =
   // Shared / auth

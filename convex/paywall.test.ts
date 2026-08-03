@@ -145,3 +145,92 @@ describe('partner linking', () => {
     expect(b?.premiumRevokedAt).toBeUndefined();
   });
 });
+
+async function seedLinkedPairWithMatches(
+  t: ReturnType<typeof convexTest>,
+  matchCount: number,
+  isPremium: boolean,
+) {
+  const aId = await seedUser(t, { clerkId: 'clerk_m_a', isPremium });
+  const bId = await seedUser(t, { clerkId: 'clerk_m_b', isPremium });
+  await t.run(async (ctx) => {
+    await ctx.db.patch(aId, { partnerId: bId });
+    await ctx.db.patch(bId, { partnerId: aId });
+  });
+
+  // Canonical ordering: user1Id < user2Id
+  const [user1Id, user2Id] = aId < bId ? [aId, bId] : [bId, aId];
+
+  for (let i = 0; i < matchCount; i++) {
+    const nameId = await seedName(t, `Name${i}`);
+    await t.run(async (ctx) =>
+      ctx.db.insert('matches', {
+        nameId,
+        user1Id,
+        user2Id,
+        matchedAt: 1000 + i, // ascending: Name0 is earliest
+        createdAt: 1000 + i,
+        updatedAt: 1000 + i,
+      }),
+    );
+  }
+  return { aId, bId };
+}
+
+describe('free tier match visibility', () => {
+  test('a free user sees only the 3 earliest matches', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 7, false);
+
+    const matches = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatches, {});
+
+    expect(matches).toHaveLength(3);
+    expect(matches.map((m) => m.name.name).sort()).toEqual(['Name0', 'Name1', 'Name2']);
+  });
+
+  test('a premium user sees all matches', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 7, true);
+
+    const matches = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatches, {});
+
+    expect(matches).toHaveLength(7);
+  });
+
+  test('search cannot surface a locked match', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 7, false);
+
+    const matches = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatches, { search: 'Name6' });
+
+    expect(matches).toHaveLength(0);
+  });
+
+  test('getMatchAccess reports the locked count', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 7, false);
+
+    const access = await t
+      .withIdentity({ subject: 'clerk_m_a' })
+      .query(api.matches.getMatchAccess, {});
+
+    expect(access).toEqual({ total: 7, visible: 3, locked: 4, isPremium: false });
+  });
+
+  test('getMatchAccess is all-zero without a partner', async () => {
+    const t = convexTest(schema, modules);
+    await seedUser(t, { clerkId: 'clerk_solo', isPremium: false });
+
+    const access = await t
+      .withIdentity({ subject: 'clerk_solo' })
+      .query(api.matches.getMatchAccess, {});
+
+    expect(access).toEqual({ total: 0, visible: 0, locked: 0, isPremium: false });
+  });
+});
