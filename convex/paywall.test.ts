@@ -14,6 +14,7 @@ type SeedUserOpts = {
   nameConfirmed?: boolean;
   shareCode?: string;
   lifetimeSwipeCount?: number;
+  premiumRevokedAt?: number;
 };
 
 export async function seedUser(
@@ -30,6 +31,7 @@ export async function seedUser(
       nameConfirmed: opts.nameConfirmed ?? true,
       shareCode: opts.shareCode,
       lifetimeSwipeCount: opts.lifetimeSwipeCount,
+      premiumRevokedAt: opts.premiumRevokedAt,
       createdAt: now,
       updatedAt: now,
     }),
@@ -122,14 +124,24 @@ describe('partner linking', () => {
 
   test('reciprocal premium still applies when one side pays', async () => {
     const t = convexTest(schema, modules);
-    const aId = await seedUser(t, { clerkId: 'clerk_paid', isPremium: true });
-    await seedUser(t, { clerkId: 'clerk_unpaid', isPremium: false, shareCode: 'WXYZ6789' });
+    await seedUser(t, {
+      clerkId: 'clerk_paid',
+      isPremium: true,
+      nameConfirmed: true,
+    });
+    const bId = await seedUser(t, {
+      clerkId: 'clerk_unpaid',
+      isPremium: false,
+      nameConfirmed: true,
+      shareCode: 'WXYZ6789',
+      premiumRevokedAt: Date.now(),
+    });
 
     await t
       .withIdentity({ subject: 'clerk_paid' })
       .mutation(api.partners.linkPartner, { code: 'WXYZ6789' });
 
-    const a = await t.run(async (ctx) => ctx.db.get(aId));
-    expect(a?.partnerId).toBeDefined();
+    const b = await t.run(async (ctx) => ctx.db.get(bId));
+    expect(b?.premiumRevokedAt).toBeUndefined();
   });
 });
