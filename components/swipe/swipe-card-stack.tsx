@@ -16,7 +16,6 @@ import { FilterNudgeBanner } from './filter-nudge-banner';
 import { ListenHintBanner } from './listen-hint-banner';
 import { ErrorToast } from '@/components/ui/error-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
-import { Paywall } from '@/components/paywall';
 import { PushPrimingSheet } from '@/components/push/push-priming-sheet';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
@@ -111,7 +110,6 @@ export function SwipeCardStack({
 
   const [showMatchToast, setShowMatchToast] = useState(false);
   const [matchToastName, setMatchToastName] = useState<string | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [errorToastMessage, setErrorToastMessage] = useState(
@@ -236,14 +234,6 @@ export function SwipeCardStack({
           nameId: currentName._id,
           selectionType,
         });
-
-        // Check if free tier limit was hit
-        if (result && 'error' in result) {
-          setShowPaywall(true);
-          setLocalQueue((prev) => [currentName, ...prev]);
-          if (optimisticMatch) setShowMatchToast(false);
-          return;
-        }
 
         trackEvent(Events.NAME_SWIPED, { direction: selectionType });
         onSwipeResult?.(selectionType);
@@ -377,9 +367,6 @@ export function SwipeCardStack({
         context="swipe"
         onClose={() => setShowDetailModal(false)}
       />
-
-      {/* Swipe limit paywall */}
-      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} trigger="swipe_limit" />
     </View>
   );
 }

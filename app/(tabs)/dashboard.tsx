@@ -25,7 +25,6 @@ import { LikedNameCard } from '@/components/dashboard/liked-name-card';
 import { RejectedNameCard } from '@/components/dashboard/rejected-name-card';
 import { SearchResultCard } from '@/components/dashboard/search-result-card';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
-import { Paywall } from '@/components/paywall';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
@@ -102,10 +101,9 @@ function formatTimeRemaining(endsAt: number): string {
 export default function Dashboard() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { gracePeriodEndsAt, isPremium } = useEffectivePremium();
+  const { gracePeriodEndsAt } = useEffectivePremium();
 
   const [activeTab, setActiveTab] = useState<TabType>('liked');
-  const [showPaywall, setShowPaywall] = useState(false);
   // searchInput is the live text field; searchQuery is the debounced value that
   // actually drives the Convex search (#292, was submit-gated pre-#292).
   const [searchInput, setSearchInput] = useState('');
@@ -205,16 +203,6 @@ export default function Dashboard() {
   const totalLikedCount = stats?.liked ?? 0;
   const totalRejectedCount = stats?.rejected ?? 0;
 
-  // Free-tier visibility gate (#170): cap the list at FREE_TIER_VISIBLE_LIKES
-  // for non-premium users with more than that many likes.
-  const FREE_TIER_VISIBLE_LIKES = 25;
-  const visibleLimit = isPremium ? null : FREE_TIER_VISIBLE_LIKES;
-  const gatedCount =
-    visibleLimit !== null && totalLikedCount > visibleLimit ? totalLikedCount - visibleLimit : 0;
-  const likedListData =
-    visibleLimit !== null ? allLikedItems.slice(0, visibleLimit) : allLikedItems;
-  const rejectedListData = allRejectedItems;
-
   // ---- Search-to-add (#292) ------------------------------------------------
   const trimmedQuery = searchQuery.trim();
   const firstChar = trimmedQuery[0] ?? '';
@@ -303,16 +291,6 @@ export default function Dashboard() {
       }));
       try {
         const result = await recordSelection({ nameId, selectionType: tabType });
-        if (result && 'error' in result) {
-          // Free-tier swipe cap — revert and surface the paywall.
-          setOptimistic((prev) => {
-            const next = { ...prev };
-            delete next[nameId];
-            return next;
-          });
-          setShowPaywall(true);
-          return;
-        }
         setOptimistic((prev) => ({
           ...prev,
           [nameId]: { selectionType: tabType, selectionId: result.selectionId },
@@ -496,7 +474,7 @@ export default function Dashboard() {
   const [isSelectingAll, setIsSelectingAll] = useState(false);
 
   const handleSelectAll = useCallback(async () => {
-    const items = activeTab === 'liked' ? likedListData : rejectedListData;
+    const items = activeTab === 'liked' ? allLikedItems : allRejectedItems;
     const allLoadedIds = items.map((item) => item.selectionId);
     const allSelected = allLoadedIds.length > 0 && allLoadedIds.every((id) => selectedIds.has(id));
 
@@ -525,8 +503,8 @@ export default function Dashboard() {
   }, [
     selectedIds,
     activeTab,
-    likedListData,
-    rejectedListData,
+    allLikedItems,
+    allRejectedItems,
     likedStatus,
     rejectedStatus,
     loadMoreLiked,
@@ -545,7 +523,7 @@ export default function Dashboard() {
       return;
     }
     if (status === 'Exhausted') {
-      const items = activeTab === 'liked' ? likedListData : rejectedListData;
+      const items = activeTab === 'liked' ? allLikedItems : allRejectedItems;
       setSelectedIds(new Set(items.map((item) => item.selectionId)));
       setIsSelectingAll(false);
     }
@@ -556,8 +534,8 @@ export default function Dashboard() {
     rejectedStatus,
     loadMoreLiked,
     loadMoreRejected,
-    likedListData,
-    rejectedListData,
+    allLikedItems,
+    allRejectedItems,
   ]);
 
   const executeBulkAction = useCallback(
@@ -674,7 +652,7 @@ export default function Dashboard() {
             selectMode={selectMode}
             onToggleSelectMode={toggleSelectMode}
             selectedCount={selectedIds.size}
-            totalCount={likedListData.length}
+            totalCount={allLikedItems.length}
             onSelectAll={handleSelectAll}
             hideActions={searchActive}
           />
@@ -686,7 +664,7 @@ export default function Dashboard() {
             selectMode={selectMode}
             onToggleSelectMode={toggleSelectMode}
             selectedCount={selectedIds.size}
-            totalCount={rejectedListData.length}
+            totalCount={allRejectedItems.length}
             onSelectAll={handleSelectAll}
             hideActions={searchActive}
           />
@@ -793,7 +771,7 @@ export default function Dashboard() {
         </View>
       )}
       <FlatList
-        data={likedListData}
+        data={allLikedItems}
         keyExtractor={(item) => item.selectionId}
         renderItem={({ item, index }) => (
           <Animated.View
@@ -813,31 +791,13 @@ export default function Dashboard() {
           </Animated.View>
         )}
         onEndReached={() => {
-          // Don't auto-load past the free-tier cap — gatedCount > 0
-          // means we want to show the upgrade banner, not the next
-          // page. Otherwise let usePaginatedQuery decide whether
-          // there's more (CanLoadMore vs Exhausted).
-          if (gatedCount > 0) return;
           if (likedStatus === 'CanLoadMore') {
             loadMoreLiked(LIST_PAGE_SIZE);
           }
         }}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
-          gatedCount > 0 ? (
-            <Pressable
-              style={[styles.gatedBanner, { borderColor: colors.primary }]}
-              onPress={() => setShowPaywall(true)}
-            >
-              <View style={styles.gatedIconRow}>
-                <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
-                <Text style={[styles.gatedText, { color: colors.primary }]}>
-                  +{gatedCount} more name{gatedCount !== 1 ? 's' : ''}. Upgrade to view all
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
-            </Pressable>
-          ) : likedStatus === 'LoadingMore' ? (
+          likedStatus === 'LoadingMore' ? (
             <View style={styles.listFooterLoader}>
               <ActivityIndicator size="small" color={colors.primary} />
             </View>
@@ -853,7 +813,7 @@ export default function Dashboard() {
 
   const renderRejectedList = () => (
     <FlatList
-      data={rejectedListData}
+      data={allRejectedItems}
       keyExtractor={(item) => item.selectionId}
       renderItem={({ item, index }) => (
         <Animated.View
@@ -997,12 +957,6 @@ export default function Dashboard() {
           onRemove={selectedItem?.context === 'liked' ? handleModalRemove : undefined}
           onRestore={selectedItem?.context === 'rejected' ? handleModalRestore : undefined}
           onHide={selectedItem?.context === 'rejected' ? handleModalHide : undefined}
-        />
-
-        <Paywall
-          visible={showPaywall}
-          onClose={() => setShowPaywall(false)}
-          trigger="dashboard_limit"
         />
       </SafeAreaView>
     </GradientBackground>
@@ -1174,29 +1128,5 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.sans,
     fontWeight: '500',
     color: '#856404',
-  },
-  gatedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFF8FA',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-  },
-  gatedIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  gatedText: {
-    fontSize: 14,
-    fontFamily: Fonts?.sans,
-    fontWeight: '500',
   },
 });

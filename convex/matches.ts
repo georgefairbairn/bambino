@@ -177,21 +177,6 @@ export const getMatches = query({
   },
 });
 
-export const getMatchCount = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await getCurrentUserOrNull(ctx);
-    if (!user) return 0;
-
-    if (!user.partnerId) {
-      return 0;
-    }
-
-    const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
-    return matches.length;
-  },
-});
-
 export const getMatchAccess = query({
   args: {},
   handler: async (ctx) => {
@@ -546,6 +531,11 @@ export const deleteMatch = mutation({
   },
 });
 
+// Intentionally bypasses FREE_TIER_VISIBLE_MATCHES. These three queries
+// (getPendingProposal, getLatestDeclinedProposal, getChosenName) represent
+// couple-level shared state — a decision already made together — not a
+// browsable list. Hiding a proposal or chosen name from a free participant
+// would read as a bug, not a paywall. Premium is matches-list access only.
 export const getPendingProposal = query({
   args: {},
   handler: async (ctx) => {
