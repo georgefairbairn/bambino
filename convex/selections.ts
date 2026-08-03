@@ -2,10 +2,8 @@ import { v } from 'convex/values';
 import { paginationOptsValidator } from 'convex/server';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
-import { getEffectivePremiumStatusHelper } from './premium';
 import { convexError } from './errors';
 
-const FREE_TIER_SWIPE_LIMIT = 25;
 // Cap on selectionIds accepted by the bulk mutations (#203). The dashboard's
 // "select all" only ever covers the loaded list, so 200 is generous while
 // still bounding the sequential per-item DB calls a single mutation makes.
@@ -283,12 +281,8 @@ export const recordSelection = mutation({
     // backfill's post-mutation collect would double-count this write (#183).
     user = await ensureCountersBackfilled(ctx, user);
 
-    // Free tier: limit total swipes via a monotonic lifetime counter (#165).
-    // Using a counter that never decrements (vs counting current selections)
-    // means undoLastSelection can't be used to ratchet back under the cap
-    // and swipe forever. Backfill once from the current selection count for
-    // users predating the field.
-    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    // lifetimeSwipeCount is retained as an analytics counter (#165).
+    // Backfill once from the current selection count for users predating the field.
     let lifetimeSwipeCount = user.lifetimeSwipeCount;
     if (lifetimeSwipeCount === undefined) {
       const existing = await ctx.db
@@ -296,14 +290,7 @@ export const recordSelection = mutation({
         .withIndex('by_user', (q) => q.eq('userId', user._id))
         .collect();
       lifetimeSwipeCount = existing.length;
-      // Persist the backfill immediately, even if we're about to reject for
-      // the cap below. Otherwise a capped user whose field was never written
-      // could undo (lowering the current count) and the next call would
-      // backfill to the lowered number — reopening the bypass (#165).
       await ctx.db.patch(user._id, { lifetimeSwipeCount });
-    }
-    if (!premiumStatus.isPremium && lifetimeSwipeCount >= FREE_TIER_SWIPE_LIMIT) {
-      return { error: 'FREE_TIER_SWIPE_LIMIT' as const };
     }
 
     // #164: collect + heal rather than .unique(). A duplicate (user, name)

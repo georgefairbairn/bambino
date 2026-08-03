@@ -64,3 +64,36 @@ describe('test harness', () => {
     expect(stored?.email).toBe('clerk_smoke@example.test');
   });
 });
+
+describe('free tier swiping', () => {
+  test('a free user can swipe past the old 25-swipe cap', async () => {
+    const t = convexTest(schema, modules);
+    await seedUser(t, { clerkId: 'clerk_free', isPremium: false, lifetimeSwipeCount: 25 });
+    const nameId = await seedName(t, 'Aurora');
+
+    const asFree = t.withIdentity({ subject: 'clerk_free' });
+    const result = await asFree.mutation(api.selections.recordSelection, {
+      nameId,
+      selectionType: 'like',
+    });
+
+    expect(result).not.toHaveProperty('error');
+  });
+
+  test('lifetimeSwipeCount still increments (kept for analytics)', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, {
+      clerkId: 'clerk_counter',
+      isPremium: false,
+      lifetimeSwipeCount: 0,
+    });
+    const nameId = await seedName(t, 'Rowan');
+
+    await t
+      .withIdentity({ subject: 'clerk_counter' })
+      .mutation(api.selections.recordSelection, { nameId, selectionType: 'like' });
+
+    const stored = await t.run(async (ctx) => ctx.db.get(userId));
+    expect(stored?.lifetimeSwipeCount).toBe(1);
+  });
+});
