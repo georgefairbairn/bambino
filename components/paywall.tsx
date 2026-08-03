@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { usePurchases } from '@/hooks/use-purchases';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
@@ -12,33 +14,69 @@ import { trackEvent, Events } from '@/lib/analytics';
 interface PaywallProps {
   visible: boolean;
   onClose: () => void;
-  trigger?: 'swipe_limit' | 'partner_limit' | 'dashboard_limit';
+  trigger?: 'match_limit';
 }
 
-const TRIGGER_MESSAGES: Record<NonNullable<PaywallProps['trigger']>, string> = {
-  swipe_limit: "You've used all 25 of your free swipes",
-  partner_limit: 'Connect your partner. One plan covers you both',
-  dashboard_limit: 'See all your liked names',
-};
+function pluralMatch(n: number) {
+  return n === 1 ? 'match' : 'matches';
+}
 
-const COMPARISON_ROWS = [
-  { label: 'Swipes', free: '25', premium: 'Unlimited' },
-  { label: 'Liked names', free: '25', premium: 'Unlimited' },
-  { label: 'Partner matching', free: '\u2014', premium: 'Yes' },
-];
+function pluralName(n: number) {
+  return n === 1 ? 'name' : 'names';
+}
 
-export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallProps) {
+function seeItOrAll(n: number) {
+  return n === 1 ? 'it' : 'them all';
+}
+
+export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallProps) {
   const { colors } = useTheme();
   const { packages, purchasePremium, restorePurchases, isLoading } = usePurchases();
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
 
+  const matchAccess = useQuery(api.matches.getMatchAccess);
+  const partnerInfo = useQuery(api.partners.getPartnerInfo);
+
   const hasPackages = packages.length > 0;
   // No hardcoded fallback: priceString is region-localized (e.g. CA$6.99),
   // so a hardcoded "$4.99" would show a wrong US-dollar figure to non-US
   // users until offerings load. Show no price until the real one resolves.
   const price = packages[0]?.product.priceString;
+
+  // Locked count: only treat as "known" when the query has resolved AND locked > 0.
+  // Never render "0 more matches" — fall back to the neutral headline instead.
+  const locked = matchAccess?.locked ?? 0;
+  const hasCount = matchAccess !== undefined && locked > 0;
+
+  const partnerName: string | undefined = partnerInfo?.partner?.name;
+
+  // Headline
+  const headline = hasCount ? `${locked} more ${pluralMatch(locked)}` : 'Unlock all your matches';
+
+  // Subcopy
+  let subcopy: string;
+  if (hasCount) {
+    const intro = partnerName
+      ? `You and ${partnerName} both liked ${locked} more ${pluralName(locked)}.`
+      : `You both liked ${locked} more ${pluralName(locked)}.`;
+    subcopy = `${intro} Unlock to see ${seeItOrAll(locked)}.`;
+  } else {
+    subcopy = 'See every name you and your partner both liked.';
+  }
+
+  // CTA label
+  let ctaLabel: string;
+  if (hasCount) {
+    if (locked === 1) {
+      ctaLabel = price ? `See Your Other Match — ${price}` : 'See Your Other Match';
+    } else {
+      ctaLabel = price ? `See All ${locked} Matches — ${price}` : `See All ${locked} Matches`;
+    }
+  } else {
+    ctaLabel = price ? `Unlock All Matches — ${price}` : 'Unlock All Matches';
+  }
 
   useEffect(() => {
     if (visible) trackEvent(Events.PAYWALL_SHOWN, { trigger });
@@ -98,39 +136,24 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
           <Ionicons name="close" size={24} color="#6B5B7B" />
         </Pressable>
 
-        {/* Header */}
+        {/* Count-led headline */}
         <View style={styles.header}>
-          <View style={[styles.iconBadge, { backgroundColor: colors.secondaryLight }]}>
-            <Ionicons name="star" size={32} color={colors.primary} />
-          </View>
-          <Text style={styles.title}>Bambino Premium</Text>
-          <Text style={styles.subtitle}>{TRIGGER_MESSAGES[trigger]}</Text>
+          <Text style={styles.headline}>{headline}</Text>
+          <Text style={styles.subcopy}>{subcopy}</Text>
         </View>
 
-        {/* Comparison */}
-        <View style={[styles.comparison, { backgroundColor: colors.primaryLight }]}>
-          <View style={styles.comparisonRow}>
-            <Text style={styles.comparisonLabel} />
-            <Text style={styles.comparisonHeaderFree}>Free</Text>
-            <View style={[styles.premiumPill, { backgroundColor: colors.primary }]}>
-              <Text style={styles.premiumPillText}>Premium</Text>
-            </View>
-          </View>
-          {COMPARISON_ROWS.map((row, index) => (
-            <View key={row.label}>
-              {index > 0 && <View style={styles.rowSeparator} />}
-              <View style={styles.comparisonRow}>
-                <Text style={styles.comparisonLabel}>{row.label}</Text>
-                <Text style={styles.comparisonValue}>{row.free}</Text>
-                <Text style={[styles.comparisonValuePremium, { color: colors.primary }]}>
-                  {row.premium}
-                </Text>
-              </View>
-            </View>
-          ))}
+        {/* Divider + free-features reassurance */}
+        <View style={[styles.reassurance, { backgroundColor: colors.primaryLight }]}>
+          <Text style={styles.freeFeatures}>
+            <Text style={styles.freeFeaturesLabel}>Always free:</Text>
+            {' unlimited swiping, unlimited liked names, partner linking.'}
+          </Text>
         </View>
 
-        {/* Purchase button */}
+        {/* One-time framing */}
+        <Text style={styles.oneTime}>One purchase covers you both. No subscription.</Text>
+
+        {/* Purchase button — never blocked on count loading */}
         <View style={{ marginBottom: 8 }}>
           {!hasPackages && !isLoading ? (
             <View style={styles.errorState}>
@@ -141,15 +164,13 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
             </View>
           ) : (
             <GradientButton
-              title={price ? `Unlock Premium - ${price}` : 'Unlock Premium'}
+              title={ctaLabel}
               onPress={handlePurchase}
               loading={isPurchasing}
               disabled={isPurchasing || isLoading}
             />
           )}
         </View>
-
-        <Text style={styles.oneTime}>One-time purchase. No subscription.</Text>
 
         {/* Restore */}
         <Pressable
@@ -173,7 +194,7 @@ export function Paywall({ visible, onClose, trigger = 'swipe_limit' }: PaywallPr
         visible={showCelebration}
         onClose={handleCelebrationClose}
         title="Bambino Premium"
-        subtitle="Welcome to Bambino Premium! 🎉"
+        subtitle="Welcome to Bambino Premium!"
         primaryButtonLabel="Start Exploring"
         onPrimaryPress={handleCelebrationClose}
         hideShare
@@ -189,89 +210,43 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  iconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 24,
+  headline: {
+    fontSize: 28,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
-    marginBottom: 4,
+    textAlign: 'center',
+    marginBottom: 8,
   },
-  subtitle: {
+  subcopy: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
     textAlign: 'center',
+    lineHeight: 22,
   },
-  comparison: {
+  reassurance: {
     borderRadius: 14,
-    padding: 16,
-    marginBottom: 24,
+    padding: 14,
+    marginBottom: 16,
   },
-  comparisonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  comparisonLabel: {
-    flex: 1,
+  freeFeatures: {
     fontSize: 14,
     fontFamily: Fonts?.sans,
-    fontWeight: '500',
     color: '#6B5B7B',
+    lineHeight: 20,
   },
-  comparisonHeaderFree: {
-    width: 80,
-    textAlign: 'center',
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
+  freeFeaturesLabel: {
     fontWeight: '600',
-    color: '#A89BB5',
-  },
-  premiumPill: {
-    width: 80,
-    paddingVertical: 4,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  premiumPillText: {
-    fontSize: 12,
-    fontFamily: Fonts?.sans,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  comparisonValue: {
-    width: 80,
-    textAlign: 'center',
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#A89BB5',
-  },
-  comparisonValuePremium: {
-    width: 80,
-    textAlign: 'center',
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    fontWeight: '700',
-  },
-  rowSeparator: {
-    height: 1,
-    backgroundColor: '#F0EBF5',
+    color: '#2D1B4E',
   },
   oneTime: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: Fonts?.sans,
-    color: '#A89BB5',
+    color: '#6B5B7B',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   restoreButton: {
     alignItems: 'center',
