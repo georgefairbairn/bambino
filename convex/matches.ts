@@ -6,10 +6,11 @@ import { convexError } from './errors';
 import { getEffectivePremiumStatusHelper } from './premium';
 
 /**
- * Free couples see their three earliest matches. Earliest — not newest — so
- * the visible set is stable: a new match never displaces one they've seen.
+ * Free couples see their earliest match. Earliest — not newest — so the
+ * visible set is stable: a new match never displaces one they've seen. One
+ * match proves the mechanic while remaining insufficient to decide from.
  */
-export const FREE_TIER_VISIBLE_MATCHES = 3;
+export const FREE_TIER_VISIBLE_MATCHES = 1;
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();

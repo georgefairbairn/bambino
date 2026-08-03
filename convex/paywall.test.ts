@@ -180,7 +180,7 @@ async function seedLinkedPairWithMatches(
 }
 
 describe('free tier match visibility', () => {
-  test('a free user sees only the 3 earliest matches', async () => {
+  test('a free user sees only the 1 earliest match', async () => {
     const t = convexTest(schema, modules);
     await seedLinkedPairWithMatches(t, 7, false);
 
@@ -188,8 +188,8 @@ describe('free tier match visibility', () => {
       .withIdentity({ subject: 'clerk_m_a' })
       .query(api.matches.getMatches, {});
 
-    expect(matches).toHaveLength(3);
-    expect(matches.map((m) => m.name.name).sort()).toEqual(['Name0', 'Name1', 'Name2']);
+    expect(matches).toHaveLength(1);
+    expect(matches.map((m) => m.name.name).sort()).toEqual(['Name0']);
   });
 
   test('a premium user sees all matches', async () => {
@@ -222,7 +222,7 @@ describe('free tier match visibility', () => {
       .withIdentity({ subject: 'clerk_m_a' })
       .query(api.matches.getMatchAccess, {});
 
-    expect(access).toEqual({ total: 7, visible: 3, locked: 4, isPremium: false });
+    expect(access).toEqual({ total: 7, visible: 1, locked: 6, isPremium: false });
   });
 
   test('getMatchAccess is all-zero without a partner', async () => {
