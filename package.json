@@ -25,7 +25,9 @@
     "update:name-origin": "npx tsx scripts/update-name-origin.ts",
     "apply:name-corrections": "npx tsx scripts/apply-name-corrections.ts",
     "extract-names": "npx tsx scripts/extract-ssa-names.ts",
-    "enrich-names": "npx tsx scripts/enrich-names.ts"
+    "enrich-names": "npx tsx scripts/enrich-names.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.37",
@@ -81,7 +83,9 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
+    "@edge-runtime/vm": "^4.0.4",
     "@types/react": "~19.1.0",
+    "convex-test": "^0.0.38",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~10.0.0",
     "eslint-config-prettier": "^10.1.8",
@@ -90,7 +94,8 @@
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^3.4.19",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^2.1.9"
   },
   "overrides": {
     "node-forge": "^1.4.0",
