@@ -97,3 +97,39 @@ describe('free tier swiping', () => {
     expect(stored?.lifetimeSwipeCount).toBe(1);
   });
 });
+
+describe('partner linking', () => {
+  test('two free users can link to each other', async () => {
+    const t = convexTest(schema, modules);
+    await seedUser(t, { clerkId: 'clerk_a', isPremium: false, nameConfirmed: true });
+    const bId = await seedUser(t, {
+      clerkId: 'clerk_b',
+      isPremium: false,
+      nameConfirmed: true,
+      shareCode: 'ABCD2345',
+    });
+
+    // NOTE: the mutation arg is `code`, not `shareCode` (convex/partners.ts:233).
+    const result = await t
+      .withIdentity({ subject: 'clerk_a' })
+      .mutation(api.partners.linkPartner, { code: 'ABCD2345' });
+
+    expect(result).not.toHaveProperty('error');
+
+    const b = await t.run(async (ctx) => ctx.db.get(bId));
+    expect(b?.partnerId).toBeDefined();
+  });
+
+  test('reciprocal premium still applies when one side pays', async () => {
+    const t = convexTest(schema, modules);
+    const aId = await seedUser(t, { clerkId: 'clerk_paid', isPremium: true });
+    await seedUser(t, { clerkId: 'clerk_unpaid', isPremium: false, shareCode: 'WXYZ6789' });
+
+    await t
+      .withIdentity({ subject: 'clerk_paid' })
+      .mutation(api.partners.linkPartner, { code: 'WXYZ6789' });
+
+    const a = await t.run(async (ctx) => ctx.db.get(aId));
+    expect(a?.partnerId).toBeDefined();
+  });
+});

@@ -14,7 +14,6 @@ import { useQuery, useMutation } from 'convex/react';
 import { Image } from 'expo-image';
 import { api } from '@/convex/_generated/api';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
-import { Paywall } from '@/components/paywall';
 import * as Sentry from '@sentry/react-native';
 import { useTheme } from '@/contexts/theme-context';
 import { Events, trackEvent } from '@/lib/analytics';
@@ -41,7 +40,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const [preview, setPreview] = useState<PartnerPreview | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
 
   const convexUser = useQuery(api.users.getCurrentUser);
@@ -116,9 +114,7 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       const result = await linkPartner({ code });
 
       if (result && typeof result === 'object' && 'error' in result) {
-        if (result.error === 'FREE_TIER_PARTNER_LIMIT') {
-          setShowPaywall(true);
-        } else if (result.error === 'NAME_NOT_CONFIRMED') {
+        if (result.error === 'NAME_NOT_CONFIRMED') {
           setShowNameConfirmation(true);
         } else {
           setError('Failed to link partner');
@@ -146,7 +142,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
     setPreview(null);
     setIsLookingUp(false);
     setIsLinking(false);
-    setShowPaywall(false);
     setShowNameConfirmation(false);
     onClose();
   };
@@ -264,12 +259,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
           </View>
         )}
       </KeyboardAvoidingView>
-
-      <Paywall
-        visible={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        trigger="partner_limit"
-      />
 
       <NameConfirmationModal
         visible={showNameConfirmation}
