@@ -7,7 +7,7 @@ import { useTheme } from '@/contexts/theme-context';
 interface LockedMatchRowsProps {
   /** Total number of locked (inaccessible) matches. */
   count: number;
-  /** Called when the user taps any part of the block. */
+  /** Called when the user taps any locked row. Opens the paywall sheet. */
   onPress: () => void;
 }
 
@@ -20,7 +20,11 @@ const PLACEHOLDER_WIDTHS: readonly { name: DimensionValue; sub: DimensionValue }
 
 /**
  * Renders up to 3 blurred placeholder cards representing locked matches,
- * plus a "… N more" label when count > 3. The whole block is pressable.
+ * plus a "… N more" label when count > 3.
+ *
+ * Each row is individually pressable and dims on press-in, so tapping a
+ * blurred name reads as "this is a thing I tried to open" before the paywall
+ * sheet slides up over it.
  *
  * IMPORTANT: these cards contain only generic placeholder text — never real
  * name data. The server does not send locked match names to the client, and
@@ -30,27 +34,48 @@ export function LockedMatchRows({ count, onPress }: LockedMatchRowsProps) {
   const { colors } = useTheme();
   const visibleRows = Math.min(count, 3);
   const overflow = count > 3 ? count - 3 : 0;
+  const label = `Unlock ${count} more ${count === 1 ? 'match' : 'matches'}`;
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`Unlock ${count} more ${count === 1 ? 'match' : 'matches'}`}
-    >
+    <View>
       {Array.from({ length: visibleRows }).map((_, i) => (
-        <View key={i} style={[styles.cardWrapper, { shadowColor: colors.secondary }]}>
+        <Pressable
+          key={i}
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          style={({ pressed }) => [
+            styles.cardWrapper,
+            { shadowColor: colors.secondary },
+            pressed && styles.cardPressed,
+          ]}
+        >
           {/* Placeholder lines underneath the blur — generic widths only, no real data */}
           <View style={styles.placeholderContent}>
             <View style={[styles.placeholderNameLine, { width: PLACEHOLDER_WIDTHS[i]!.name }]} />
             <View style={[styles.placeholderSubLine, { width: PLACEHOLDER_WIDTHS[i]!.sub }]} />
           </View>
-          {/* Blur overlay — covers the placeholder so no text is readable */}
-          <BlurView intensity={22} tint="light" style={StyleSheet.absoluteFill} />
-        </View>
+          {/* Blur overlay — covers the placeholder so no text is readable.
+              pointerEvents none so the blur doesn't swallow the row's press. */}
+          <BlurView
+            intensity={22}
+            tint="light"
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+        </Pressable>
       ))}
 
-      {overflow > 0 && <Text style={styles.overflowLabel}>… {overflow} more</Text>}
-    </Pressable>
+      {overflow > 0 && (
+        <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
+          {({ pressed }) => (
+            <Text style={[styles.overflowLabel, pressed && styles.cardPressed]}>
+              … {overflow} more
+            </Text>
+          )}
+        </Pressable>
+      )}
+    </View>
   );
 }
 
@@ -66,6 +91,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
+  },
+  cardPressed: {
+    opacity: 0.6,
   },
   placeholderContent: {
     padding: 16,
