@@ -685,9 +685,8 @@ export const getSelectionStatesForNames = query({
  * text search were dropped from the dashboard when pagination landed —
  * they don't fit a streaming-page model.
  *
- * Free-tier gating happens client-side based on getSelectionStats counts;
- * the dashboard refuses to fetch past the cap so the server doesn't need
- * to enforce it here.
+ * The dashboard has no free-tier cap on liked names — all are returned to
+ * the authenticated user. Server-side enforcement is not needed here.
  */
 export const getLikedNamesPaginated = query({
   args: {

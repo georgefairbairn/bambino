@@ -254,7 +254,6 @@ const styles = StyleSheet.create({
   },
   restoreButtonText: {
     ...BUTTON_TEXT.link,
-    color: '#6B5B7B',
   },
   errorState: {
     alignItems: 'center',

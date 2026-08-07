@@ -9,8 +9,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
-import { useEffectivePremium } from '@/hooks/use-effective-premium';
 import { Events, trackEvent, trackScreen } from '@/lib/analytics';
+import { LockedMatchRows } from '@/components/matches/locked-match-rows';
 import { alertMatchMutationError } from '@/components/matches/match-error-alert';
 import { Paywall } from '@/components/paywall';
 import {
@@ -44,7 +44,6 @@ type MatchWithName = FunctionReturnType<typeof api.matches.getMatches>[number];
 
 export default function Matches() {
   const { colors } = useTheme();
-  const { isPremium } = useEffectivePremium();
   const router = useRouter();
   const [sortBy, setSortBy] = useState<MatchSortOption>('newest');
   const [searchInput, setSearchInput] = useState('');
@@ -73,12 +72,16 @@ export default function Matches() {
 
   // Reset state when returning to this tab
   const [focusCount, setFocusCount] = useState(0);
+  // Guard: fire MATCH_WALL_SHOWN at most once per screen visit.
+  const matchWallShownRef = useRef(false);
+
   useFocusEffect(
     useCallback(() => {
       trackScreen('Matches');
       setSearchInput('');
       setSubmittedSearch('');
       setFocusCount((c) => c + 1);
+      matchWallShownRef.current = false;
     }, []),
   );
 
@@ -92,6 +95,17 @@ export default function Matches() {
 
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
   const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
+
+  const matchAccess = useQuery(api.matches.getMatchAccess);
+
+  // Fire MATCH_WALL_SHOWN once per screen visit when locked rows first appear.
+  useEffect(() => {
+    const locked = matchAccess?.locked;
+    if (locked && locked > 0 && !matchWallShownRef.current) {
+      matchWallShownRef.current = true;
+      trackEvent(Events.MATCH_WALL_SHOWN, { locked_count: locked });
+    }
+  }, [matchAccess?.locked]);
 
   const matches = useQuery(api.matches.getMatches, {
     sortBy,
@@ -335,67 +349,38 @@ export default function Matches() {
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
 
-  const { showLoading, loadingProps } = useGracefulLoading(matches !== undefined);
+  // Wait on partnerInfo too: `hasPartner` reads false while it's still loading,
+  // which would flash the "Invite Your Partner" empty state at a linked couple.
+  const { showLoading, loadingProps } = useGracefulLoading(
+    matches !== undefined && partnerInfo !== undefined,
+  );
 
   if (showLoading) {
     return <LoadingScreen {...loadingProps} />;
   }
 
-  // Empty states for free users or users without partners
-  if (!isPremium || !hasPartner) {
-    const isFreeUser = !isPremium;
-
+  // Empty state: no partner linked yet
+  if (!hasPartner) {
     return (
       <GradientBackground>
         <SafeAreaView style={styles.flexContainer} edges={['top']}>
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>
-              {isFreeUser ? 'Match With Your Partner' : 'Invite Your Partner'}
-            </Text>
+            <Text style={styles.emptyTitle}>Invite Your Partner</Text>
             <Text style={styles.emptyDescription}>
-              {isFreeUser ? (
-                <>
-                  You and your partner each swipe on names, and the ones{' '}
-                  <Text style={styles.emptyDescriptionBold}>you both like</Text> become{' '}
-                  <Text style={styles.emptyDescriptionBold}>matches</Text>. You’ll each need the
-                  app, and{' '}
-                  <Text style={styles.emptyDescriptionBold}>one Premium plan covers you both</Text>.
-                </>
-              ) : (
-                <>
-                  Your partner needs to{' '}
-                  <Text style={styles.emptyDescriptionBold}>download Bambino</Text> too, then{' '}
-                  <Text style={styles.emptyDescriptionBold}>enter your code</Text> to link up. Once
-                  you’re connected, any name{' '}
-                  <Text style={styles.emptyDescriptionBold}>you both like</Text> shows up here.
-                </>
-              )}
+              Your partner needs to{' '}
+              <Text style={styles.emptyDescriptionBold}>download Bambino</Text> too, then{' '}
+              <Text style={styles.emptyDescriptionBold}>enter your code</Text> to link up. Once
+              you&apos;re connected, any name{' '}
+              <Text style={styles.emptyDescriptionBold}>you both like</Text> shows up here.
             </Text>
             <MatchAnimation key={focusCount} />
-            {isFreeUser && (
-              <View style={styles.ctaContainer}>
-                <Pressable
-                  style={[styles.ctaButton, { backgroundColor: colors.primary }]}
-                  onPress={() => setShowPaywall(true)}
-                >
-                  <Text style={styles.ctaButtonText}>Upgrade to Premium</Text>
-                </Pressable>
-              </View>
-            )}
-            {!isFreeUser && (
-              <Pressable
-                style={[styles.ctaButton, { backgroundColor: colors.primary }]}
-                onPress={() => router.push('/(tabs)/profile')}
-              >
-                <Text style={styles.ctaButtonText}>Share Your Code</Text>
-              </Pressable>
-            )}
+            <Pressable
+              style={[styles.ctaButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push('/(tabs)/profile')}
+            >
+              <Text style={styles.ctaButtonText}>Share Your Code</Text>
+            </Pressable>
           </View>
-          <Paywall
-            visible={showPaywall}
-            onClose={() => setShowPaywall(false)}
-            trigger="partner_limit"
-          />
           {/* Shown when a partner unlinks mid-session (#181) — this empty
               state is the view the user lands on right after the unlink. */}
           <ErrorToast
@@ -464,8 +449,8 @@ export default function Matches() {
                 <>
                   A match is any name you and your partner{' '}
                   <Text style={styles.emptyDescriptionBold}>both swipe right</Text> on.{' '}
-                  <Text style={styles.emptyDescriptionBold}>Keep swiping</Text> and they’ll show up
-                  here.
+                  <Text style={styles.emptyDescriptionBold}>Keep swiping</Text> and they&apos;ll
+                  show up here.
                 </>
               )}
             </Text>
@@ -570,6 +555,11 @@ export default function Matches() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          ListFooterComponent={
+            matchAccess?.locked && matchAccess.locked > 0 ? (
+              <LockedMatchRows count={matchAccess.locked} onPress={() => setShowPaywall(true)} />
+            ) : null
+          }
         />
 
         {/* Name detail modal */}
@@ -639,6 +629,9 @@ export default function Matches() {
           nameName={celebrationName}
           onClose={() => setShowCelebration(false)}
         />
+
+        {/* Premium paywall — opened by tapping locked match rows */}
+        <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
       </SafeAreaView>
     </GradientBackground>
   );
@@ -713,11 +706,6 @@ const styles = StyleSheet.create({
     // mirrors the inter-card gap every other card already has above it.
     paddingTop: 12,
     paddingBottom: 100,
-  },
-  ctaContainer: {
-    alignItems: 'center',
-    gap: 8,
-    zIndex: 10,
   },
   ctaButton: {
     paddingVertical: 15,

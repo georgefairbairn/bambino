@@ -743,11 +743,7 @@ export default function Profile() {
           )}
         </Pressable>
 
-        <Paywall
-          visible={showPaywall}
-          onClose={() => setShowPaywall(false)}
-          trigger="partner_limit"
-        />
+        <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
 
         <PartnerLinkModal visible={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
 

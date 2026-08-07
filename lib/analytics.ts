@@ -86,6 +86,9 @@ export const Events = {
   PURCHASE_FAILED: 'purchase_failed',
   PURCHASE_RESTORED: 'purchase_restored',
 
+  // Match paywall
+  MATCH_WALL_SHOWN: 'match_wall_shown',
+
   // Notifications
   PUSH_PERMISSION_REQUESTED: 'push_permission_requested',
   PUSH_PERMISSION_GRANTED: 'push_permission_granted',
