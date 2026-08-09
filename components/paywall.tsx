@@ -70,12 +70,12 @@ export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallPr
   let ctaLabel: string;
   if (hasCount) {
     if (locked === 1) {
-      ctaLabel = price ? `See Your Other Match — ${price}` : 'See Your Other Match';
+      ctaLabel = price ? `See Your Other Match for ${price}` : 'See Your Other Match';
     } else {
-      ctaLabel = price ? `See All ${locked} Matches — ${price}` : `See All ${locked} Matches`;
+      ctaLabel = price ? `See All ${locked} Matches for ${price}` : `See All ${locked} Matches`;
     }
   } else {
-    ctaLabel = price ? `Unlock All Matches — ${price}` : 'Unlock All Matches';
+    ctaLabel = price ? `Unlock All Matches for ${price}` : 'Unlock All Matches';
   }
 
   useEffect(() => {

@@ -92,8 +92,8 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
       <View style={styles.header}>
         <Text style={styles.headline}>Invite your partner</Text>
         <Text style={styles.subcopy}>
-          You&apos;ve liked {likedCount} names. Invite your partner to start matching — the names
-          you both like show up together.
+          You&apos;ve liked {likedCount} names. Invite your partner to start matching. The names you
+          both like show up together.
         </Text>
       </View>
 
