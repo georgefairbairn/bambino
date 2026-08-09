@@ -10,7 +10,7 @@ interface ShareCodeDisplayProps {
   code: string;
   /** Where this instance is rendered, for PARTNER_CODE_COPIED attribution. */
   source: 'settings' | 'matches_empty' | 'invite_nudge';
-  /** Hide the "Your Partner Code" caption when the surrounding copy already says it. */
+  /** Hide the "Your Code" caption when the surrounding copy already says it. */
   showLabel?: boolean;
 }
 
@@ -41,11 +41,14 @@ export function ShareCodeDisplay({ code, source, showLabel = true }: ShareCodeDi
 
   return (
     <View style={styles.container}>
-      {showLabel && <Text style={styles.label}>Your Partner Code</Text>}
+      {/* "Your Code", not "Your Partner Code": the latter reads as the code
+          BELONGING to your partner, especially sitting above an "Enter
+          Partner's Code" button on the same screen. */}
+      {showLabel && <Text style={styles.label}>Your Code</Text>}
       <Pressable
         onPress={handleCopy}
         accessibilityRole="button"
-        accessibilityLabel={`Your partner code, ${code.split('').join(' ')}. Tap to copy.`}
+        accessibilityLabel={`Your code, ${code.split('').join(' ')}. Tap to copy.`}
         style={({ pressed }) => [styles.codeWrap, pressed && styles.codeWrapPressed]}
       >
         <Text style={[styles.code, { color: colors.primary }]} selectable>
