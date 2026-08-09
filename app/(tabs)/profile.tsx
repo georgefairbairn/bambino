@@ -605,14 +605,14 @@ export default function Profile() {
                       </Pressable>
                     </View>
                     <Text style={styles.shareCodeHint}>
-                      Send this to your partner. They&apos;ll need Bambino installed, then they
-                      enter it under &quot;Link Partner&quot;.
+                      Send this to your partner. Once they have Bambino installed, they tap
+                      &quot;Enter Partner&apos;s Code&quot; to link up.
                     </Text>
                   </>
                 )}
                 <View style={styles.linkPartnerWrap}>
                   <GradientButton
-                    title="Link Partner"
+                    title="Enter Partner's Code"
                     onPress={() => handlePartnerAction('link')}
                     variant="primary"
                   />
