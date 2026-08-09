@@ -11,6 +11,9 @@ import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { Events, trackEvent, trackScreen } from '@/lib/analytics';
 import { LockedMatchRows } from '@/components/matches/locked-match-rows';
+import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
+import { ShareCodeDisplay } from '@/components/partner/share-code-display';
+import { buildInviteMessage } from '@/constants/links';
 import { alertMatchMutationError } from '@/components/matches/match-error-alert';
 import { Paywall } from '@/components/paywall';
 import {
@@ -97,6 +100,20 @@ export default function Matches() {
   const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
 
   const matchAccess = useQuery(api.matches.getMatchAccess);
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
+
+  // Shares directly rather than routing to Settings: the button says "Share
+  // Your Code", so it should share. Sending the user to another tab to find a
+  // second button with the same label costs a tap on the app's weakest funnel.
+  const handleShareCode = useCallback(async () => {
+    if (!partnerInfo?.shareCode) return;
+    try {
+      await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
+      trackEvent(Events.PARTNER_CODE_SHARED, { source: 'matches_empty' });
+    } catch (error) {
+      Sentry.captureException(error);
+    }
+  }, [partnerInfo?.shareCode]);
 
   // Fire MATCH_WALL_SHOWN once per screen visit when locked rows first appear.
   useEffect(() => {
@@ -374,13 +391,24 @@ export default function Matches() {
               <Text style={styles.emptyDescriptionBold}>you both like</Text> shows up here.
             </Text>
             <MatchAnimation key={focusCount} />
+            {partnerInfo?.shareCode && (
+              <View style={styles.emptyCodeWrap}>
+                <ShareCodeDisplay code={partnerInfo.shareCode} source="matches_empty" />
+              </View>
+            )}
             <Pressable
               style={[styles.ctaButton, { backgroundColor: colors.primary }]}
-              onPress={() => router.push('/(tabs)/profile')}
+              onPress={handleShareCode}
             >
               <Text style={styles.ctaButtonText}>Share Your Code</Text>
             </Pressable>
+            <Pressable style={styles.secondaryCta} onPress={() => setShowPartnerModal(true)}>
+              <Text style={[styles.secondaryCtaText, { color: colors.primary }]}>
+                Enter Partner&apos;s Code
+              </Text>
+            </Pressable>
           </View>
+          <PartnerLinkModal visible={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
           {/* Shown when a partner unlinks mid-session (#181) — this empty
               state is the view the user lands on right after the unlink. */}
           <ErrorToast
@@ -706,6 +734,16 @@ const styles = StyleSheet.create({
     // mirrors the inter-card gap every other card already has above it.
     paddingTop: 12,
     paddingBottom: 100,
+  },
+  emptyCodeWrap: {
+    marginBottom: 20,
+  },
+  secondaryCta: {
+    marginTop: 14,
+    paddingVertical: 8,
+  },
+  secondaryCtaText: {
+    ...BUTTON_TEXT.link,
   },
   ctaButton: {
     paddingVertical: 15,

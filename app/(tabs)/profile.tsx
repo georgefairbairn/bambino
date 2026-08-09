@@ -40,6 +40,7 @@ import {
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { buildInviteMessage } from '@/constants/links';
+import { ShareCodeDisplay } from '@/components/partner/share-code-display';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
@@ -562,12 +563,7 @@ export default function Profile() {
               <View style={styles.noPartner}>
                 {partnerInfo?.shareCode && (
                   <>
-                    <Text style={styles.shareCodeLabel}>Your Partner Code</Text>
-                    <View style={styles.shareCodeWrap}>
-                      <Text style={[styles.shareCode, { color: colors.primary }]}>
-                        {partnerInfo.shareCode}
-                      </Text>
-                    </View>
+                    <ShareCodeDisplay code={partnerInfo.shareCode} source="settings" />
                     <View style={styles.shareActions}>
                       <Pressable
                         style={[styles.shareActionButton, { backgroundColor: colors.primaryLight }]}
@@ -1012,13 +1008,6 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
-  shareCodeLabel: {
-    fontSize: 12,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
   shareCodeHint: {
     fontFamily: Fonts?.sans,
     fontSize: 13,
@@ -1027,17 +1016,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
     paddingHorizontal: 8,
-  },
-  shareCode: {
-    fontSize: 32,
-    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
-    letterSpacing: 6,
-  },
-  shareCodeWrap: {
-    overflow: 'hidden',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
   },
   shareActions: {
     flexDirection: 'row',

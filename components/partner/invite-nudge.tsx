@@ -8,6 +8,7 @@ import { GradientButton } from '@/components/ui/gradient-button';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { buildInviteMessage } from '@/constants/links';
+import { ShareCodeDisplay } from '@/components/partner/share-code-display';
 import { Events, trackEvent } from '@/lib/analytics';
 
 const LIKES_BEFORE_NUDGE = 10;
@@ -97,6 +98,12 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
         </Text>
       </View>
 
+      {partnerInfo?.shareCode && (
+        <View style={styles.codeWrap}>
+          <ShareCodeDisplay code={partnerInfo.shareCode} source="invite_nudge" />
+        </View>
+      )}
+
       <View style={styles.buttonWrap}>
         {isSharing ? (
           <ActivityIndicator size="small" color={colors.primary} />
@@ -135,6 +142,9 @@ const styles = StyleSheet.create({
     color: '#6B5B7B',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  codeWrap: {
+    marginBottom: 20,
   },
   buttonWrap: {
     marginBottom: 8,
