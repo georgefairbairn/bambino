@@ -36,8 +36,6 @@ export function DeclineSheet({ visible, nameName, onDecline, onClose }: DeclineS
   return (
     <AnimatedBottomSheet visible={visible} onClose={handleClose} maxHeight="45%">
       <View style={styles.content}>
-        <View style={styles.handleBar} />
-
         <Text style={styles.title}>Decline &ldquo;{nameName}&rdquo;?</Text>
         <Text style={styles.subtitle}>
           Your partner will be notified. You can both propose again anytime.
@@ -74,14 +72,6 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     paddingBottom: 36,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    marginTop: 12,
-    marginBottom: 20,
   },
   title: {
     fontSize: 18,

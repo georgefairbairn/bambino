@@ -152,8 +152,6 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
       maxHeight="90%"
       style={{ paddingBottom: 34 }}
     >
-      <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
-
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={styles.headerTitle}>Match Details</Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
@@ -287,14 +285,6 @@ export function MatchDetailModal({ visible, match, onClose }: MatchDetailModalPr
 }
 
 const styles = StyleSheet.create({
-  handleBar: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

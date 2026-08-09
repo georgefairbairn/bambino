@@ -39,8 +39,6 @@ export function ProposalConflictSheet({
   return (
     <AnimatedBottomSheet visible={visible} onClose={onClose} maxHeight="55%">
       <View style={styles.content}>
-        <View style={styles.handleBar} />
-
         <View style={[styles.iconCircle, { backgroundColor: colors.primaryLight }]}>
           <Ionicons name="chatbubbles-outline" size={32} color={colors.primary} />
         </View>
@@ -86,14 +84,6 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     paddingBottom: 36,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    marginTop: 12,
-    marginBottom: 24,
   },
   iconCircle: {
     width: 64,

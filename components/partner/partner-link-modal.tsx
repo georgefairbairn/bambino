@@ -158,8 +158,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
       style={{ paddingHorizontal: 24, paddingBottom: 40 }}
     >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={styles.handleBar} />
-
         <View style={styles.header}>
           {preview && (
             <Pressable onPress={handleBack} style={styles.backButton}>
@@ -273,15 +271,6 @@ export function PartnerLinkModal({ visible, onClose }: PartnerLinkModalProps) {
 }
 
 const styles = StyleSheet.create({
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 16,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -39,8 +39,6 @@ export function ProposeSheet({ visible, name, onPropose, onClose }: ProposeSheet
   return (
     <AnimatedBottomSheet visible={visible} onClose={handleClose} maxHeight="50%">
       <View style={styles.content}>
-        <View style={styles.handleBar} />
-
         <Text style={styles.title}>Propose This Name?</Text>
         <Text style={styles.name}>{name.name}</Text>
         <Text style={styles.subtitle}>Your partner will be asked to accept or decline.</Text>
@@ -80,14 +78,6 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     paddingBottom: 36,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    marginTop: 12,
-    marginBottom: 20,
   },
   title: {
     fontSize: 18,

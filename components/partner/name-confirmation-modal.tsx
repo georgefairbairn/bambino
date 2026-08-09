@@ -108,8 +108,6 @@ export function NameConfirmationModal({
       }}
     >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={styles.handleBar} />
-
         <Text style={styles.title}>{mode === 'edit' ? 'Edit Name' : 'Confirm Your Profile'}</Text>
         <Text style={styles.subtitle}>
           {mode === 'edit' ? 'Update your display name' : 'This is how your partner will see you'}
@@ -211,14 +209,6 @@ export function NameConfirmationModal({
 }
 
 const styles = StyleSheet.create({
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
   title: {
     fontSize: 20,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
