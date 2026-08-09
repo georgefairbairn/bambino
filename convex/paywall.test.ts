@@ -287,3 +287,40 @@ describe('reciprocal premium match access', () => {
     expect(access).toEqual({ total: 7, visible: 7, locked: 0, isPremium: true });
   });
 });
+
+describe('partner invite nudge', () => {
+  test('getPartnerInfo reports inviteNudgeShown false before it fires', async () => {
+    const t = convexTest(schema, modules);
+    await seedUser(t, { clerkId: 'clerk_nudge_a', shareCode: 'AAAA2222' });
+
+    const info = await t
+      .withIdentity({ subject: 'clerk_nudge_a' })
+      .query(api.partners.getPartnerInfo, {});
+
+    expect(info?.inviteNudgeShown).toBe(false);
+    expect(info?.shareCode).toBe('AAAA2222');
+  });
+
+  test('markInviteNudgeShown latches the flag and is idempotent', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, { clerkId: 'clerk_nudge_b', shareCode: 'BBBB3333' });
+    const asUser = t.withIdentity({ subject: 'clerk_nudge_b' });
+
+    await asUser.mutation(api.users.markInviteNudgeShown, {});
+    const first = await t.run(async (ctx) => ctx.db.get(userId));
+    expect(first?.inviteNudgeShown).toBe(true);
+
+    // Stamp a sentinel updatedAt so a second write is detectable. Comparing
+    // updatedAt before/after would NOT work: both calls land in the same
+    // millisecond, so the assertion passes even with the guard deleted.
+    await t.run(async (ctx) => ctx.db.patch(userId, { updatedAt: 1 }));
+
+    await asUser.mutation(api.users.markInviteNudgeShown, {});
+    const second = await t.run(async (ctx) => ctx.db.get(userId));
+    expect(second?.inviteNudgeShown).toBe(true);
+    expect(second?.updatedAt).toBe(1);
+
+    const info = await asUser.query(api.partners.getPartnerInfo, {});
+    expect(info?.inviteNudgeShown).toBe(true);
+  });
+});

@@ -7,6 +7,7 @@ import { trackScreen, trackEvent, Events } from '@/lib/analytics';
 import { api } from '@/convex/_generated/api';
 import { useFilterNudge } from '@/hooks/use-filter-nudge';
 import { SwipeCardStack } from '@/components/swipe/swipe-card-stack';
+import { InviteNudge } from '@/components/partner/invite-nudge';
 import { ExploreHeader } from '@/components/swipe/explore-header';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -86,6 +87,9 @@ export default function ExploreView() {
             onNudgeBannerPress={handleFilterPress}
           />
         </ErrorBoundary>
+        {/* One-time partner-invite nudge. Held back while the filter nudge owns
+            the screen so the two can never stack; it re-qualifies next session. */}
+        <InviteNudge suppressed={bannerVisible || pulseActive} />
       </SafeAreaView>
     </GradientBackground>
   );

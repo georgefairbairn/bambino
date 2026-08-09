@@ -178,6 +178,7 @@ export const getPartnerInfo = query({
     return {
       shareCode: user.shareCode ?? null,
       partner,
+      inviteNudgeShown: user.inviteNudgeShown === true,
     };
   },
 });
