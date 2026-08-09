@@ -10,7 +10,6 @@ import Animated, {
   Extrapolation,
   FadeIn,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
@@ -118,18 +117,6 @@ export function MultiplayerIntro({ isActive }: { isActive: boolean }) {
         Matching takes two
       </Animated.Text>
 
-      {/* Premium pill */}
-      <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.proPillWrap}>
-        <LinearGradient
-          colors={[colors.primaryLight, colors.secondaryLight]}
-          style={[styles.proPill, { borderColor: colors.border }]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Text style={[styles.proPillText, { color: colors.tabActive }]}>Premium</Text>
-        </LinearGradient>
-      </Animated.View>
-
       {/* Match animation area */}
       <View style={styles.matchStage}>
         {/* YOU card */}
@@ -224,26 +211,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 76,
   },
-  proPillWrap: {
-    marginTop: 8,
-  },
-  proPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    // borderColor set dynamically via inline style
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  proPillText: {
-    fontSize: 9,
-    fontWeight: '800',
-    // color set dynamically via inline style
-    letterSpacing: 0.8,
-  },
-
   // ── Match animation stage ──
   matchStage: {
     width: '100%',
