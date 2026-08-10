@@ -166,12 +166,32 @@ export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallPr
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
 
-        <View style={[styles.reassurance, { backgroundColor: colors.primaryLight }]}>
-          <Text style={styles.freeFeatures}>
-            <Text style={styles.freeFeaturesLabel}>Always free:</Text>
-            {' swiping, your shortlist, and partner linking.'}
-          </Text>
+        {/* Only the two rows that actually differ. Swiping, the shortlist and
+            partner linking are identical on both sides, so listing them would be
+            rows of parity — the line underneath covers them in one sentence. */}
+        <View style={styles.comparison}>
+          <View style={styles.comparisonRow}>
+            <Text style={styles.comparisonLabel} />
+            <Text style={styles.comparisonHeader}>Free</Text>
+            <Text style={[styles.comparisonHeader, { color: colors.primary }]}>Premium</Text>
+          </View>
+          <View style={styles.rowSeparator} />
+          <View style={styles.comparisonRow}>
+            <Text style={styles.comparisonLabel}>Matches</Text>
+            <Text style={styles.comparisonValue}>1</Text>
+            <Text style={[styles.comparisonValuePremium, { color: colors.primary }]}>All</Text>
+          </View>
+          <View style={styles.rowSeparator} />
+          <View style={styles.comparisonRow}>
+            <Text style={styles.comparisonLabel}>Propose a name</Text>
+            <Text style={styles.comparisonValue}>—</Text>
+            <Text style={[styles.comparisonValuePremium, { color: colors.primary }]}>Yes</Text>
+          </View>
         </View>
+
+        <Text style={styles.freeFeatures}>
+          Swiping, your shortlist and partner linking stay free.
+        </Text>
 
         {/* Reassurance sits before the button, not between the two actions. */}
         <Text style={styles.oneTime}>One purchase. No subscription. Covers you both.</Text>
@@ -276,25 +296,61 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  reassurance: {
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
+  comparison: {
+    marginBottom: 12,
   },
-  freeFeatures: {
-    fontSize: 14,
+  comparisonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  comparisonLabel: {
+    flex: 1,
+    fontSize: 15,
     fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    lineHeight: 20,
-  },
-  freeFeaturesLabel: {
-    fontWeight: '600',
     color: '#2D1B4E',
   },
-  oneTime: {
+  comparisonHeader: {
+    width: 80,
+    textAlign: 'center',
+    fontSize: 12,
+    fontFamily: Fonts?.sans,
+    fontWeight: '700',
+    color: '#A89BB5',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  comparisonValue: {
+    width: 80,
+    textAlign: 'center',
+    fontSize: 15,
+    fontFamily: Fonts?.sans,
+    color: '#A89BB5',
+  },
+  comparisonValuePremium: {
+    width: 80,
+    textAlign: 'center',
+    fontSize: 15,
+    fontFamily: Fonts?.sans,
+    fontWeight: '700',
+  },
+  rowSeparator: {
+    height: 1,
+    backgroundColor: '#F0EBF5',
+  },
+  freeFeatures: {
     fontSize: 13,
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  // Fine print: lighter than the scope line above it so the two reassurances
+  // don't read as one undifferentiated block of grey.
+  oneTime: {
+    fontSize: 12,
+    fontFamily: Fonts?.sans,
+    color: '#A89BB5',
     textAlign: 'center',
     marginBottom: 16,
   },
