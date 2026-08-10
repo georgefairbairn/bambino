@@ -38,6 +38,7 @@ export type ConvexErrorCode =
   | 'NOT_PROPOSER'
   | 'PROPOSAL_NOT_PENDING'
   | 'PROPOSAL_NOT_DECLINED'
+  | 'PREMIUM_REQUIRED'
   // selections.ts
   | 'SELECTION_NOT_FOUND'
   | 'BULK_LIMIT_EXCEEDED'
@@ -57,6 +58,10 @@ export interface ConvexErrorData {
  * client can decode. `extra` adds machine-readable fields alongside the
  * human-readable message (e.g. `{ retryAfterMs }`).
  */
-export function convexError(code: ConvexErrorCode, message: string, extra?: Record<string, unknown>) {
+export function convexError(
+  code: ConvexErrorCode,
+  message: string,
+  extra?: Record<string, unknown>,
+) {
   return new ConvexError({ code, message, ...extra });
 }

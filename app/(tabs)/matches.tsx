@@ -100,6 +100,10 @@ export default function Matches() {
   const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
 
   const matchAccess = useQuery(api.matches.getMatchAccess);
+  // Proposing is premium (server-enforced in matches.proposeName). Treat an
+  // unresolved query as premium so the button never flickers into a paywall
+  // prompt for someone who has actually paid.
+  const isPremium = matchAccess?.isPremium !== false;
   const [showPartnerModal, setShowPartnerModal] = useState(false);
 
   // Shares directly rather than routing to Settings: the button says "Share
@@ -350,7 +354,7 @@ export default function Matches() {
           onPress={() => setSelectedMatch(item)}
           onPropose={
             !item.isChosen && item.proposalStatus !== 'pending' && !pendingProposal && !chosenName
-              ? () => setProposeTarget(item)
+              ? () => (isPremium ? setProposeTarget(item) : setShowPaywall(true))
               : undefined
           }
           onWithdraw={
@@ -361,7 +365,7 @@ export default function Matches() {
         />
       </Animated.View>
     ),
-    [handleWithdrawProposal, currentUser?._id, pendingProposal, chosenName],
+    [handleWithdrawProposal, currentUser?._id, pendingProposal, chosenName, isPremium],
   );
 
   const keyExtractor = useCallback((item: MatchWithName) => item._id, []);
@@ -607,7 +611,8 @@ export default function Matches() {
               ? () => {
                   const target = selectedMatch;
                   setSelectedMatch(null);
-                  setProposeTarget(target);
+                  if (isPremium) setProposeTarget(target);
+                  else setShowPaywall(true);
                 }
               : undefined
           }

@@ -63,7 +63,10 @@ function assertCurrentPartner(user: Doc<'users'>, match: Doc<'matches'>) {
   }
   const otherId = getOtherUserId(match, user._id);
   if (user.partnerId !== otherId) {
-    throw convexError('MATCH_FROM_PREVIOUS_PARTNERSHIP', 'This match is from a previous partnership');
+    throw convexError(
+      'MATCH_FROM_PREVIOUS_PARTNERSHIP',
+      'This match is from a previous partnership',
+    );
   }
 }
 
@@ -285,6 +288,18 @@ export const proposeName = mutation({
       throw convexError('NO_PARTNER_LINKED', 'No partner linked');
     }
 
+    // Proposing is premium. Enforced here, not just in the UI, because hiding a
+    // button doesn't stop a crafted mutation call.
+    //
+    // Deliberately NOT applied to respondToProposal: premium propagates across a
+    // partnership (see getEffectivePremiumStatusHelper), so a couple is either
+    // both-free or both-premium and a proposal can never strand mid-flight. If
+    // that ever changes, an ungated respond is the safe side to err on.
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    if (!premiumStatus.isPremium) {
+      throw convexError('PREMIUM_REQUIRED', 'Proposing a name requires Bambino Premium');
+    }
+
     const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw convexError('MATCH_NOT_FOUND', 'Match not found');
@@ -299,9 +314,7 @@ export const proposeName = mutation({
     // surface a structured warning so the UI can prompt.
     const partnerPending = partnerMatches.find(
       (m) =>
-        m.proposalStatus === 'pending' &&
-        m.proposedBy !== undefined &&
-        m.proposedBy !== user._id,
+        m.proposalStatus === 'pending' && m.proposedBy !== undefined && m.proposedBy !== user._id,
     );
 
     if (partnerPending && !args.force) {

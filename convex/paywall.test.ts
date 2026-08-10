@@ -324,3 +324,54 @@ describe('partner invite nudge', () => {
     expect(info?.inviteNudgeShown).toBe(true);
   });
 });
+
+describe('proposing is premium', () => {
+  async function firstMatchId(t: ReturnType<typeof convexTest>): Promise<Id<'matches'>> {
+    return await t.run(async (ctx) => {
+      const all = await ctx.db.query('matches').collect();
+      return all[0]!._id;
+    });
+  }
+
+  async function readMatch(t: ReturnType<typeof convexTest>, matchId: Id<'matches'>) {
+    return await t.run(async (ctx) => ctx.db.get(matchId));
+  }
+
+  test('a free user cannot propose', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 3, false);
+    const matchId = await firstMatchId(t);
+
+    await expect(
+      t.withIdentity({ subject: 'clerk_m_a' }).mutation(api.matches.proposeName, { matchId }),
+    ).rejects.toThrow(/PREMIUM_REQUIRED/);
+  });
+
+  test('a premium user can propose', async () => {
+    const t = convexTest(schema, modules);
+    await seedLinkedPairWithMatches(t, 3, true);
+    const matchId = await firstMatchId(t);
+
+    await t.withIdentity({ subject: 'clerk_m_a' }).mutation(api.matches.proposeName, { matchId });
+
+    const match = await readMatch(t, matchId);
+    expect(match?.proposalStatus).toBe('pending');
+  });
+
+  test('a free user whose partner is premium can propose', async () => {
+    const t = convexTest(schema, modules);
+    // seedLinkedPairWithMatches marks BOTH premium; set only B so we exercise
+    // premium propagating from partner to the free user.
+    const { aId, bId } = await seedLinkedPairWithMatches(t, 3, false);
+    await t.run(async (ctx) => {
+      await ctx.db.patch(bId, { isPremium: true });
+      await ctx.db.patch(aId, { isPremium: false });
+    });
+    const matchId = await firstMatchId(t);
+
+    await t.withIdentity({ subject: 'clerk_m_a' }).mutation(api.matches.proposeName, { matchId });
+
+    const match = await readMatch(t, matchId);
+    expect(match?.proposalStatus).toBe('pending');
+  });
+});

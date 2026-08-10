@@ -299,15 +299,11 @@ export const linkPartner = mutation({
     // typical pre-link queues are small (tens of names).
     const userLikes = await ctx.db
       .query('selections')
-      .withIndex('by_user_type', (q) =>
-        q.eq('userId', user._id).eq('selectionType', 'like'),
-      )
+      .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'like'))
       .collect();
     const targetLikes = await ctx.db
       .query('selections')
-      .withIndex('by_user_type', (q) =>
-        q.eq('userId', targetUser._id).eq('selectionType', 'like'),
-      )
+      .withIndex('by_user_type', (q) => q.eq('userId', targetUser._id).eq('selectionType', 'like'))
       .collect();
 
     const userLikedNameIds = new Set(userLikes.map((s) => s.nameId));

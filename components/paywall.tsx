@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -17,20 +18,42 @@ interface PaywallProps {
   trigger?: 'match_limit';
 }
 
-function pluralMatch(n: number) {
-  return n === 1 ? 'match' : 'matches';
-}
-
 function pluralName(n: number) {
   return n === 1 ? 'name' : 'names';
 }
 
-function seeItOrAll(n: number) {
-  return n === 1 ? 'it' : 'them all';
+/**
+ * One half of the couple, as an initial on a themed gradient.
+ *
+ * Deliberately NOT the profile photo: most accounts carry Clerk's default
+ * avatar rather than a real upload, so photos render as two identical purple
+ * placeholders that clash with every candy theme. An initial is always legible,
+ * always on-palette, and still unmistakably a person.
+ */
+function Avatar({ name, gradient }: { name?: string | null; gradient: [string, string] }) {
+  // A partner who hasn't set a name yet gets a person glyph, not a "?" — the
+  // question mark reads as an error rather than as someone.
+  const initial = (name ?? '').trim().charAt(0).toUpperCase();
+  return (
+    <View style={styles.avatarRing}>
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.avatar}
+      >
+        {initial ? (
+          <Text style={styles.avatarInitial}>{initial}</Text>
+        ) : (
+          <Ionicons name="person" size={28} color="#fff" />
+        )}
+      </LinearGradient>
+    </View>
+  );
 }
 
 export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallProps) {
-  const { colors } = useTheme();
+  const { colors, gradients } = useTheme();
   const { packages, purchasePremium, restorePurchases, isLoading } = usePurchases();
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -38,6 +61,7 @@ export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallPr
 
   const matchAccess = useQuery(api.matches.getMatchAccess);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const currentUser = useQuery(api.users.getCurrentUser);
 
   const hasPackages = packages.length > 0;
   // No hardcoded fallback: priceString is region-localized (e.g. CA$6.99),
@@ -45,38 +69,26 @@ export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallPr
   // users until offerings load. Show no price until the real one resolves.
   const price = packages[0]?.product.priceString;
 
-  // Locked count: only treat as "known" when the query has resolved AND locked > 0.
-  // Never render "0 more matches" — fall back to the neutral headline instead.
+  // The count is stated exactly ONCE, as a fact about the couple rather than as
+  // a paywall tally. It is deliberately absent from the CTA and the benefits so
+  // nothing on the sheet can contradict anything else.
   const locked = matchAccess?.locked ?? 0;
+  const total = matchAccess?.total ?? 0;
+  const visibleCount = matchAccess?.visible ?? 0;
   const hasCount = matchAccess !== undefined && locked > 0;
 
   const partnerName: string | undefined = partnerInfo?.partner?.name;
+  const couple = partnerName ? `You and ${partnerName}` : 'You and your partner';
 
-  // Headline
-  const headline = hasCount ? `${locked} more ${pluralMatch(locked)}` : 'Unlock all your matches';
+  const title = hasCount
+    ? `${couple} both liked ${total} ${pluralName(total)}`
+    : 'Unlock every match';
+  const subtitle = hasCount
+    ? `You’ve only seen ${visibleCount === 1 ? 'one' : visibleCount}. Unlock every match and propose the name you agree on.`
+    : 'See every name you both liked, and propose the one you agree on.';
 
-  // Subcopy
-  let subcopy: string;
-  if (hasCount) {
-    const intro = partnerName
-      ? `You and ${partnerName} both liked ${locked} more ${pluralName(locked)}.`
-      : `You both liked ${locked} more ${pluralName(locked)}.`;
-    subcopy = `${intro} Unlock to see ${seeItOrAll(locked)}.`;
-  } else {
-    subcopy = 'See every name you and your partner both liked.';
-  }
-
-  // CTA label
-  let ctaLabel: string;
-  if (hasCount) {
-    if (locked === 1) {
-      ctaLabel = price ? `See Your Other Match for ${price}` : 'See Your Other Match';
-    } else {
-      ctaLabel = price ? `See All ${locked} Matches for ${price}` : `See All ${locked} Matches`;
-    }
-  } else {
-    ctaLabel = price ? `Unlock All Matches for ${price}` : 'Unlock All Matches';
-  }
+  // Purchase is never blocked on the count loading, so the CTA carries no number.
+  const ctaLabel = price ? `Unlock for ${price}` : 'Unlock';
 
   useEffect(() => {
     if (visible) trackEvent(Events.PAYWALL_SHOWN, { trigger });
@@ -136,22 +148,33 @@ export function Paywall({ visible, onClose, trigger = 'match_limit' }: PaywallPr
           <Ionicons name="close" size={24} color="#6B5B7B" />
         </Pressable>
 
-        {/* Count-led headline */}
-        <View style={styles.header}>
-          <Text style={styles.headline}>{headline}</Text>
-          <Text style={styles.subcopy}>{subcopy}</Text>
+        {/* Circular element -> title -> subtitle: the same rhythm as
+            PushPrimingSheet and ProposalConflictSheet, except the circle is the
+            two of you rather than a generic icon. */}
+        <View style={styles.avatarPair}>
+          <Avatar name={currentUser?.name} gradient={gradients.buttonPrimary as [string, string]} />
+          <View style={styles.avatarOverlap}>
+            <Avatar
+              name={partnerInfo?.partner?.name}
+              gradient={[colors.secondary, colors.primary]}
+            />
+          </View>
         </View>
 
-        {/* Divider + free-features reassurance */}
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        </View>
+
         <View style={[styles.reassurance, { backgroundColor: colors.primaryLight }]}>
           <Text style={styles.freeFeatures}>
             <Text style={styles.freeFeaturesLabel}>Always free:</Text>
-            {' unlimited swiping, unlimited liked names, partner linking.'}
+            {' swiping, your shortlist, and partner linking.'}
           </Text>
         </View>
 
-        {/* One-time framing */}
-        <Text style={styles.oneTime}>One purchase covers you both. No subscription.</Text>
+        {/* Reassurance sits before the button, not between the two actions. */}
+        <Text style={styles.oneTime}>One purchase. No subscription. Covers you both.</Text>
 
         {/* Purchase button — never blocked on count loading */}
         <View style={{ marginBottom: 8 }}>
@@ -208,18 +231,45 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     padding: 8,
   },
+  avatarPair: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  avatarOverlap: {
+    marginLeft: -18,
+  },
+  avatarRing: {
+    borderWidth: 3,
+    borderColor: '#fff',
+    borderRadius: 36,
+    overflow: 'hidden',
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontSize: 26,
+    fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
+    color: '#fff',
+  },
   header: {
     alignItems: 'center',
     marginBottom: 20,
   },
-  headline: {
-    fontSize: 28,
+  // Matches PushPrimingSheet's title/subtitle scale.
+  title: {
+    fontSize: 22,
     fontFamily: Fonts?.title || 'Gabarito_800ExtraBold',
     color: '#2D1B4E',
     textAlign: 'center',
     marginBottom: 8,
   },
-  subcopy: {
+  subtitle: {
     fontSize: 15,
     fontFamily: Fonts?.sans,
     color: '#6B5B7B',

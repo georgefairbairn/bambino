@@ -1,6 +1,12 @@
 import { v } from 'convex/values';
 import { internalMutation, query, QueryCtx } from './_generated/server';
-import { CATEGORY_KEYS, deriveCategories, maskFor, orderCategories, type PopPoint } from './categories';
+import {
+  CATEGORY_KEYS,
+  deriveCategories,
+  maskFor,
+  orderCategories,
+  type PopPoint,
+} from './categories';
 
 const nameValidator = v.object({
   name: v.string(),
@@ -712,7 +718,8 @@ export const computeDerivedCategories = internalMutation({
 
       const prev = name.categories ?? [];
       const sameSet =
-        prev.length === next.length && CATEGORY_KEYS.every((k) => prev.includes(k) === next.includes(k));
+        prev.length === next.length &&
+        CATEGORY_KEYS.every((k) => prev.includes(k) === next.includes(k));
       if (!sameSet || name.categoryMask !== mask) {
         await ctx.db.patch(name._id, { categories: next, categoryMask: mask });
         updated++;
@@ -850,11 +857,21 @@ export const rebuildNameCategoryStats = internalMutation({
       if (existing) {
         await ctx.db.patch(existing._id, { count: existing.count + increment, updatedAt: now });
       } else {
-        await ctx.db.insert('nameCategoryStats', { categoryMask: mask, gender, origin, count: increment, updatedAt: now });
+        await ctx.db.insert('nameCategoryStats', {
+          categoryMask: mask,
+          gender,
+          origin,
+          count: increment,
+          updatedAt: now,
+        });
       }
     }
 
-    return { processed: result.page.length, isDone: result.isDone, continueCursor: result.continueCursor };
+    return {
+      processed: result.page.length,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
   },
 });
 
