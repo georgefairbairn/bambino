@@ -282,6 +282,12 @@ export const seedAppReviewDemo = internalMutation({
   args: {
     reviewerEmail: v.string(),
     partnerEmail: v.string(),
+    // Defaults to FALSE as of 1.1.0. Premium used to be required to reach
+    // Matches at all, so the reviewer had to be granted it. Now matches are
+    // free (the first one) and premium buys the rest plus proposing — so a
+    // premium reviewer would never see the paywall and, more importantly,
+    // could not test the in-app purchase, which Apple requires.
+    grantPremium: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const reviewer = await ctx.db
@@ -298,16 +304,18 @@ export const seedAppReviewDemo = internalMutation({
 
     const now = Date.now();
 
-    // 1. Link as partners, set display names, and grant premium so the
-    //    reviewer can access Matches and unlimited swipes without
-    //    going through IAP. (Premium on either side is shared with the
-    //    partner via getEffectivePremiumStatus.)
+    // 1. Link as partners and set display names. Premium is off by default so
+    //    the reviewer lands on the free experience: their first match visible,
+    //    the rest blurred behind the paywall, and a sandbox purchase available
+    //    to unlock them. Premium on EITHER side is shared with the partner via
+    //    getEffectivePremiumStatus, so both must be cleared together.
+    const premium = args.grantPremium === true;
     await ctx.db.patch(reviewer._id, {
       partnerId: partner._id,
       name: 'Sam',
       nameConfirmed: true,
-      isPremium: true,
-      purchasedAt: now,
+      isPremium: premium,
+      purchasedAt: premium ? now : undefined,
       premiumRevokedAt: undefined,
       updatedAt: now,
     });
@@ -315,8 +323,8 @@ export const seedAppReviewDemo = internalMutation({
       partnerId: reviewer._id,
       name: 'Alex',
       nameConfirmed: true,
-      isPremium: true,
-      purchasedAt: now,
+      isPremium: premium,
+      purchasedAt: premium ? now : undefined,
       premiumRevokedAt: undefined,
       updatedAt: now,
     });
