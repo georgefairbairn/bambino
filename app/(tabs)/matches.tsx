@@ -505,7 +505,9 @@ export default function Matches() {
           entering={!hasAnimated.current ? FadeInDown.duration(400).springify() : undefined}
         >
           <MatchesHeader
-            count={matches.length}
+            // Total, not matches.length: the list is cropped for free users, so
+            // matches.length would tell someone with 7 matches they have 1.
+            count={matchAccess?.total ?? matches.length}
             sortBy={sortBy}
             onSortChange={setSortBy}
             onShare={handleShare}
@@ -585,7 +587,11 @@ export default function Matches() {
           keyboardDismissMode="on-drag"
           ListFooterComponent={
             matchAccess?.locked && matchAccess.locked > 0 ? (
-              <LockedMatchRows count={matchAccess.locked} onPress={() => setShowPaywall(true)} />
+              <LockedMatchRows
+                count={matchAccess.locked}
+                total={matchAccess.total}
+                onPress={() => setShowPaywall(true)}
+              />
             ) : null
           }
         />
