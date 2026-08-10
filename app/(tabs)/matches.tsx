@@ -587,11 +587,7 @@ export default function Matches() {
           keyboardDismissMode="on-drag"
           ListFooterComponent={
             matchAccess?.locked && matchAccess.locked > 0 ? (
-              <LockedMatchRows
-                count={matchAccess.locked}
-                total={matchAccess.total}
-                onPress={() => setShowPaywall(true)}
-              />
+              <LockedMatchRows count={matchAccess.locked} onPress={() => setShowPaywall(true)} />
             ) : null
           }
         />

@@ -1,15 +1,13 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { BUTTON_TEXT, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 
 interface LockedMatchRowsProps {
-  /** Number of locked (inaccessible) matches. */
+  /** Number of locked (inaccessible) matches. One blurred row is drawn per match. */
   count: number;
-  /** Total matches, locked + visible. Used for the CTA label. */
-  total: number;
-  /** Called when the user taps a locked row or the CTA. Opens the paywall sheet. */
+  /** Called when the user taps a locked row. Opens the paywall sheet. */
   onPress: () => void;
 }
 
@@ -27,6 +25,13 @@ const FILLER_ROWS = [
   { name: 'Alexander', origin: 'Greek' },
   { name: 'Isabella', origin: 'Italian' },
   { name: 'Sebastian', origin: 'Latin' },
+  { name: 'Mia', origin: 'Scandinavian' },
+  { name: 'Theodore', origin: 'Greek' },
+  { name: 'Amelia', origin: 'Germanic' },
+  { name: 'Rafael', origin: 'Hebrew' },
+  { name: 'Nora', origin: 'Irish' },
+  { name: 'Julian', origin: 'Latin' },
+  { name: 'Beatrice', origin: 'Latin' },
 ] as const;
 
 /**
@@ -39,15 +44,16 @@ const FILLER_ROWS = [
  * left them unapplied at runtime — the cards rendered with no background, no
  * margins and no row layout.
  */
-export function LockedMatchRows({ count, total, onPress }: LockedMatchRowsProps) {
+export function LockedMatchRows({ count, onPress }: LockedMatchRowsProps) {
   const { colors } = useTheme();
-  const visibleRows = Math.min(count, FILLER_ROWS.length);
-  const overflow = count - visibleRows;
   const label = `Unlock ${count} more ${count === 1 ? 'match' : 'matches'}`;
+  // One row per locked match. Filler cycles once a couple has more locked
+  // matches than the list has entries.
+  const rows = Array.from({ length: count }, (_, i) => FILLER_ROWS[i % FILLER_ROWS.length]!);
 
   return (
     <View>
-      {FILLER_ROWS.slice(0, visibleRows).map((filler, i) => (
+      {rows.map((filler, i) => (
         <Pressable key={i} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
           <View style={[styles.card, { shadowColor: colors.secondary }]}>
             <View style={styles.mainContent}>
@@ -79,14 +85,6 @@ export function LockedMatchRows({ count, total, onPress }: LockedMatchRowsProps)
           </View>
         </Pressable>
       ))}
-
-      {overflow > 0 && <Text style={styles.overflowLabel}>and {overflow} more</Text>}
-
-      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-        <View style={[styles.ctaButton, { backgroundColor: colors.primary }]}>
-          <Text style={[BUTTON_TEXT.cta, styles.ctaText]}>See All {total} Matches</Text>
-        </View>
-      </Pressable>
     </View>
   );
 }
@@ -146,23 +144,5 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  overflowLabel: {
-    fontSize: 13,
-    fontFamily: Fonts?.sans,
-    color: '#6B5B7B',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  ctaButton: {
-    marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 16,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  ctaText: {
-    color: '#fff',
   },
 });
