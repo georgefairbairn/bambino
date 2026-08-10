@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { convexTest } from 'convex-test';
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import schema from './schema';
 import { api } from './_generated/api';
 import type { Id } from './_generated/dataModel';
@@ -326,6 +326,10 @@ describe('partner invite nudge', () => {
 });
 
 describe('proposing is premium', () => {
+  // finishAllScheduledFunctions drives the scheduler off fake timers.
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
   async function firstMatchId(t: ReturnType<typeof convexTest>): Promise<Id<'matches'>> {
     return await t.run(async (ctx) => {
       const all = await ctx.db.query('matches').collect();
@@ -353,6 +357,11 @@ describe('proposing is premium', () => {
     const matchId = await firstMatchId(t);
 
     await t.withIdentity({ subject: 'clerk_m_a' }).mutation(api.matches.proposeName, { matchId });
+    // proposeName schedules a push-notification action. Drain it inside the
+    // test or the scheduler's own bookkeeping write lands after the transaction
+    // closes and convex-test throws "Write outside of transaction" — a race that
+    // passed locally and failed in CI.
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const match = await readMatch(t, matchId);
     expect(match?.proposalStatus).toBe('pending');
@@ -370,6 +379,11 @@ describe('proposing is premium', () => {
     const matchId = await firstMatchId(t);
 
     await t.withIdentity({ subject: 'clerk_m_a' }).mutation(api.matches.proposeName, { matchId });
+    // proposeName schedules a push-notification action. Drain it inside the
+    // test or the scheduler's own bookkeeping write lands after the transaction
+    // closes and convex-test throws "Write outside of transaction" — a race that
+    // passed locally and failed in CI.
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const match = await readMatch(t, matchId);
     expect(match?.proposalStatus).toBe('pending');
