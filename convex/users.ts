@@ -348,6 +348,19 @@ export const markFilterNudgeShown = mutation({
   },
 });
 
+/** Mark that the one-time partner-invite nudge has been shown. Idempotent. */
+export const markInviteNudgeShown = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    if (user.inviteNudgeShown === true) return;
+    await ctx.db.patch(user._id, {
+      inviteNudgeShown: true,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** In-app toggle for push notifications (#229). Absent = enabled; only an
  *  explicit false suppresses sends (enforced in notifications.sendPushNotification). */
 export const setPushNotificationsEnabled = mutation({

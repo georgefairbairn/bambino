@@ -129,8 +129,6 @@ export function ReportMessageSheet({ visible, matchId, onClose }: ReportMessageS
   return (
     <AnimatedBottomSheet visible={visible} onClose={resetAndClose} maxHeight="70%">
       <View style={styles.content}>
-        <View style={styles.handleBar} />
-
         {showSuccess ? (
           <View style={styles.successContainer}>
             <Ionicons name="checkmark-circle" size={32} color={colors.primary} />
@@ -230,15 +228,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingBottom: 36,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 20,
   },
   title: {
     fontSize: 18,

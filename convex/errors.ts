@@ -10,9 +10,9 @@ import { ConvexError } from 'convex/values';
  * wire, which is why every user-facing mutation failure goes through here.
  *
  * NOTE: returned-object discriminants (e.g. `NAME_NOT_CONFIRMED`,
- * `FREE_TIER_PARTNER_LIMIT`, `PARTNER_HAS_PENDING_PROPOSAL`) are a separate,
- * intentional pattern — they are *values returned* from mutations, not thrown
- * errors, so they are NOT part of this union.
+ * `PARTNER_HAS_PENDING_PROPOSAL`) are a separate, intentional pattern — they
+ * are *values returned* from mutations, not thrown errors, so they are NOT
+ * part of this union.
  */
 export type ConvexErrorCode =
   // Shared / auth
@@ -38,6 +38,7 @@ export type ConvexErrorCode =
   | 'NOT_PROPOSER'
   | 'PROPOSAL_NOT_PENDING'
   | 'PROPOSAL_NOT_DECLINED'
+  | 'PREMIUM_REQUIRED'
   // selections.ts
   | 'SELECTION_NOT_FOUND'
   | 'BULK_LIMIT_EXCEEDED'
@@ -57,6 +58,10 @@ export interface ConvexErrorData {
  * client can decode. `extra` adds machine-readable fields alongside the
  * human-readable message (e.g. `{ retryAfterMs }`).
  */
-export function convexError(code: ConvexErrorCode, message: string, extra?: Record<string, unknown>) {
+export function convexError(
+  code: ConvexErrorCode,
+  message: string,
+  extra?: Record<string, unknown>,
+) {
   return new ConvexError({ code, message, ...extra });
 }

@@ -232,7 +232,6 @@ export function NameDetailModal({
       style={{ paddingHorizontal: 24, paddingBottom: 40 }}
     >
       {/* Handle bar */}
-      <View style={[styles.handleBar, { backgroundColor: colors.border }]} />
 
       {/* Header with close button */}
       <View style={styles.header}>
@@ -348,14 +347,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 16,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
   },
   header: {
     flexDirection: 'row',

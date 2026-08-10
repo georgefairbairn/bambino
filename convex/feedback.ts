@@ -99,7 +99,10 @@ export const submitFeedback = action({
     }
     // #171: length cap.
     if (trimmed.length > MAX_FEEDBACK_LENGTH) {
-      throw convexError('MESSAGE_TOO_LONG', `Feedback must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
+      throw convexError(
+        'MESSAGE_TOO_LONG',
+        `Feedback must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`,
+      );
     }
 
     const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
@@ -246,7 +249,10 @@ export const reportContent = action({
 
     const trimmedNotes = (args.notes ?? '').trim();
     if (trimmedNotes.length > MAX_FEEDBACK_LENGTH) {
-      throw convexError('NOTES_TOO_LONG', `Report notes must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`);
+      throw convexError(
+        'NOTES_TOO_LONG',
+        `Report notes must be ${MAX_FEEDBACK_LENGTH} characters or fewer.`,
+      );
     }
 
     const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
@@ -298,10 +304,21 @@ export const reportContent = action({
           type: 'context',
           elements: [
             { type: 'mrkdwn', text: '*Reporter:*' },
-            { type: 'plain_text', text: `${safeReporterName} (${safeReporterEmail})`, emoji: false },
+            {
+              type: 'plain_text',
+              text: `${safeReporterName} (${safeReporterEmail})`,
+              emoji: false,
+            },
             { type: 'mrkdwn', text: '*Reported user:*' },
-            { type: 'plain_text', text: `${safeProposerName} (${safeProposerEmail})`, emoji: false },
-            { type: 'mrkdwn', text: `*Match:* ${sanitizeSlackText(String(args.matchId))} — ${new Date().toISOString()}` },
+            {
+              type: 'plain_text',
+              text: `${safeProposerName} (${safeProposerEmail})`,
+              emoji: false,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Match:* ${sanitizeSlackText(String(args.matchId))} — ${new Date().toISOString()}`,
+            },
           ],
         },
       ],

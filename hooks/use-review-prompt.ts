@@ -5,10 +5,10 @@ import * as Sentry from '@sentry/react-native';
 
 // Persisted once-ever flag: Apple's in-app review ask is spent a single time.
 const REVIEW_PROMPTED_KEY = 'bambino_review_prompted';
-// Fire after the user has liked this many names — a positive moment that lands
-// before the free-tier swipe paywall and reaches solo users (no partner/match
-// required). Complements the manual "Rate Bambino" row in Profile.
-const LIKE_THRESHOLD = 10;
+// Fire after the user has liked this many names. Deliberately NOT 10: the
+// one-time partner-invite nudge fires at 10 likes on the same screen, and the
+// two stacked on top of each other. Keep these thresholds apart.
+const LIKE_THRESHOLD = 25;
 
 /**
  * Shows Apple's native in-app review card once, ever, after the user reaches

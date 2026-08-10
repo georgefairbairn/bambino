@@ -16,9 +16,7 @@ export const getUser = internalQuery({
 
     if (!user) return { error: 'User not found' };
 
-    const partnerName = user.partnerId
-      ? (await ctx.db.get(user.partnerId))?.name ?? null
-      : null;
+    const partnerName = user.partnerId ? ((await ctx.db.get(user.partnerId))?.name ?? null) : null;
 
     const selectionCounts = {
       likes: (
@@ -30,9 +28,7 @@ export const getUser = internalQuery({
       rejects: (
         await ctx.db
           .query('selections')
-          .withIndex('by_user_type', (q) =>
-            q.eq('userId', user._id).eq('selectionType', 'reject'),
-          )
+          .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'reject'))
           .collect()
       ).length,
     };

@@ -17,9 +17,14 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const DURATION = 300;
+// Drag past this far, or flick faster than this, and the sheet dismisses
+// instead of springing back.
+const DISMISS_DISTANCE = 120;
+const DISMISS_VELOCITY = 900;
 
 interface AnimatedBottomSheetProps {
   visible: boolean;
@@ -28,6 +33,8 @@ interface AnimatedBottomSheetProps {
   maxHeight?: string;
   backgroundColor?: string;
   style?: ViewStyle;
+  /** Hide the drag grabber (and with it drag-to-dismiss). Default: shown. */
+  showHandle?: boolean;
 }
 
 export function AnimatedBottomSheet({
@@ -37,9 +44,13 @@ export function AnimatedBottomSheet({
   maxHeight = '85%',
   backgroundColor = '#fff',
   style,
+  showHandle = true,
 }: AnimatedBottomSheetProps) {
   const backdropOpacity = useSharedValue(0);
   const sheetTranslateY = useSharedValue(SCREEN_HEIGHT);
+  // Live finger offset during a drag, kept separate from sheetTranslateY so the
+  // open/close animation and the drag can't fight over the same value.
+  const dragY = useSharedValue(0);
   // Lift the sheet above the keyboard manually. KeyboardAvoidingView is
   // unreliable inside a <Modal> on iOS (the modal presents in a separate view
   // controller, so KAV measures the wrong origin and applies no inset), which
@@ -127,8 +138,34 @@ export function AnimatedBottomSheet({
   }));
 
   const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: sheetTranslateY.value - keyboardHeight.value }],
+    transform: [{ translateY: sheetTranslateY.value + dragY.value - keyboardHeight.value }],
   }));
+
+  // Drag-to-dismiss. Attached to the grabber only, never the whole sheet: several
+  // sheets host a ScrollView or TextInput (propose, report-message), and a
+  // sheet-wide pan would steal those gestures.
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      if (keyboardVisible) runOnJS(Keyboard.dismiss)();
+    })
+    .onUpdate((e) => {
+      // Downward only: dragging up shouldn't lift the sheet off its resting position.
+      dragY.value = Math.max(0, e.translationY);
+    })
+    .onEnd((e) => {
+      if (e.translationY > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY) {
+        backdropOpacity.value = withTiming(0, { duration: 200, easing: Easing.in(Easing.ease) });
+        dragY.value = withTiming(
+          SCREEN_HEIGHT,
+          { duration: 220, easing: Easing.in(Easing.cubic) },
+          (finished) => {
+            if (finished) runOnJS(onClose)();
+          },
+        );
+      } else {
+        dragY.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+      }
+    });
 
   // Reset values when modal becomes invisible to prepare for next open
   useEffect(() => {
@@ -136,13 +173,18 @@ export function AnimatedBottomSheet({
       backdropOpacity.value = 0;
       sheetTranslateY.value = SCREEN_HEIGHT;
       keyboardHeight.value = 0;
+      // Without this a drag-dismissed sheet reopens already pushed off-screen.
+      dragY.value = 0;
     }
     // shared values are stable useSharedValue refs; omitted from deps.
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Modal visible={visible} transparent statusBarTranslucent onRequestClose={animateOut}>
-      <View style={styles.overlay}>
+      {/* GestureHandlerRootView is required INSIDE a RN Modal — the root one in
+          app/_layout.tsx doesn't reach across the modal's separate view hierarchy,
+          so without this the drag gesture silently never fires. */}
+      <GestureHandlerRootView style={styles.overlay}>
         <Animated.View style={[styles.backdrop, backdropStyle]} pointerEvents="none" />
 
         <Pressable
@@ -160,9 +202,17 @@ export function AnimatedBottomSheet({
             style,
           ]}
         >
+          {showHandle && (
+            <GestureDetector gesture={panGesture}>
+              {/* Padding widens the touch target well beyond the 4pt bar itself. */}
+              <View style={styles.dragZone}>
+                <View style={styles.grabber} />
+              </View>
+            </GestureDetector>
+          )}
           {children}
         </Animated.View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
@@ -179,5 +229,16 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+  },
+  dragZone: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  grabber: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E5E7EB',
   },
 });

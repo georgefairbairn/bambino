@@ -178,6 +178,7 @@ export const getPartnerInfo = query({
     return {
       shareCode: user.shareCode ?? null,
       partner,
+      inviteNudgeShown: user.inviteNudgeShown === true,
     };
   },
 });
@@ -265,14 +266,10 @@ export const linkPartner = mutation({
       return { error: 'NAME_NOT_CONFIRMED' as const };
     }
 
+    const now = Date.now();
+
     const userIsPremium = user.isPremium === true;
     const targetIsPremium = targetUser.isPremium === true;
-
-    if (!userIsPremium && !targetIsPremium) {
-      return { error: 'FREE_TIER_PARTNER_LIMIT' as const };
-    }
-
-    const now = Date.now();
 
     // Burn the target's share code on successful link — the code that just
     // worked has been seen by the calling user, so rotate it for safety.
@@ -302,15 +299,11 @@ export const linkPartner = mutation({
     // typical pre-link queues are small (tens of names).
     const userLikes = await ctx.db
       .query('selections')
-      .withIndex('by_user_type', (q) =>
-        q.eq('userId', user._id).eq('selectionType', 'like'),
-      )
+      .withIndex('by_user_type', (q) => q.eq('userId', user._id).eq('selectionType', 'like'))
       .collect();
     const targetLikes = await ctx.db
       .query('selections')
-      .withIndex('by_user_type', (q) =>
-        q.eq('userId', targetUser._id).eq('selectionType', 'like'),
-      )
+      .withIndex('by_user_type', (q) => q.eq('userId', targetUser._id).eq('selectionType', 'like'))
       .collect();
 
     const userLikedNameIds = new Set(userLikes.map((s) => s.nameId));

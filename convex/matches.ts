@@ -3,6 +3,14 @@ import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { Doc, Id } from './_generated/dataModel';
 import { convexError } from './errors';
+import { getEffectivePremiumStatusHelper } from './premium';
+
+/**
+ * Free couples see their earliest match. Earliest — not newest — so the
+ * visible set is stable: a new match never displaces one they've seen. One
+ * match proves the mechanic while remaining insufficient to decide from.
+ */
+export const FREE_TIER_VISIBLE_MATCHES = 1;
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -55,7 +63,10 @@ function assertCurrentPartner(user: Doc<'users'>, match: Doc<'matches'>) {
   }
   const otherId = getOtherUserId(match, user._id);
   if (user.partnerId !== otherId) {
-    throw convexError('MATCH_FROM_PREVIOUS_PARTNERSHIP', 'This match is from a previous partnership');
+    throw convexError(
+      'MATCH_FROM_PREVIOUS_PARTNERSHIP',
+      'This match is from a previous partnership',
+    );
   }
 }
 
@@ -110,6 +121,19 @@ export const getMatches = query({
       (m): m is typeof m & { name: NonNullable<typeof m.name> } => m.name !== null,
     );
 
+    // Free tier: withhold everything past the three earliest matches. Applied
+    // before the search filter so a search term can't surface a locked match.
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    if (!premiumStatus.isPremium) {
+      const visibleIds = new Set(
+        [...results]
+          .sort((a, b) => a.matchedAt - b.matchedAt)
+          .slice(0, FREE_TIER_VISIBLE_MATCHES)
+          .map((m) => m._id),
+      );
+      results = results.filter((m) => visibleIds.has(m._id));
+    }
+
     // Filter by search term
     if (args.search) {
       const searchLower = args.search.toLowerCase();
@@ -156,18 +180,35 @@ export const getMatches = query({
   },
 });
 
-export const getMatchCount = query({
+export const getMatchAccess = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrNull(ctx);
-    if (!user) return 0;
 
-    if (!user.partnerId) {
-      return 0;
+    // Compute premium status before the early return so a paying user who has
+    // not yet linked a partner still receives isPremium: true (finding 1).
+    const premiumStatus = user
+      ? await getEffectivePremiumStatusHelper(ctx, user._id)
+      : { isPremium: false };
+
+    if (!user || !user.partnerId) {
+      return { total: 0, visible: 0, locked: 0, isPremium: premiumStatus.isPremium };
     }
 
     const matches = await getPartnershipMatches(ctx, user._id, user.partnerId);
-    return matches.length;
+
+    // Align with getMatches: drop rows whose name document is missing so the
+    // total/visible/locked counts agree with what the UI actually renders
+    // (finding 3 — a dangling nameId would otherwise overstate locked).
+    const nameDocs = await Promise.all(matches.map((m) => ctx.db.get(m.nameId)));
+    const total = matches.filter((_, i) => nameDocs[i] !== null).length;
+
+    if (premiumStatus.isPremium) {
+      return { total, visible: total, locked: 0, isPremium: true };
+    }
+
+    const visible = Math.min(total, FREE_TIER_VISIBLE_MATCHES);
+    return { total, visible, locked: total - visible, isPremium: false };
   },
 });
 
@@ -247,6 +288,18 @@ export const proposeName = mutation({
       throw convexError('NO_PARTNER_LINKED', 'No partner linked');
     }
 
+    // Proposing is premium. Enforced here, not just in the UI, because hiding a
+    // button doesn't stop a crafted mutation call.
+    //
+    // Deliberately NOT applied to respondToProposal: premium propagates across a
+    // partnership (see getEffectivePremiumStatusHelper), so a couple is either
+    // both-free or both-premium and a proposal can never strand mid-flight. If
+    // that ever changes, an ungated respond is the safe side to err on.
+    const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
+    if (!premiumStatus.isPremium) {
+      throw convexError('PREMIUM_REQUIRED', 'Proposing a name requires Bambino Premium');
+    }
+
     const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw convexError('MATCH_NOT_FOUND', 'Match not found');
@@ -261,9 +314,7 @@ export const proposeName = mutation({
     // surface a structured warning so the UI can prompt.
     const partnerPending = partnerMatches.find(
       (m) =>
-        m.proposalStatus === 'pending' &&
-        m.proposedBy !== undefined &&
-        m.proposedBy !== user._id,
+        m.proposalStatus === 'pending' && m.proposedBy !== undefined && m.proposedBy !== user._id,
     );
 
     if (partnerPending && !args.force) {
@@ -493,6 +544,11 @@ export const deleteMatch = mutation({
   },
 });
 
+// Intentionally bypasses FREE_TIER_VISIBLE_MATCHES. These three queries
+// (getPendingProposal, getLatestDeclinedProposal, getChosenName) represent
+// couple-level shared state — a decision already made together — not a
+// browsable list. Hiding a proposal or chosen name from a free participant
+// would read as a bug, not a paywall. Premium is matches-list access only.
 export const getPendingProposal = query({
   args: {},
   handler: async (ctx) => {

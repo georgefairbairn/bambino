@@ -79,12 +79,19 @@ export const Events = {
   FILTER_NUDGE_SHOWN: 'filter_nudge_shown',
   FILTER_NUDGE_TAPPED: 'filter_nudge_tapped',
 
+  // Partner invite nudge
+  INVITE_NUDGE_SHOWN: 'invite_nudge_shown',
+  INVITE_NUDGE_DISMISSED: 'invite_nudge_dismissed',
+
   // Paywall & purchases
   PAYWALL_SHOWN: 'paywall_shown',
   PURCHASE_ATTEMPTED: 'purchase_attempted',
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_FAILED: 'purchase_failed',
   PURCHASE_RESTORED: 'purchase_restored',
+
+  // Match paywall
+  MATCH_WALL_SHOWN: 'match_wall_shown',
 
   // Notifications
   PUSH_PERMISSION_REQUESTED: 'push_permission_requested',

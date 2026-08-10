@@ -23,6 +23,10 @@ export default defineSchema({
     // once per user across devices/reinstalls, like onboardingCompleted.
     hasOpenedFilters: v.optional(v.boolean()),
     filterNudgeShown: v.optional(v.boolean()),
+    // Partner-invite nudge (one-time), shown once an unpartnered user has liked
+    // 10 names. On the user row for the same reason as filterNudgeShown: "once"
+    // must mean once per account, across devices and reinstalls.
+    inviteNudgeShown: v.optional(v.boolean()),
     // Running counters for getSelectionStats (#183). Kept in sync by every
     // mutation that inserts/deletes/changes a selection. Backfilled lazily
     // on first counter-touching mutation per user.
@@ -30,8 +34,8 @@ export default defineSchema({
     rejectedCount: v.optional(v.number()),
     skippedCount: v.optional(v.number()),
     // Monotonic count of swipes ever recorded — only ever increments, never
-    // decremented by undo. Gates the free-tier swipe limit so undo can't be
-    // used to ratchet past the cap indefinitely (#165).
+    // decremented by undo. Originally gated the free-tier swipe limit (#165);
+    // that cap is gone (swiping is free) and this is now analytics only.
     lifetimeSwipeCount: v.optional(v.number()),
     shareCode: v.optional(v.string()),
     partnerId: v.optional(v.id('users')),
