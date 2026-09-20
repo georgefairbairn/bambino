@@ -782,25 +782,30 @@ export const deleteUsersExcept = internalMutation({
 });
 
 /**
- * Seed a user's selections so their swipe queue has a fully-consumed tier.
+ * Seed a user's selections so their swipe queue has no candidates left.
  *
- * Reproduction aid for the getSwipeQueue degradation: once a tier is
- * exhausted, both passes of the tier walk run to completion on every
- * execution — and the query re-runs on every swipe. Consuming tier 0
- * (ranks 1-1000) puts an account into that state without swiping by hand.
+ * Reproduction aid for the getSwipeQueue degradation. The tier walk only
+ * breaks early once `results.length >= limit`; when nothing acceptable is
+ * left, neither break fires, so both passes run to completion across all
+ * three tiers on every execution. Each candidate surviving the cheap
+ * origin/category filters also costs a sequential indexed `selections`
+ * read, so the query does thousands of sequential reads and returns [].
  *
- * Inserts 'reject' rows, mirroring the observed ~99% reject rate. Skips
- * names the user has already actioned, so it is safe to re-run.
+ * Mirrors getSwipeQueue's own predicates (gender index + origin/category
+ * post-filter) so it consumes exactly the pool that user's filters see.
+ * Pass ignoreFilters to consume the whole catalogue instead, matching an
+ * unfiltered account — far more rows, so check clearSelections can still
+ * undo it before running that.
  *
- * Paginated: mutations have write limits, so drive it with
- * scripts/seed-tier-swipes.ts rather than calling it once.
+ * Inserts 'reject' rows. Skips names already actioned, so it is safe to
+ * re-run. Paginated: drive it with scripts/seed-swipe-pool.ts.
  *
  * Undo with admin:clearSelections (same email).
  */
-export const seedTierSwipes = internalMutation({
+export const seedSwipePool = internalMutation({
   args: {
     email: v.string(),
-    tier: v.optional(v.number()),
+    ignoreFilters: v.optional(v.boolean()),
     batchSize: v.optional(v.number()),
     cursor: v.optional(v.string()),
   },
@@ -812,19 +817,50 @@ export const seedTierSwipes = internalMutation({
 
     if (!user) return { error: 'User not found' };
 
-    const tier = args.tier ?? 0;
     const batchSize = args.batchSize ?? 500;
     const now = Date.now();
 
-    const page = await ctx.db
-      .query('names')
-      .withIndex('by_tier_sort_key', (q) => q.eq('popularityTier', tier))
-      .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
+    const genderFilter = user.genderFilter ?? 'both';
+    const genderValue =
+      args.ignoreFilters === true
+        ? null
+        : genderFilter === 'boy'
+          ? 'male'
+          : genderFilter === 'girl'
+            ? 'female'
+            : null;
+
+    const originFilter = args.ignoreFilters === true ? undefined : user.originFilter;
+    const originSet = originFilter && originFilter.length > 0 ? new Set(originFilter) : null;
+    const categoryFilter = args.ignoreFilters === true ? undefined : user.categoryFilter;
+    const categorySet =
+      categoryFilter && categoryFilter.length > 0 ? new Set(categoryFilter) : null;
+
+    const page =
+      genderValue !== null
+        ? await ctx.db
+            .query('names')
+            .withIndex('by_gender', (q) => q.eq('gender', genderValue))
+            .paginate({ numItems: batchSize, cursor: args.cursor ?? null })
+        : await ctx.db
+            .query('names')
+            .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
 
     let inserted = 0;
     let skipped = 0;
+    let filteredOut = 0;
 
     for (const name of page.page) {
+      // Same predicate order as getSwipeQueue's tryAccept.
+      if (originSet && !originSet.has(name.origin)) {
+        filteredOut++;
+        continue;
+      }
+      if (categorySet && !(name.categories ?? []).some((c) => categorySet.has(c))) {
+        filteredOut++;
+        continue;
+      }
+
       const existing = await ctx.db
         .query('selections')
         .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', name._id))
@@ -865,6 +901,7 @@ export const seedTierSwipes = internalMutation({
     return {
       inserted,
       skipped,
+      filteredOut,
       processed: page.page.length,
       isDone: page.isDone,
       continueCursor: page.continueCursor,

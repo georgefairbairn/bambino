@@ -18,44 +18,48 @@ function runWithRetry(command: string): string {
 }
 
 /**
- * Drives admin:seedTierSwipes page by page until the tier is fully consumed.
+ * Drives admin:seedSwipePool until the user's swipe queue has nothing left.
  *
- *   npx tsx scripts/seed-tier-swipes.ts --email you@example.com [--tier 0] [--prod]
+ *   npx tsx scripts/seed-swipe-pool.ts --email you@example.com [--all] [--prod]
  *
- * Undo with: npx convex run admin:clearSelections [--prod] '{"email":"..."}'
+ * Default consumes only the pool the user's own filters see. --all consumes
+ * the whole catalogue (many more rows; confirm clearSelections can undo it).
+ *
+ * Undo: npx convex run admin:clearSelections [--prod] '{"email":"..."}'
  */
-async function seedTierSwipes() {
+async function seedSwipePool() {
   const argv = process.argv;
   const prod = argv.includes('--prod');
   const deploymentFlag = prod ? ' --prod' : '';
   const target = prod ? 'PRODUCTION' : 'dev';
+  const ignoreFilters = argv.includes('--all');
 
   const emailIndex = argv.indexOf('--email');
   const email = emailIndex !== -1 ? argv[emailIndex + 1] : undefined;
   if (!email) {
-    console.error('Missing --email. Usage: npx tsx scripts/seed-tier-swipes.ts --email a@b.com');
+    console.error('Missing --email. Usage: npx tsx scripts/seed-swipe-pool.ts --email a@b.com');
     process.exit(1);
   }
 
-  const tierIndex = argv.indexOf('--tier');
-  const tier = tierIndex !== -1 ? Number(argv[tierIndex + 1]) : 0;
-
-  console.log(`Seeding tier ${tier} swipes for ${email} on ${target}...`);
+  const scope = ignoreFilters ? 'entire catalogue' : "the user's filtered pool";
+  console.log(`Consuming ${scope} for ${email} on ${target}...`);
 
   let totalInserted = 0;
   let totalSkipped = 0;
+  let totalFilteredOut = 0;
   let totalProcessed = 0;
   let cursor: string | undefined;
   let page = 1;
 
   while (true) {
-    const argsObj: Record<string, unknown> = { email, tier, batchSize: 500 };
+    const argsObj: Record<string, unknown> = { email, batchSize: 500 };
+    if (ignoreFilters) argsObj.ignoreFilters = true;
     if (cursor) argsObj.cursor = cursor;
 
     console.log(`Processing page ${page}...`);
 
     const output = runWithRetry(
-      `npx convex run admin:seedTierSwipes${deploymentFlag} '${JSON.stringify(argsObj)}'`,
+      `npx convex run admin:seedSwipePool${deploymentFlag} '${JSON.stringify(argsObj)}'`,
     );
     const result = JSON.parse(output.trim());
 
@@ -66,8 +70,12 @@ async function seedTierSwipes() {
 
     totalInserted += result.inserted;
     totalSkipped += result.skipped;
+    totalFilteredOut += result.filteredOut;
     totalProcessed += result.processed;
-    console.log(`  Page ${page}: inserted ${result.inserted}, already swiped ${result.skipped}`);
+    console.log(
+      `  Page ${page}: inserted ${result.inserted}, ` +
+        `already swiped ${result.skipped}, not in filter ${result.filteredOut}`,
+    );
 
     if (result.isDone) break;
     cursor = result.continueCursor;
@@ -75,12 +83,13 @@ async function seedTierSwipes() {
   }
 
   console.log(
-    `\nDone. Processed ${totalProcessed} names in tier ${tier}: ` +
-      `${totalInserted} inserted, ${totalSkipped} already swiped.`,
+    `\nDone. Scanned ${totalProcessed} names: ${totalInserted} inserted, ` +
+      `${totalSkipped} already swiped, ${totalFilteredOut} outside the filter.`,
   );
+  console.log(`Queue pool now consumed: ${totalInserted + totalSkipped} names.`);
   console.log(
     `Undo: npx convex run admin:clearSelections${deploymentFlag} '${JSON.stringify({ email })}'`,
   );
 }
 
-seedTierSwipes();
+seedSwipePool();
