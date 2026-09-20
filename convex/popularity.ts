@@ -246,9 +246,13 @@ export const backfillCurrentRankFromMostRecent = internalMutation({
   },
 });
 
-// One-time backfill: walks the names table and sets popularityTier
-// derived from the existing currentRank value. Idempotent; only patches
-// rows where the computed tier differs from what's there. Paginated.
+// Backfill: walks the names table and sets popularityTier from the
+// existing currentRank value. Names with no SSA rank at all get the
+// long-tail tier rather than no tier, because getSwipeQueue only walks
+// tiers 0-2 — an undefined tier makes a name permanently unreachable,
+// not merely deprioritised. Matches the celebrity-insert path in
+// names.ts, which already assigns TIER_LONG_TAIL for the same reason.
+// Idempotent; only patches rows whose tier differs. Paginated.
 export const backfillPopularityTier = internalMutation({
   args: {
     limit: v.optional(v.number()),
@@ -267,13 +271,15 @@ export const backfillPopularityTier = internalMutation({
     for (const name of result.page) {
       const expectedTier = rankToTier(name.currentRank);
 
+      // No rank in any SSA year. Park the name in the long-tail tier so the
+      // swipe queue can still reach it; clearing the tier would hide it.
       if (expectedTier === undefined) {
-        if (name.popularityTier === undefined) {
-          unranked++;
-        } else {
-          // currentRank was cleared somehow but tier still set; reset it
-          await ctx.db.patch(name._id, { popularityTier: undefined });
+        unranked++;
+        if (name.popularityTier !== TIER_LONG_TAIL) {
+          await ctx.db.patch(name._id, { popularityTier: TIER_LONG_TAIL });
           updated++;
+        } else {
+          alreadyCorrect++;
         }
         continue;
       }

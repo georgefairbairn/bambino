@@ -423,8 +423,10 @@ export const recordSelection = mutation({
 // Tier-ordered swipe queue: surfaces popular names first, falls back to
 // progressively less popular tiers as the user swipes through the top pool.
 // Within each tier results are randomly ordered (sortKey shuffle, walking
-// from randomSeed forward then wrapping). Names with no popularityTier
-// (unranked) are deprioritized to the very end.
+// from randomSeed forward then wrapping). Every servable name must carry a
+// tier in this list: an undefined popularityTier matches no tier query, so
+// such a name is unreachable rather than last. popularity.ts parks rankless
+// names in TIER_LONG_TAIL to keep that from happening.
 const TIER_ORDER = [0, 1, 2] as const;
 
 export const getSwipeQueue = query({
