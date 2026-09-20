@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DURATION_IN_FRAMES } from './compositions';
-import { BEATS, HEADLINES, getBeat, getHeadline } from './timeline';
+import { BEATS, HEADLINES, getBeat, getHeadline, getHeadlineStart } from './timeline';
 
 describe('timeline', () => {
   it('runs contiguously with no gaps or overlaps', () => {
@@ -59,6 +59,25 @@ describe('timeline', () => {
     for (const headline of HEADLINES) {
       expect(headline).not.toMatch(/30,?000/);
     }
+  });
+
+  it('anchors a headline to the first beat that introduced it', () => {
+    // phone-enter (60) and solo-swipes (90) share headline 1; partner-join
+    // (180) and out-of-sync (210) share headline 2. Without this the word
+    // reveal restarts mid-line when the beat changes but the text does not.
+    expect(getHeadlineStart(75)).toBe(60);
+    expect(getHeadlineStart(150)).toBe(60);
+    expect(getHeadlineStart(195)).toBe(180);
+    expect(getHeadlineStart(250)).toBe(180);
+  });
+
+  it('anchors a headline that spans only one beat to that beat', () => {
+    expect(getHeadlineStart(10)).toBe(0);
+    expect(getHeadlineStart(400)).toBe(390);
+  });
+
+  it('reports no anchor for a beat that carries no headline', () => {
+    expect(getHeadlineStart(310)).toBeNull();
   });
 
   it('clamps out-of-range frames to the first and last beat', () => {

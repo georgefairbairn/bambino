@@ -59,3 +59,25 @@ export const getHeadline = (
   const index = getBeat(frame).headlineIndex;
   return index === null ? null : (headlines[index] ?? null);
 };
+
+/**
+ * The frame a headline first appeared on, walking back through any earlier
+ * contiguous beats that carry the same text.
+ *
+ * Several beats deliberately share a headline (phone-enter and solo-swipes,
+ * partner-join and out-of-sync). Anchoring the word reveal to the current
+ * beat instead would make the line pop back to one word and re-type itself
+ * halfway through. Returns null for a beat that carries no headline.
+ */
+export const getHeadlineStart = (frame: number): number | null => {
+  const current = getBeat(frame);
+  if (current.headlineIndex === null) return null;
+
+  let start = current.from;
+  for (let i = BEATS.indexOf(current) - 1; i >= 0; i--) {
+    const previous = BEATS[i]!;
+    if (previous.headlineIndex !== current.headlineIndex) break;
+    start = previous.from;
+  }
+  return start;
+};
