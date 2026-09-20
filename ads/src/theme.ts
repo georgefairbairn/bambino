@@ -54,7 +54,12 @@ export const CARD = {
   nameFontSize: 56,
   underlineHeight: 6,
   paddingHorizontal: 24,
-  paddingTop: 48,
+  /**
+   * Taller than the app's 48. The swipe stamp sits absolutely at the card's
+   * top; at the app's padding it landed on the gender badge and the two
+   * garbled each other while the stamp faded in.
+   */
+  paddingTop: 88,
 } as const;
 
 /** Sampled from 01-couples.png and 04-matches.png on 2026-09-19. */

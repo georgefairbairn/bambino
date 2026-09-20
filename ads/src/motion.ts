@@ -25,8 +25,16 @@ export const ROTATION_FACTOR = 0.08;
 export const MAX_ROTATION = 12;
 /** constants/swipe.ts — SWIPE_THRESHOLD. */
 export const SWIPE_THRESHOLD = 120;
-/** constants/swipe.ts — EXIT_X, for a 1080-wide composition. */
-export const EXIT_X = 1180;
+/**
+ * Distance that carries a card fully off the PHONE, not off the composition.
+ *
+ * The app computes EXIT_X as screen width + 100. Our drawn phone is 420px
+ * wide, close enough to a real handset that the app's SWIPE_THRESHOLD of 120
+ * transfers unchanged. Using the composition width here instead (1180) made
+ * the card clear the screen at swipe 0.36 and then keep travelling behind the
+ * bezel for the rest of the animation.
+ */
+export const EXIT_X = 490;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
