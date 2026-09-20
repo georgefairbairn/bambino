@@ -1,22 +1,13 @@
 import type React from 'react';
-import { AbsoluteFill, Composition } from 'remotion';
+import { Composition } from 'remotion';
 import {
   AD_FORMATS,
-  type AdFormat,
   COMPOSITION_IDS,
   DURATION_IN_FRAMES,
   FORMAT_SIZES,
   FPS,
 } from './compositions';
-import { Backdrop } from './layers/Backdrop';
-import { Headline } from './layers/Headline';
-
-const MatchStory: React.FC<{ format: AdFormat }> = ({ format }) => (
-  <AbsoluteFill>
-    <Backdrop />
-    <Headline format={format} />
-  </AbsoluteFill>
-);
+import { MatchStory } from './MatchStory';
 
 export const RemotionRoot: React.FC = () => (
   <>

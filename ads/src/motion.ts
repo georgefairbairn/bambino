@@ -130,8 +130,14 @@ export const getCardTransform = (swipe: number): CardTransform => {
   };
 };
 
-/** Words per second for the headline reveal. */
-const WORDS_PER_SECOND = 4;
+/**
+ * Words per second for the headline reveal.
+ *
+ * At 4 the closing seven-word line finished on frame 435 of a beat ending at
+ * 450, leaving half a second to read the whole call to action. At 6 it lands
+ * on 425 and holds for most of a second.
+ */
+const WORDS_PER_SECOND = 6;
 
 export const getVisibleWordCount = ({
   totalWords,
