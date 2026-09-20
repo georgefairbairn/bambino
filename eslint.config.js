@@ -23,6 +23,7 @@ module.exports = defineConfig([
   },
   configPrettier,
   {
-    ignores: ['dist/*'],
+    // ads/ is a separate Remotion project with its own toolchain (see ads/README.md).
+    ignores: ['dist/*', 'ads/**'],
   },
 ]);
