@@ -10,6 +10,7 @@
     "seed:names": "npx tsx scripts/seed-names.ts",
     "process:ssa": "npx tsx scripts/process-ssa-data.ts",
     "seed:popularity": "npx tsx scripts/seed-popularity.ts",
+    "seed:tier-swipes": "npx tsx scripts/seed-tier-swipes.ts",
     "update:ranks": "npx tsx scripts/update-ranks.ts",
     "backfill:ranks": "npx tsx scripts/backfill-ranks.ts",
     "backfill:tiers": "npx tsx scripts/backfill-popularity-tiers.ts",

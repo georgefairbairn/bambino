@@ -780,3 +780,94 @@ export const deleteUsersExcept = internalMutation({
     return { deletedCount: deleted.length, keptCount: kept.length, deleted, kept };
   },
 });
+
+/**
+ * Seed a user's selections so their swipe queue has a fully-consumed tier.
+ *
+ * Reproduction aid for the getSwipeQueue degradation: once a tier is
+ * exhausted, both passes of the tier walk run to completion on every
+ * execution — and the query re-runs on every swipe. Consuming tier 0
+ * (ranks 1-1000) puts an account into that state without swiping by hand.
+ *
+ * Inserts 'reject' rows, mirroring the observed ~99% reject rate. Skips
+ * names the user has already actioned, so it is safe to re-run.
+ *
+ * Paginated: mutations have write limits, so drive it with
+ * scripts/seed-tier-swipes.ts rather than calling it once.
+ *
+ * Undo with admin:clearSelections (same email).
+ */
+export const seedTierSwipes = internalMutation({
+  args: {
+    email: v.string(),
+    tier: v.optional(v.number()),
+    batchSize: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', args.email))
+      .unique();
+
+    if (!user) return { error: 'User not found' };
+
+    const tier = args.tier ?? 0;
+    const batchSize = args.batchSize ?? 500;
+    const now = Date.now();
+
+    const page = await ctx.db
+      .query('names')
+      .withIndex('by_tier_sort_key', (q) => q.eq('popularityTier', tier))
+      .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
+
+    let inserted = 0;
+    let skipped = 0;
+
+    for (const name of page.page) {
+      const existing = await ctx.db
+        .query('selections')
+        .withIndex('by_user_name', (q) => q.eq('userId', user._id).eq('nameId', name._id))
+        .first();
+
+      if (existing !== null) {
+        skipped++;
+        continue;
+      }
+
+      await ctx.db.insert('selections', {
+        userId: user._id,
+        nameId: name._id,
+        selectionType: 'reject',
+        origin: name.origin,
+        gender: name.gender,
+        categoryMask: name.categoryMask,
+        createdAt: now,
+        updatedAt: now,
+      });
+      inserted++;
+    }
+
+    // Only adjust counters that are already materialised. Leaving an
+    // undefined counter alone lets ensureCountersBackfilled compute it
+    // from the real rows on the next write.
+    if (inserted > 0) {
+      const patch: Record<string, number> = {};
+      if (user.rejectedCount !== undefined) patch.rejectedCount = user.rejectedCount + inserted;
+      if (user.lifetimeSwipeCount !== undefined) {
+        patch.lifetimeSwipeCount = user.lifetimeSwipeCount + inserted;
+      }
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(user._id, { ...patch, updatedAt: now });
+      }
+    }
+
+    return {
+      inserted,
+      skipped,
+      processed: page.page.length,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
