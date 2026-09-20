@@ -53,10 +53,35 @@ describe('getPhoneTransform', () => {
   });
 
   it('pulls the together pose further in than the lean pose', () => {
+    // 'together' ramps the amount BEYOND a lean already being held, and the
+    // choreography only ever uses it with leaning set, so that is what is
+    // compared here.
     const lean = getPhoneTransform({ pose: 'lean', localFrame: 29, fps: FPS, side: 'left' });
-    const together = getPhoneTransform({ pose: 'together', localFrame: 29, fps: FPS, side: 'left' });
+    const together = getPhoneTransform({
+      pose: 'together',
+      localFrame: 29,
+      fps: FPS,
+      side: 'left',
+      leaning: true,
+    });
     expect(together.translateX).toBeGreaterThan(lean.translateX);
     expect(Math.abs(together.rotateY)).toBeGreaterThan(Math.abs(lean.rotateY));
+  });
+
+  it('holds a lean through idle and recoil, not just the lean pose', () => {
+    for (const pose of ['idle', 'recoil'] as const) {
+      const square = getPhoneTransform({ pose, localFrame: 10, fps: FPS, side: 'left' });
+      const leaning = getPhoneTransform({
+        pose,
+        localFrame: 10,
+        fps: FPS,
+        side: 'left',
+        leaning: true,
+      });
+      expect(square.translateX).toBe(0);
+      expect(leaning.translateX).toBeGreaterThan(0);
+      expect(leaning.rotateY).toBeGreaterThan(0);
+    }
   });
 });
 

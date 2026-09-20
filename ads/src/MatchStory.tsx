@@ -47,6 +47,7 @@ export const MatchStory: React.FC<{
             pose={left.pose}
             side="left"
             poseStartFrame={left.poseStartFrame}
+            leaning={left.leaning}
             scale={layout.phoneScale}
           >
             {left.card && <NameCard name={left.card} swipe={left.swipe} />}
@@ -58,6 +59,7 @@ export const MatchStory: React.FC<{
             pose={right.pose}
             side="right"
             poseStartFrame={right.poseStartFrame}
+            leaning={right.leaning}
             scale={layout.phoneScale}
           >
             {right.card && <NameCard name={right.card} swipe={right.swipe} />}

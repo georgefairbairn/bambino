@@ -10,6 +10,8 @@ export interface PhoneState {
   card: AdName | null;
   /** -1 rejected, 0 at rest, 1 liked. */
   swipe: number;
+  /** True once the partner is on screen and the phones turn toward each other. */
+  leaning: boolean;
 }
 
 /** One swipe cycle: 30 frames at rest, then 15 frames carrying the card off. */
@@ -46,6 +48,7 @@ export const getPhoneState = ({
     poseStartFrame: beat.from,
     card: null,
     swipe: 0,
+    leaning: false,
   };
 
   switch (beat.id) {
@@ -54,7 +57,14 @@ export const getPhoneState = ({
 
     case 'phone-enter':
       if (side === 'right') return hidden;
-      return { visible: true, pose: 'enter', poseStartFrame: 60, card: cast.olivia, swipe: 0 };
+      return {
+        visible: true,
+        pose: 'enter',
+        poseStartFrame: 60,
+        card: cast.olivia,
+        swipe: 0,
+        leaning: false,
+      };
 
     case 'solo-swipes': {
       if (side === 'right') return hidden;
@@ -68,6 +78,7 @@ export const getPhoneState = ({
         poseStartFrame: 90 + index * SWIPE_CYCLE + SWIPE_HOLD,
         card: step.card,
         swipe,
+        leaning: false,
       };
     }
 
@@ -78,6 +89,8 @@ export const getPhoneState = ({
         poseStartFrame: 180,
         card: cast.juniper,
         swipe: 0,
+        // The left phone is mid-lean here; the right one leans as it enters.
+        leaning: side === 'right',
       };
 
     case 'out-of-sync': {
@@ -93,25 +106,43 @@ export const getPhoneState = ({
         poseStartFrame: 210 + Math.floor(local / SWIPE_CYCLE) * SWIPE_CYCLE + SWIPE_HOLD,
         card,
         swipe,
+        leaning: true,
       };
     }
 
     case 'stillness':
-      return { visible: true, pose: 'idle', poseStartFrame: 300, card: cast.esme, swipe: 0 };
+      return {
+        visible: true,
+        pose: 'idle',
+        poseStartFrame: 300,
+        card: cast.esme,
+        swipe: 0,
+        leaning: true,
+      };
 
     case 'match-fuse': {
       const local = frame - 330;
       return {
         visible: true,
-        pose: 'lean',
+        // 'idle' plus a held lean, not the 'lean' pose: they are already
+        // leaning by this point and re-running the ramp would double it.
+        pose: 'idle',
         poseStartFrame: 330,
         card: cast.esme,
         swipe: Math.min(1, local / 20),
+        leaning: true,
       };
     }
 
     case 'together':
-      return { visible: true, pose: 'together', poseStartFrame: 360, card: null, swipe: 0 };
+      return {
+        visible: true,
+        pose: 'together',
+        poseStartFrame: 360,
+        card: null,
+        swipe: 0,
+        leaning: true,
+      };
 
     case 'end-card':
       return hidden;

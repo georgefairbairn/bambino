@@ -56,27 +56,48 @@ const NEUTRAL: PhoneTransform = {
   scale: 1,
 };
 
+/** How far a leaning phone shifts and turns toward its partner. */
+const LEAN_X = 30;
+const LEAN_Y = 10;
+
 export const getPhoneTransform = ({
   pose,
   localFrame,
   fps,
   side,
+  leaning = false,
 }: {
   pose: Pose;
   localFrame: number;
   fps: number;
   side: Side;
+  /**
+   * Whether the phone is currently turned toward its partner.
+   *
+   * Lean is a persistent state, not a one-shot pose. Without this, a phone
+   * that leaned during partner-join snapped back to square the instant the
+   * next beat swapped its pose to idle or recoil, because every pose starts
+   * from zero. That was a visible 10-degree pop at frames 210 and 360.
+   */
+  leaning?: boolean;
 }): PhoneTransform => {
   // Positive means "toward the centre of the frame" for this side.
   const inward = side === 'left' ? 1 : -1;
+  const baseX = leaning ? inward * LEAN_X : 0;
+  const baseY = leaning ? inward * LEAN_Y : 0;
 
   switch (pose) {
     case 'enter': {
       const t = easeOutBack(localFrame / (fps * 0.8));
+      // The 6deg flourish peaks mid-entrance and resolves to zero. Holding
+      // it to the end left the phone turned, and the next pose then snapped
+      // it square in a single frame.
+      const flourish = Math.sin(Math.PI * clamp(t, 0, 1));
       return {
         ...NEUTRAL,
+        translateX: baseX * t,
         translateY: 1200 * (1 - t),
-        rotateY: inward * 6 * t,
+        rotateY: baseY * t + inward * 6 * flourish,
         scale: 0.9 + 0.1 * clamp(t, 0, 1),
       };
     }
@@ -84,12 +105,12 @@ export const getPhoneTransform = ({
     case 'idle': {
       // A 2-second sine drift so the phone breathes instead of freezing.
       const phase = (localFrame / (fps * 2)) * Math.PI * 2;
-      return { ...NEUTRAL, rotateZ: 2 * Math.sin(phase) };
+      return { ...NEUTRAL, translateX: baseX, rotateY: baseY, rotateZ: 2 * Math.sin(phase) };
     }
 
     case 'lean': {
       const t = easeOutCubic(localFrame / (fps * 0.6));
-      return { ...NEUTRAL, translateX: inward * 30 * t, rotateY: inward * 10 * t };
+      return { ...NEUTRAL, translateX: inward * LEAN_X * t, rotateY: inward * LEAN_Y * t };
     }
 
     case 'recoil': {
@@ -97,12 +118,22 @@ export const getPhoneTransform = ({
       const away = clamp(localFrame / 6, 0, 1);
       const back = easeOutCubic(clamp((localFrame - 6) / 12, 0, 1));
       const magnitude = away * (1 - back);
-      return { ...NEUTRAL, rotateZ: -inward * 7 * magnitude };
+      return {
+        ...NEUTRAL,
+        translateX: baseX,
+        rotateY: baseY,
+        rotateZ: -inward * 7 * magnitude,
+      };
     }
 
     case 'together': {
+      // Ramps the amount BEYOND the lean it is already holding.
       const t = easeOutCubic(localFrame / (fps * 0.8));
-      return { ...NEUTRAL, translateX: inward * 90 * t, rotateY: inward * 14 * t };
+      return {
+        ...NEUTRAL,
+        translateX: baseX + inward * 60 * t,
+        rotateY: baseY + inward * 8 * t,
+      };
     }
   }
 };

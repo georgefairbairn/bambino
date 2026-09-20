@@ -24,9 +24,11 @@ export const Phone: React.FC<{
   side: Side;
   /** Absolute frame the current pose started on. */
   poseStartFrame: number;
+  /** Whether the phone is holding a turn toward its partner. */
+  leaning?: boolean;
   scale: number;
   children?: React.ReactNode;
-}> = ({ theme, pose, side, poseStartFrame, scale, children }) => {
+}> = ({ theme, pose, side, poseStartFrame, leaning = false, scale, children }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -35,6 +37,7 @@ export const Phone: React.FC<{
     localFrame: frame - poseStartFrame,
     fps,
     side,
+    leaning,
   });
 
   const screenBg = AD_THEMES[theme].screenBg;
