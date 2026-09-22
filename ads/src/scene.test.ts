@@ -154,8 +154,8 @@ describe('scene — filters', () => {
 
 describe('scene — popularity', () => {
   it('slides the detail sheet up and draws the chart', () => {
-    const early = phone(455, 'A')!.stack;
-    const late = phone(515, 'A')!.stack;
+    const early = phone(451, 'A')!.stack;
+    const late = phone(512, 'A')!.stack;
     expect(late.sheetProgress).toBe(1);
     if (early.sheet?.kind !== 'detail' || late.sheet?.kind !== 'detail') throw new Error();
     expect(early.sheet.chart).toBe(0);
@@ -168,7 +168,8 @@ describe('scene — end', () => {
   it('clears every phone and brings in the end card', () => {
     expect(visible(570, 'A')).toBe(false);
     expect(visible(570, 'B')).toBe(false);
-    expect(at(570).endCard).toBe(1);
+    expect(at(570).endCard).toBeGreaterThan(0);
+    expect(at(599).endCard).toBeCloseTo(1, 1);
     expect(at(500).endCard).toBe(0);
   });
 });
@@ -226,5 +227,12 @@ describe('scene — end card', () => {
         for (const p of s.phones) expect(p.y).toBeGreaterThanOrEqual(l.height);
       }
     }
+  });
+});
+
+describe('scene — end card timing', () => {
+  it('runs the end card for at least two seconds once the phone has gone', () => {
+    const start = Array.from({ length: DURATION_IN_FRAMES }, (_, f) => f).find((f) => at(f).endCard > 0)!;
+    expect(DURATION_IN_FRAMES - start).toBeGreaterThanOrEqual(60);
   });
 });

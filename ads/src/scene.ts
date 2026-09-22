@@ -103,7 +103,7 @@ export interface Scene {
   phones: PhoneScene[];
   /** 0 → 1 as the hook question clears. */
   hookExit: number;
-  /** 0 → 1 as the end card comes in. */
+  /** 0 → 1 linearly across the end card; EndCard maps this to its phases. */
   endCard: number;
 }
 
@@ -174,8 +174,8 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
       [200, slots.top],
       [345, slots.top],
       [365, slots.solo],
-      [525, slots.solo],
-      [541, slots.hidden, easeInCubic],
+      [518, slots.solo],
+      [534, slots.hidden, easeInCubic],
     ],
     frame,
   );
@@ -228,8 +228,8 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
         frame >= 435
           ? {
               kind: 'detail',
-              chart: keyframes([[455, 0], [500, 1, easeInOutCubic]], frame),
-              tooltip: keyframes([[500, 0], [508, 1, easeOutCubic]], frame),
+              chart: keyframes([[452, 0], [490, 1, easeInOutCubic]], frame),
+              tooltip: keyframes([[490, 0], [497, 1, easeOutCubic]], frame),
               scroll: sheetScrollFor(visiblePoints),
             }
           : null,
@@ -263,8 +263,9 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
   return {
     phones: [phoneA, phoneB],
     hookExit: keyframes([[72, 0], [90, 1, easeInCubic]], frame),
-    // Starts the frame the phone clears. An ease-in exit lingers on screen,
-    // and an earlier start drew the logo over the popularity sheet.
-    endCard: keyframes([[541, 0], [564, 1, easeOutCubic]], frame),
+    // Starts the frame the phone clears (an ease-in exit lingers, and an
+    // earlier start drew the logo over the popularity sheet). Linear, because
+    // EndCard sequences its own phases: wordmark, collapse into the icon.
+    endCard: keyframes([[534, 0], [600, 1, (t) => t]], frame),
   };
 };

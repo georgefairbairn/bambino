@@ -21,7 +21,7 @@ export type BeatId =
   | 'popularity'
   | 'end';
 
-export type HeadlineIndex = 0 | 1 | 2 | 3 | 4;
+export type HeadlineIndex = 0 | 1 | 2 | 3 | 4 | 5;
 
 export interface Beat {
   id: BeatId;
@@ -33,32 +33,35 @@ export interface Beat {
 }
 
 /**
- * Approved copy, used verbatim. The first two lines are George's own wording and
- * the third is the existing App Store headline. No trailing full stops, matching
- * the published App Store screenshots.
+ * Approved copy, used verbatim. The first two lines are George's own wording;
+ * "Link up with your partner" and the match line are the existing App Store
+ * headlines. No trailing full stops, matching the published screenshots.
  */
 export const HEADLINES = [
   'Trying to find the perfect baby name?',
   'Swipe through thousands of names',
+  'Link up with your partner',
   'The names you both like become matches',
   'Filter by style, origin or gender',
   'See how popular it really is',
-] as const satisfies readonly [string, string, string, string, string];
+] as const satisfies readonly [string, string, string, string, string, string];
 
 export const BEATS: readonly Beat[] = [
   { id: 'hook', section: 'hook', from: 0, durationInFrames: 75, headlineIndex: 0 },
   { id: 'phone-enter', section: 'swipe', from: 75, durationInFrames: 25, headlineIndex: 1 },
   { id: 'solo-swipes', section: 'swipe', from: 100, durationInFrames: 80, headlineIndex: 1 },
+  // The partner line runs while their phone arrives and they swipe
+  // independently; the match line lands as both settle on the same name.
   { id: 'partner-join', section: 'match', from: 180, durationInFrames: 25, headlineIndex: 2 },
   { id: 'out-of-sync', section: 'match', from: 205, durationInFrames: 60, headlineIndex: 2 },
-  { id: 'stillness', section: 'match', from: 265, durationInFrames: 25, headlineIndex: 2 },
-  { id: 'match-swipe', section: 'match', from: 290, durationInFrames: 15, headlineIndex: 2 },
-  { id: 'celebration', section: 'match', from: 305, durationInFrames: 40, headlineIndex: 2 },
-  { id: 'to-filters', section: 'filters', from: 345, durationInFrames: 27, headlineIndex: 3 },
-  { id: 'filters', section: 'filters', from: 372, durationInFrames: 63, headlineIndex: 3 },
-  { id: 'to-detail', section: 'popularity', from: 435, durationInFrames: 17, headlineIndex: 4 },
-  { id: 'popularity', section: 'popularity', from: 452, durationInFrames: 73, headlineIndex: 4 },
-  { id: 'end', section: 'end', from: 525, durationInFrames: 75, headlineIndex: null },
+  { id: 'stillness', section: 'match', from: 265, durationInFrames: 25, headlineIndex: 3 },
+  { id: 'match-swipe', section: 'match', from: 290, durationInFrames: 15, headlineIndex: 3 },
+  { id: 'celebration', section: 'match', from: 305, durationInFrames: 40, headlineIndex: 3 },
+  { id: 'to-filters', section: 'filters', from: 345, durationInFrames: 27, headlineIndex: 4 },
+  { id: 'filters', section: 'filters', from: 372, durationInFrames: 63, headlineIndex: 4 },
+  { id: 'to-detail', section: 'popularity', from: 435, durationInFrames: 17, headlineIndex: 5 },
+  { id: 'popularity', section: 'popularity', from: 452, durationInFrames: 66, headlineIndex: 5 },
+  { id: 'end', section: 'end', from: 518, durationInFrames: 82, headlineIndex: null },
 ] as const;
 
 /** How long an outgoing headline takes to clear the slot. */
