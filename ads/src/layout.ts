@@ -1,43 +1,59 @@
 import { type AdFormat, FORMAT_SIZES } from './compositions';
+import { PHONE_W } from './device';
+
+export type Slot = 'hidden' | 'solo' | 'top' | 'bottom';
 
 export interface AdLayout {
   width: number;
   height: number;
-  /** Multiplier on the phone's base size. Reel is the reference at 1. */
+  /** Pixels per app point in the single-phone sections. */
   phoneScale: number;
-  headlineFontSize: number;
-  headlineMaxLines: number;
-  /** 'above' puts the headline over the phones; 'overlay' floats it on top of them. */
-  headlinePlacement: 'above' | 'overlay';
-  /** Horizontal gap between the two phones, in px. */
-  phoneGap: number;
+  /**
+   * Pixels per app point while two phones are stacked. Equal to phoneScale on
+   * the Reel; smaller on Feed and Square, where full-size stacked phones crop
+   * the matched name out of the celebration.
+   */
+  matchScale: number;
+  /** Left edge of the phone in px, so it sits centred. */
+  phoneLeft: number;
+  /** Top edge of the phone in px for each slot. Phones bleed off the bottom. */
+  slots: Record<Slot, number>;
+  headline: { top: number; fontSize: number; sidePadding: number };
+  hook: { fontSize: number };
 }
 
-const LAYOUTS: Record<AdFormat, Omit<AdLayout, 'width' | 'height'>> = {
+type Spec = Omit<AdLayout, 'width' | 'height' | 'phoneLeft'>;
+
+const SPECS: Record<AdFormat, Spec> = {
   reel: {
-    phoneScale: 1,
-    headlineFontSize: 92,
-    headlineMaxLines: 3,
-    headlinePlacement: 'above',
-    phoneGap: 48,
+    phoneScale: 2.25,
+    matchScale: 2.25,
+    slots: { hidden: 1980, solo: 380, top: 360, bottom: 1160 },
+    headline: { top: 130, fontSize: 80, sidePadding: 64 },
+    hook: { fontSize: 108 },
   },
   feed: {
-    phoneScale: 0.8,
-    headlineFontSize: 76,
-    headlineMaxLines: 2,
-    headlinePlacement: 'above',
-    phoneGap: 40,
+    phoneScale: 2.0,
+    matchScale: 1.7,
+    slots: { hidden: 1410, solo: 250, top: 222, bottom: 780 },
+    headline: { top: 60, fontSize: 64, sidePadding: 60 },
+    hook: { fontSize: 92 },
   },
   square: {
-    phoneScale: 0.65,
-    headlineFontSize: 64,
-    headlineMaxLines: 2,
-    headlinePlacement: 'overlay',
-    phoneGap: 32,
+    phoneScale: 1.8,
+    matchScale: 1.45,
+    slots: { hidden: 1140, solo: 200, top: 160, bottom: 612 },
+    headline: { top: 36, fontSize: 50, sidePadding: 56 },
+    hook: { fontSize: 84 },
   },
 };
 
-export const getLayout = (format: AdFormat): AdLayout => ({
-  ...FORMAT_SIZES[format],
-  ...LAYOUTS[format],
-});
+export const getLayout = (format: AdFormat): AdLayout => {
+  const spec = SPECS[format];
+  const size = FORMAT_SIZES[format];
+  return {
+    ...size,
+    ...spec,
+    phoneLeft: (size.width - PHONE_W * spec.phoneScale) / 2,
+  };
+};

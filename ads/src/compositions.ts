@@ -1,5 +1,5 @@
 export const FPS = 30;
-export const DURATION_IN_FRAMES = 450;
+export const DURATION_IN_FRAMES = 600;
 
 export type AdFormat = 'reel' | 'feed' | 'square';
 

@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { COMPOSITION_IDS, DURATION_IN_FRAMES, FORMAT_SIZES, FPS } from './compositions';
 
 describe('composition registry', () => {
-  it('runs for exactly 15 seconds at 30fps', () => {
+  it('runs for exactly 20 seconds at 30fps', () => {
     expect(FPS).toBe(30);
-    expect(DURATION_IN_FRAMES).toBe(450);
-    expect(DURATION_IN_FRAMES / FPS).toBe(15);
+    expect(DURATION_IN_FRAMES).toBe(600);
+    expect(DURATION_IN_FRAMES / FPS).toBe(20);
   });
 
   it('registers one composition per ad format', () => {

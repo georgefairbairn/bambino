@@ -1,89 +1,103 @@
 import type React from 'react';
-import { useCurrentFrame, useVideoConfig } from 'remotion';
-import { type Pose, type Side, getPhoneTransform } from '../motion';
-import { AD_THEMES, type AdTheme, PHONE } from '../theme';
-import { toCssTransform } from './phone-style';
+import { BEZEL, DEVICE_H, DEVICE_W, PHONE_H, PHONE_W } from '../device';
+import { CAST, type Cast } from '../names';
+import { type PhoneScene } from '../scene';
+import { AD_THEMES } from '../theme';
+import { Confetti } from './Confetti';
+import { DetailSheet } from './DetailSheet';
+import { ExploreScreen } from './ExploreScreen';
+import { FiltersScreen } from './FiltersScreen';
+import { StatusBar } from './StatusBar';
+import { TapIndicator } from './TapIndicator';
 
-/** Base body size in px, at scale 1. 9:19.5, matching an iPhone 15 Pro. */
-export const PHONE_WIDTH = 420;
-export const PHONE_HEIGHT = 910;
+const SCREEN_RADIUS = 55;
 
 /**
- * Each phone carries its own perspective wrapper.
- *
- * CSS perspective only reaches an element's direct children, so setting it
- * once on an outer container is silently cancelled by any intermediate div
- * that lacks `preserve-3d`. That made rotateY do nothing and flattened the
- * lean, recoil and together poses into no visible movement at all.
+ * A head-on iPhone drawn in points and scaled up. Its bottom bleeds off the
+ * frame, which is the crop George asked for: near full width, cropped height.
  */
-const PERSPECTIVE = 2200;
-
 export const Phone: React.FC<{
-  theme: AdTheme;
-  pose: Pose;
-  side: Side;
-  /** Absolute frame the current pose started on. */
-  poseStartFrame: number;
-  /** Whether the phone is holding a turn toward its partner. */
-  leaning?: boolean;
-  scale: number;
-  children?: React.ReactNode;
-}> = ({ theme, pose, side, poseStartFrame, leaning = false, scale, children }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const transform = getPhoneTransform({
-    pose,
-    localFrame: frame - poseStartFrame,
-    fps,
-    side,
-    leaning,
-  });
-
-  const screenBg = AD_THEMES[theme].screenBg;
+  scene: PhoneScene;
+  /** Composition width, so the phone can centre itself at any scale. */
+  frameWidth: number;
+  cast?: Cast;
+}> = ({ scene, frameWidth, cast = CAST }) => {
+  const scale = scene.scale;
+  const left = (frameWidth - PHONE_W * scale) / 2;
+  const colors = AD_THEMES[scene.theme];
+  const bg = `linear-gradient(180deg, ${colors.screenBg[0]}, ${colors.screenBg[1]}, ${colors.screenBg[2]})`;
+  const { stack } = scene;
 
   return (
-    <div style={{ perspective: PERSPECTIVE, flexShrink: 0 }}>
     <div
       style={{
-        width: PHONE_WIDTH,
-        height: PHONE_HEIGHT,
-        transform: `scale(${scale}) ${toCssTransform(transform)}`,
-        transformStyle: 'preserve-3d',
-        borderRadius: PHONE.borderRadius,
-        backgroundColor: PHONE.bezel,
-        border: `3px solid ${PHONE.frame}`,
-        boxShadow: '0 40px 80px rgba(45, 27, 78, 0.18)',
-        padding: PHONE.bezelWidth,
-        boxSizing: 'border-box',
+        position: 'absolute',
+        left,
+        top: scene.y,
+        width: PHONE_W * scale,
+        height: PHONE_H * scale,
       }}
     >
       <div
         style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: PHONE.borderRadius - PHONE.bezelWidth,
-          overflow: 'hidden',
           position: 'relative',
-          background: `linear-gradient(160deg, ${screenBg[0]}, ${screenBg[1]}, ${screenBg[2]})`,
+          width: PHONE_W,
+          height: PHONE_H,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
         }}
       >
-        {children}
-        {/* Dynamic island */}
         <div
           style={{
             position: 'absolute',
-            top: 14,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 108,
-            height: 30,
-            borderRadius: 16,
-            backgroundColor: PHONE.bezel,
+            inset: 0,
+            borderRadius: SCREEN_RADIUS + BEZEL,
+            backgroundColor: '#1B1B1F',
+            border: '1.5px solid #4A5A6C',
+            boxSizing: 'border-box',
+            boxShadow: '0 30px 60px rgba(45,27,78,0.22), 0 8px 18px rgba(45,27,78,0.12)',
           }}
         />
+        <div
+          style={{
+            position: 'absolute',
+            left: BEZEL,
+            top: BEZEL,
+            width: DEVICE_W,
+            height: DEVICE_H,
+            borderRadius: SCREEN_RADIUS,
+            overflow: 'hidden',
+            background: bg,
+          }}
+        >
+          {/* Base screen, nudged left as a pushed screen slides over it, like UINavigationController. */}
+          <div style={{ position: 'absolute', inset: 0, transform: `translateX(${-stack.push * DEVICE_W * 0.3}px)` }}>
+            {stack.base.kind === 'explore' && <ExploreScreen screen={stack.base} theme={scene.theme} />}
+          </div>
+
+          {stack.pushed && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: bg,
+                transform: `translateX(${(1 - stack.push) * DEVICE_W}px)`,
+                boxShadow: '-8px 0 24px rgba(0,0,0,0.08)',
+              }}
+            >
+              {stack.pushed.kind === 'filters' && <FiltersScreen screen={stack.pushed} theme={scene.theme} />}
+            </div>
+          )}
+
+          {stack.sheet?.kind === 'detail' && (
+            <DetailSheet screen={stack.sheet} name={cast.esme} theme={scene.theme} progress={stack.sheetProgress} />
+          )}
+
+          {scene.confetti !== null && <Confetti progress={scene.confetti} seed={scene.id === 'A' ? 1987 : 2024} />}
+          {scene.tap && <TapIndicator tap={scene.tap} />}
+          <StatusBar />
+        </div>
       </div>
-    </div>
     </div>
   );
 };

@@ -44,10 +44,12 @@ describe('ad theme tokens', () => {
     expect(Object.keys(GENDER_BADGES).sort()).toEqual(['female', 'male', 'neutral']);
   });
 
-  it('reproduces the card tokens from constants/swipe.ts', () => {
-    expect(CARD.borderRadius).toBe(24);
-    expect(CARD.backgroundColor).toBe('#FFFBF5');
-    expect(CARD.nameFontSize).toBe(56);
+  it('reproduces the real card style from swipe-card.tsx, not the v1 guess', () => {
+    // v1 used cream #FFFBF5 at radius 24 with no border, which is why the
+    // cards did not look like the app's.
+    expect(CARD.backgroundColor).toBe('#FFFFFF');
+    expect(CARD.borderRadius).toBe(16);
+    expect(CARD.borderWidth).toBe(5);
   });
 
   it('expresses every colour as a six-digit uppercase hex', () => {
@@ -57,6 +59,7 @@ describe('ad theme tokens', () => {
       BACKDROP.circle,
       CARD.backgroundColor,
       CARD.nameColor,
+      ...Object.values(AD_THEMES).flatMap((t) => [t.surfaceSubtle, t.tabActive, t.secondaryLight]),
       ...Object.values(SWIPE_COLORS),
       ...Object.values(UNDERLINE_COLORS),
       ...Object.values(AD_THEMES).map((t) => t.primary),

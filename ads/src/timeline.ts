@@ -1,49 +1,68 @@
+/**
+ * The 20-second feature tour: 600 frames at 30fps, six sections, and a
+ * persistent headline slot that updates per section. The test suite enforces
+ * that beats are contiguous and cover the composition exactly.
+ */
+
+export type SectionId = 'hook' | 'swipe' | 'match' | 'filters' | 'popularity' | 'end';
+
 export type BeatId =
-  | 'card-fan'
+  | 'hook'
   | 'phone-enter'
   | 'solo-swipes'
   | 'partner-join'
   | 'out-of-sync'
   | 'stillness'
-  | 'match-fuse'
-  | 'together'
-  | 'end-card';
+  | 'match-swipe'
+  | 'celebration'
+  | 'to-filters'
+  | 'filters'
+  | 'to-detail'
+  | 'popularity'
+  | 'end';
 
-export type HeadlineIndex = 0 | 1 | 2 | 3;
+export type HeadlineIndex = 0 | 1 | 2 | 3 | 4;
 
 export interface Beat {
   id: BeatId;
+  section: SectionId;
   from: number;
   durationInFrames: number;
-  /** Index into HEADLINES, or null for a beat that carries no text. */
+  /** Index into HEADLINES, or null when the slot is empty. */
   headlineIndex: HeadlineIndex | null;
 }
 
-/** Approved copy. Used verbatim, in this order. */
-export const HEADLINES = [
-  '13,000 baby names.',
-  'You swipe.',
-  'So does your partner.',
-  'The names you both like become matches.',
-] as const satisfies readonly [string, string, string, string];
-
 /**
- * 450 frames at 30fps. Beats are contiguous; the test suite enforces that.
- *
- * `stillness` carries no headline on purpose. One full second where nothing
- * moves and nothing is written is what makes the match land.
+ * Approved copy, used verbatim. The first two lines are George's own wording and
+ * the third is the existing App Store headline. No trailing full stops, matching
+ * the published App Store screenshots.
  */
+export const HEADLINES = [
+  'Trying to find the perfect baby name?',
+  'Swipe through thousands of names',
+  'The names you both like become matches',
+  'Filter by style, origin or gender',
+  'See how popular it really is',
+] as const satisfies readonly [string, string, string, string, string];
+
 export const BEATS: readonly Beat[] = [
-  { id: 'card-fan', from: 0, durationInFrames: 60, headlineIndex: 0 },
-  { id: 'phone-enter', from: 60, durationInFrames: 30, headlineIndex: 1 },
-  { id: 'solo-swipes', from: 90, durationInFrames: 90, headlineIndex: 1 },
-  { id: 'partner-join', from: 180, durationInFrames: 30, headlineIndex: 2 },
-  { id: 'out-of-sync', from: 210, durationInFrames: 90, headlineIndex: 2 },
-  { id: 'stillness', from: 300, durationInFrames: 30, headlineIndex: null },
-  { id: 'match-fuse', from: 330, durationInFrames: 30, headlineIndex: null },
-  { id: 'together', from: 360, durationInFrames: 30, headlineIndex: null },
-  { id: 'end-card', from: 390, durationInFrames: 60, headlineIndex: 3 },
+  { id: 'hook', section: 'hook', from: 0, durationInFrames: 75, headlineIndex: 0 },
+  { id: 'phone-enter', section: 'swipe', from: 75, durationInFrames: 25, headlineIndex: 1 },
+  { id: 'solo-swipes', section: 'swipe', from: 100, durationInFrames: 80, headlineIndex: 1 },
+  { id: 'partner-join', section: 'match', from: 180, durationInFrames: 25, headlineIndex: 2 },
+  { id: 'out-of-sync', section: 'match', from: 205, durationInFrames: 60, headlineIndex: 2 },
+  { id: 'stillness', section: 'match', from: 265, durationInFrames: 25, headlineIndex: 2 },
+  { id: 'match-swipe', section: 'match', from: 290, durationInFrames: 15, headlineIndex: 2 },
+  { id: 'celebration', section: 'match', from: 305, durationInFrames: 40, headlineIndex: 2 },
+  { id: 'to-filters', section: 'filters', from: 345, durationInFrames: 27, headlineIndex: 3 },
+  { id: 'filters', section: 'filters', from: 372, durationInFrames: 63, headlineIndex: 3 },
+  { id: 'to-detail', section: 'popularity', from: 435, durationInFrames: 17, headlineIndex: 4 },
+  { id: 'popularity', section: 'popularity', from: 452, durationInFrames: 73, headlineIndex: 4 },
+  { id: 'end', section: 'end', from: 525, durationInFrames: 75, headlineIndex: null },
 ] as const;
+
+/** How long an outgoing headline takes to clear the slot. */
+export const HEADLINE_EXIT_FRAMES = 8;
 
 export const getBeat = (frame: number): Beat => {
   for (const beat of BEATS) {
@@ -61,18 +80,13 @@ export const getHeadline = (
 };
 
 /**
- * The frame a headline first appeared on, walking back through any earlier
- * contiguous beats that carry the same text.
- *
- * Several beats deliberately share a headline (phone-enter and solo-swipes,
- * partner-join and out-of-sync). Anchoring the word reveal to the current
- * beat instead would make the line pop back to one word and re-type itself
- * halfway through. Returns null for a beat that carries no headline.
+ * The frame a headline first appeared on, walking back through earlier
+ * contiguous beats that carry the same line. Several beats share a headline;
+ * anchoring the word reveal to the current beat re-typed it mid-line.
  */
 export const getHeadlineStart = (frame: number): number | null => {
   const current = getBeat(frame);
   if (current.headlineIndex === null) return null;
-
   let start = current.from;
   for (let i = BEATS.indexOf(current) - 1; i >= 0; i--) {
     const previous = BEATS[i]!;
@@ -80,4 +94,24 @@ export const getHeadlineStart = (frame: number): number | null => {
     start = previous.from;
   }
   return start;
+};
+
+/**
+ * The headline that is leaving the slot, for the first few frames after a
+ * change. `progress` runs 0 → 1 as it clears. Null once it has gone.
+ */
+export const getOutgoingHeadline = (
+  frame: number,
+): { index: HeadlineIndex; progress: number } | null => {
+  const current = getBeat(frame);
+  const i = BEATS.indexOf(current);
+  // Walk back to the start of the current headline run.
+  let runStart = i;
+  while (runStart > 0 && BEATS[runStart - 1]!.headlineIndex === current.headlineIndex) runStart--;
+  if (runStart === 0) return null;
+  const previous = BEATS[runStart - 1]!;
+  if (previous.headlineIndex === null) return null;
+  const since = frame - BEATS[runStart]!.from;
+  if (since < 0 || since > HEADLINE_EXIT_FRAMES) return null;
+  return { index: previous.headlineIndex, progress: since / HEADLINE_EXIT_FRAMES };
 };

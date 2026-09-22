@@ -1,87 +1,95 @@
 import { describe, expect, it } from 'vitest';
 import { DURATION_IN_FRAMES } from './compositions';
-import { BEATS, HEADLINES, getBeat, getHeadline, getHeadlineStart } from './timeline';
+import {
+  BEATS,
+  HEADLINE_EXIT_FRAMES,
+  HEADLINES,
+  getBeat,
+  getHeadline,
+  getHeadlineStart,
+  getOutgoingHeadline,
+} from './timeline';
 
 describe('timeline', () => {
   it('runs contiguously with no gaps or overlaps', () => {
-    let expectedStart = 0;
+    let expected = 0;
     for (const beat of BEATS) {
-      expect(beat.from).toBe(expectedStart);
+      expect(beat.from).toBe(expected);
       expect(beat.durationInFrames).toBeGreaterThan(0);
-      expectedStart = beat.from + beat.durationInFrames;
+      expected = beat.from + beat.durationInFrames;
     }
   });
 
-  it('covers the full composition exactly', () => {
+  it('covers exactly 20 seconds', () => {
     const last = BEATS[BEATS.length - 1]!;
     expect(last.from + last.durationInFrames).toBe(DURATION_IN_FRAMES);
+    expect(DURATION_IN_FRAMES).toBe(600);
   });
 
-  it('opens on the card fan and closes on the end card', () => {
-    expect(getBeat(0).id).toBe('card-fan');
-    expect(getBeat(DURATION_IN_FRAMES - 1).id).toBe('end-card');
+  it('walks the six sections in the order George laid out', () => {
+    const sections = BEATS.map((b) => b.section).filter((s, i, a) => a[i - 1] !== s);
+    expect(sections).toEqual(['hook', 'swipe', 'match', 'filters', 'popularity', 'end']);
   });
 
-  it('holds the stillness beat for a full second before the match', () => {
-    const stillness = BEATS.find((b) => b.id === 'stillness')!;
-    expect(stillness.from).toBe(300);
-    expect(stillness.durationInFrames).toBe(30);
-    expect(getBeat(315).id).toBe('stillness');
-  });
-
-  it('shows no headline during the stillness, the fuse or the together beat', () => {
-    expect(getHeadline(310)).toBeNull();
-    expect(getHeadline(340)).toBeNull();
-    expect(getHeadline(370)).toBeNull();
-  });
-
-  it('uses the four approved headlines and nothing else', () => {
+  it('uses the approved headlines verbatim', () => {
     expect(HEADLINES).toEqual([
-      '13,000 baby names.',
-      'You swipe.',
-      'So does your partner.',
-      'The names you both like become matches.',
+      'Trying to find the perfect baby name?',
+      'Swipe through thousands of names',
+      'The names you both like become matches',
+      'Filter by style, origin or gender',
+      'See how popular it really is',
     ]);
-    const used = new Set(
-      BEATS.map((b) => b.headlineIndex).filter((i): i is 0 | 1 | 2 | 3 => i !== null),
-    );
-    expect([...used].sort()).toEqual([0, 1, 2, 3]);
+  });
+
+  it('shows the hook question on frame 0, so the autoplay thumbnail reads', () => {
+    expect(getHeadline(0)).toBe('Trying to find the perfect baby name?');
+    expect(getHeadlineStart(0)).toBe(0);
+  });
+
+  it('gives every section after the hook its own headline', () => {
+    expect(getHeadline(120)).toBe('Swipe through thousands of names');
+    expect(getHeadline(300)).toBe('The names you both like become matches');
+    expect(getHeadline(400)).toBe('Filter by style, origin or gender');
+    expect(getHeadline(480)).toBe('See how popular it really is');
+  });
+
+  it('clears the headline slot for the end card', () => {
+    expect(getHeadline(560)).toBeNull();
+  });
+
+  it('anchors a headline to the first beat that carries it, not the current one', () => {
+    // The match headline spans five beats. Anchoring per beat re-typed it mid-line.
+    expect(getHeadlineStart(180)).toBe(180);
+    expect(getHeadlineStart(300)).toBe(180);
+    expect(getHeadlineStart(340)).toBe(180);
   });
 
   it('lets a variant swap the copy without touching the beat table', () => {
-    const variant = ['A.', 'B.', 'C.', 'D.'];
-    expect(getHeadline(0, variant)).toBe('A.');
-    expect(getHeadline(400, variant)).toBe('D.');
-    expect(getHeadline(310, variant)).toBeNull();
+    const variant = ['A', 'B', 'C', 'D', 'E'];
+    expect(getHeadline(0, variant)).toBe('A');
+    expect(getHeadline(480, variant)).toBe('E');
+  });
+
+  it('reports the outgoing headline briefly after each change, then nothing', () => {
+    const out = getOutgoingHeadline(182);
+    expect(out?.index).toBe(1);
+    expect(out?.progress).toBeGreaterThan(0);
+    expect(out?.progress).toBeLessThan(1);
+    expect(getOutgoingHeadline(180 + HEADLINE_EXIT_FRAMES + 1)).toBeNull();
+    expect(getOutgoingHeadline(150)).toBeNull();
+  });
+
+  it('lets the end card take over without a lingering headline exit', () => {
+    expect(getOutgoingHeadline(527)?.index).toBe(4);
+    expect(getOutgoingHeadline(560)).toBeNull();
   });
 
   it('never claims a rounded-up name count', () => {
-    for (const headline of HEADLINES) {
-      expect(headline).not.toMatch(/30,?000/);
-    }
-  });
-
-  it('anchors a headline to the first beat that introduced it', () => {
-    // phone-enter (60) and solo-swipes (90) share headline 1; partner-join
-    // (180) and out-of-sync (210) share headline 2. Without this the word
-    // reveal restarts mid-line when the beat changes but the text does not.
-    expect(getHeadlineStart(75)).toBe(60);
-    expect(getHeadlineStart(150)).toBe(60);
-    expect(getHeadlineStart(195)).toBe(180);
-    expect(getHeadlineStart(250)).toBe(180);
-  });
-
-  it('anchors a headline that spans only one beat to that beat', () => {
-    expect(getHeadlineStart(10)).toBe(0);
-    expect(getHeadlineStart(400)).toBe(390);
-  });
-
-  it('reports no anchor for a beat that carries no headline', () => {
-    expect(getHeadlineStart(310)).toBeNull();
+    for (const h of HEADLINES) expect(h).not.toMatch(/30,?000/);
   });
 
   it('clamps out-of-range frames to the first and last beat', () => {
-    expect(getBeat(-5).id).toBe('card-fan');
-    expect(getBeat(9999).id).toBe('end-card');
+    expect(getBeat(-5).id).toBe('hook');
+    expect(getBeat(99999).id).toBe('end');
   });
 });
