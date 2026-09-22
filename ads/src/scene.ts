@@ -3,6 +3,8 @@
  * this returns, so the whole storyboard is unit-testable without rendering.
  */
 import { getSwipeX } from './card-visuals';
+import { DURATION_IN_FRAMES } from './compositions';
+import { END_CARD_START } from './end-card';
 import {
   CELEBRITY_INDEX,
   FILTERS,
@@ -49,6 +51,8 @@ export type Screen =
       front: CardView | null;
       back: AdName | null;
       likedCount: number;
+      /** The name both partners like, celebrated when `celebration` runs. */
+      matched: AdName;
       /** 0 → 1 as the It's a Match card comes in. */
       celebration: number;
     }
@@ -151,6 +155,7 @@ const exploreAt = (
     front,
     back: next ? cast[next.key] : null,
     likedCount: likes,
+    matched: cast.esme,
     celebration: keyframes([[305, 0], [323, 1, easeOutCubic]], frame),
   };
 };
@@ -175,7 +180,7 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
       [345, slots.top],
       [365, slots.solo],
       [518, slots.solo],
-      [534, slots.hidden, easeInCubic],
+      [END_CARD_START, slots.hidden, easeInCubic],
     ],
     frame,
   );
@@ -266,6 +271,6 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
     // Starts the frame the phone clears (an ease-in exit lingers, and an
     // earlier start drew the logo over the popularity sheet). Linear, because
     // EndCard sequences its own phases: wordmark, collapse into the icon.
-    endCard: keyframes([[534, 0], [600, 1, (t) => t]], frame),
+    endCard: keyframes([[END_CARD_START, 0], [DURATION_IN_FRAMES, 1, (t) => t]], frame),
   };
 };

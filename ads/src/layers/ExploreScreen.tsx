@@ -53,7 +53,7 @@ export const ExploreScreen: React.FC<{ screen: Explore; theme: AdTheme }> = ({ s
         <NameCard name={screen.back} theme={theme} visuals={rest} peek={getPeekVisuals(front?.x ?? 0)} />
       )}
       {front && <NameCard name={front.name} theme={theme} visuals={getCardVisuals(front.x)} />}
-      <MatchCelebration name="Esme" theme={theme} progress={screen.celebration} />
+      <MatchCelebration name={screen.matched.name} theme={theme} progress={screen.celebration} />
     </>
   );
 };

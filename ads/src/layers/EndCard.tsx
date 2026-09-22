@@ -11,15 +11,16 @@ import { AD_THEMES, HEADLINE_COLOR, ICON_BG } from '../theme';
 const AMBINO_EM = 3.993;
 
 /**
- * Proportions measured off assets/images/icon.png: the "b" fills 71% of the
- * square's height and 57% of its width, centred at 47.5% from the top. A first
- * pass at 63%, centred at 41.5%, read as close but not the real icon.
+ * Proportions measured by pixel off assets/images/icon.png: the "b" fills
+ * 70.8% of the square's height and 56.6% of its width, centred at 47.3% from
+ * the top. A first pass at 63%, centred at 41.5%, read as close but not the
+ * real icon.
  *
  * The glyph's ink is 0.81em tall, so a 220px icon needs a ~193px glyph.
  */
 const WORDMARK_PX = 132;
 const ICON_PX = 220;
-const GLYPH_PX = (ICON_PX * 0.71) / 0.81;
+const GLYPH_PX = (ICON_PX * 0.708) / 0.81;
 const GLYPH_GROWTH = GLYPH_PX / WORDMARK_PX;
 
 /** Icon square and iOS-style corner, in em of the grown glyph. */

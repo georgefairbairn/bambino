@@ -13,6 +13,28 @@ export interface AdName {
 }
 
 /**
+ * The name both partners like. It also drives the popularity sheet, so it
+ * carries the chart's history and the ranked total the sheet quotes. Typing
+ * the cast this way means a variant can't swap the match without supplying
+ * them, which is how the sheet used to end up showing Esme's data.
+ */
+export interface MatchedName extends AdName {
+  /** [year, rank], oldest first, for the Popularity Over Time chart. */
+  history: readonly (readonly [number, number])[];
+  /** Names ranked for this gender in the latest year (lowest rank in the data). */
+  rankedOutOf: number;
+}
+
+/** The shape a variant must supply to swap the cast. `esme` is the match. */
+export interface Cast {
+  olivia: AdName;
+  otto: AdName;
+  juniper: AdName;
+  wren: AdName;
+  esme: MatchedName;
+}
+
+/**
  * Real rows from production, read 2026-09-22. Do not invent names, ranks or
  * meanings; the cards are meant to be the app's cards.
  */
@@ -61,30 +83,78 @@ export const CAST = {
     meaning:
       "Esme comes from the Old French word 'esmé,' meaning 'esteemed' or 'beloved,' and was historically used in Scotland where it was brought by French courtiers. It gained literary fame through J.D. Salinger's story 'For Esmé — with Love and Squalor.'",
     tenYearRanks: [812, 680, 682, 585, 548, 426, 396, 377, 303, 325],
+    history: [
+      [2004, 2294], [2005, 2485], [2006, 1921], [2007, 1943], [2008, 1512],
+      [2009, 1063], [2010, 927], [2011, 979], [2012, 975], [2013, 926],
+      [2014, 812], [2015, 680], [2016, 682], [2017, 585], [2018, 548],
+      [2019, 426], [2020, 396], [2021, 377], [2022, 303], [2023, 325],
+    ],
+    /** 2023, female: the lowest rank in namePopularity. */
+    rankedOutOf: 5640,
   },
-} as const satisfies Record<string, AdName>;
-
-/** The shape a variant must supply to swap the cast. */
-export type Cast = Record<keyof typeof CAST, AdName>;
-
-/** Esme, female, 2004 → 2023. Drives the Popularity Over Time chart. */
-export const ESME_TWENTY_YEARS: readonly (readonly [number, number])[] = [
-  [2004, 2294], [2005, 2485], [2006, 1921], [2007, 1943], [2008, 1512],
-  [2009, 1063], [2010, 927], [2011, 979], [2012, 975], [2013, 926],
-  [2014, 812], [2015, 680], [2016, 682], [2017, 585], [2018, 548],
-  [2019, 426], [2020, 396], [2021, 377], [2022, 303], [2023, 325],
-];
+} as const satisfies Cast;
 
 /** Names available with no filters, and with Celebrity switched on. */
 export const NAMES_AVAILABLE = { all: 13359, celebrity: 295 } as const;
 
-/** constants/origins.ts — only the origins the cast uses. */
-export const ORIGIN_FLAGS: Record<string, string> = {
-  Latin: '\u{1F3DB}\u{FE0F}',
-  Germanic: '\u{1F1E9}\u{1F1EA}',
+/**
+ * constants/origins.ts, in full, so a cast variant gets the same flag the app
+ * would show. Copied rather than imported: the ad bundle can't resolve the
+ * app's `@/` alias.
+ */
+const ORIGIN_FLAGS: Record<string, string> = {
+  Hebrew: '\u{1F1EE}\u{1F1F1}',
   English: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}',
+  American: '\u{1F1FA}\u{1F1F8}',
+  'African American': '\u{1F1FA}\u{1F1F8}',
+  Latin: '\u{1F3DB}\u{FE0F}',
+  Greek: '\u{1F1EC}\u{1F1F7}',
   French: '\u{1F1EB}\u{1F1F7}',
+  Irish: '\u{1F1EE}\u{1F1EA}',
+  Germanic: '\u{1F1E9}\u{1F1EA}',
+  Arabic: '\u{1F1F8}\u{1F1E6}',
+  Spanish: '\u{1F1EA}\u{1F1F8}',
+  Scottish: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}',
+  'South Asian': '\u{1F1EE}\u{1F1F3}',
+  Welsh: '\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}',
+  Nordic: '\u{1F1F8}\u{1F1EA}',
+  Italian: '\u{1F1EE}\u{1F1F9}',
+  'East Asian': '\u{1F30F}',
+  Slavic: '\u{1F1F7}\u{1F1FA}',
+  Persian: '\u{1F1EE}\u{1F1F7}',
+  African: '\u{1F30D}',
+  Hawaiian: '\u{1F33A}',
+  Turkish: '\u{1F1F9}\u{1F1F7}',
+  Celtic: '\u{2618}\u{FE0F}',
+  Dutch: '\u{1F1F3}\u{1F1F1}',
+  Aramaic: '\u{1F1F8}\u{1F1FE}',
+  Basque: '\u{1F1EA}\u{1F1F8}',
+  Yiddish: '\u{2721}\u{FE0F}',
+  'Native American': '\u{1FAB6}',
+  Egyptian: '\u{1F1EA}\u{1F1EC}',
+  Nahuatl: '\u{1F1F2}\u{1F1FD}',
+  Hungarian: '\u{1F1ED}\u{1F1FA}',
 };
+
+/** constants/origins.ts getOriginFlag, including its globe fallback. */
+export const getOriginFlag = (origin: string): string => ORIGIN_FLAGS[origin] || '\u{1F30D}';
+
+/** constants/popularity.ts TIERS. */
+const TIERS: readonly { maxRank: number; label: string; gradient: readonly [string, string] }[] = [
+  { maxRank: 50, label: 'Extremely Popular', gradient: ['#34D399', '#059669'] },
+  { maxRank: 200, label: 'Very Popular', gradient: ['#60A5FA', '#3B82F6'] },
+  { maxRank: 500, label: 'Popular', gradient: ['#FBBF24', '#D97706'] },
+  { maxRank: 1000, label: 'Uncommon', gradient: ['#C4A7E7', '#A78BFA'] },
+  { maxRank: Infinity, label: 'Rare', gradient: ['#A89BB5', '#8B7BA5'] },
+];
+
+/** constants/popularity.ts getPopularityTier, for a ranked name. */
+export const getTier = (rank: number) => TIERS.find((t) => rank <= t.maxRank)!;
+
+/** The best-ranked year in a history: the app's PEAK YEAR tile. */
+export const getPeak = (
+  history: readonly (readonly [number, number])[],
+): readonly [number, number] => history.reduce((best, r) => (r[1] < best[1] ? r : best));
 
 /**
  * convex/popularity.ts: compare the latest rank with five years earlier. A

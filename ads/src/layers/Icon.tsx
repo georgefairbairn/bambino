@@ -37,6 +37,11 @@ const withRules = (dataUri: string): string => {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(styled)}`;
 };
 
+/** Each mask depends only on the icon, so build it once rather than per frame. */
+const MASKS = Object.fromEntries(
+  Object.entries(ICONS).map(([name, uri]) => [name, `url("${withRules(uri)}")`]),
+) as Record<IconName, string>;
+
 /**
  * Drawn as a CSS mask over a solid colour, so each glyph takes whatever colour
  * the app gives it rather than the SVG's default black.
@@ -46,7 +51,7 @@ export const Icon: React.FC<{ name: IconName; size: number; color: string }> = (
   size,
   color,
 }) => {
-  const url = `url("${withRules(ICONS[name])}")`;
+  const url = MASKS[name];
   return (
     <span
       style={{

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DURATION_IN_FRAMES } from './compositions';
 import { getLayout } from './layout';
-import { NAMES_AVAILABLE } from './names';
+import { CAST, NAMES_AVAILABLE } from './names';
 import { type PhoneScene, getScene, keyframes } from './scene';
 
 const layout = getLayout('reel');
@@ -234,5 +234,14 @@ describe('scene — end card timing', () => {
   it('runs the end card for at least two seconds once the phone has gone', () => {
     const start = Array.from({ length: DURATION_IN_FRAMES }, (_, f) => f).find((f) => at(f).endCard > 0)!;
     expect(DURATION_IN_FRAMES - start).toBeGreaterThanOrEqual(60);
+  });
+});
+
+describe('scene — cast variants', () => {
+  it('celebrates whichever name the cast matches on, not a hardcoded one', () => {
+    const variant = { ...CAST, esme: { ...CAST.esme, name: 'Nova' } };
+    const s = getScene(330, layout, variant).phones.find((p) => p.id === 'B')!.stack.base;
+    if (s.kind !== 'explore') throw new Error();
+    expect(s.matched.name).toBe('Nova');
   });
 });

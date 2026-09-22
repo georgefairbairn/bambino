@@ -5,6 +5,7 @@ import {
   CARD,
   GENDER_BADGES,
   HEADLINE_COLOR,
+  ICON_BG,
   SWIPE_COLORS,
   UNDERLINE_COLORS,
 } from './theme';
@@ -65,5 +66,12 @@ describe('ad theme tokens', () => {
       ...Object.values(AD_THEMES).map((t) => t.primary),
     ];
     for (const c of colours) expect(c).toMatch(HEX);
+  });
+
+  it('paints the icon square in the colour assets/images/icon.png actually uses', () => {
+    // Sampled at 2026-09-22: #D1FAE5, which is mint primaryLight. v2 had
+    // #CFF9E5 here with a comment claiming it was sampled; it was not.
+    expect(ICON_BG).toBe('#D1FAE5');
+    expect(ICON_BG).toBe(AD_THEMES.mint.primaryLight);
   });
 });

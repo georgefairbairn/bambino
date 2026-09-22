@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAST, ESME_TWENTY_YEARS, NAMES_AVAILABLE, ORIGIN_FLAGS, getTrend } from './names';
+import { CAST, NAMES_AVAILABLE, getOriginFlag, getPeak, getTier, getTrend } from './names';
 import { UNDERLINE_COLORS } from './theme';
 
 describe('name cast', () => {
@@ -22,15 +22,21 @@ describe('name cast', () => {
   it('gives every cast member a meaning, a flag and a colourable gender', () => {
     for (const entry of Object.values(CAST)) {
       expect(entry.meaning.length).toBeGreaterThan(40);
-      expect(ORIGIN_FLAGS[entry.origin]).toBeDefined();
+      expect(getOriginFlag(entry.origin)).not.toBe('\u{1F30D}');
       expect(UNDERLINE_COLORS).toHaveProperty(entry.gender);
     }
   });
 
-  it('charts twenty contiguous years for Esme', () => {
-    expect(ESME_TWENTY_YEARS).toHaveLength(20);
-    expect(ESME_TWENTY_YEARS[0]).toEqual([2004, 2294]);
-    expect(ESME_TWENTY_YEARS[19]).toEqual([2023, 325]);
+  it('gives the matched name twenty contiguous years to chart, ending on its rank', () => {
+    const { history, rank } = CAST.esme;
+    expect(history).toHaveLength(20);
+    expect(history[0]).toEqual([2004, 2294]);
+    expect(history[19]).toEqual([2023, rank]);
+    for (let i = 1; i < history.length; i++) expect(history[i]![0]).toBe(history[i - 1]![0] + 1);
+  });
+
+  it('carries the ranked total the sheet quotes, from production', () => {
+    expect(CAST.esme.rankedOutOf).toBe(5640);
   });
 
   it('uses the verified filter counts', () => {
@@ -55,5 +61,37 @@ describe('getTrend — mirrors convex/popularity.ts', () => {
 
   it('declines to call a trend without five years of history', () => {
     expect(getTrend([10, 9, 8])).toBeNull();
+  });
+});
+
+describe('getTier — mirrors constants/popularity.ts', () => {
+  it('buckets ranks exactly at the app boundaries', () => {
+    expect(getTier(50).label).toBe('Extremely Popular');
+    expect(getTier(51).label).toBe('Very Popular');
+    expect(getTier(200).label).toBe('Very Popular');
+    expect(getTier(325).label).toBe('Popular');
+    expect(getTier(1000).label).toBe('Uncommon');
+    expect(getTier(1001).label).toBe('Rare');
+  });
+
+  it("gives Esme the app's Popular gradient", () => {
+    expect(getTier(CAST.esme.rank).gradient).toEqual(['#FBBF24', '#D97706']);
+  });
+});
+
+describe('getPeak', () => {
+  it("finds the best-ranked year in the matched name's history", () => {
+    expect(getPeak(CAST.esme.history)).toEqual([2022, 303]);
+  });
+});
+
+describe('getOriginFlag — mirrors constants/origins.ts', () => {
+  it('covers origins beyond the cast, so a variant still gets a flag', () => {
+    expect(getOriginFlag('Irish')).toBe('\u{1F1EE}\u{1F1EA}');
+    expect(getOriginFlag('Hebrew')).toBe('\u{1F1EE}\u{1F1F1}');
+  });
+
+  it("falls back to the app's globe for an unknown origin", () => {
+    expect(getOriginFlag('Atlantean')).toBe('\u{1F30D}');
   });
 });

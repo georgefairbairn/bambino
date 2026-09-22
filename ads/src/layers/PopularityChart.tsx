@@ -1,6 +1,8 @@
 import type React from 'react';
-import { plotSeries, smoothPath } from '../curves';
+import { useId } from 'react';
+import { invertRanks, plotSeries, smoothPath } from '../curves';
 import { SANS } from '../fonts';
+import { type Gender } from '../names';
 import { AD_THEMES, type AdTheme, TEXT, UNDERLINE_COLORS } from '../theme';
 
 const PLOT_W = 250;
@@ -16,16 +18,22 @@ const SPACING_X = 10;
  */
 export const PopularityChart: React.FC<{
   series: readonly (readonly [number, number])[];
+  /** popularity-chart.tsx colours the line by gender, as the underline does. */
+  gender: Gender;
   theme: AdTheme;
   progress: number;
   tooltip: number;
-}> = ({ series, theme, progress, tooltip }) => {
+}> = ({ series, gender, theme, progress, tooltip }) => {
   const colors = AD_THEMES[theme];
-  const line = UNDERLINE_COLORS.female;
+  const line = UNDERLINE_COLORS[gender];
+  // React 19's useId wraps ids in «», which don't belong in an SVG url(#…).
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const fillId = `popFill-${id}`;
+  const revealId = `popReveal-${id}`;
   const ranks = series.map(([, r]) => r);
   const maxRank = Math.max(...ranks);
   const minRank = Math.min(...ranks);
-  const values = ranks.map((r) => maxRank - r + 1);
+  const values = invertRanks(ranks);
   const pts = plotSeries(values, PLOT_W, PLOT_H, 0).map((p, i, a) => ({
     x: SPACING_X + (i * (PLOT_W - SPACING_X * 2)) / (a.length - 1),
     y: p.y,
@@ -142,17 +150,17 @@ export const PopularityChart: React.FC<{
         <div style={{ position: 'relative' }}>
           <svg width={PLOT_W} height={PLOT_H + 22} style={{ display: 'block', overflow: 'visible' }}>
             <defs>
-              <linearGradient id="popFill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor={line} stopOpacity={0.28} />
                 <stop offset="1" stopColor={line} stopOpacity={0} />
               </linearGradient>
-              <clipPath id="popReveal">
+              <clipPath id={revealId}>
                 <rect x={0} y={-10} width={PLOT_W * progress} height={PLOT_H + 20} />
               </clipPath>
             </defs>
             <line x1={0} x2={PLOT_W} y1={PLOT_H} y2={PLOT_H} stroke={colors.border} strokeWidth={1} />
-            <g clipPath="url(#popReveal)">
-              <path d={area} fill="url(#popFill)" />
+            <g clipPath={`url(#${revealId})`}>
+              <path d={area} fill={`url(#${fillId})`} />
               <path d={d} stroke={line} strokeWidth={2} fill="none" strokeLinecap="round" />
             </g>
             {xLabels.map(({ year, i }) => (

@@ -17,13 +17,11 @@ describe('layout', () => {
     expect((PHONE_W * l.phoneScale) / l.width).toBeGreaterThan(0.85);
   });
 
-  it('keeps every phone inside the frame horizontally and centred', () => {
+  it('keeps every phone narrower than the frame at both its sizes', () => {
     for (const format of AD_FORMATS) {
       const l = getLayout(format);
-      const w = PHONE_W * l.phoneScale;
-      expect(l.phoneLeft).toBeGreaterThan(0);
-      expect(l.phoneLeft + w).toBeLessThan(l.width);
-      expect(l.phoneLeft * 2 + w).toBeCloseTo(l.width, 0);
+      expect(PHONE_W * l.phoneScale).toBeLessThan(l.width);
+      expect(PHONE_W * l.matchScale).toBeLessThan(l.width);
     }
   });
 

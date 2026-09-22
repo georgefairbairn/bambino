@@ -2,18 +2,13 @@ import type React from 'react';
 import { DEVICE_H, DEVICE_W } from '../device';
 import { SHEET } from '../geometry';
 import { GABARITO, SANS } from '../fonts';
-import { ESME_TWENTY_YEARS, getTrend, type AdName } from '../names';
+import { type MatchedName, getPeak, getTier, getTrend } from '../names';
 import { type Screen } from '../scene';
 import { AD_THEMES, type AdTheme, TEXT, TREND_STYLE } from '../theme';
 import { Icon } from './Icon';
 import { PopularityChart } from './PopularityChart';
 
 type Detail = Extract<Screen, { kind: 'detail' }>;
-
-/** constants/popularity.ts TIERS: rank 325 falls in "Popular" (≤ 500). */
-const TIER = { label: 'Popular', gradient: ['#FBBF24', '#D97706'] } as const;
-/** 2023 female: the lowest-ranked name is #5,640. */
-const TOTAL_RANKED = 5640;
 
 const tileLabel: React.CSSProperties = {
   fontFamily: SANS,
@@ -30,15 +25,20 @@ const ordinal = (n: number) => {
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 };
 
-/** The popularity sheet a card's RANK / TREND row opens, for Esme. */
+/**
+ * The popularity sheet a card's RANK / TREND row opens. Tier, peak, ranked
+ * total and chart all come from the matched name, so a cast variant can't
+ * show one name's rank beside another name's history.
+ */
 export const DetailSheet: React.FC<{
   screen: Detail;
-  name: AdName;
+  name: MatchedName;
   theme: AdTheme;
   progress: number;
 }> = ({ screen, name, theme, progress }) => {
   const colors = AD_THEMES[theme];
-  const peak = ESME_TWENTY_YEARS.reduce((best, r) => (r[1] < best[1] ? r : best));
+  const peak = getPeak(name.history);
+  const tier = getTier(name.rank);
   const trend = getTrend(name.tenYearRanks);
   const top = SHEET.top + (1 - progress) * DEVICE_H;
 
@@ -108,7 +108,7 @@ export const DetailSheet: React.FC<{
                   padding: '5px 12px',
                   borderRadius: 12,
                   marginBottom: 4,
-                  background: `linear-gradient(135deg, ${TIER.gradient[0]}, ${TIER.gradient[1]})`,
+                  background: `linear-gradient(135deg, ${tier.gradient[0]}, ${tier.gradient[1]})`,
                   fontFamily: SANS,
                   fontSize: 11,
                   fontWeight: 700,
@@ -117,10 +117,10 @@ export const DetailSheet: React.FC<{
                   textTransform: 'uppercase',
                 }}
               >
-                {TIER.label}
+                {tier.label}
               </span>
               <span style={{ fontFamily: SANS, fontSize: 11, color: TEXT.secondary, textAlign: 'center' }}>
-                Ranked {ordinal(name.rank)} out of {TOTAL_RANKED.toLocaleString('en-US')} names
+                Ranked {ordinal(name.rank)} out of {name.rankedOutOf.toLocaleString('en-US')} names
               </span>
             </div>
           </div>
@@ -143,7 +143,13 @@ export const DetailSheet: React.FC<{
             </div>
           </div>
 
-          <PopularityChart series={ESME_TWENTY_YEARS} theme={theme} progress={screen.chart} tooltip={screen.tooltip} />
+          <PopularityChart
+            series={name.history}
+            gender={name.gender}
+            theme={theme}
+            progress={screen.chart}
+            tooltip={screen.tooltip}
+          />
         </div>
       </div>
     </>

@@ -2,18 +2,9 @@ import type React from 'react';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
 import { POPPINS } from '../fonts';
 import { type AdLayout } from '../layout';
-import { getVisibleWordCount } from '../motion';
-import {
-  HEADLINE_EXIT_FRAMES,
-  HEADLINES,
-  getBeat,
-  getHeadlineStart,
-  getOutgoingHeadline,
-} from '../timeline';
+import { getHeadlineWordProgress } from '../motion';
+import { HEADLINES, getBeat, getOutgoingHeadline } from '../timeline';
 import { HEADLINE_COLOR } from '../theme';
-
-/** New lines wait this long so the outgoing one has cleared half its exit. */
-const ENTER_DELAY = HEADLINE_EXIT_FRAMES / 2;
 
 const Line: React.FC<{ text: string; layout: AdLayout; style?: React.CSSProperties; children?: React.ReactNode }> = ({
   layout,
@@ -55,24 +46,19 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const beat = getBeat(frame);
-  const start = getHeadlineStart(frame);
   const outgoing = getOutgoingHeadline(frame);
 
   const current =
-    beat.headlineIndex !== null && beat.headlineIndex !== 0 && start !== null
-      ? headlines[beat.headlineIndex]
-      : null;
+    beat.headlineIndex !== null && beat.headlineIndex !== 0 ? headlines[beat.headlineIndex] : null;
 
-  const framesPerWord = fps / 6;
   let incoming: React.ReactNode = null;
   if (current) {
-    const local = frame - start! - (outgoing ? ENTER_DELAY : 0);
     const words = current.split(' ');
-    const shown = getVisibleWordCount({ totalWords: words.length, localFrame: local, fps });
+    const progress = getHeadlineWordProgress(frame, fps, words.length);
     incoming = (
       <Line text={current} layout={layout}>
         {words.map((word, i) => {
-          const t = i < shown ? Math.min(1, (local - i * framesPerWord) / 5) : 0;
+          const t = progress[i] ?? 0;
           return (
             <span
               key={`${word}-${i}`}

@@ -1,0 +1,39 @@
+name: Ads CI
+
+# ads/ is a separate Remotion project with its own lockfile (see ads/README.md),
+# deliberately excluded from the app's lint, test and typecheck jobs. This runs
+# its unit tests and typecheck, and only when something under ads/ changes, so
+# app-only PRs don't pay for installing Remotion.
+
+on:
+  pull_request:
+    paths:
+      - 'ads/**'
+      - '.github/workflows/ads-ci.yml'
+
+jobs:
+  test-and-typecheck:
+    name: Ads tests and typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ads
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ads/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test suite
+        run: npm test
+
+      - name: Run TypeScript compiler
+        run: npm run typecheck

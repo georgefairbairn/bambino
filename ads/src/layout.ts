@@ -1,5 +1,4 @@
 import { type AdFormat, FORMAT_SIZES } from './compositions';
-import { PHONE_W } from './device';
 
 export type Slot = 'hidden' | 'solo' | 'top' | 'bottom';
 
@@ -14,15 +13,13 @@ export interface AdLayout {
    * the matched name out of the celebration.
    */
   matchScale: number;
-  /** Left edge of the phone in px, so it sits centred. */
-  phoneLeft: number;
   /** Top edge of the phone in px for each slot. Phones bleed off the bottom. */
   slots: Record<Slot, number>;
   headline: { top: number; fontSize: number; sidePadding: number };
   hook: { fontSize: number };
 }
 
-type Spec = Omit<AdLayout, 'width' | 'height' | 'phoneLeft'>;
+type Spec = Omit<AdLayout, 'width' | 'height'>;
 
 const SPECS: Record<AdFormat, Spec> = {
   reel: {
@@ -48,12 +45,7 @@ const SPECS: Record<AdFormat, Spec> = {
   },
 };
 
-export const getLayout = (format: AdFormat): AdLayout => {
-  const spec = SPECS[format];
-  const size = FORMAT_SIZES[format];
-  return {
-    ...size,
-    ...spec,
-    phoneLeft: (size.width - PHONE_W * spec.phoneScale) / 2,
-  };
-};
+export const getLayout = (format: AdFormat): AdLayout => ({
+  ...FORMAT_SIZES[format],
+  ...SPECS[format],
+});

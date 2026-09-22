@@ -1,5 +1,12 @@
-/** Frames the end card runs for: from the phone clearing (534) to 600. */
-export const END_CARD_FRAMES = 66;
+import { DURATION_IN_FRAMES } from './compositions';
+
+/**
+ * The frame the last phone has fully cleared, and the end card begins. The
+ * scene ends the phone's exit on this same frame, so the logo can't be drawn
+ * over a phone that is still on screen.
+ */
+export const END_CARD_START = 534;
+export const END_CARD_FRAMES = DURATION_IN_FRAMES - END_CARD_START;
 
 export interface EndCardPhases {
   /** 0 → 1 as "bambino" arrives. */

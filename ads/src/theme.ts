@@ -94,5 +94,8 @@ export const BACKDROP = {
  */
 export const HEADLINE_COLOR = '#059669';
 
-/** App icon background, sampled from assets/images/icon.png. */
-export const ICON_BG = '#CFF9E5';
+/**
+ * App icon background. Sampled from assets/images/icon.png on 2026-09-22 as
+ * #D1FAE5, which is exactly mint primaryLight; the glyph is mint primary.
+ */
+export const ICON_BG = AD_THEMES.mint.primaryLight;

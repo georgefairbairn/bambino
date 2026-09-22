@@ -2,7 +2,7 @@ import type React from 'react';
 import { type CardVisuals } from '../card-visuals';
 import { CARD_H, CARD_W, CARD_X, CARD_Y } from '../device';
 import { GABARITO, SANS } from '../fonts';
-import { type AdName, ORIGIN_FLAGS, getTrend } from '../names';
+import { type AdName, getOriginFlag, getTrend } from '../names';
 import {
   AD_THEMES,
   type AdTheme,
@@ -155,7 +155,7 @@ export const NameCard: React.FC<{
         >
           <div style={{ borderRadius: 8, padding: '10px 16px', backgroundColor: colors.surfaceSubtle }}>
             <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 600, color: TEXT.primary }}>
-              {ORIGIN_FLAGS[name.origin]} {name.origin}
+              {getOriginFlag(name.origin)} {name.origin}
             </span>
           </div>
           <div
