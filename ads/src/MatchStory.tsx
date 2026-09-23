@@ -32,7 +32,13 @@ export const MatchStory: React.FC<{
           <Phone key={p.id} scene={p} frameWidth={layout.width} cast={cast} />
         ))}
       <Headline layout={layout} headlines={headlines} />
-      {scene.endCard > 0 && <EndCard progress={scene.endCard} scale={layout.width / 1080} />}
+      {scene.endCard > 0 && (
+        <EndCard
+          progress={scene.endCard}
+          scale={layout.width / 1080}
+          finePrintBottom={layout.endCard.finePrintBottom}
+        />
+      )}
     </AbsoluteFill>
   );
 };

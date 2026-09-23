@@ -1,5 +1,6 @@
 import type React from 'react';
-import { getEndCardPhases } from '../end-card';
+import { Img, staticFile } from 'remotion';
+import { BADGE, FINE_PRINT_PX, getEndCardPhases } from '../end-card';
 import { ALFA_SLAB_ONE, POPPINS, SANS } from '../fonts';
 import { AD_THEMES, HEADLINE_COLOR, ICON_BG, TEXT } from '../theme';
 
@@ -36,8 +37,12 @@ const GLYPH_DROP_EM = 0;
  * which grows as the icon's mint square rises behind it. The download line
  * sits beneath throughout.
  */
-export const EndCard: React.FC<{ progress: number; scale: number }> = ({ progress, scale }) => {
-  const { wordmark, collapse, icon, tagline } = getEndCardPhases(progress);
+export const EndCard: React.FC<{ progress: number; scale: number; finePrintBottom: number }> = ({
+  progress,
+  scale,
+  finePrintBottom,
+}) => {
+  const { wordmark, collapse, icon, tagline, badge } = getEndCardPhases(progress);
   const mint = AD_THEMES.mint.primary;
   // A small overshoot as the icon lands, then settle.
   const iconScale = icon < 0.75 ? 0.35 + (icon / 0.75) * 0.75 : 1.1 - ((icon - 0.75) / 0.25) * 0.1;
@@ -51,6 +56,10 @@ export const EndCard: React.FC<{ progress: number; scale: number }> = ({ progres
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        // Lifts the icon and tagline 50px off centre, so the tagline comes to
+        // rest with Apple's clear space above the pinned badge. Padding keeps
+        // the badge's `top: 50%` measured from the frame's true centre.
+        paddingBottom: 100 * scale,
       }}
     >
       <div
@@ -112,19 +121,36 @@ export const EndCard: React.FC<{ progress: number; scale: number }> = ({ progres
           transform: `translateY(${(1 - tagline) * 16 * scale}px)`,
         }}
       >
-        Free to download on the App Store
+        Free to download
       </div>
+      {/* Apple's badge, unmodified. Pinned rather than in the column, so it
+          never moves once it appears (Apple forbids animating it). */}
+      <Img
+        src={staticFile('app-store-badge.svg')}
+        style={{
+          position: 'absolute',
+          top: `calc(50% + ${BADGE.top * scale}px)`,
+          left: '50%',
+          width: BADGE.width * scale,
+          height: BADGE.height * scale,
+          transform: 'translateX(-50%)',
+          opacity: badge,
+        }}
+      />
       {/* UK and Australian ad rules want paid extras disclosed next to "Free".
           Shown in every version so one set of renders works everywhere. */}
       <div
         style={{
-          marginTop: 14 * scale,
+          position: 'absolute',
+          bottom: finePrintBottom,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
           fontFamily: SANS,
           fontWeight: 500,
-          fontSize: 30 * scale,
+          fontSize: FINE_PRINT_PX * scale,
           color: TEXT.secondary,
           opacity: tagline,
-          transform: `translateY(${(1 - tagline) * 16 * scale}px)`,
         }}
       >
         In-app purchases available

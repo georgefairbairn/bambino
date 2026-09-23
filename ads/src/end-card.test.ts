@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { END_CARD_FRAMES, getEndCardPhases } from './end-card';
+import { BADGE, END_CARD_FRAMES, getEndCardPhases } from './end-card';
 
 const at = (frame: number) => getEndCardPhases(frame / END_CARD_FRAMES);
 
@@ -43,7 +43,9 @@ describe('getEndCardPhases', () => {
   });
 
   it('keeps the download line up from early on, so it reads for over a second', () => {
-    const shown = Array.from({ length: END_CARD_FRAMES }, (_, f) => at(f)).filter((p) => p.tagline === 1);
+    const shown = Array.from({ length: END_CARD_FRAMES }, (_, f) => at(f)).filter(
+      (p) => p.tagline === 1,
+    );
     expect(shown.length).toBeGreaterThanOrEqual(36);
   });
 
@@ -55,5 +57,29 @@ describe('getEndCardPhases', () => {
       expect(p.wordmark).toBeGreaterThanOrEqual(last.wordmark);
       last = p;
     }
+  });
+
+  it('cuts the App Store badge in whole and keeps it, since Apple forbids animating it', () => {
+    let shown = false;
+    for (let f = 0; f <= END_CARD_FRAMES; f++) {
+      const { badge } = at(f);
+      expect([0, 1]).toContain(badge);
+      if (shown) expect(badge).toBe(1);
+      shown = badge === 1;
+    }
+    expect(shown).toBe(true);
+  });
+
+  it('shows the badge while the tagline is still arriving, so it holds on screen', () => {
+    const first = Array.from({ length: END_CARD_FRAMES + 1 }, (_, f) => f).find(
+      (f) => at(f).badge === 1,
+    )!;
+    expect(at(first).tagline).toBeLessThan(1);
+    expect(END_CARD_FRAMES - first).toBeGreaterThan(40);
+  });
+
+  it("keeps the badge at or above Apple's 40px onscreen minimum, in its own aspect", () => {
+    expect(BADGE.height).toBeGreaterThanOrEqual(40);
+    expect(BADGE.width / BADGE.height).toBeCloseTo(119.66407 / 40, 5);
   });
 });
