@@ -89,7 +89,7 @@ export const createOrUpdateUser = mutation({
       if (args.name && existingUser.nameConfirmed !== true) patch.name = args.name;
       if (safeImageUrl) patch.imageUrl = safeImageUrl;
       await ctx.db.patch(existingUser._id, patch);
-      return existingUser._id;
+      return { userId: existingUser._id, created: false };
     }
 
     const shareCode = await generateUniqueShareCode(ctx);
@@ -119,10 +119,11 @@ export const createOrUpdateUser = mutation({
         const dup = afterInsert[i];
         if (dup) await ctx.db.delete(dup._id);
       }
-      if (survivor) return survivor._id;
+      // If a concurrent call's row survived, that call reports the new user.
+      if (survivor) return { userId: survivor._id, created: survivor._id === userId };
     }
 
-    return userId;
+    return { userId, created: true };
   },
 });
 
