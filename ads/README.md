@@ -30,6 +30,30 @@ changes, update the copy by hand.
 All three are silent by design. Instagram's in-app music library is not
 licensed for paid ads, so any track has to come from a commercial library.
 
+## Output quality
+
+Measured by encoding frames 100–425 and comparing five decoded frames against
+Remotion's lossless PNGs, with edges (text, borders) scored apart from flat
+fills.
+
+| Settings | Edges | Flat fills | Bitrate |
+|---|---|---|---|
+| Original (JPEG frames, CRF 18) | 28.2 dB | 44.0 dB | 1.7 Mbps |
+| PNG, CRF 12, Remotion's BT.709 filter | 28.2 dB | 47.0 dB | 2.4 Mbps |
+| Current: PNG, CRF 10, ffmpeg's scaler | 29.7 dB | 49.0 dB | 3.0 Mbps |
+| Lossless 4:2:0 (ceiling) | 29.9 dB | 49.6 dB | 5.7 Mbps |
+
+Every 3 dB halves the squared error. At 0.2 dB from lossless, a lower CRF only
+adds bytes. What remains is 4:2:0 chroma subsampling, which Instagram requires
+and which softens coloured text slightly.
+
+Browsers decode untagged video as BT.709, so an untagged BT.601 encode shifted
+colour in Chrome (40.4 dB on flat fills).
+
+To test a change, use a PNG sequence (`--sequence --image-format=png`) as ground
+truth and decode with an explicit matrix and range. ffmpeg's default conversion
+adds its own 1–2 level bias.
+
 ## How it is put together
 
 A 20-second feature tour: hook, swipe, match, filters, popularity, end card.
