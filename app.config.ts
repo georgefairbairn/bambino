@@ -100,7 +100,22 @@ const config: ExpoConfig = {
           NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeProductInteraction',
           NSPrivacyCollectedDataTypeLinked: true,
           NSPrivacyCollectedDataTypeTracking: false,
-          NSPrivacyCollectedDataTypePurposes: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
+          // Developer advertising: installs and sign-ups go to Meta to measure
+          // our own ads (#346).
+          NSPrivacyCollectedDataTypePurposes: [
+            'NSPrivacyCollectedDataTypePurposeAnalytics',
+            'NSPrivacyCollectedDataTypePurposeDeveloperAdvertising',
+          ],
+        },
+        {
+          // Meta's SDK sends a device identifier with those events. No ATT
+          // prompt, so no advertising ID and no tracking (#346).
+          NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeDeviceID',
+          NSPrivacyCollectedDataTypeLinked: true,
+          NSPrivacyCollectedDataTypeTracking: false,
+          NSPrivacyCollectedDataTypePurposes: [
+            'NSPrivacyCollectedDataTypePurposeDeveloperAdvertising',
+          ],
         },
         {
           NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeCrashData',
