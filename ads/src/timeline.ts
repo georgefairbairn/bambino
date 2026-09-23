@@ -33,18 +33,43 @@ export interface Beat {
 }
 
 /**
- * Approved copy, used verbatim. The first two lines are George's own wording;
- * "Link up with your partner" and the match line are the existing App Store
- * headlines. No trailing full stops, matching the published screenshots.
+ * The opening question, A/B tested in the first campaign (George, 2026-09-23).
+ * Each is set in the lines it breaks at on screen. "baby name?" always ends
+ * alone on the last line, because the Hook layer underlines the last line
+ * like the card's own gender underline.
  */
-export const HEADLINES = [
-  'Trying to find the perfect baby name?',
+export const HOOKS = {
+  looking: ['Looking for a', 'baby name?'],
+  'cant-agree': ['Can’t agree on a', 'baby name?'],
+} as const satisfies Record<string, readonly string[]>;
+
+export type HookId = keyof typeof HOOKS;
+
+export const HOOK_IDS = Object.keys(HOOKS) as HookId[];
+
+export const DEFAULT_HOOK: HookId = 'looking';
+
+/**
+ * Approved copy, used verbatim, after the hook. "Swipe through thousands of
+ * names" is George's own wording; "Link up with your partner" and the match
+ * line are the existing App Store headlines. No trailing full stops, matching
+ * the published screenshots.
+ */
+const SECTION_HEADLINES = [
   'Swipe through thousands of names',
   'Link up with your partner',
   'The names you both like become matches',
   'Filter by style, origin or gender',
   'See how popular it really is',
-] as const satisfies readonly [string, string, string, string, string, string];
+] as const;
+
+/** Headline 0 is the hook question, which the Hook layer draws itself. */
+export const getHeadlines = (hook: HookId): readonly [string, ...typeof SECTION_HEADLINES] => [
+  HOOKS[hook].join(' '),
+  ...SECTION_HEADLINES,
+];
+
+export const HEADLINES = getHeadlines(DEFAULT_HOOK);
 
 export const BEATS: readonly Beat[] = [
   { id: 'hook', section: 'hook', from: 0, durationInFrames: 75, headlineIndex: 0 },

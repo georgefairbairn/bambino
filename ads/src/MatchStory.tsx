@@ -4,21 +4,19 @@ import { type AdFormat } from './compositions';
 import { getLayout } from './layout';
 import { CAST, type Cast } from './names';
 import { getScene } from './scene';
-import { HEADLINES } from './timeline';
+import { DEFAULT_HOOK, getHeadlines, HOOKS, type HookId } from './timeline';
 import { Backdrop } from './layers/Backdrop';
 import { EndCard } from './layers/EndCard';
 import { Headline } from './layers/Headline';
 import { Hook } from './layers/Hook';
 import { Phone } from './layers/Phone';
 
-/** The hook, set in three lines so it breaks where it reads best. */
-const HOOK_LINES = ['Trying to find', 'the perfect', 'baby name?'];
-
 export const MatchStory: React.FC<{
   format: AdFormat;
+  hook?: HookId;
   headlines?: readonly string[];
   cast?: Cast;
-}> = ({ format, headlines = HEADLINES, cast = CAST }) => {
+}> = ({ format, hook = DEFAULT_HOOK, headlines = getHeadlines(hook), cast = CAST }) => {
   const frame = useCurrentFrame();
   const layout = getLayout(format);
   const scene = getScene(frame, layout, cast);
@@ -26,7 +24,7 @@ export const MatchStory: React.FC<{
   return (
     <AbsoluteFill style={{ overflow: 'hidden' }}>
       <Backdrop />
-      <Hook lines={HOOK_LINES} fontSize={layout.hook.fontSize} exit={scene.hookExit} />
+      <Hook lines={HOOKS[hook]} fontSize={layout.hook.fontSize} exit={scene.hookExit} />
       {/* A first, so the partner's phone sits in front of it. */}
       {scene.phones
         .filter((p) => p.y < layout.height)

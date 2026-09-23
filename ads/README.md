@@ -19,15 +19,24 @@ changes, update the copy by hand.
 
 ## Output
 
-`npm run render` writes three files to `out/`, which is gitignored:
+`npm run render` writes six files to `out/`, which is gitignored: every
+format for each hook under test (`HOOKS` in `src/timeline.ts`).
 
 | File | Size | Placement |
 |---|---|---|
-| `bambino-reel.mp4` | 1080x1920 | Reels and Stories (primary) |
-| `bambino-feed.mp4` | 1080x1350 | Feed |
-| `bambino-square.mp4` | 1080x1080 | Feed, square |
+| `bambino-reel-<hook>.mp4` | 1080x1920 | Reels and Stories (primary) |
+| `bambino-feed-<hook>.mp4` | 1080x1350 | Feed |
+| `bambino-square-<hook>.mp4` | 1080x1080 | Feed, square |
 
-All three are silent by design. Instagram's in-app music library is not
+`<hook>` is `looking` ("Looking for a baby name?") or `cant-agree` ("Can’t
+agree on a baby name?"). To render one in Studio or from the CLI, pass
+`--props='{"format":"reel","hook":"cant-agree"}'`.
+
+The end card says "In-app purchases available" under "Free to download on the
+App Store", because UK and Australian ad rules want paid extras disclosed next
+to "free".
+
+All of them are silent by design. Instagram's in-app music library is not
 licensed for paid ads, so any track has to come from a commercial library.
 
 ## Output quality

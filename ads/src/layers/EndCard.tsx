@@ -1,7 +1,7 @@
 import type React from 'react';
 import { getEndCardPhases } from '../end-card';
-import { ALFA_SLAB_ONE, POPPINS } from '../fonts';
-import { AD_THEMES, HEADLINE_COLOR, ICON_BG } from '../theme';
+import { ALFA_SLAB_ONE, POPPINS, SANS } from '../fonts';
+import { AD_THEMES, HEADLINE_COLOR, ICON_BG, TEXT } from '../theme';
 
 /**
  * Advance widths in Alfa Slab One, measured in Chrome with the font loaded.
@@ -113,6 +113,21 @@ export const EndCard: React.FC<{ progress: number; scale: number }> = ({ progres
         }}
       >
         Free to download on the App Store
+      </div>
+      {/* UK and Australian ad rules want paid extras disclosed next to "Free".
+          Shown in every version so one set of renders works everywhere. */}
+      <div
+        style={{
+          marginTop: 14 * scale,
+          fontFamily: SANS,
+          fontWeight: 500,
+          fontSize: 30 * scale,
+          color: TEXT.secondary,
+          opacity: tagline,
+          transform: `translateY(${(1 - tagline) * 16 * scale}px)`,
+        }}
+      >
+        In-app purchases available
       </div>
     </div>
   );
