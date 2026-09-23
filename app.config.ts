@@ -3,6 +3,12 @@ import type { ExpoConfig } from 'expo/config';
 const APP_ENV = process.env.APP_ENV ?? 'development';
 const isProduction = APP_ENV === 'production';
 
+// Meta app for install attribution on the Instagram ads. Not secrets: both
+// ship in Info.plist. Development builds don't auto-log, so test installs
+// stay out of Meta's numbers.
+const META_APP_ID = '000000000000000';
+const META_CLIENT_TOKEN = '00000000000000000000000000000000';
+
 const config: ExpoConfig = {
   name: 'Bambino',
   slug: 'bambino',
@@ -167,6 +173,21 @@ const config: ExpoConfig = {
       {
         organization: 'george-k5',
         project: 'bambino',
+      },
+    ],
+    [
+      'react-native-fbsdk-next',
+      {
+        appID: META_APP_ID,
+        clientToken: META_CLIENT_TOKEN,
+        displayName: 'Bambino',
+        scheme: `fb${META_APP_ID}`,
+        // No ATT prompt: Meta attributes installs through SKAdNetwork, which
+        // needs no permission.
+        iosUserTrackingPermission: false,
+        advertiserIDCollectionEnabled: false,
+        autoLogAppEventsEnabled: APP_ENV !== 'development',
+        isAutoInitEnabled: true,
       },
     ],
   ],
