@@ -2,15 +2,16 @@ import type React from 'react';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
 import { POPPINS } from '../fonts';
 import { type AdLayout } from '../layout';
-import { getHeadlineWordProgress } from '../motion';
+import { getHeadlineWordProgress, getWordPop } from '../motion';
 import { HEADLINES, getBeat, getOutgoingHeadline } from '../timeline';
 import { HEADLINE_COLOR } from '../theme';
 
-const Line: React.FC<{ text: string; layout: AdLayout; style?: React.CSSProperties; children?: React.ReactNode }> = ({
-  layout,
-  style,
-  children,
-}) => (
+const Line: React.FC<{
+  text: string;
+  layout: AdLayout;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}> = ({ layout, style, children }) => (
   <div
     style={{
       position: 'absolute',
@@ -58,15 +59,17 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
     incoming = (
       <Line text={current} layout={layout}>
         {words.map((word, i) => {
-          const t = progress[i] ?? 0;
+          const pop = getWordPop(progress[i] ?? 0);
           return (
             <span
               key={`${word}-${i}`}
               style={{
                 display: 'inline-block',
                 marginRight: '0.26em',
-                opacity: t,
-                transform: `translateY(${(1 - t) * 0.3}em)`,
+                opacity: pop.opacity,
+                transform: `translateY(${pop.rise}em) scale(${pop.scale})`,
+                // Grows up from the baseline, so each word pops up into place.
+                transformOrigin: '50% 85%',
               }}
             >
               {word}
@@ -82,7 +85,10 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
       <Line
         text={headlines[outgoing.index]!}
         layout={layout}
-        style={{ opacity: 1 - outgoing.progress, transform: `translateY(${-outgoing.progress * 40}px)` }}
+        style={{
+          opacity: 1 - outgoing.progress,
+          transform: `translateY(${-outgoing.progress * 40}px)`,
+        }}
       >
         {headlines[outgoing.index]}
       </Line>

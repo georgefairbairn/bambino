@@ -23,7 +23,7 @@ export const Phone: React.FC<{
   cast?: Cast;
 }> = ({ scene, frameWidth, cast = CAST }) => {
   const scale = scene.scale;
-  const left = (frameWidth - PHONE_W * scale) / 2;
+  const left = (frameWidth - PHONE_W * scale) / 2 + scene.x;
   const colors = AD_THEMES[scene.theme];
   const bg = `linear-gradient(180deg, ${colors.screenBg[0]}, ${colors.screenBg[1]}, ${colors.screenBg[2]})`;
   const { stack } = scene;
@@ -71,8 +71,16 @@ export const Phone: React.FC<{
           }}
         >
           {/* Base screen, nudged left as a pushed screen slides over it, like UINavigationController. */}
-          <div style={{ position: 'absolute', inset: 0, transform: `translateX(${-stack.push * DEVICE_W * 0.3}px)` }}>
-            {stack.base.kind === 'explore' && <ExploreScreen screen={stack.base} theme={scene.theme} />}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              transform: `translateX(${-stack.push * DEVICE_W * 0.3}px)`,
+            }}
+          >
+            {stack.base.kind === 'explore' && (
+              <ExploreScreen screen={stack.base} theme={scene.theme} />
+            )}
           </div>
 
           {stack.pushed && (
@@ -85,15 +93,24 @@ export const Phone: React.FC<{
                 boxShadow: '-8px 0 24px rgba(0,0,0,0.08)',
               }}
             >
-              {stack.pushed.kind === 'filters' && <FiltersScreen screen={stack.pushed} theme={scene.theme} />}
+              {stack.pushed.kind === 'filters' && (
+                <FiltersScreen screen={stack.pushed} theme={scene.theme} />
+              )}
             </div>
           )}
 
           {stack.sheet?.kind === 'detail' && (
-            <DetailSheet screen={stack.sheet} name={cast.esme} theme={scene.theme} progress={stack.sheetProgress} />
+            <DetailSheet
+              screen={stack.sheet}
+              name={cast.esme}
+              theme={scene.theme}
+              progress={stack.sheetProgress}
+            />
           )}
 
-          {scene.confetti !== null && <Confetti progress={scene.confetti} seed={scene.id === 'A' ? 1987 : 2024} />}
+          {scene.confetti !== null && (
+            <Confetti progress={scene.confetti} seed={scene.id === 'A' ? 1987 : 2024} />
+          )}
           {scene.tap && <TapIndicator tap={scene.tap} />}
           <StatusBar />
         </div>
