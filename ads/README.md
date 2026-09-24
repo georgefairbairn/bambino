@@ -63,6 +63,20 @@ To test a change, use a PNG sequence (`--sequence --image-format=png`) as ground
 truth and decode with an explicit matrix and range. ffmpeg's default conversion
 adds its own 1–2 level bias.
 
+## Instagram posts
+
+`npm run render:posts` writes the profile's starter grid to `out/posts/`,
+numbered in posting order. Instagram puts the newest post top-left, so the
+grid's last tile goes up first. Run `npm run render` first, because the Reel is
+copied from `out/bambino-reel-looking.mp4`.
+
+The grid lives in `src/posts/data.ts`. Most tiles are stills of the Feed ad
+(already Instagram's 4:5). The brand post and the three name lists have their
+own layouts. The lists are US SSA data, newest year 2023, from production's
+`namePopularity` table (queried 2026-09-23). `data.test.ts` checks each list
+against the rule its title claims, and proves every ad frame catches its
+headline finished and its cards at rest.
+
 ## How it is put together
 
 A 20-second feature tour: hook, swipe, match, filters, popularity, end card.

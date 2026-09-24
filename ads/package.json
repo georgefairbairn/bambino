@@ -7,6 +7,7 @@
     "dev": "remotion studio src/index.ts",
     "still": "remotion still src/index.ts",
     "render": "tsx scripts/render.ts",
+    "render:posts": "tsx scripts/render-posts.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
