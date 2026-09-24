@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { DURATION_IN_FRAMES } from './compositions';
 import {
   BEATS,
+  DEFAULT_HOOK,
   HEADLINE_EXIT_FRAMES,
   HEADLINES,
+  HOOK_IDS,
+  HOOKS,
   getBeat,
   getHeadline,
+  getHeadlines,
   getHeadlineStart,
   getOutgoingHeadline,
 } from './timeline';
@@ -31,9 +35,8 @@ describe('timeline', () => {
     expect(sections).toEqual(['hook', 'swipe', 'match', 'filters', 'popularity', 'end']);
   });
 
-  it('uses the approved headlines verbatim', () => {
-    expect(HEADLINES).toEqual([
-      'Trying to find the perfect baby name?',
+  it('uses the approved headlines verbatim after the hook', () => {
+    expect(HEADLINES.slice(1)).toEqual([
       'Swipe through thousands of names',
       'Link up with your partner',
       'The names you both like become matches',
@@ -42,8 +45,21 @@ describe('timeline', () => {
     ]);
   });
 
+  it('tests the two hooks George picked, with the plain question as the default', () => {
+    expect(getHeadlines('looking')[0]).toBe('Looking for a baby name?');
+    expect(getHeadlines('cant-agree')[0]).toBe('Can’t agree on a baby name?');
+    expect(HEADLINES).toEqual(getHeadlines(DEFAULT_HOOK));
+    expect(DEFAULT_HOOK).toBe('looking');
+  });
+
+  it('ends every hook on "baby name?" alone, so the underline sits under it', () => {
+    for (const id of HOOK_IDS) expect(HOOKS[id].at(-1)).toBe('baby name?');
+  });
+
   it('shows the hook question on frame 0, so the autoplay thumbnail reads', () => {
-    expect(getHeadline(0)).toBe('Trying to find the perfect baby name?');
+    for (const id of HOOK_IDS) {
+      expect(getHeadline(0, getHeadlines(id))).toBe(HOOKS[id].join(' '));
+    }
     expect(getHeadlineStart(0)).toBe(0);
   });
 

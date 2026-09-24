@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DURATION_IN_FRAMES } from './compositions';
+import { AD_FORMATS, DURATION_IN_FRAMES } from './compositions';
+import { PHONE_W } from './device';
 import { getLayout } from './layout';
 import { CAST, NAMES_AVAILABLE } from './names';
 import { type PhoneScene, getScene, keyframes } from './scene';
@@ -20,13 +21,19 @@ const explore = (frame: number, id: 'A' | 'B') => {
 
 describe('keyframes', () => {
   it('holds the first and last values outside the keyed range', () => {
-    const keys = [[10, 0], [20, 100]] as const;
+    const keys = [
+      [10, 0],
+      [20, 100],
+    ] as const;
     expect(keyframes(keys, 0)).toBe(0);
     expect(keyframes(keys, 30)).toBe(100);
   });
 
   it('eases between keys and hits them exactly', () => {
-    const keys = [[10, 0], [20, 100]] as const;
+    const keys = [
+      [10, 0],
+      [20, 100],
+    ] as const;
     expect(keyframes(keys, 10)).toBe(0);
     expect(keyframes(keys, 20)).toBe(100);
     expect(keyframes(keys, 15)).toBeCloseTo(50, 0);
@@ -232,7 +239,9 @@ describe('scene — end card', () => {
 
 describe('scene — end card timing', () => {
   it('runs the end card for at least two seconds once the phone has gone', () => {
-    const start = Array.from({ length: DURATION_IN_FRAMES }, (_, f) => f).find((f) => at(f).endCard > 0)!;
+    const start = Array.from({ length: DURATION_IN_FRAMES }, (_, f) => f).find(
+      (f) => at(f).endCard > 0,
+    )!;
     expect(DURATION_IN_FRAMES - start).toBeGreaterThanOrEqual(60);
   });
 });
@@ -243,5 +252,26 @@ describe('scene — cast variants', () => {
     const s = getScene(330, layout, variant).phones.find((p) => p.id === 'B')!.stack.base;
     if (s.kind !== 'explore') throw new Error();
     expect(s.matched.name).toBe('Nova');
+  });
+});
+
+describe('scene — drift', () => {
+  it('keeps both phones inside the frame as they sway, in every format', () => {
+    for (const format of AD_FORMATS) {
+      const layout = getLayout(format);
+      for (let f = 0; f < DURATION_IN_FRAMES; f++) {
+        for (const p of getScene(f, layout).phones) {
+          const left = (layout.width - PHONE_W * p.scale) / 2 + p.x;
+          expect(left).toBeGreaterThanOrEqual(0);
+          expect(left + PHONE_W * p.scale).toBeLessThanOrEqual(layout.width);
+        }
+      }
+    }
+  });
+
+  it('never moves the two phones in lockstep', () => {
+    const layout = getLayout('reel');
+    const [a, b] = getScene(250, layout).phones;
+    expect(a!.x).not.toBeCloseTo(b!.x, 1);
   });
 });

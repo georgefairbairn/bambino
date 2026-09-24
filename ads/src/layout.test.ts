@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { AD_FORMATS, FORMAT_SIZES } from './compositions';
 import { CARD_H, CARD_Y, PHONE_W } from './device';
 import { CELEBRATION_NAME_BOTTOM } from './geometry';
+import { BADGE, FINE_PRINT_PX } from './end-card';
 import { getLayout } from './layout';
 
 describe('layout', () => {
@@ -74,6 +75,28 @@ describe('layout', () => {
     for (const format of AD_FORMATS) {
       const l = getLayout(format);
       expect(PHONE_W * l.matchScale).toBeLessThan(l.width);
+    }
+  });
+
+  it("keeps the in-app purchases line out of the Reels overlay (Meta's bottom 35%)", () => {
+    const reel = getLayout('reel');
+    expect(reel.endCard.finePrintBottom).toBeGreaterThanOrEqual(reel.height * 0.35);
+  });
+
+  it('puts the in-app purchases line near the bottom where nothing covers it', () => {
+    for (const format of ['feed', 'square'] as const) {
+      const l = getLayout(format);
+      expect(l.endCard.finePrintBottom).toBeLessThanOrEqual(l.height * 0.05);
+    }
+  });
+
+  it("keeps the in-app purchases line clear of the badge by Apple's quarter-height margin", () => {
+    for (const format of AD_FORMATS) {
+      const l = getLayout(format);
+      const scale = l.width / 1080;
+      const badgeBottom = l.height / 2 + (BADGE.top + BADGE.height) * scale;
+      const finePrintTop = l.height - l.endCard.finePrintBottom - FINE_PRINT_PX * 1.25 * scale;
+      expect(finePrintTop - badgeBottom).toBeGreaterThanOrEqual((BADGE.height / 4) * scale);
     }
   });
 });

@@ -15,6 +15,7 @@ import {
   switchCentre,
 } from './geometry';
 import { type AdLayout } from './layout';
+import { getPhoneDrift, SWAY_PERIOD } from './motion';
 import { type AdName, CAST, type Cast, NAMES_AVAILABLE } from './names';
 import { type AdTheme } from './theme';
 
@@ -93,6 +94,8 @@ export interface Tap {
 export interface PhoneScene {
   id: 'A' | 'B';
   theme: AdTheme;
+  /** Sideways offset from centre in px: a slow sway plus a lean toward each swipe. */
+  x: number;
   /** Top edge of the phone in px. */
   y: number;
   /** Pixels per app point this frame. */
@@ -142,13 +145,15 @@ const exploreAt = (
   const index = deals.findIndex((d) => frame < d.swipe[1]);
   const current = index === -1 ? null : deals[index]!;
   const next = index === -1 ? null : (deals[index + 1] ?? null);
-  const likes =
-    startLikes + deals.filter((d) => d.direction === 1 && frame >= d.swipe[1]).length;
+  const likes = startLikes + deals.filter((d) => d.direction === 1 && frame >= d.swipe[1]).length;
 
   let front: CardView | null = null;
   if (current) {
     const t = (frame - current.swipe[0]) / (current.swipe[1] - current.swipe[0]);
-    front = { name: cast[current.key], x: frame < current.swipe[0] ? 0 : getSwipeX(t, current.direction) };
+    front = {
+      name: cast[current.key],
+      x: frame < current.swipe[0] ? 0 : getSwipeX(t, current.direction),
+    };
   }
   return {
     kind: 'explore',
@@ -156,7 +161,13 @@ const exploreAt = (
     back: next ? cast[next.key] : null,
     likedCount: likes,
     matched: cast.esme,
-    celebration: keyframes([[305, 0], [323, 1, easeOutCubic]], frame),
+    celebration: keyframes(
+      [
+        [305, 0],
+        [323, 1, easeOutCubic],
+      ],
+      frame,
+    ),
   };
 };
 
@@ -185,10 +196,30 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
     frame,
   );
 
-  const allSwitch = keyframes([[388, 1], [394, 0]], frame);
-  const celebritySwitch = keyframes([[388, 1], [394, 0], [402, 0], [408, 1]], frame);
+  const allSwitch = keyframes(
+    [
+      [388, 1],
+      [394, 0],
+    ],
+    frame,
+  );
+  const celebritySwitch = keyframes(
+    [
+      [388, 1],
+      [394, 0],
+      [402, 0],
+      [408, 1],
+    ],
+    frame,
+  );
   const count = Math.round(
-    keyframes([[408, NAMES_AVAILABLE.all], [424, NAMES_AVAILABLE.celebrity, easeOutCubic]], frame),
+    keyframes(
+      [
+        [408, NAMES_AVAILABLE.all],
+        [424, NAMES_AVAILABLE.celebrity, easeOutCubic],
+      ],
+      frame,
+    ),
   );
 
   const allCentre = switchCentre(FILTERS.allRow.y, FILTERS.allRow.h);
@@ -213,6 +244,7 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
   const phoneA: PhoneScene = {
     id: 'A',
     theme: 'mint',
+    x: getPhoneDrift(frame, DEALS_A) * (layout.width / 1080),
     y: yA,
     scale: scaleA,
     stack: {
@@ -228,17 +260,41 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
               scroll,
             }
           : null,
-      push: keyframes([[362, 0], [374, 1, easeOutCubic]], frame),
+      push: keyframes(
+        [
+          [362, 0],
+          [374, 1, easeOutCubic],
+        ],
+        frame,
+      ),
       sheet:
         frame >= 435
           ? {
               kind: 'detail',
-              chart: keyframes([[452, 0], [490, 1, easeInOutCubic]], frame),
-              tooltip: keyframes([[490, 0], [497, 1, easeOutCubic]], frame),
+              chart: keyframes(
+                [
+                  [452, 0],
+                  [490, 1, easeInOutCubic],
+                ],
+                frame,
+              ),
+              tooltip: keyframes(
+                [
+                  [490, 0],
+                  [497, 1, easeOutCubic],
+                ],
+                frame,
+              ),
               scroll: sheetScrollFor(visiblePoints),
             }
           : null,
-      sheetProgress: keyframes([[435, 0], [450, 1, easeOutCubic]], frame),
+      sheetProgress: keyframes(
+        [
+          [435, 0],
+          [450, 1, easeOutCubic],
+        ],
+        frame,
+      ),
     },
     tap: tapA,
     confetti: frame >= 305 && frame < 350 ? (frame - 305) / 45 : null,
@@ -258,19 +314,39 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
   const phoneB: PhoneScene = {
     id: 'B',
     theme: 'blue',
+    // Half a sway out of step with A, so the pair never moves in lockstep.
+    x: getPhoneDrift(frame, DEALS_B, SWAY_PERIOD / 2) * (layout.width / 1080),
     y: yB,
     scale: layout.matchScale,
-    stack: { base: exploreAt(frame, DEALS_B, cast, 4), pushed: null, push: 0, sheet: null, sheetProgress: 0 },
+    stack: {
+      base: exploreAt(frame, DEALS_B, cast, 4),
+      pushed: null,
+      push: 0,
+      sheet: null,
+      sheetProgress: 0,
+    },
     tap: null,
     confetti: frame >= 305 && frame < 350 ? (frame - 305) / 45 : null,
   };
 
   return {
     phones: [phoneA, phoneB],
-    hookExit: keyframes([[72, 0], [90, 1, easeInCubic]], frame),
+    hookExit: keyframes(
+      [
+        [72, 0],
+        [90, 1, easeInCubic],
+      ],
+      frame,
+    ),
     // Starts the frame the phone clears (an ease-in exit lingers, and an
     // earlier start drew the logo over the popularity sheet). Linear, because
     // EndCard sequences its own phases: wordmark, collapse into the icon.
-    endCard: keyframes([[END_CARD_START, 0], [DURATION_IN_FRAMES, 1, (t) => t]], frame),
+    endCard: keyframes(
+      [
+        [END_CARD_START, 0],
+        [DURATION_IN_FRAMES, 1, (t) => t],
+      ],
+      frame,
+    ),
   };
 };
