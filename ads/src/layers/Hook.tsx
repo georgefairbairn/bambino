@@ -1,6 +1,6 @@
 import type React from 'react';
-import { useCurrentFrame } from 'remotion';
 import { POPPINS } from '../fonts';
+import { useStoryFrame } from '../story-frame';
 import { HEADLINE_COLOR, UNDERLINE_COLORS } from '../theme';
 
 /**
@@ -13,7 +13,7 @@ export const Hook: React.FC<{ lines: readonly string[]; fontSize: number; exit: 
   fontSize,
   exit,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useStoryFrame();
   if (exit >= 1) return null;
   const underline = Math.min(1, Math.max(0, (frame - 8) / 16));
   const settle = Math.min(1, frame / 14);

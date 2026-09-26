@@ -8,7 +8,7 @@ app's install, type-check and lint.
     npm install
     npm run dev       # Remotion Studio
     npm test          # unit tests for timing and geometry
-    npm run render    # renders all three formats to out/
+    npm run render    # renders every format, hook and length to out/
 
 Design spec: `docs/superpowers/specs/2026-09-19-instagram-ad-video-design.md`
 (gitignored, local only).
@@ -19,18 +19,25 @@ changes, update the copy by hand.
 
 ## Output
 
-`npm run render` writes six files to `out/`, which is gitignored: every
-format for each hook under test (`HOOKS` in `src/timeline.ts`).
+`npm run render` writes 16 files to `out/`, which is gitignored: every
+format for each hook under test (`HOOKS` in `src/timeline.ts`), at 20s and
+at 15s.
 
 | File | Size | Placement |
 |---|---|---|
 | `bambino-reel-<hook>.mp4` | 1080x1920 | Reels and Stories (primary) |
 | `bambino-feed-<hook>.mp4` | 1080x1350 | Feed |
 | `bambino-square-<hook>.mp4` | 1080x1080 | Feed, square |
+| `bambino-landscape-<hook>.mp4` | 1920x1080 | Horizontal slot (in-stream, Audience Network) |
+
+Each also comes as `...-15s.mp4`, the same story at 4/3 speed, for Meta's
+"15 seconds or less" advice. `pace` picks it (`full` or `short`, in
+`src/compositions.ts`). Layers that animate on their own clock read
+`useStoryFrame()`, not `useCurrentFrame()`, so they speed up with the rest.
 
 `<hook>` is `looking` ("Looking for a baby name?") or `cant-agree` ("Can’t
 agree on a baby name?"). To render one in Studio or from the CLI, pass
-`--props='{"format":"reel","hook":"cant-agree"}'`.
+`--props='{"format":"reel","hook":"cant-agree","pace":"short"}'`.
 
 The end card says "In-app purchases available" under "Free to download on the
 App Store", because UK and Australian ad rules want paid extras disclosed next
@@ -94,7 +101,8 @@ only draw what they return:
   `components/swipe/swipe-card.tsx` and `hooks/use-card-animation.ts`
 - `geometry.ts` — positions of tappable controls, shared by the scene and the
   screens so a tap can't drift off its switch
-- `layout.ts` — per-format phone scale, slots and headline size
+- `layout.ts` — per-format phone scale, slots (vertical, plus a horizontal
+  offset that puts the landscape phones side by side) and headline size
 
 That split is what makes a video testable. `getScene(315, layout)` proves both
 phones hold Esme at rest through the stillness without rendering a frame.

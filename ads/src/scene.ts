@@ -177,7 +177,7 @@ const tapAt = (frame: number, start: number, x: number, y: number): Tap | null =
 };
 
 export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Scene => {
-  const { slots } = layout;
+  const { slots, slotX } = layout;
   const visiblePoints = (layout.height - slots.solo) / layout.phoneScale;
   const scroll = filtersScrollFor(visiblePoints);
 
@@ -244,7 +244,16 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
   const phoneA: PhoneScene = {
     id: 'A',
     theme: 'mint',
-    x: getPhoneDrift(frame, DEALS_A) * (layout.width / 1080),
+    x:
+      keyframes(
+        [
+          [180, slotX.solo],
+          [200, slotX.top],
+          [345, slotX.top],
+          [365, slotX.solo],
+        ],
+        frame,
+      ) + getPhoneDrift(frame, DEALS_A),
     y: yA,
     scale: scaleA,
     stack: {
@@ -315,7 +324,7 @@ export const getScene = (frame: number, layout: AdLayout, cast: Cast = CAST): Sc
     id: 'B',
     theme: 'blue',
     // Half a sway out of step with A, so the pair never moves in lockstep.
-    x: getPhoneDrift(frame, DEALS_B, SWAY_PERIOD / 2) * (layout.width / 1080),
+    x: slotX.bottom + getPhoneDrift(frame, DEALS_B, SWAY_PERIOD / 2),
     y: yB,
     scale: layout.matchScale,
     stack: {

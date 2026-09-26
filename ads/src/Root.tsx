@@ -1,6 +1,14 @@
 import type React from 'react';
 import { Composition, Still } from 'remotion';
-import { AD_FORMATS, COMPOSITION_IDS, DURATION_IN_FRAMES, FORMAT_SIZES, FPS } from './compositions';
+import {
+  AD_FORMATS,
+  COMPOSITION_IDS,
+  DURATION_IN_FRAMES,
+  FORMAT_SIZES,
+  FPS,
+  PACE_FRAMES,
+  type Pace,
+} from './compositions';
 import { MatchStory } from './MatchStory';
 import { BrandPost } from './posts/BrandPost';
 import { ListPost } from './posts/ListPost';
@@ -16,7 +24,9 @@ export const RemotionRoot: React.FC = () => (
         fps={FPS}
         width={FORMAT_SIZES[format].width}
         height={FORMAT_SIZES[format].height}
-        defaultProps={{ format }}
+        defaultProps={{ format, pace: 'full' as Pace }}
+        // Render with --props='{"pace":"short"}' for the 15s cut.
+        calculateMetadata={({ props }) => ({ durationInFrames: PACE_FRAMES[props.pace ?? 'full'] })}
       />
     ))}
     {/* Instagram feed posts, 4:5. See src/posts/data.ts for the grid. */}

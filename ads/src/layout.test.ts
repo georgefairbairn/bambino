@@ -3,7 +3,9 @@ import { AD_FORMATS, FORMAT_SIZES } from './compositions';
 import { CARD_H, CARD_Y, PHONE_W } from './device';
 import { CELEBRATION_NAME_BOTTOM } from './geometry';
 import { BADGE, FINE_PRINT_PX } from './end-card';
-import { getLayout } from './layout';
+import { getEndCardScale, getLayout } from './layout';
+
+const PORTRAIT = ['reel', 'feed', 'square'] as const;
 
 describe('layout', () => {
   it('returns the composition dimensions for every format', () => {
@@ -39,7 +41,7 @@ describe('layout', () => {
   });
 
   it('stacks the partner phone below the first, overlapping it', () => {
-    for (const format of AD_FORMATS) {
+    for (const format of PORTRAIT) {
       const l = getLayout(format);
       expect(l.slots.bottom).toBeGreaterThan(l.slots.top);
       expect(l.slots.bottom).toBeLessThan(l.height);
@@ -47,7 +49,7 @@ describe('layout', () => {
   });
 
   it('keeps the phones clear of the headline slot', () => {
-    for (const format of AD_FORMATS) {
+    for (const format of PORTRAIT) {
       const l = getLayout(format);
       const headlineBottom = l.headline.top + l.headline.fontSize * 1.15 * 2;
       expect(l.slots.top).toBeGreaterThan(headlineBottom);
@@ -60,9 +62,9 @@ describe('layout', () => {
     expect(l.matchScale).toBe(l.phoneScale);
   });
 
-  it('shows the matched name in both stacked phones, in every format', () => {
+  it('shows the matched name in both stacked phones, in every portrait format', () => {
     // Feed and Square crop too hard at full size: "Esme" fell below the line.
-    for (const format of AD_FORMATS) {
+    for (const format of PORTRAIT) {
       const l = getLayout(format);
       const topVisible = (l.slots.bottom - l.slots.top) / l.matchScale;
       const bottomVisible = (l.height - l.slots.bottom) / l.matchScale;
@@ -84,7 +86,7 @@ describe('layout', () => {
   });
 
   it('puts the in-app purchases line near the bottom where nothing covers it', () => {
-    for (const format of ['feed', 'square'] as const) {
+    for (const format of ['feed', 'square', 'landscape'] as const) {
       const l = getLayout(format);
       expect(l.endCard.finePrintBottom).toBeLessThanOrEqual(l.height * 0.05);
     }
@@ -93,10 +95,49 @@ describe('layout', () => {
   it("keeps the in-app purchases line clear of the badge by Apple's quarter-height margin", () => {
     for (const format of AD_FORMATS) {
       const l = getLayout(format);
-      const scale = l.width / 1080;
+      const scale = getEndCardScale(l);
       const badgeBottom = l.height / 2 + (BADGE.top + BADGE.height) * scale;
       const finePrintTop = l.height - l.endCard.finePrintBottom - FINE_PRINT_PX * 1.25 * scale;
       expect(finePrintTop - badgeBottom).toBeGreaterThanOrEqual((BADGE.height / 4) * scale);
     }
+  });
+});
+
+describe('landscape layout', () => {
+  const l = getLayout('landscape');
+  const centre = (x: number) => l.width / 2 + x;
+  const headlineRight = l.headline.sidePadding + (l.headline.maxWidth ?? 0);
+
+  it('keeps the phones centred in the portrait formats', () => {
+    for (const format of PORTRAIT) {
+      expect(Object.values(getLayout(format).slotX)).toEqual([0, 0, 0, 0]);
+    }
+  });
+
+  it('left-aligns the headline in a column', () => {
+    expect(l.headline.align).toBe('left');
+    expect(headlineRight).toBeLessThan(l.width / 2);
+  });
+
+  it('keeps the solo phone right of the headline column and inside the frame', () => {
+    const half = (PHONE_W * l.phoneScale) / 2;
+    expect(centre(l.slotX.solo) - half).toBeGreaterThan(headlineRight);
+    expect(centre(l.slotX.solo) + half).toBeLessThan(l.width);
+  });
+
+  it('shows the whole card, rank row included, in the solo shot', () => {
+    expect(l.slots.solo + (CARD_Y + CARD_H) * l.phoneScale).toBeLessThan(l.height);
+  });
+
+  it('puts the partner phones side by side, apart, right of the headline', () => {
+    const half = (PHONE_W * l.matchScale) / 2;
+    expect(centre(l.slotX.top) - half).toBeGreaterThan(headlineRight);
+    expect(centre(l.slotX.bottom) - half).toBeGreaterThan(centre(l.slotX.top) + half);
+    expect(centre(l.slotX.bottom) + half).toBeLessThan(l.width);
+  });
+
+  it('shows the matched name in both side-by-side phones', () => {
+    expect(l.slots.top).toBe(l.slots.bottom);
+    expect((l.height - l.slots.top) / l.matchScale).toBeGreaterThan(CELEBRATION_NAME_BOTTOM);
   });
 });
