@@ -21,7 +21,9 @@ export type BeatId =
   | 'popularity'
   | 'end';
 
-export type HeadlineIndex = 0 | 1 | 2 | 3 | 4 | 5;
+import { type Pace } from './compositions';
+
+export type HeadlineIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface Beat {
   id: BeatId;
@@ -61,6 +63,8 @@ const SECTION_HEADLINES = [
   'The names you both like become matches',
   'Filter by style, origin or gender',
   'See how popular it really is',
+  // The 15s cut's side-by-side beat, over both features (George, 2026-09-25).
+  'Filter names and see how popular they are',
 ] as const;
 
 /** Headline 0 is the hook question, which the Hook layer draws itself. */
@@ -89,21 +93,34 @@ export const BEATS: readonly Beat[] = [
   { id: 'end', section: 'end', from: 518, durationInFrames: 82, headlineIndex: null },
 ] as const;
 
+/**
+ * The 15s cut, in the same story frames. It never reaches 422–518 (see
+ * SHORT_CUT), and the side-by-side beat from 345 carries the combined line.
+ */
+export const BEATS_SHORT: readonly Beat[] = BEATS.map((beat) =>
+  beat.section === 'filters' || beat.section === 'popularity'
+    ? { ...beat, headlineIndex: 6 as const }
+    : beat,
+);
+
+export const getBeats = (pace: Pace): readonly Beat[] => (pace === 'short' ? BEATS_SHORT : BEATS);
+
 /** How long an outgoing headline takes to clear the slot. */
 export const HEADLINE_EXIT_FRAMES = 8;
 
-export const getBeat = (frame: number): Beat => {
-  for (const beat of BEATS) {
+export const getBeat = (frame: number, beats: readonly Beat[] = BEATS): Beat => {
+  for (const beat of beats) {
     if (frame < beat.from + beat.durationInFrames) return beat;
   }
-  return BEATS[BEATS.length - 1]!;
+  return beats[beats.length - 1]!;
 };
 
 export const getHeadline = (
   frame: number,
   headlines: readonly string[] = HEADLINES,
+  beats: readonly Beat[] = BEATS,
 ): string | null => {
-  const index = getBeat(frame).headlineIndex;
+  const index = getBeat(frame, beats).headlineIndex;
   return index === null ? null : (headlines[index] ?? null);
 };
 
@@ -112,12 +129,12 @@ export const getHeadline = (
  * contiguous beats that carry the same line. Several beats share a headline;
  * anchoring the word reveal to the current beat re-typed it mid-line.
  */
-export const getHeadlineStart = (frame: number): number | null => {
-  const current = getBeat(frame);
+export const getHeadlineStart = (frame: number, beats: readonly Beat[] = BEATS): number | null => {
+  const current = getBeat(frame, beats);
   if (current.headlineIndex === null) return null;
   let start = current.from;
-  for (let i = BEATS.indexOf(current) - 1; i >= 0; i--) {
-    const previous = BEATS[i]!;
+  for (let i = beats.indexOf(current) - 1; i >= 0; i--) {
+    const previous = beats[i]!;
     if (previous.headlineIndex !== current.headlineIndex) break;
     start = previous.from;
   }
@@ -130,16 +147,17 @@ export const getHeadlineStart = (frame: number): number | null => {
  */
 export const getOutgoingHeadline = (
   frame: number,
+  beats: readonly Beat[] = BEATS,
 ): { index: HeadlineIndex; progress: number } | null => {
-  const current = getBeat(frame);
-  const i = BEATS.indexOf(current);
+  const current = getBeat(frame, beats);
+  const i = beats.indexOf(current);
   // Walk back to the start of the current headline run.
   let runStart = i;
-  while (runStart > 0 && BEATS[runStart - 1]!.headlineIndex === current.headlineIndex) runStart--;
+  while (runStart > 0 && beats[runStart - 1]!.headlineIndex === current.headlineIndex) runStart--;
   if (runStart === 0) return null;
-  const previous = BEATS[runStart - 1]!;
+  const previous = beats[runStart - 1]!;
   if (previous.headlineIndex === null) return null;
-  const since = frame - BEATS[runStart]!.from;
+  const since = frame - beats[runStart]!.from;
   if (since < 0 || since > HEADLINE_EXIT_FRAMES) return null;
   return { index: previous.headlineIndex, progress: since / HEADLINE_EXIT_FRAMES };
 };

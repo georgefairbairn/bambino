@@ -1,4 +1,10 @@
-import { HEADLINE_EXIT_FRAMES, getHeadlineStart, getOutgoingHeadline } from './timeline';
+import {
+  BEATS,
+  type Beat,
+  HEADLINE_EXIT_FRAMES,
+  getHeadlineStart,
+  getOutgoingHeadline,
+} from './timeline';
 
 /**
  * Words per second for the headline reveal. 7 lets the longest line finish
@@ -17,13 +23,14 @@ export const getHeadlineWordProgress = (
   frame: number,
   fps: number,
   wordCount: number,
+  beats: readonly Beat[] = BEATS,
 ): number[] => {
-  const start = getHeadlineStart(frame);
+  const start = getHeadlineStart(frame, beats);
   if (start === null || wordCount === 0) return [];
   // Decide the delay once, from the frame this line began. Checking whether a
   // line is leaving *now* switched the delay off the moment the exit window
   // closed, jumping the reveal four frames and popping a word into view.
-  const delay = getOutgoingHeadline(start) ? ENTER_DELAY : 0;
+  const delay = getOutgoingHeadline(start, beats) ? ENTER_DELAY : 0;
   const local = frame - start - delay;
   const framesPerWord = fps / WORDS_PER_SECOND;
   return Array.from({ length: wordCount }, (_, i) =>
@@ -63,13 +70,16 @@ const easeInOutSine = (t: number) => (1 - Math.cos(Math.PI * t)) / 2;
  * A phone's sideways offset on `frame`, so it never sits dead still: a slow
  * sway plus a small lean toward each swipe that eases back once the card has
  * gone. `phase` offsets the sway so two phones don't move in lockstep.
+ * `swayFrame` is the output frame, so the sway stays smooth where the 15s cut
+ * speeds up or skips story time; the nudges follow the story's swipes.
  */
 export const getPhoneDrift = (
   frame: number,
   swipes: readonly { swipe: readonly [number, number]; direction: -1 | 1 }[],
   phase = 0,
+  swayFrame = frame,
 ): number => {
-  const sway = SWAY_PX * Math.sin((2 * Math.PI * (frame + phase)) / SWAY_PERIOD);
+  const sway = SWAY_PX * Math.sin((2 * Math.PI * (swayFrame + phase)) / SWAY_PERIOD);
   let nudge = 0;
   for (const { swipe, direction } of swipes) {
     const [start, end] = swipe;

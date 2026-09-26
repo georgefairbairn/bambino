@@ -148,7 +148,6 @@ export const DetailSheet: React.FC<{
             gender={name.gender}
             theme={theme}
             progress={screen.chart}
-            tooltip={screen.tooltip}
           />
         </div>
       </div>

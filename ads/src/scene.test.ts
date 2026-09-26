@@ -19,6 +19,47 @@ const explore = (frame: number, id: 'A' | 'B') => {
   return s;
 };
 
+describe('scene — 15s split', () => {
+  const short = (frame: number, format: 'reel' | 'feed' | 'square' | 'landscape' = 'reel') =>
+    getScene(frame, getLayout(format), CAST, { pace: 'short' });
+
+  it('matches the full cut up to the split', () => {
+    for (const f of [0, 100, 250, 344]) {
+      expect(short(f)).toEqual(getScene(f, layout, CAST, { pace: 'full' }));
+    }
+  });
+
+  it('keeps both phones side by side, apart and inside the frame', () => {
+    for (const format of AD_FORMATS) {
+      const l = getLayout(format);
+      const [a, b] = short(400, format).phones;
+      const half = (PHONE_W * a!.scale) / 2;
+      const left = (p: PhoneScene) => l.width / 2 + p.x - half;
+      expect(a!.y).toBe(b!.y);
+      expect(left(a!)).toBeGreaterThan(0);
+      expect(left(b!)).toBeGreaterThan(left(a!) + 2 * half);
+      expect(left(b!) + 2 * half).toBeLessThan(l.width);
+    }
+  });
+
+  it('shows mint on Filters with Celebrity picked, blue on the chart', () => {
+    const [a, b] = short(420).phones;
+    const filters = a!.stack.pushed;
+    const detail = b!.stack.sheet;
+    if (filters?.kind !== 'filters' || detail?.kind !== 'detail') throw new Error();
+    expect(filters.celebritySwitch).toBe(1);
+    expect(filters.count).toBe(NAMES_AVAILABLE.celebrity);
+    expect(detail.chart).toBe(1);
+    expect(b!.stack.sheetProgress).toBe(1);
+  });
+
+  it('clears both phones by the end card', () => {
+    const late = short(560);
+    for (const p of late.phones) expect(p.y).toBeGreaterThanOrEqual(layout.height);
+    expect(late.endCard).toBeGreaterThan(0);
+  });
+});
+
 describe('keyframes', () => {
   it('holds the first and last values outside the keyed range', () => {
     const keys = [
@@ -167,7 +208,6 @@ describe('scene — popularity', () => {
     if (early.sheet?.kind !== 'detail' || late.sheet?.kind !== 'detail') throw new Error();
     expect(early.sheet.chart).toBe(0);
     expect(late.sheet.chart).toBe(1);
-    expect(late.sheet.tooltip).toBe(1);
   });
 });
 

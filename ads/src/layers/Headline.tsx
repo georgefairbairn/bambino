@@ -1,9 +1,10 @@
 import type React from 'react';
-import { useCurrentFrame, useVideoConfig } from 'remotion';
+import { useVideoConfig } from 'remotion';
 import { POPPINS } from '../fonts';
 import { type AdLayout } from '../layout';
 import { getHeadlineWordProgress, getWordPop } from '../motion';
-import { HEADLINES, getBeat, getOutgoingHeadline } from '../timeline';
+import { HEADLINES, getBeat, getBeats, getOutgoingHeadline } from '../timeline';
+import { useStoryClock } from '../story-frame';
 import { HEADLINE_COLOR } from '../theme';
 
 const Line: React.FC<{
@@ -17,8 +18,10 @@ const Line: React.FC<{
       position: 'absolute',
       top: layout.headline.top,
       left: layout.headline.sidePadding,
-      right: layout.headline.sidePadding,
-      textAlign: 'center',
+      right: layout.headline.maxWidth
+        ? layout.width - layout.headline.sidePadding - layout.headline.maxWidth
+        : layout.headline.sidePadding,
+      textAlign: layout.headline.align ?? 'center',
       fontFamily: POPPINS,
       fontWeight: 600,
       fontSize: layout.headline.fontSize,
@@ -44,10 +47,11 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
   layout,
   headlines = HEADLINES,
 }) => {
-  const frame = useCurrentFrame();
+  const { frame, pace } = useStoryClock();
   const { fps } = useVideoConfig();
-  const beat = getBeat(frame);
-  const outgoing = getOutgoingHeadline(frame);
+  const beats = getBeats(pace);
+  const beat = getBeat(frame, beats);
+  const outgoing = getOutgoingHeadline(frame, beats);
 
   const current =
     beat.headlineIndex !== null && beat.headlineIndex !== 0 ? headlines[beat.headlineIndex] : null;
@@ -55,7 +59,7 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
   let incoming: React.ReactNode = null;
   if (current) {
     const words = current.split(' ');
-    const progress = getHeadlineWordProgress(frame, fps, words.length);
+    const progress = getHeadlineWordProgress(frame, fps, words.length, beats);
     incoming = (
       <Line text={current} layout={layout}>
         {words.map((word, i) => {
