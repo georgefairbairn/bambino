@@ -3,8 +3,8 @@ import { useVideoConfig } from 'remotion';
 import { POPPINS } from '../fonts';
 import { type AdLayout } from '../layout';
 import { getHeadlineWordProgress, getWordPop } from '../motion';
-import { HEADLINES, getBeat, getOutgoingHeadline } from '../timeline';
-import { useStoryFrame } from '../story-frame';
+import { HEADLINES, getBeat, getBeats, getOutgoingHeadline } from '../timeline';
+import { useStoryClock } from '../story-frame';
 import { HEADLINE_COLOR } from '../theme';
 
 const Line: React.FC<{
@@ -47,10 +47,11 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
   layout,
   headlines = HEADLINES,
 }) => {
-  const frame = useStoryFrame();
+  const { frame, pace } = useStoryClock();
   const { fps } = useVideoConfig();
-  const beat = getBeat(frame);
-  const outgoing = getOutgoingHeadline(frame);
+  const beats = getBeats(pace);
+  const beat = getBeat(frame, beats);
+  const outgoing = getOutgoingHeadline(frame, beats);
 
   const current =
     beat.headlineIndex !== null && beat.headlineIndex !== 0 ? headlines[beat.headlineIndex] : null;
@@ -58,7 +59,7 @@ export const Headline: React.FC<{ layout: AdLayout; headlines?: readonly string[
   let incoming: React.ReactNode = null;
   if (current) {
     const words = current.split(' ');
-    const progress = getHeadlineWordProgress(frame, fps, words.length);
+    const progress = getHeadlineWordProgress(frame, fps, words.length, beats);
     incoming = (
       <Line text={current} layout={layout}>
         {words.map((word, i) => {

@@ -13,7 +13,7 @@ const SPACING_X = 10;
 /**
  * components/popularity/popularity-chart.tsx: curved area line in the gender
  * colour, four sections, rank on the Y axis with #N labels, five-ish year
- * labels, the 20 YEARS pill selected, and a tooltip line above. `progress`
+ * labels, and the 20 YEARS pill selected. `progress`
  * sweeps the line in from the left.
  */
 export const PopularityChart: React.FC<{
@@ -22,8 +22,7 @@ export const PopularityChart: React.FC<{
   gender: Gender;
   theme: AdTheme;
   progress: number;
-  tooltip: number;
-}> = ({ series, gender, theme, progress, tooltip }) => {
+}> = ({ series, gender, theme, progress }) => {
   const colors = AD_THEMES[theme];
   const line = UNDERLINE_COLORS[gender];
   // React 19's useId wraps ids in «», which don't belong in an SVG url(#…).
@@ -40,7 +39,6 @@ export const PopularityChart: React.FC<{
   }));
   const d = smoothPath(pts);
   const area = `${d} L${pts[pts.length - 1]!.x},${PLOT_H} L${pts[0]!.x},${PLOT_H} Z`;
-  const last = series[series.length - 1]!;
 
   const sections = 4;
   const yLabels = Array.from({ length: sections + 1 }, (_, i) => {
@@ -94,19 +92,10 @@ export const PopularityChart: React.FC<{
           </span>
         ))}
       </div>
-      <div
-        style={{
-          height: 20,
-          textAlign: 'center',
-          fontFamily: SANS,
-          fontSize: 14,
-          fontWeight: 600,
-          color: TEXT.primary,
-          opacity: tooltip,
-        }}
-      >
-        {last[0]}: #{last[1]}
-      </div>
+      {/* The app's tooltip row ("2023: #325"), left empty: it read as a
+          stray timestamp in the ad (George, 2026-09-25). Kept for spacing, so
+          SHEET.chartPlotBottom still holds. */}
+      <div style={{ height: 20 }} />
 
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
         <div

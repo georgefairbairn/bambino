@@ -5,6 +5,8 @@ import {
   FORMAT_SIZES,
   FPS,
   PACE_FRAMES,
+  SHORT_CUT,
+  SPLIT_END,
   toStoryFrame,
 } from './compositions';
 
@@ -56,8 +58,33 @@ describe('pace', () => {
     );
   });
 
-  it('runs the short cut at 4/3 speed', () => {
-    expect(toStoryFrame(150, 'short')).toBe(200);
-    expect(toStoryFrame(300, 'short')).toBe(400);
+  it('plays every run in order, never faster than 2.5x', () => {
+    for (let i = 1; i < SHORT_CUT.length; i++) {
+      expect(SHORT_CUT[i]!.from).toBeGreaterThanOrEqual(SHORT_CUT[i - 1]!.to);
+    }
+    for (const run of SHORT_CUT) expect(run.speed).toBeLessThanOrEqual(2.5);
+  });
+
+  it('plays every swipe, the match and the end card at normal speed', () => {
+    const at = (story: number) => SHORT_CUT.find((r) => story >= r.from && story < r.to);
+    for (const story of [104, 128, 152, 214, 232, 290, 305, 360, 400, 534, 580]) {
+      expect(at(story)?.speed).toBe(1);
+    }
+  });
+
+  it('skips the solo Filters and popularity sections', () => {
+    const shown = (story: number) => SHORT_CUT.some((r) => story >= r.from && story < r.to);
+    expect(shown(SPLIT_END)).toBe(false);
+    expect(shown(470)).toBe(false);
+    expect(shown(518)).toBe(true);
+  });
+
+  it('never runs story time backwards', () => {
+    let previous = -1;
+    for (let f = 0; f < PACE_FRAMES.short; f++) {
+      const story = toStoryFrame(f, 'short');
+      expect(story).toBeGreaterThan(previous);
+      previous = story;
+    }
   });
 });

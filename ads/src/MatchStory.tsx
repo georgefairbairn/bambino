@@ -4,7 +4,7 @@ import { type AdFormat, type Pace, toStoryFrame } from './compositions';
 import { getEndCardScale, getLayout } from './layout';
 import { CAST, type Cast } from './names';
 import { getScene } from './scene';
-import { StoryFrameContext } from './story-frame';
+import { StoryClockContext } from './story-frame';
 import { DEFAULT_HOOK, getHeadlines, HOOKS, type HookId } from './timeline';
 import { Backdrop } from './layers/Backdrop';
 import { EndCard } from './layers/EndCard';
@@ -25,12 +25,13 @@ export const MatchStory: React.FC<{
   headlines = getHeadlines(hook),
   cast = CAST,
 }) => {
-  const frame = toStoryFrame(useCurrentFrame(), pace);
+  const outputFrame = useCurrentFrame();
+  const frame = toStoryFrame(outputFrame, pace);
   const layout = getLayout(format);
-  const scene = getScene(frame, layout, cast);
+  const scene = getScene(frame, layout, cast, { pace, swayFrame: outputFrame });
 
   return (
-    <StoryFrameContext.Provider value={frame}>
+    <StoryClockContext.Provider value={{ frame, pace }}>
       <AbsoluteFill style={{ overflow: 'hidden' }}>
         <Backdrop />
         <Hook lines={HOOKS[hook]} fontSize={layout.hook.fontSize} exit={scene.hookExit} />
@@ -49,6 +50,6 @@ export const MatchStory: React.FC<{
           />
         )}
       </AbsoluteFill>
-    </StoryFrameContext.Provider>
+    </StoryClockContext.Provider>
   );
 };

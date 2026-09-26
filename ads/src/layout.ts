@@ -34,6 +34,13 @@ export interface AdLayout {
   };
   hook: { fontSize: number };
   /**
+   * The 15s cut's closing feature beat: both phones side by side, mint on
+   * Filters and blue on the popularity chart. Portrait can't stack them here,
+   * because a stacked phone shows ~340pt and the chart needs ~450pt.
+   * `xA`/`xB` are phone-centre offsets from the frame centre, as in slotX.
+   */
+  split: { y: number; scale: number; xA: number; xB: number };
+  /**
    * Distance in px from the bottom edge to the in-app purchases line. Reels
    * cover the bottom 35% with the caption and Install button (Meta's safe
    * zone), so the Reel keeps it just above that. The other formats have no
@@ -54,6 +61,7 @@ const SPECS: Record<AdFormat, Spec> = {
     slotX: CENTRED,
     headline: { top: 130, fontSize: 80, sidePadding: 64 },
     hook: { fontSize: 108 },
+    split: { y: 380, scale: 1.2, xA: -262, xB: 262 },
     endCard: { finePrintBottom: 680 },
   },
   feed: {
@@ -63,6 +71,7 @@ const SPECS: Record<AdFormat, Spec> = {
     slotX: CENTRED,
     headline: { top: 60, fontSize: 64, sidePadding: 60 },
     hook: { fontSize: 92 },
+    split: { y: 222, scale: 1.2, xA: -262, xB: 262 },
     endCard: { finePrintBottom: 48 },
   },
   square: {
@@ -72,6 +81,7 @@ const SPECS: Record<AdFormat, Spec> = {
     slotX: CENTRED,
     headline: { top: 36, fontSize: 50, sidePadding: 56 },
     hook: { fontSize: 84 },
+    split: { y: 160, scale: 1.2, xA: -262, xB: 262 },
     endCard: { finePrintBottom: 40 },
   },
   // 16:9. Headline in a left column; the phones share the right, solo in its
@@ -83,6 +93,8 @@ const SPECS: Record<AdFormat, Spec> = {
     slotX: { hidden: 395, solo: 395, top: 151, bottom: 639 },
     headline: { top: 360, fontSize: 76, sidePadding: 100, align: 'left', maxWidth: 680 },
     hook: { fontSize: 120 },
+    // Already side by side from the match; the phones just stay put.
+    split: { y: 150, scale: 1.1, xA: 151, xB: 639 },
     endCard: { finePrintBottom: 40 },
   },
 };

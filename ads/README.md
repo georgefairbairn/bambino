@@ -21,19 +21,23 @@ changes, update the copy by hand.
 
 `npm run render` writes 16 files to `out/`, which is gitignored: every
 format for each hook under test (`HOOKS` in `src/timeline.ts`), at 20s and
-at 15s.
+at 15s. They render at 4/3 scale, the 1440-wide size Meta recommends, so its
+re-encode starts from sharper frames than the 1080 minimum.
 
 | File | Size | Placement |
 |---|---|---|
-| `bambino-reel-<hook>.mp4` | 1080x1920 | Reels and Stories (primary) |
-| `bambino-feed-<hook>.mp4` | 1080x1350 | Feed |
-| `bambino-square-<hook>.mp4` | 1080x1080 | Feed, square |
-| `bambino-landscape-<hook>.mp4` | 1920x1080 | Horizontal slot (in-stream, Audience Network) |
+| `bambino-reel-<hook>.mp4` | 1440x2560 | Reels and Stories (primary) |
+| `bambino-feed-<hook>.mp4` | 1440x1800 | Feed |
+| `bambino-square-<hook>.mp4` | 1440x1440 | Feed, square |
+| `bambino-landscape-<hook>.mp4` | 2560x1440 | Horizontal slot (in-stream, Audience Network) |
 
-Each also comes as `...-15s.mp4`, the same story at 4/3 speed, for Meta's
-"15 seconds or less" advice. `pace` picks it (`full` or `short`, in
-`src/compositions.ts`). Layers that animate on their own clock read
-`useStoryFrame()`, not `useCurrentFrame()`, so they speed up with the rest.
+Each also comes as `...-15s.mp4`, for Meta's "15 seconds or less" advice.
+`pace` picks it (`full` or `short`). The 15s cut keeps every action at
+normal speed: `SHORT_CUT` in `src/compositions.ts` runs a few still moments
+faster, and after the match both phones slide side by side, mint on Filters
+and blue on the popularity chart, in place of those two sections. Layers
+that animate on their own clock read `useStoryClock()`, not
+`useCurrentFrame()`, so they follow the cut.
 
 `<hook>` is `looking` ("Looking for a baby name?") or `cant-agree` ("Can’t
 agree on a baby name?"). To render one in Studio or from the CLI, pass

@@ -42,6 +42,7 @@ describe('timeline', () => {
       'The names you both like become matches',
       'Filter by style, origin or gender',
       'See how popular it really is',
+      'Filter names and see how popular they are',
     ]);
   });
 
