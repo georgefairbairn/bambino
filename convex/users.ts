@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { generateUniqueShareCode } from './partners';
+import { applyPremiumChange } from './premium';
 import { sanitizeImageUrl } from './validation';
 
 async function getCurrentUserOrThrow(ctx: QueryCtx | MutationCtx) {
@@ -127,44 +128,18 @@ export const createOrUpdateUser = mutation({
   },
 });
 
+/**
+ * Legacy: 1.2.0 and earlier report their own purchases here, and the server
+ * takes their word for it. Newer builds call revenuecat.syncPremium, which
+ * checks with RevenueCat. Remove this once no supported build calls it.
+ */
 export const updatePremiumStatus = mutation({
   args: {
     isPremium: v.boolean(),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-
-    const updates: {
-      isPremium: boolean;
-      purchasedAt?: number;
-      premiumRevokedAt?: number;
-      updatedAt: number;
-    } = {
-      isPremium: args.isPremium,
-      updatedAt: Date.now(),
-    };
-
-    if (args.isPremium) {
-      updates.purchasedAt = Date.now();
-      // Clear own grace period since user now has their own premium
-      if (user.premiumRevokedAt) {
-        updates.premiumRevokedAt = undefined;
-      }
-    } else {
-      updates.purchasedAt = undefined;
-      // If losing premium and has a non-premium partner, set grace period on partner
-      if (user.partnerId) {
-        const partner = await ctx.db.get(user.partnerId);
-        if (partner && partner.isPremium !== true) {
-          await ctx.db.patch(partner._id, {
-            premiumRevokedAt: Date.now(),
-          });
-        }
-      }
-    }
-
-    await ctx.db.patch(user._id, updates);
-
+    await applyPremiumChange(ctx, user, args.isPremium);
     return { success: true };
   },
 });
