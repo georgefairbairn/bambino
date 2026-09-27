@@ -1,5 +1,5 @@
 import { query, QueryCtx, MutationCtx } from './_generated/server';
-import { Id } from './_generated/dataModel';
+import { Doc, Id } from './_generated/dataModel';
 
 const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -53,6 +53,37 @@ export async function getEffectivePremiumStatusHelper(
 
   // 4. Not premium
   return { isPremium: false, isOwnPremium: false, isPartnerPremium: false };
+}
+
+/**
+ * Grants or revokes a user's own premium. Revoking starts a grace period for a
+ * non-premium partner, who was sharing it, so their matches don't lock
+ * mid-session.
+ */
+export async function applyPremiumChange(
+  ctx: MutationCtx,
+  user: Doc<'users'>,
+  isPremium: boolean,
+): Promise<void> {
+  const now = Date.now();
+  if (isPremium) {
+    await ctx.db.patch(user._id, {
+      isPremium: true,
+      purchasedAt: now,
+      // Their own premium replaces any grace period from a former partner.
+      premiumRevokedAt: undefined,
+      updatedAt: now,
+    });
+    return;
+  }
+
+  await ctx.db.patch(user._id, { isPremium: false, purchasedAt: undefined, updatedAt: now });
+  if (user.partnerId) {
+    const partner = await ctx.db.get(user.partnerId);
+    if (partner && partner.isPremium !== true) {
+      await ctx.db.patch(partner._id, { premiumRevokedAt: now });
+    }
+  }
 }
 
 export const getEffectivePremiumStatus = query({

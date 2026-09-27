@@ -26,7 +26,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/convex/_generated/api';
 import { useEffectivePremium } from '@/hooks/use-effective-premium';
-import { usePurchases } from '@/hooks/use-purchases';
+import { resetPurchaser, usePurchases } from '@/hooks/use-purchases';
 import { Paywall } from '@/components/paywall';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { NameConfirmationModal } from '@/components/partner/name-confirmation-modal';
@@ -162,6 +162,7 @@ export default function Profile() {
       await signOut();
       Sentry.setUser(null);
       resetAnalytics();
+      await resetPurchaser();
     } catch (err) {
       // #224: spinner stops in finally, but the user needs feedback
       // when signOut itself rejects (e.g. network failure revoking the
@@ -195,6 +196,7 @@ export default function Profile() {
               await signOut();
               Sentry.setUser(null);
               resetAnalytics();
+              await resetPurchaser();
             } catch (error) {
               Sentry.captureException(error);
               Alert.alert('Error', 'Failed to delete account. Please try again.');

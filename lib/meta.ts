@@ -11,3 +11,13 @@ export function logMetaRegistration() {
     Sentry.captureException(error);
   }
 }
+
+/** Meta's install id for this device, which RevenueCat forwards with purchases. */
+export async function getMetaAnonymousID(): Promise<string | null> {
+  try {
+    return await AppEventsLogger.getAnonymousID();
+  } catch (error) {
+    Sentry.captureException(error);
+    return null;
+  }
+}

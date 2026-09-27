@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { api } from '@/convex/_generated/api';
 import { identifyUser } from '@/lib/analytics';
 import { logMetaRegistration } from '@/lib/meta';
+import { identifyPurchaser } from '@/hooks/use-purchases';
 
 export function useStoreUser() {
   const { isSignedIn, user } = useUser();
@@ -23,6 +24,7 @@ export function useStoreUser() {
     identifyUser(user.id, {
       ...(email ? { email } : {}),
     });
+    identifyPurchaser({ id: user.id, email, name });
 
     const syncUser = async () => {
       try {
