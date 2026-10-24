@@ -12,7 +12,7 @@ const META_CLIENT_TOKEN = 'cf4ca6a301387f47bb261d100be120fb';
 const config: ExpoConfig = {
   name: 'Bambino',
   slug: 'bambino',
-  version: '1.3.0',
+  version: '1.3.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'bambino',
