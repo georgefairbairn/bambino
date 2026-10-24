@@ -2,8 +2,11 @@ import type React from 'react';
 import { DEVICE_W } from '../device';
 import { SANS } from '../fonts';
 
-/** iPhone status bar: time, dynamic island, signal, wifi, battery. */
-export const StatusBar: React.FC = () => (
+/**
+ * iPhone status bar: time, dynamic island, signal, wifi, battery. A screen
+ * capture has no island, so the App Store preview turns it off.
+ */
+export const StatusBar: React.FC<{ island?: boolean }> = ({ island = true }) => (
   <div style={{ position: 'absolute', left: 0, top: 0, width: DEVICE_W, height: 50, zIndex: 30 }}>
     <span
       style={{
@@ -19,17 +22,19 @@ export const StatusBar: React.FC = () => (
     >
       9:41
     </span>
-    <div
-      style={{
-        position: 'absolute',
-        left: (DEVICE_W - 124) / 2,
-        top: 11,
-        width: 124,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#000',
-      }}
-    />
+    {island && (
+      <div
+        style={{
+          position: 'absolute',
+          left: (DEVICE_W - 124) / 2,
+          top: 11,
+          width: 124,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: '#000',
+        }}
+      />
+    )}
     <svg style={{ position: 'absolute', right: 30, top: 19 }} width={68} height={13} viewBox="0 0 68 13">
       {[0, 1, 2, 3].map((i) => (
         <rect key={i} x={i * 5} y={9 - i * 3} width={3} height={4 + i * 3} rx={1} fill="#000" />

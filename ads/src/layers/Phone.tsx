@@ -12,6 +12,11 @@ import { TapIndicator } from './TapIndicator';
 
 const SCREEN_RADIUS = 55;
 
+export const screenBackground = (theme: PhoneScene['theme']): string => {
+  const { screenBg } = AD_THEMES[theme];
+  return `linear-gradient(180deg, ${screenBg[0]}, ${screenBg[1]}, ${screenBg[2]})`;
+};
+
 /**
  * A head-on iPhone drawn in points and scaled up. Its bottom bleeds off the
  * frame, which is the crop George asked for: near full width, cropped height.
@@ -24,9 +29,6 @@ export const Phone: React.FC<{
 }> = ({ scene, frameWidth, cast = CAST }) => {
   const scale = scene.scale;
   const left = (frameWidth - PHONE_W * scale) / 2 + scene.x;
-  const colors = AD_THEMES[scene.theme];
-  const bg = `linear-gradient(180deg, ${colors.screenBg[0]}, ${colors.screenBg[1]}, ${colors.screenBg[2]})`;
-  const { stack } = scene;
 
   return (
     <div
@@ -67,54 +69,74 @@ export const Phone: React.FC<{
             height: DEVICE_H,
             borderRadius: SCREEN_RADIUS,
             overflow: 'hidden',
-            background: bg,
+            background: screenBackground(scene.theme),
           }}
         >
-          {/* Base screen, nudged left as a pushed screen slides over it, like UINavigationController. */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              transform: `translateX(${-stack.push * DEVICE_W * 0.3}px)`,
-            }}
-          >
-            {stack.base.kind === 'explore' && (
-              <ExploreScreen screen={stack.base} theme={scene.theme} />
-            )}
-          </div>
-
-          {stack.pushed && (
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: bg,
-                transform: `translateX(${(1 - stack.push) * DEVICE_W}px)`,
-                boxShadow: '-8px 0 24px rgba(0,0,0,0.08)',
-              }}
-            >
-              {stack.pushed.kind === 'filters' && (
-                <FiltersScreen screen={stack.pushed} theme={scene.theme} />
-              )}
-            </div>
-          )}
-
-          {stack.sheet?.kind === 'detail' && (
-            <DetailSheet
-              screen={stack.sheet}
-              name={cast.esme}
-              theme={scene.theme}
-              progress={stack.sheetProgress}
-            />
-          )}
-
-          {scene.confetti !== null && (
-            <Confetti progress={scene.confetti} seed={scene.id === 'A' ? 1987 : 2024} />
-          )}
-          {scene.tap && <TapIndicator tap={scene.tap} />}
-          <StatusBar />
+          <PhoneScreen scene={scene} cast={cast} />
         </div>
       </div>
     </div>
+  );
+};
+
+/**
+ * What the phone shows, at 393x852 points with no bezel. It draws only the
+ * layers; the caller supplies the clipping box and its screenBackground, so
+ * the ads' phones render exactly as before this was split out. The App Store
+ * preview draws it full-bleed.
+ */
+export const PhoneScreen: React.FC<{
+  scene: PhoneScene;
+  cast?: Cast;
+  /** False for the App Store preview, which is a screen capture, not a device. */
+  island?: boolean;
+}> = ({ scene, cast = CAST, island = true }) => {
+  const bg = screenBackground(scene.theme);
+  const { stack } = scene;
+
+  return (
+    <>
+      {/* Base screen, nudged left as a pushed screen slides over it, like UINavigationController. */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transform: `translateX(${-stack.push * DEVICE_W * 0.3}px)`,
+        }}
+      >
+        {stack.base.kind === 'explore' && <ExploreScreen screen={stack.base} theme={scene.theme} />}
+      </div>
+
+      {stack.pushed && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: bg,
+            transform: `translateX(${(1 - stack.push) * DEVICE_W}px)`,
+            boxShadow: '-8px 0 24px rgba(0,0,0,0.08)',
+          }}
+        >
+          {stack.pushed.kind === 'filters' && (
+            <FiltersScreen screen={stack.pushed} theme={scene.theme} />
+          )}
+        </div>
+      )}
+
+      {stack.sheet?.kind === 'detail' && (
+        <DetailSheet
+          screen={stack.sheet}
+          name={cast.esme}
+          theme={scene.theme}
+          progress={stack.sheetProgress}
+        />
+      )}
+
+      {scene.confetti !== null && (
+        <Confetti progress={scene.confetti} seed={scene.id === 'A' ? 1987 : 2024} />
+      )}
+      {scene.tap && <TapIndicator tap={scene.tap} />}
+      <StatusBar island={island} />
+    </>
   );
 };
