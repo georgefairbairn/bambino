@@ -1,0 +1,41 @@
+name: Reset App Review demo accounts
+
+# Manual dispatch only. Run before submitting a build for review: wipes what
+# previous reviewers did to the three App Review accounts and re-seeds the
+# reviewer/partner pair (see admin:resetAppReviewDemo).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  reset:
+    name: Reset demo accounts in prod
+    runs-on: ubuntu-latest
+    # Same production environment + CONVEX_DEPLOY_KEY as the prod deploy.
+    environment: production
+    steps:
+      - name: Check for CONVEX_DEPLOY_KEY
+        run: |
+          if [ -z "${{ secrets.CONVEX_DEPLOY_KEY }}" ]; then
+            echo "CONVEX_DEPLOY_KEY is not set. Add it at https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Reset demo accounts
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: |
+          result=$(npx convex run admin:resetAppReviewDemo '{}')
+          echo "$result"
+          if echo "$result" | grep -q '"error"'; then exit 1; fi
