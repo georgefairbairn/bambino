@@ -427,6 +427,10 @@ export const recordSelection = mutation({
 // (unranked) are deprioritized to the very end.
 const TIER_ORDER = [0, 1, 2] as const;
 
+// How many per-name "already swiped?" lookups getSwipeQueue makes before
+// switching to a single bulk read of the user's selections.
+const PER_NAME_LOOKUP_BUDGET = 500;
+
 export const getSwipeQueue = query({
   args: {
     limit: v.optional(v.number()),
@@ -442,7 +446,25 @@ export const getSwipeQueue = query({
     // selection. Read set is bounded by queue size (~50) regardless of how
     // many names the user has swiped, so the subscription doesn't bloat
     // linearly with engagement.
+    //
+    // Heavy swipers break that bound, though: once most of the top tiers are
+    // swiped, the walk below does one lookup per already-swiped name and
+    // blows Convex's per-function read limits (BAMBINO-6). So after
+    // PER_NAME_LOOKUP_BUDGET lookups, load the user's selections once and
+    // check membership in memory — a single index range instead of thousands.
+    let lookups = 0;
+    let swipedIds: Set<Id<'names'>> | null = null;
     const isAlreadySwiped = async (nameId: Id<'names'>): Promise<boolean> => {
+      if (swipedIds === null && lookups >= PER_NAME_LOOKUP_BUDGET) {
+        const all = await ctx.db
+          .query('selections')
+          .withIndex('by_user', (q) => q.eq('userId', user._id))
+          .collect();
+        swipedIds = new Set(all.map((s) => s.nameId));
+      }
+      if (swipedIds !== null) return swipedIds.has(nameId);
+
+      lookups++;
       // #164: .first() — a duplicate selection row shouldn't throw and crash
       // the swipe queue. recordSelection self-heals duplicates on next write.
       const existing = await ctx.db
