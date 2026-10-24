@@ -60,3 +60,6 @@ data/names-extracted.json
 # Category-expansion working artifacts (intermediate; names.json is the committed output)
 data/enrich-out/
 data/names-to-enrich*.json
+
+# Playwright MCP browser session snapshots and logs
+.playwright-mcp/

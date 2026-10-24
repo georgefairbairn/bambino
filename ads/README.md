@@ -47,6 +47,17 @@ The end card says "In-app purchases available" under "Free to download on the
 App Store", because UK and Australian ad rules want paid extras disclosed next
 to "free".
 
+## App Store preview
+
+`npm run render:preview` writes `out/bambino-app-preview.mp4`, an 886x1920,
+15.9s app preview for the App Store (Apple's size for 6.5" to 6.9" iPhones;
+it scales down for smaller ones). Apple wants previews to show the app
+itself, so it isn't the ad: the screen fills the frame with no phone bezel,
+dynamic island, hook card or badge end card, and the captions sit in the
+empty space below the card. It reuses the ad's story (`getScene`), cutting to
+the partner's screen while they keep Wren. Timing lives in
+`src/app-preview.ts`, and its tests check Apple's 15–30s limit.
+
 All of them are silent by design. Instagram's in-app music library is not
 licensed for paid ads, so any track has to come from a commercial library.
 
