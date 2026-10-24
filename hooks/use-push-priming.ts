@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const STATE_KEY = 'bambino_push_priming_state';
 // How long to wait before re-priming after a "Not now". The user only sees
-// the sheet at all on a fresh match, so this just guards against multiple
-// matches in a single week from feeling spammy.
+// the sheet on a fresh match or right after sharing their partner code, so
+// this just guards against several of those in one week feeling spammy.
 const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
 type State = {

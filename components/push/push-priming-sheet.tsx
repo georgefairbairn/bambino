@@ -5,14 +5,34 @@ import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 
+export type PushPrimingReason = 'match' | 'invite';
+
+const COPY: Record<
+  PushPrimingReason,
+  { icon: keyof typeof Ionicons.glyphMap; title: string; subtitle: string }
+> = {
+  match: {
+    icon: 'heart',
+    title: "Don't miss a match",
+    subtitle: 'Get a notification the moment you and your partner like the same name.',
+  },
+  invite: {
+    icon: 'people',
+    title: 'Know when they join',
+    subtitle: "We'll let you know as soon as your partner links up, and every time you match.",
+  },
+};
+
 interface PushPrimingSheetProps {
   visible: boolean;
+  reason: PushPrimingReason;
   onAllow: () => Promise<void>;
   onDismiss: () => void;
 }
 
-export function PushPrimingSheet({ visible, onAllow, onDismiss }: PushPrimingSheetProps) {
+export function PushPrimingSheet({ visible, reason, onAllow, onDismiss }: PushPrimingSheetProps) {
   const { colors } = useTheme();
+  const copy = COPY[reason];
   const [isRequesting, setIsRequesting] = useState(false);
 
   const handleAllow = async () => {
@@ -28,13 +48,11 @@ export function PushPrimingSheet({ visible, onAllow, onDismiss }: PushPrimingShe
     <AnimatedBottomSheet visible={visible} onClose={onDismiss} maxHeight="50%">
       <View style={styles.content}>
         <View style={[styles.iconCircle, { backgroundColor: colors.primaryLight }]}>
-          <Ionicons name="heart" size={32} color={colors.primary} />
+          <Ionicons name={copy.icon} size={32} color={colors.primary} />
         </View>
 
-        <Text style={styles.title}>{"Don't miss a match"}</Text>
-        <Text style={styles.subtitle}>
-          Get a notification the moment you and your partner like the same name.
-        </Text>
+        <Text style={styles.title}>{copy.title}</Text>
+        <Text style={styles.subtitle}>{copy.subtitle}</Text>
 
         <View style={styles.buttons}>
           <Pressable

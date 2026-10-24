@@ -44,6 +44,7 @@ import { ShareCodeDisplay } from '@/components/partner/share-code-display';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
+import { usePushPrimingPrompt } from '@/contexts/push-priming-context';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
 
 function formatTimeRemaining(endsAt: number): string {
@@ -111,6 +112,7 @@ export default function Profile() {
   const unlinkPartner = useMutation(api.partners.unlinkPartner);
   const regenerateShareCode = useMutation(api.partners.regenerateShareCode);
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const promptForPush = usePushPrimingPrompt();
   const convexUser = useQuery(api.users.getCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -243,15 +245,16 @@ export default function Profile() {
   const handleShareCode = useCallback(async () => {
     if (partnerInfo?.shareCode) {
       try {
-        await Share.share({
+        const result = await Share.share({
           message: buildInviteMessage(partnerInfo.shareCode),
         });
         trackEvent(Events.PARTNER_CODE_SHARED);
+        if (result.action === Share.sharedAction) await promptForPush('invite');
       } catch (error) {
         Sentry.captureException(error);
       }
     }
-  }, [partnerInfo?.shareCode]);
+  }, [partnerInfo?.shareCode, promptForPush]);
 
   const executePartnerAction = useCallback(
     (action: 'copy' | 'share' | 'link') => {

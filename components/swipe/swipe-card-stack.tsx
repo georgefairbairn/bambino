@@ -16,12 +16,10 @@ import { FilterNudgeBanner } from './filter-nudge-banner';
 import { ListenHintBanner } from './listen-hint-banner';
 import { ErrorToast } from '@/components/ui/error-toast';
 import { NameDetailModal } from '@/components/name-detail/name-detail-modal';
-import { PushPrimingSheet } from '@/components/push/push-priming-sheet';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { CARD_WIDTH, CARD_HEIGHT_FULL } from '@/constants/swipe';
 import { useA11yPreferences } from '@/hooks/use-a11y-preferences';
-import { usePushPriming } from '@/hooks/use-push-priming';
-import { usePushRequestPermission } from '@/hooks/use-push-registration';
+import { usePushPrimingPrompt } from '@/contexts/push-priming-context';
 import { useReviewPrompt } from '@/hooks/use-review-prompt';
 
 interface SwipeCardStackProps {
@@ -116,10 +114,9 @@ export function SwipeCardStack({
     'Something went wrong. Please try again.',
   );
   const [hintEligible, setHintEligible] = useState(true);
-  const [showPushPriming, setShowPushPriming] = useState(false);
   const [showListenHint, setShowListenHint] = useState(false);
 
-  const { shouldPrime, markAsked, markDismissed } = usePushPriming();
+  const promptForPush = usePushPrimingPrompt();
 
   // Show the silent-mode hint once, the first time the user taps Listen.
   const handleListenPress = useCallback(async () => {
@@ -131,7 +128,6 @@ export function SwipeCardStack({
       // Non-fatal: if storage is unavailable, just skip the hint.
     }
   }, []);
-  const requestPermission = usePushRequestPermission();
   const { needsButtons, reduceMotion } = useA11yPreferences();
 
   // Prefetch popularity summaries for the top TWO cards (#174). Querying the
@@ -333,23 +329,7 @@ export function SwipeCardStack({
           setMatchToastName(null);
           // After a fresh match auto-dismisses, this is the moment iOS push
           // notifications become valuable — ask now while the user is engaged.
-          if (await shouldPrime()) {
-            setShowPushPriming(true);
-          }
-        }}
-      />
-
-      {/* Notification permission priming — fires after a fresh match (#156) */}
-      <PushPrimingSheet
-        visible={showPushPriming}
-        onAllow={async () => {
-          await requestPermission();
-          await markAsked();
-          setShowPushPriming(false);
-        }}
-        onDismiss={async () => {
-          await markDismissed();
-          setShowPushPriming(false);
+          await promptForPush('match');
         }}
       />
 

@@ -9,6 +9,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { api } from '@/convex/_generated/api';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { usePushPrimingPrompt } from '@/contexts/push-priming-context';
 import { Events, trackEvent, trackScreen } from '@/lib/analytics';
 import { LockedMatchRows } from '@/components/matches/locked-match-rows';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
@@ -97,6 +98,7 @@ export default function Matches() {
   };
 
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const promptForPush = usePushPrimingPrompt();
   const hasPartner = partnerInfo?.partner !== null && partnerInfo?.partner !== undefined;
 
   const matchAccess = useQuery(api.matches.getMatchAccess);
@@ -112,12 +114,13 @@ export default function Matches() {
   const handleShareCode = useCallback(async () => {
     if (!partnerInfo?.shareCode) return;
     try {
-      await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
+      const result = await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
       trackEvent(Events.PARTNER_CODE_SHARED, { source: 'matches_empty' });
+      if (result.action === Share.sharedAction) await promptForPush('invite');
     } catch (error) {
       Sentry.captureException(error);
     }
-  }, [partnerInfo?.shareCode]);
+  }, [partnerInfo?.shareCode, promptForPush]);
 
   // Fire MATCH_WALL_SHOWN once per screen visit when locked rows first appear.
   useEffect(() => {
