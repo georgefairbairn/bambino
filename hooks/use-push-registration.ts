@@ -9,6 +9,7 @@ import * as Sentry from '@sentry/react-native';
 
 import { api } from '@/convex/_generated/api';
 import { Events, trackEvent } from '@/lib/analytics';
+import type { PushPrimingReason } from '@/components/push/push-priming-sheet';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -68,23 +69,27 @@ export function usePushRegistration() {
 export function usePushRequestPermission() {
   const setPushToken = useMutation(api.users.setPushToken);
 
-  return useCallback(async (): Promise<Notifications.PermissionStatus> => {
-    if (Platform.OS !== 'ios' || !Device.isDevice) {
-      return Notifications.PermissionStatus.DENIED;
-    }
-    try {
-      trackEvent(Events.PUSH_PERMISSION_REQUESTED);
-      const { status } = await Notifications.requestPermissionsAsync();
-      trackEvent(
-        status === 'granted' ? Events.PUSH_PERMISSION_GRANTED : Events.PUSH_PERMISSION_DENIED,
-      );
-      if (status === 'granted') {
-        await registerToken(setPushToken);
+  return useCallback(
+    async (reason: PushPrimingReason): Promise<Notifications.PermissionStatus> => {
+      if (Platform.OS !== 'ios' || !Device.isDevice) {
+        return Notifications.PermissionStatus.DENIED;
       }
-      return status;
-    } catch (error) {
-      Sentry.captureException(error);
-      return Notifications.PermissionStatus.DENIED;
-    }
-  }, [setPushToken]);
+      try {
+        trackEvent(Events.PUSH_PERMISSION_REQUESTED, { reason });
+        const { status } = await Notifications.requestPermissionsAsync();
+        trackEvent(
+          status === 'granted' ? Events.PUSH_PERMISSION_GRANTED : Events.PUSH_PERMISSION_DENIED,
+          { reason },
+        );
+        if (status === 'granted') {
+          await registerToken(setPushToken);
+        }
+        return status;
+      } catch (error) {
+        Sentry.captureException(error);
+        return Notifications.PermissionStatus.DENIED;
+      }
+    },
+    [setPushToken],
+  );
 }

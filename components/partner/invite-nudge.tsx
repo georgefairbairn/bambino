@@ -7,6 +7,7 @@ import { AnimatedBottomSheet } from '@/components/ui/animated-bottom-sheet';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
+import { usePushPrimingPrompt } from '@/contexts/push-priming-context';
 import { buildInviteMessage } from '@/constants/links';
 import { ShareCodeDisplay } from '@/components/partner/share-code-display';
 import { Events, trackEvent } from '@/lib/analytics';
@@ -34,6 +35,7 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
   const latchedRef = useRef(false);
 
   const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const promptForPush = usePushPrimingPrompt();
   const stats = useQuery(api.selections.getSelectionStats);
   const markShown = useMutation(api.users.markInviteNudgeShown);
 
@@ -73,15 +75,19 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
   const handleShare = async () => {
     if (!partnerInfo?.shareCode) return;
     setIsSharing(true);
+    let shared = false;
     try {
-      await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
+      const result = await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
       trackEvent(Events.PARTNER_CODE_SHARED, { source: 'invite_nudge' });
+      shared = result.action === Share.sharedAction;
     } catch (error) {
       Sentry.captureException(error);
     } finally {
       setIsSharing(false);
       close();
     }
+    // After close(): the provider waits for this sheet to animate out.
+    if (shared) await promptForPush('invite');
   };
 
   return (

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
+import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { sanitizeImageUrl } from './validation';
 import { convexError } from './errors';
@@ -333,6 +334,20 @@ export const linkPartner = mutation({
         updatedAt: now,
       });
     }
+
+    // Tell the code's owner their partner has arrived. They shared the code
+    // and left; without this they only find out next time they happen to
+    // open the app.
+    const joinerName = user.name ?? 'Your partner';
+    await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
+      userId: targetUser._id,
+      title: `${joinerName} joined you on Bambino`,
+      body:
+        overlap.length > 0
+          ? `You already have ${overlap.length} ${overlap.length === 1 ? 'match' : 'matches'}!`
+          : 'Names you both like will show up as matches.',
+      data: { type: 'partner_linked' },
+    });
 
     // Successful link — reset the attacker counter for this user.
     await resetRateLimit(ctx, user._id);

@@ -12,6 +12,7 @@ import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/contexts/theme-context';
 import { useSkinTone } from '@/contexts/skin-tone-context';
 import { useVoiceSettings } from '@/contexts/voice-settings-context';
+import { PushPrimingProvider } from '@/contexts/push-priming-context';
 import { OnboardingScreens } from '@/components/onboarding';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
@@ -64,7 +65,11 @@ export default function TabsLayout() {
 
   // Push registration lives here, below the gate, so the user row is
   // guaranteed to exist — the hook no longer needs its own existence guard.
-  return <TabsNavigator />;
+  return (
+    <PushPrimingProvider>
+      <TabsNavigator />
+    </PushPrimingProvider>
+  );
 }
 
 function TabsNavigator() {

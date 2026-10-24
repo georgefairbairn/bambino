@@ -101,6 +101,11 @@ describe('free tier swiping', () => {
 });
 
 describe('partner linking', () => {
+  // linkPartner schedules the "partner joined" push; drain it off fake timers
+  // (see 'proposing is premium' below for why).
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
   test('two free users can link to each other', async () => {
     const t = convexTest(schema, modules);
     await seedUser(t, { clerkId: 'clerk_a', isPremium: false, nameConfirmed: true });
@@ -115,6 +120,7 @@ describe('partner linking', () => {
     const result = await t
       .withIdentity({ subject: 'clerk_a' })
       .mutation(api.partners.linkPartner, { code: 'ABCD2345' });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     expect(result).not.toHaveProperty('error');
 
@@ -140,9 +146,34 @@ describe('partner linking', () => {
     await t
       .withIdentity({ subject: 'clerk_paid' })
       .mutation(api.partners.linkPartner, { code: 'WXYZ6789' });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const b = await t.run(async (ctx) => ctx.db.get(bId));
     expect(b?.premiumRevokedAt).toBeUndefined();
+  });
+
+  test("notifies the code's owner that their partner joined", async () => {
+    const t = convexTest(schema, modules);
+    await seedUser(t, { clerkId: 'clerk_joiner', nameConfirmed: true });
+    const ownerId = await seedUser(t, {
+      clerkId: 'clerk_owner',
+      nameConfirmed: true,
+      shareCode: 'JKMN2345',
+    });
+
+    await t
+      .withIdentity({ subject: 'clerk_joiner' })
+      .mutation(api.partners.linkPartner, { code: 'JKMN2345' });
+
+    const scheduled = await t.run(async (ctx) =>
+      ctx.db.system.query('_scheduled_functions').collect(),
+    );
+    expect(scheduled).toHaveLength(1);
+    expect(scheduled[0]!.args[0]).toMatchObject({
+      userId: ownerId,
+      data: { type: 'partner_linked' },
+    });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
   });
 });
 
