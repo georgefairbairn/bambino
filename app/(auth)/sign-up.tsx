@@ -68,7 +68,6 @@ export default function SignUp() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
-        trackEvent(Events.SIGN_UP, { method: 'email' });
         router.replace('/');
       }
     } catch (err: unknown) {
@@ -97,7 +96,6 @@ export default function SignUp() {
 
       if (createdSessionId && ssoSetActive) {
         await ssoSetActive({ session: createdSessionId });
-        trackEvent(Events.SIGN_UP, { method: 'google' });
         router.replace('/');
       }
     } catch (err: unknown) {
@@ -121,7 +119,6 @@ export default function SignUp() {
 
       if (createdSessionId && appleSetActive) {
         await appleSetActive({ session: createdSessionId });
-        trackEvent(Events.SIGN_UP, { method: 'apple' });
         router.replace('/');
       }
     } catch (err: unknown) {
