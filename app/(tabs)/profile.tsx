@@ -79,7 +79,7 @@ function PremiumBanner({
           </View>
           <View style={styles.premiumTextWrap}>
             <Text style={styles.premiumTitle}>Go Premium</Text>
-            <Text style={styles.premiumDesc}>Unlimited likes + partner matching</Text>
+            <Text style={styles.premiumDesc}>Every match + propose a name</Text>
           </View>
           <LinearGradient
             colors={gradients.buttonPrimary as [string, string]}
