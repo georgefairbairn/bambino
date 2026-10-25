@@ -42,20 +42,26 @@ const Screen: React.FC<{ scene: PhoneScene; cast: Cast; opacity?: number }> = ({
 /**
  * The App Store app preview. See app-preview.ts. `web` renders the website's
  * cut: no caption (the page sets its own text under the phone), and the whole
- * screen as the app draws it, with its full-height card and tab bar.
+ * screen as the app draws it, with its full-height card and tab bar. `phone`
+ * picks one partner's screen for the whole cut instead of cutting to the
+ * partner's, for the site's side-by-side phones.
  */
-export const AppPreview: React.FC<{ cast?: Cast; web?: boolean }> = ({ cast = CAST, web = false }) => {
+export const AppPreview: React.FC<{ cast?: Cast; web?: boolean; phone?: 'mint' | 'blue' }> = ({
+  cast = CAST,
+  web = false,
+  phone,
+}) => {
   const frame = toPreviewStoryFrame(useCurrentFrame());
   // No sway: a full-bleed screen that drifted would show its edges.
   const scene = getScene(frame, PREVIEW_LAYOUT, cast, { swayFrame: 0 });
   const [mint, blue] = scene.phones as [PhoneScene, PhoneScene];
-  const partner = partnerOpacity(frame);
+  const partner = phone === undefined ? partnerOpacity(frame) : phone === 'blue' ? 1 : 0;
 
   return (
     <ScreenChromeContext.Provider value={web ? APP_CHROME : AD_CHROME}>
       <StoryClockContext.Provider value={{ frame, pace: 'full' }}>
         <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#fff' }}>
-          <Screen scene={mint} cast={cast} />
+          {partner < 1 && <Screen scene={mint} cast={cast} />}
           {partner > 0 && <Screen scene={blue} cast={cast} opacity={partner} />}
           {!web && (
             <>

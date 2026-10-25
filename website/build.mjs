@@ -131,11 +131,6 @@ function layout({ title, description, path, body }) {
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="/"><img src="/icon.png" alt="" width="36" height="36">bambino</a>
-      <nav class="site-nav" aria-label="Main">
-        <a href="/privacy/">Privacy</a>
-        <a href="/terms/">Terms</a>
-        <a href="/#contact">Contact</a>
-      </nav>
     </div>
   </header>
   <main>

@@ -6,12 +6,15 @@
   const tour = document.querySelector('.tour');
   if (!tour) return;
 
-  const video = tour.querySelector('video');
+  const video = tour.querySelector('.phone-you video');
+  const partner = tour.querySelector('.phone-partner video');
+  const partnerOffset = Number(partner.dataset.offset);
   const steps = [...tour.querySelectorAll('.tour-steps li')];
   const progressEl = tour.querySelector('.tour-progress');
   const hint = tour.querySelector('.tour-hint');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ranges = steps.map((li) => [Number(li.dataset.start), Number(li.dataset.end)]);
+  const duo = steps.map((li) => li.hasAttribute('data-duo'));
 
   tour.style.setProperty('--steps', steps.length);
   tour.classList.add('is-live');
@@ -30,12 +33,26 @@
 
   let active = -1;
 
-  // Keep playback inside the active step's range. requestAnimationFrame
-  // rather than timeupdate, which fires too rarely to stop at the boundary.
+  // The partner's clip starts partnerOffset seconds into the tour's timeline.
+  const syncPartner = () => {
+    partner.currentTime = Math.max(0, video.currentTime - partnerOffset);
+  };
+
+  // Keep playback inside the active step's range, and the partner's phone in
+  // step with yours. requestAnimationFrame rather than timeupdate, which fires
+  // too rarely to stop at the boundary.
   const loopWithinStep = () => {
     if (active >= 0 && !video.paused) {
       const [start, end] = ranges[active];
-      if (video.currentTime >= end || video.currentTime < start - 0.25) video.currentTime = start;
+      if (video.currentTime >= end || video.currentTime < start - 0.25) {
+        video.currentTime = start;
+        if (duo[active]) syncPartner();
+      } else if (
+        duo[active] &&
+        Math.abs(partner.currentTime + partnerOffset - video.currentTime) > 0.2
+      ) {
+        syncPartner();
+      }
     }
     requestAnimationFrame(loopWithinStep);
   };
@@ -48,6 +65,8 @@
       li.classList.toggle('is-past', j < i);
     });
     bars.forEach((bar, j) => bar.setAttribute('aria-current', j === i ? 'step' : 'false'));
+    tour.classList.toggle('is-duo', duo[i]);
+    if (!duo[i]) partner.pause();
 
     video.classList.add('is-switching');
     // Seeking before metadata loads is ignored, so wait for it.
@@ -60,7 +79,10 @@
       'seeked',
       () => {
         video.classList.remove('is-switching');
-        if (!reduceMotion) video.play().catch(() => {});
+        if (duo[active]) syncPartner();
+        if (reduceMotion) return;
+        video.play().catch(() => {});
+        if (duo[active]) partner.play().catch(() => {});
       },
       { once: true },
     );

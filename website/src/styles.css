@@ -102,22 +102,6 @@ a {
   border-radius: 9px;
 }
 
-.site-nav {
-  display: flex;
-  gap: 20px;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.site-nav a {
-  color: var(--ink-soft);
-  text-decoration: none;
-}
-
-.site-nav a:hover {
-  color: var(--ink);
-}
-
 /* App Store badge (Apple's artwork; keep it unmodified) */
 
 .app-store-badge {
@@ -221,7 +205,7 @@ section {
 }
 
 .phone {
-  --screen-h: min(560px, 58vh);
+  --screen-h: min(540px, 54vh);
   position: relative;
   flex-shrink: 0;
   padding: 10px;
@@ -234,7 +218,7 @@ section {
 
 @supports (height: 1svh) {
   .phone {
-    --screen-h: min(560px, 58svh);
+    --screen-h: min(540px, 54svh);
   }
 }
 
@@ -248,6 +232,70 @@ section {
   background: var(--mint-wash);
   object-fit: cover;
   transition: opacity 0.18s ease;
+}
+
+/*
+ * Two phones share one spot. For the partner steps (.is-duo) they part: yours
+ * slides left, your partner's slides out from behind it to the right, both
+ * scaled by --duo-scale so the pair fits the screen.
+ */
+.tour-phones {
+  --duo-scale: 1;
+  --duo-gap: 14px;
+  display: grid;
+}
+
+.tour-phones .phone {
+  grid-area: 1 / 1;
+  justify-self: center;
+  /* Shrink towards the caption, not into the middle of the screen. */
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.4s ease;
+}
+
+.phone-partner {
+  opacity: 0;
+  transform: scale(calc(var(--duo-scale) * 0.92));
+}
+
+.tour.is-duo .phone-you {
+  transform: translateX(calc(-50% * var(--duo-scale) - var(--duo-gap))) scale(var(--duo-scale));
+}
+
+.tour.is-duo .phone-partner {
+  opacity: 1;
+  transform: translateX(calc(50% * var(--duo-scale) + var(--duo-gap))) scale(var(--duo-scale));
+}
+
+.phone-label {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: calc(10px / var(--duo-scale));
+  padding: calc(4px / var(--duo-scale)) calc(12px / var(--duo-scale));
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: calc(13px / var(--duo-scale));
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.3s ease;
+}
+
+.tour.is-duo .phone-label {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .tour-phones {
+    --duo-scale: 0.62;
+    --duo-gap: 6px;
+  }
 }
 
 .phone video.is-switching {
@@ -416,6 +464,8 @@ section {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tour-phones .phone,
+  .phone-label,
   .phone video,
   .tour.is-live .tour-steps li,
   .tour-hint {
@@ -561,11 +611,6 @@ section {
   .brand img {
     width: 30px;
     height: 30px;
-  }
-
-  .site-nav {
-    gap: 14px;
-    font-size: 15px;
   }
 
   .hero {

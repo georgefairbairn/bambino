@@ -27,11 +27,6 @@
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="/"><img src="/icon.png" alt="" width="36" height="36">bambino</a>
-      <nav class="site-nav" aria-label="Main">
-        <a href="/privacy/">Privacy</a>
-        <a href="/terms/">Terms</a>
-        <a href="/#contact">Contact</a>
-      </nav>
     </div>
   </header>
   <main>
@@ -56,29 +51,46 @@
 -->
 <section class="tour" id="how-it-works" aria-label="How Bambino works">
   <div class="tour-pin">
-    <div class="phone">
-      <div class="island" aria-hidden="true"></div>
-      <video
-        src="/app-tour.mp4"
-        poster="/app-tour-poster.jpg"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="auto"
-        aria-hidden="true"
-      ></video>
+    <div class="tour-phones">
+      <div class="phone phone-you">
+        <span class="phone-label">You</span>
+        <div class="island" aria-hidden="true"></div>
+        <video
+          src="/app-tour.mp4"
+          poster="/app-tour-poster.jpg"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+          aria-hidden="true"
+        ></video>
+      </div>
+      <!-- The partner's phone joins for the steps marked data-duo. Its video
+           starts data-offset seconds into the tour's timeline. -->
+      <div class="phone phone-partner" aria-hidden="true">
+        <span class="phone-label">Your partner</span>
+        <div class="island"></div>
+        <video
+          src="/app-tour-partner.mp4"
+          poster="/app-tour-partner-poster.jpg"
+          data-offset="3"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+      </div>
     </div>
     <ol class="tour-steps">
       <li data-start="0" data-end="3.2">
         <h2>Swipe through thousands of names</h2>
         <p>Right to like, left to pass. Every name shows its origin, meaning and rank.</p>
       </li>
-      <li data-start="3.2" data-end="6.1">
+      <li data-start="3.2" data-end="6.1" data-duo>
         <h2>Link up with your partner</h2>
-        <p>Share your code and you each swipe on your own phone, in your own time.</p>
+        <p>Share your code, then you each swipe on your own phone. Only the names you both like count.</p>
       </li>
-      <li data-start="6.1" data-end="8.7">
+      <li data-start="6.1" data-end="8.7" data-duo>
         <h2>The names you both like become matches</h2>
         <p>Build a shortlist together, then propose the one.</p>
       </li>
