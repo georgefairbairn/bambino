@@ -8,8 +8,12 @@ node website/build.mjs   # writes website/public
 
 - `src/home.html` is the landing page body; `build.mjs` wraps it (and every page) in the shared header/footer.
 - The privacy policy and terms are the Notion pages the App Store listing and the app link to. The footer links straight to them, and `/privacy/` and `/terms/` redirect there. If the Notion URLs change, update `build.mjs`, `app/(auth)/sign-up.tsx` and `app/(tabs)/profile.tsx`.
-- `src/` assets (CSS, icons, video, screenshots) are copied to `public/` as-is.
+- `src/` assets (CSS, script, icons, videos) are copied to `public/` as-is.
 - Fonts follow `Fonts` in `constants/theme.ts`: Alfa Slab One for the "bambino" wordmark only, Gabarito 800 for headings, the system font for body text.
+
+## Deploy
+
+The Netlify project **bambino-dev** serves bambinobaby.xyz from `master`. `netlify.toml` at the repo root configures it (base `website`, `node build.mjs`, publish `public`) and skips builds unless something under `website/` changed. `website/public` is committed too, so any static host can serve it without a build.
 
 ## Media from the ads
 
