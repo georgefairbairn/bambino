@@ -173,8 +173,7 @@ for (const file of readdirSync(SRC)) {
 
 const home = readFileSync(join(SRC, 'home.html'), 'utf8')
   .replaceAll('{{APP_STORE_BADGE}}', APP_STORE_BADGE)
-  .replaceAll('{{EMAIL}}', EMAIL)
-  .replaceAll('{{DEVELOPER}}', DEVELOPER);
+  .replaceAll('{{EMAIL}}', EMAIL);
 
 write(
   '',

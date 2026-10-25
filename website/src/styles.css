@@ -293,14 +293,15 @@ section {
   font-size: 17px;
 }
 
-.tour-dots {
+.tour-progress,
+.tour-hint {
   display: none;
 }
 
 /* With JavaScript: the section is tall, the phone pins, one step shows at a time. */
 
 .tour.is-live {
-  height: calc(var(--steps) * 75vh + 100vh);
+  height: calc(var(--steps) * 60vh + 100vh);
 }
 
 .tour.is-live .tour-pin {
@@ -329,44 +330,100 @@ section {
   pointer-events: none;
 }
 
+.tour.is-live .tour-steps li.is-past {
+  transform: translateY(-14px);
+}
+
 .tour.is-live .tour-steps li.is-active {
   opacity: 1;
   transform: none;
 }
 
-.tour.is-live .tour-dots {
+/* One bar per step; the active bar fills as you scroll through it. */
+.tour.is-live .tour-progress {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
-.tour-dots button {
-  width: 8px;
-  height: 8px;
+.tour-progress button {
+  position: relative;
+  width: 36px;
+  height: 20px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
-  background: var(--border-strong);
+  background: none;
   cursor: pointer;
-  transition:
-    width 0.3s ease,
-    background 0.3s ease;
 }
 
-.tour-dots button[aria-current='true'] {
-  width: 26px;
+.tour-progress button::before,
+.tour-progress button::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.tour-progress button::before {
+  right: 0;
+  background: var(--border-strong);
+}
+
+.tour-progress button::after {
+  width: calc(var(--fill, 0) * 100%);
   background: var(--mint);
 }
 
-.tour-dots button:focus-visible {
+.tour-progress button:focus-visible {
   outline: 2px solid var(--mint-deep);
-  outline-offset: 3px;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tour.is-live .tour-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: -10px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: opacity 0.3s ease;
+}
+
+.tour-hint svg {
+  width: 18px;
+  height: 18px;
+  animation: nudge 1.4s ease-in-out infinite;
+}
+
+.tour-hint.is-hidden {
+  opacity: 0;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .phone video,
   .tour.is-live .tour-steps li,
-  .tour-dots button {
+  .tour-hint {
     transition: none;
+  }
+
+  .tour-hint svg {
+    animation: none;
   }
 }
 
@@ -390,11 +447,6 @@ section {
   margin: -20px auto 20px;
   max-width: 44ch;
   color: var(--ink-soft);
-}
-
-.contact .maker {
-  margin: 28px auto 0;
-  font-size: 16px;
 }
 
 .email-link {

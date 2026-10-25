@@ -1,13 +1,15 @@
 // Scroll-driven tour: the phone pins while the section scrolls past, and the
 // step whose slice of the scroll we're in sets the caption and the stretch of
-// video that loops on the phone.
+// video that loops on the phone. The progress bars fill continuously, so the
+// reader can see their scrolling is doing something between step changes.
 (() => {
   const tour = document.querySelector('.tour');
   if (!tour) return;
 
   const video = tour.querySelector('video');
   const steps = [...tour.querySelectorAll('.tour-steps li')];
-  const dotsEl = tour.querySelector('.tour-dots');
+  const progressEl = tour.querySelector('.tour-progress');
+  const hint = tour.querySelector('.tour-hint');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ranges = steps.map((li) => [Number(li.dataset.start), Number(li.dataset.end)]);
 
@@ -17,15 +19,14 @@
   video.removeAttribute('autoplay');
   video.pause();
 
-  const dots = steps.map((li, i) => {
+  const bars = steps.map((li, i) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.setAttribute('aria-label', li.querySelector('h2').textContent);
+    button.setAttribute('aria-label', `Step ${i + 1}: ${li.querySelector('h2').textContent}`);
     button.addEventListener('click', () => scrollToStep(i));
-    dotsEl.append(button);
+    progressEl.append(button);
     return button;
   });
-  dotsEl.removeAttribute('aria-hidden');
 
   let active = -1;
 
@@ -42,8 +43,11 @@
   const setStep = (i) => {
     if (i === active) return;
     active = i;
-    steps.forEach((li, j) => li.classList.toggle('is-active', j === i));
-    dots.forEach((d, j) => d.setAttribute('aria-current', String(j === i)));
+    steps.forEach((li, j) => {
+      li.classList.toggle('is-active', j === i);
+      li.classList.toggle('is-past', j < i);
+    });
+    bars.forEach((bar, j) => bar.setAttribute('aria-current', j === i ? 'step' : 'false'));
 
     video.classList.add('is-switching');
     // Seeking before metadata loads is ignored, so wait for it.
@@ -81,7 +85,14 @@
   let queued = false;
   const update = () => {
     queued = false;
-    setStep(Math.min(steps.length - 1, Math.floor(progress() * steps.length)));
+    const position = progress() * steps.length;
+    const i = Math.min(steps.length - 1, Math.floor(position));
+    setStep(i);
+    bars.forEach((bar, j) =>
+      bar.style.setProperty('--fill', Math.min(1, Math.max(0, position - j))),
+    );
+    // The hint has done its job once the reader is a little way into the tour.
+    hint.classList.toggle('is-hidden', position > 0.35);
   };
   const onScroll = () => {
     if (!queued) {
