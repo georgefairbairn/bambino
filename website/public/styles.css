@@ -204,16 +204,36 @@ section {
   background: radial-gradient(closest-side, var(--glow), transparent);
 }
 
+/*
+ * A current iPhone Pro, sized from its screen. Every measurement is a share
+ * of the screen width (393pt on the device the video was drawn for), so the
+ * corners, bezel and island keep their real proportions at any size:
+ * 55pt screen corners, a ~2.5% black bezel, a thin titanium band, and the
+ * Dynamic Island (126 x 37pt, 11pt from the top).
+ */
 .phone {
   --screen-h: min(540px, 54vh);
+  --screen-w: calc(var(--screen-h) * 886 / 1920);
+  --screen-r: calc(var(--screen-w) * 0.14);
+  --bezel: calc(var(--screen-w) * 0.026);
+  --band: max(2px, calc(var(--screen-w) * 0.011));
   position: relative;
   flex-shrink: 0;
-  padding: 10px;
-  border-radius: 50px;
-  background: #1c1c1e;
+  /* The metal band is the phone's own background; the black bezel is a ring
+     drawn around the screen by the video's box-shadow. */
+  padding: calc(var(--band) + var(--bezel));
+  border-radius: calc(var(--screen-r) + var(--bezel) + var(--band));
+  background: linear-gradient(
+    150deg,
+    #6b6b70 0%,
+    #2c2c30 30%,
+    #55555a 55%,
+    #26262a 80%,
+    #5d5d62 100%
+  );
   box-shadow:
-    0 0 0 2px #3a3a3c,
-    0 30px 60px rgba(45, 27, 78, 0.22);
+    0 30px 60px rgba(45, 27, 78, 0.22),
+    0 8px 18px rgba(45, 27, 78, 0.12);
 }
 
 @supports (height: 1svh) {
@@ -222,13 +242,28 @@ section {
   }
 }
 
+/* Side buttons: Action and volume on the left, side button and Camera Control on the right */
+.phone::before {
+  content: '';
+  position: absolute;
+  inset: 0 calc(var(--band) * -1);
+  background:
+    linear-gradient(#3d3d42, #3d3d42) left 0 top 18% / var(--band) 5% no-repeat,
+    linear-gradient(#3d3d42, #3d3d42) left 0 top 27% / var(--band) 8.5% no-repeat,
+    linear-gradient(#3d3d42, #3d3d42) left 0 top 38% / var(--band) 8.5% no-repeat,
+    linear-gradient(#3d3d42, #3d3d42) right 0 top 30% / var(--band) 12% no-repeat,
+    linear-gradient(#3d3d42, #3d3d42) right 0 top 63% / var(--band) 7% no-repeat;
+  pointer-events: none;
+}
+
 .phone video {
   display: block;
   height: var(--screen-h);
   width: auto;
   max-width: 100%;
   aspect-ratio: 886 / 1920;
-  border-radius: 40px;
+  border-radius: var(--screen-r);
+  box-shadow: 0 0 0 var(--bezel) #050506;
   background: var(--mint-wash);
   object-fit: cover;
   transition: opacity 0.18s ease;
@@ -304,10 +339,10 @@ section {
 
 .island {
   position: absolute;
-  top: calc(10px + var(--screen-h) * 0.018);
+  top: calc(var(--band) + var(--bezel) + var(--screen-h) * 0.0129);
   left: 50%;
-  width: 30%;
-  height: calc(var(--screen-h) * 0.038);
+  width: calc(var(--screen-w) * 0.32);
+  height: calc(var(--screen-h) * 0.0434);
   border-radius: 999px;
   background: #000;
   transform: translateX(-50%);
