@@ -22,6 +22,7 @@ const OUT = join(SITE_DIR, 'public');
 const APP_STORE_ID = '6773164657';
 const APP_STORE_URL = `https://apps.apple.com/app/id${APP_STORE_ID}`;
 const EMAIL = 'hello@bambinobaby.xyz';
+const DEVELOPER = 'George Fairbairn';
 const SITE_URL = 'https://bambinobaby.xyz';
 
 // The docs link to the old Notion-hosted policy; on the site, point at our own page.
@@ -108,6 +109,7 @@ function layout({ title, description, path, body }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
+  <meta name="author" content="${DEVELOPER}">
   <meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}">
   <meta name="theme-color" content="#34d399">
   <link rel="canonical" href="${SITE_URL}${path}">
@@ -141,7 +143,7 @@ ${body}
   </main>
   <footer class="site-footer">
     <div class="wrap">
-      <span>© ${new Date().getFullYear()} Bambino</span>
+      <span>© ${new Date().getFullYear()} ${DEVELOPER}</span>
       <nav aria-label="Footer">
         <a href="${APP_STORE_URL}">App Store</a>
         <a href="/privacy/">Privacy Policy</a>
@@ -171,7 +173,8 @@ for (const file of readdirSync(SRC)) {
 
 const home = readFileSync(join(SRC, 'home.html'), 'utf8')
   .replaceAll('{{APP_STORE_BADGE}}', APP_STORE_BADGE)
-  .replaceAll('{{EMAIL}}', EMAIL);
+  .replaceAll('{{EMAIL}}', EMAIL)
+  .replaceAll('{{DEVELOPER}}', DEVELOPER);
 
 write(
   '',
