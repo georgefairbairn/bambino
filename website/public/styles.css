@@ -475,17 +475,12 @@ section {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  transition: opacity 0.3s ease;
 }
 
 .tour-hint svg {
   width: 18px;
   height: 18px;
   animation: nudge 1.4s ease-in-out infinite;
-}
-
-.tour-hint.is-hidden {
-  opacity: 0;
 }
 
 @keyframes nudge {
@@ -502,8 +497,7 @@ section {
   .tour-phones .phone,
   .phone-label,
   .phone video,
-  .tour.is-live .tour-steps li,
-  .tour-hint {
+  .tour.is-live .tour-steps li {
     transition: none;
   }
 

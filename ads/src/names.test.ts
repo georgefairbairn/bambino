@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAST, NAMES_AVAILABLE, getOriginFlag, getPeak, getTier, getTrend } from './names';
+import { CAST, NAMES_AVAILABLE, SITE_CAST, getOriginFlag, getPeak, getTier, getTrend } from './names';
 import { UNDERLINE_COLORS } from './theme';
 
 describe('name cast', () => {
@@ -13,14 +13,14 @@ describe('name cast', () => {
   });
 
   it('carries ten years of real ranks ending on the current rank', () => {
-    for (const entry of Object.values(CAST)) {
+    for (const entry of [...Object.values(CAST), ...Object.values(SITE_CAST)]) {
       expect(entry.tenYearRanks).toHaveLength(10);
       expect(entry.tenYearRanks[9]).toBe(entry.rank);
     }
   });
 
   it('gives every cast member a meaning, a flag and a colourable gender', () => {
-    for (const entry of Object.values(CAST)) {
+    for (const entry of [...Object.values(CAST), ...Object.values(SITE_CAST)]) {
       expect(entry.meaning.length).toBeGreaterThan(40);
       expect(getOriginFlag(entry.origin)).not.toBe('\u{1F30D}');
       expect(UNDERLINE_COLORS).toHaveProperty(entry.gender);
@@ -47,6 +47,11 @@ describe('name cast', () => {
 describe('getTrend — mirrors convex/popularity.ts', () => {
   it('reads Olivia as steady, since 2 → 1 is inside the ten-place dead band', () => {
     expect(getTrend(CAST.olivia.tenYearRanks)).toBe('steady');
+  });
+
+  it("keeps the site cast's match, so the popularity sheet stays Esme's", () => {
+    expect(SITE_CAST.esme).toBe(CAST.esme);
+    expect(new Set(Object.values(SITE_CAST).map((n) => n.name)).size).toBe(5);
   });
 
   it('reads the other four as rising', () => {

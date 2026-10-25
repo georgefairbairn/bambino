@@ -94,6 +94,35 @@ export const CAST = {
   },
 } as const satisfies Cast;
 
+/**
+ * The website's cast (AppPreview `web`). The keys are roles in the story, not
+ * names: `juniper` is the name you like on your own, `wren` the one you pass on
+ * and your partner keeps. Mia matches the App Store screenshots; Theodore gives
+ * the story a popular boy's name. Rows from data/names.json and
+ * data/popularity.json, which match production for the names above.
+ */
+export const SITE_CAST = {
+  ...CAST,
+  juniper: {
+    name: 'Mia',
+    gender: 'female',
+    origin: 'Nordic',
+    rank: 6,
+    meaning:
+      'A Scandinavian diminutive of Maria, meaning beloved or wished-for child. Mia is short, sweet, and internationally recognized.',
+    tenYearRanks: [6, 6, 6, 6, 7, 8, 8, 8, 8, 6],
+  },
+  wren: {
+    name: 'Theodore',
+    gender: 'male',
+    origin: 'Greek',
+    rank: 7,
+    meaning:
+      'From the Greek name Theodoros meaning gift of God. Theodore Roosevelt made this name synonymous with adventurous leadership.',
+    tenYearRanks: [126, 99, 83, 61, 44, 36, 23, 10, 10, 7],
+  },
+} as const satisfies Cast;
+
 /** Names available with no filters, and with Celebrity switched on. */
 export const NAMES_AVAILABLE = { all: 13359, celebrity: 295 } as const;
 
