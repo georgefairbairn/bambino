@@ -2,10 +2,9 @@
 /**
  * Builds the static bambinobaby.xyz site into website/public.
  *
- * The privacy policy and terms are rendered from docs/*.md so the repo keeps a
- * single source of truth for legal copy. No dependencies: the markdown in those
- * files only uses headings, paragraphs, bullet lists, bold, links and bare
- * URLs/emails, which is all the tiny renderer below handles.
+ * The privacy policy and terms live in Notion, the same pages the App Store
+ * listing and the app link to, so there is one copy of each. /privacy/ and
+ * /terms/ redirect there, giving the site stable URLs of its own.
  *
  * Usage: node website/build.mjs
  */
@@ -14,7 +13,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SITE_DIR = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(SITE_DIR, '..');
 const SRC = join(SITE_DIR, 'src');
 const OUT = join(SITE_DIR, 'public');
 
@@ -25,76 +23,12 @@ const EMAIL = 'hello@bambinobaby.xyz';
 const DEVELOPER = 'George Fairbairn';
 const SITE_URL = 'https://bambinobaby.xyz';
 
-// The docs link to the old Notion-hosted policy; on the site, point at our own page.
-const LINK_REWRITES = {
-  'https://bambino-baby.notion.site/325d3b58308281158ce6c6cbdd562734': '/privacy/',
-};
+// Keep in sync with app/(auth)/sign-up.tsx and app/(tabs)/profile.tsx.
+const PRIVACY_URL = 'https://bambino-baby.notion.site/325d3b58308281158ce6c6cbdd562734';
+const TERMS_URL = 'https://bambino-baby.notion.site/325d3b58308281768597f8bd57581eb7';
 
 const escapeHtml = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-function renderInline(text) {
-  const links = [];
-  const stash = (html) => `\u0000${links.push(html) - 1}\u0000`;
-  const href = (url) => LINK_REWRITES[url] ?? url;
-
-  let out = text
-    // [label](url)
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, url) =>
-      stash(`<a href="${escapeHtml(href(url))}">${escapeHtml(label)}</a>`),
-    )
-    // bare URLs (trailing punctuation stays outside the link)
-    .replace(/https?:\/\/[^\s<]+[^\s<.,;:)]/g, (url) =>
-      stash(
-        `<a href="${escapeHtml(href(url))}">${escapeHtml(href(url) === url ? url : SITE_URL + href(url))}</a>`,
-      ),
-    )
-    // emails
-    .replace(/[\w.+-]+@[\w-]+\.[\w.-]*\w/g, (email) =>
-      stash(`<a href="mailto:${email}">${email}</a>`),
-    );
-
-  out = escapeHtml(out).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  return out.replace(/\u0000(\d+)\u0000/g, (_, i) => links[Number(i)]);
-}
-
-function renderMarkdown(md) {
-  const html = [];
-  let paragraph = [];
-  let list = null;
-
-  const flush = () => {
-    if (paragraph.length) html.push(`<p>${renderInline(paragraph.join(' '))}</p>`);
-    if (list)
-      html.push(`<ul>\n${list.map((li) => `  <li>${renderInline(li)}</li>`).join('\n')}\n</ul>`);
-    paragraph = [];
-    list = null;
-  };
-
-  for (const raw of md.split('\n')) {
-    const line = raw.trimEnd();
-    const heading = line.match(/^(#{1,4})\s+(.*)$/);
-    const bullet = line.match(/^[-*]\s+(.*)$/);
-
-    if (!line.trim()) {
-      flush();
-    } else if (heading) {
-      flush();
-      const level = heading[1].length;
-      html.push(`<h${level}>${renderInline(heading[2])}</h${level}>`);
-    } else if (bullet) {
-      if (paragraph.length) flush();
-      (list ??= []).push(bullet[1]);
-    } else if (list && /^\s+/.test(raw)) {
-      list[list.length - 1] += ` ${line.trim()}`;
-    } else {
-      if (list) flush();
-      paragraph.push(line.trim());
-    }
-  }
-  flush();
-  return html.join('\n');
-}
 
 // Apple's official badge artwork, shared with the ads (ads/public/app-store-badge.svg).
 const APP_STORE_BADGE = `<a class="app-store-badge" href="${APP_STORE_URL}">
@@ -141,8 +75,8 @@ ${body}
       <span>© ${new Date().getFullYear()} ${DEVELOPER}</span>
       <nav aria-label="Footer">
         <a href="${APP_STORE_URL}">App Store</a>
-        <a href="/privacy/">Privacy Policy</a>
-        <a href="/terms/">Terms of Service</a>
+        <a href="${PRIVACY_URL}">Privacy Policy</a>
+        <a href="${TERMS_URL}">Terms of Service</a>
         <a href="mailto:${EMAIL}">${EMAIL}</a>
       </nav>
     </div>
@@ -181,32 +115,23 @@ write(
   }),
 );
 
-const legalPages = [
-  {
-    path: 'privacy',
-    doc: 'privacy-policy.md',
-    title: 'Privacy Policy',
-    description: 'How Bambino collects, uses and protects your data.',
-  },
-  {
-    path: 'terms',
-    doc: 'terms-of-service.md',
-    title: 'Terms of Service',
-    description: 'The terms that govern your use of the Bambino app.',
-  },
-];
+// bambinobaby.xyz/privacy and /terms forward to the Notion pages.
+const redirect = (title, url) => `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)} | Bambino</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="${url}">
+  <meta http-equiv="refresh" content="0; url=${url}">
+</head>
+<body>
+  <p><a href="${url}">${escapeHtml(title)}</a></p>
+</body>
+</html>
+`;
 
-for (const page of legalPages) {
-  const md = readFileSync(join(ROOT, 'docs', page.doc), 'utf8');
-  write(
-    page.path,
-    layout({
-      title: `${page.title} | Bambino`,
-      description: page.description,
-      path: `/${page.path}/`,
-      body: `<article class="wrap legal">\n${renderMarkdown(md)}\n</article>`,
-    }),
-  );
-}
+write('privacy', redirect('Privacy Policy', PRIVACY_URL));
+write('terms', redirect('Terms of Service', TERMS_URL));
 
 console.log('Built website/public');

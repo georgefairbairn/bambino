@@ -7,7 +7,7 @@ node website/build.mjs   # writes website/public
 ```
 
 - `src/home.html` is the landing page body; `build.mjs` wraps it (and every page) in the shared header/footer.
-- `/privacy/` and `/terms/` are rendered from `docs/privacy-policy.md` and `docs/terms-of-service.md`. Edit the markdown, then rebuild.
+- The privacy policy and terms are the Notion pages the App Store listing and the app link to. The footer links straight to them, and `/privacy/` and `/terms/` redirect there. If the Notion URLs change, update `build.mjs`, `app/(auth)/sign-up.tsx` and `app/(tabs)/profile.tsx`.
 - `src/` assets (CSS, icons, video, screenshots) are copied to `public/` as-is.
 - Fonts follow `Fonts` in `constants/theme.ts`: Alfa Slab One for the "bambino" wordmark only, Gabarito 800 for headings, the system font for body text.
 
