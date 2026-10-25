@@ -10,6 +10,7 @@ import {
 import { DEVICE_H, DEVICE_W } from './device';
 import { CAST, type Cast } from './names';
 import { type PhoneScene, getScene } from './scene';
+import { AD_CHROME, APP_CHROME, ScreenChromeContext } from './screen-chrome';
 import { StoryClockContext } from './story-frame';
 import { getHeadlines } from './timeline';
 import { Headline } from './layers/Headline';
@@ -39,13 +40,11 @@ const Screen: React.FC<{ scene: PhoneScene; cast: Cast; opacity?: number }> = ({
 );
 
 /**
- * The App Store app preview. See app-preview.ts. `captions: false` drops the
- * caption and its scrim, for the website, which sets its own text.
+ * The App Store app preview. See app-preview.ts. `web` renders the website's
+ * cut: no caption (the page sets its own text under the phone), and the whole
+ * screen as the app draws it, with its full-height card and tab bar.
  */
-export const AppPreview: React.FC<{ cast?: Cast; captions?: boolean }> = ({
-  cast = CAST,
-  captions = true,
-}) => {
+export const AppPreview: React.FC<{ cast?: Cast; web?: boolean }> = ({ cast = CAST, web = false }) => {
   const frame = toPreviewStoryFrame(useCurrentFrame());
   // No sway: a full-bleed screen that drifted would show its edges.
   const scene = getScene(frame, PREVIEW_LAYOUT, cast, { swayFrame: 0 });
@@ -53,28 +52,30 @@ export const AppPreview: React.FC<{ cast?: Cast; captions?: boolean }> = ({
   const partner = partnerOpacity(frame);
 
   return (
-    <StoryClockContext.Provider value={{ frame, pace: 'full' }}>
-      <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#fff' }}>
-        <Screen scene={mint} cast={cast} />
-        {partner > 0 && <Screen scene={blue} cast={cast} opacity={partner} />}
-        {captions && (
-          <>
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                top: CAPTION_SCRIM.from,
-                bottom: 0,
-                background: `linear-gradient(180deg, rgba(255,255,255,0) 0px, rgba(255,255,255,0.92) ${
-                  CAPTION_SCRIM.solid - CAPTION_SCRIM.from
-                }px)`,
-              }}
-            />
-            <Headline layout={PREVIEW_LAYOUT} headlines={getHeadlines('looking')} />
-          </>
-        )}
-      </AbsoluteFill>
-    </StoryClockContext.Provider>
+    <ScreenChromeContext.Provider value={web ? APP_CHROME : AD_CHROME}>
+      <StoryClockContext.Provider value={{ frame, pace: 'full' }}>
+        <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#fff' }}>
+          <Screen scene={mint} cast={cast} />
+          {partner > 0 && <Screen scene={blue} cast={cast} opacity={partner} />}
+          {!web && (
+            <>
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: CAPTION_SCRIM.from,
+                  bottom: 0,
+                  background: `linear-gradient(180deg, rgba(255,255,255,0) 0px, rgba(255,255,255,0.92) ${
+                    CAPTION_SCRIM.solid - CAPTION_SCRIM.from
+                  }px)`,
+                }}
+              />
+              <Headline layout={PREVIEW_LAYOUT} headlines={getHeadlines('looking')} />
+            </>
+          )}
+        </AbsoluteFill>
+      </StoryClockContext.Provider>
+    </ScreenChromeContext.Provider>
   );
 };

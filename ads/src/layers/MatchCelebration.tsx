@@ -1,5 +1,6 @@
 import type React from 'react';
-import { CARD_H, CARD_W, CARD_X, CARD_Y } from '../device';
+import { CARD_W, CARD_X, CARD_Y } from '../device';
+import { useScreenChrome } from '../screen-chrome';
 import { GABARITO, SANS } from '../fonts';
 import { AD_THEMES, type AdTheme, TEXT } from '../theme';
 
@@ -19,6 +20,7 @@ export const MatchCelebration: React.FC<{ name: string; theme: AdTheme; progress
   theme,
   progress,
 }) => {
+  const { cardHeight } = useScreenChrome();
   if (progress <= 0) return null;
   const colors = AD_THEMES[theme];
   const card = clamp01(progress / 0.35);
@@ -34,7 +36,7 @@ export const MatchCelebration: React.FC<{ name: string; theme: AdTheme; progress
         left: CARD_X,
         top: CARD_Y,
         width: CARD_W,
-        height: CARD_H,
+        height: cardHeight,
         borderRadius: 16,
         border: `5px solid ${colors.primary}`,
         backgroundColor: '#FFFFFF',

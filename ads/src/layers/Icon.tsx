@@ -1,22 +1,30 @@
 import type React from 'react';
 import {
   arrowBack,
+  bookmarkOutline,
   chevronDown,
   heart,
   heartDislike,
   optionsOutline,
   close,
+  peopleOutline,
+  search,
+  settingsOutline,
   volumeHigh,
 } from 'ionicons/icons';
 
 /** The Ionicons the app itself uses, from the same icon set. */
 const ICONS = {
   arrowBack,
+  bookmarkOutline,
   chevronDown,
   close,
   heart,
   heartDislike,
   optionsOutline,
+  peopleOutline,
+  search,
+  settingsOutline,
   volumeHigh,
 } as const;
 
