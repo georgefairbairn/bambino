@@ -13,19 +13,16 @@ node website/build.mjs   # writes website/public
 
 ## Media from the ads
 
-`app-store-badge.svg` is Apple's badge, copied from `ads/public`. The hero video and the three "How it works" screens come from the ads' App Store preview (`cd ads && npm run render:preview`):
+`app-store-badge.svg` is Apple's badge, copied from `ads/public`. The phone tour plays the ads' App Store preview, rendered without its captions so the page can set its own text under the phone:
 
 ```bash
-cd ads/out
-# hero video: 600px wide, silent, streamable
-ffmpeg -i bambino-app-preview.mp4 -an -vf scale=600:-2 -c:v libx264 -crf 27 -preset veryslow \
-  -pix_fmt yuv420p -movflags +faststart ../../website/src/app-preview.mp4
-ffmpeg -ss 0 -i bambino-app-preview.mp4 -frames:v 1 -vf scale=600:-2 -q:v 4 ../../website/src/app-preview-poster.jpg
-# step screens, cropped above the captions
-for pair in swipe:2.4 partner:5.8 match:8.0; do
-  ffmpeg -ss ${pair#*:} -i bambino-app-preview.mp4 -frames:v 1 -vf crop=886:1480:0:0,scale=480:-2 \
-    -q:v 3 ../../website/src/screen-${pair%%:*}.jpg
-done
+cd ads
+npx remotion render src/index.ts AppPreview out/bambino-app-preview-clean.mp4 --props='{"captions":false}'
+cd out
+# 600px wide, silent, streamable, a keyframe every 10 frames so scroll seeks land instantly
+ffmpeg -i bambino-app-preview-clean.mp4 -an -vf scale=600:-2 -c:v libx264 -crf 27 -preset veryslow \
+  -g 10 -keyint_min 10 -pix_fmt yuv420p -movflags +faststart ../../website/src/app-tour.mp4
+ffmpeg -ss 0 -i bambino-app-preview-clean.mp4 -frames:v 1 -vf scale=600:-2 -q:v 4 ../../website/src/app-tour-poster.jpg
 ```
 
-`website/public` is committed so any static host can serve it with no build step. If the host runs a build instead, use `node website/build.mjs` as the build command and `website/public` as the output directory.
+Each tour step in `src/home.html` plays its own stretch of that video (`data-start`/`data-end`, in seconds). If the preview's timing changes, update those.
