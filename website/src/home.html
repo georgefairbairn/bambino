@@ -1,0 +1,97 @@
+<section class="hero">
+  <div class="wrap">
+    <h1>Find the perfect name, <em>together.</em></h1>
+    <p>
+      Swipe through thousands of baby names, link up with your partner, and see
+      the names you both love.
+    </p>
+    {{APP_STORE_BADGE}}
+    <div class="hero-note">Free to download. In-app purchases available.</div>
+  </div>
+</section>
+
+<!--
+  The tour: the phone stays pinned while the page scrolls past it, and each
+  step plays its own stretch of the app preview once (data-start/data-end,
+  seconds), then holds on its last frame.
+  Without JavaScript the whole video loops and every step's text is listed.
+-->
+<section class="tour" id="how-it-works" aria-label="How Bambino works">
+  <div class="tour-pin">
+    <div class="tour-phones">
+      <div class="phone phone-you">
+        <span class="phone-label">You</span>
+        <div class="island" aria-hidden="true"></div>
+        <video
+          src="/app-tour.mp4"
+          poster="/app-tour-poster.jpg"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+          aria-hidden="true"
+        ></video>
+      </div>
+      <!-- The partner's phone joins for the steps marked data-duo. Its video
+           starts data-offset seconds into the tour's timeline. -->
+      <div class="phone phone-partner" aria-hidden="true">
+        <span class="phone-label">Your partner</span>
+        <div class="island"></div>
+        <video
+          src="/app-tour-partner.mp4"
+          poster="/app-tour-partner-poster.jpg"
+          data-offset="3"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+      </div>
+    </div>
+    <ol class="tour-steps">
+      <li data-start="0" data-end="3.2">
+        <h2>Swipe through thousands of names</h2>
+        <p>Right to like, left to pass. Every name shows its origin, meaning and rank.</p>
+      </li>
+      <li data-start="3.2" data-end="6.1" data-duo>
+        <h2>Link up with your partner</h2>
+        <p>Share your code, then you each swipe on your own phone. Only the names you both like count.</p>
+      </li>
+      <li data-start="6.1" data-end="8.9" data-duo>
+        <h2>The names you both like become matches</h2>
+        <p>Build a shortlist together, then propose the one.</p>
+      </li>
+      <li data-start="9.45" data-end="11.7">
+        <h2>Filter by style, origin or gender</h2>
+        <p>Trending, classic, celebrity, vintage and more. Only see the names that fit.</p>
+      </li>
+      <li data-start="11.85" data-end="15.8">
+        <h2>See how popular it really is</h2>
+        <p>Rank and trend for every name, from US Social Security records.</p>
+      </li>
+    </ol>
+    <div class="tour-progress" aria-label="Steps"></div>
+    <div class="tour-hint" aria-hidden="true">
+      Scroll
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2 class="section-title">Ready to start swiping?</h2>
+    <p>Bambino is available now on the App Store.</p>
+    {{APP_STORE_BADGE}}
+  </div>
+</section>
+
+<section class="section-alt contact" id="contact">
+  <div class="wrap">
+    <h2 class="section-title">Get in touch</h2>
+    <p>Questions, feedback, or need a hand with your account? Drop us a line and we’ll get back to you within a couple of business days.</p>
+    <a class="email-link" href="mailto:{{EMAIL}}">{{EMAIL}}</a>
+  </div>
+</section>
+
+<script src="/tour.js" defer></script>

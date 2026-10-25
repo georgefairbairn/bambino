@@ -1,0 +1,11 @@
+# bambinobaby.xyz: the static site in website/ (see website/README.md).
+# The Netlify project is bambino-dev; this file overrides its UI build settings.
+[build]
+  base = "website"
+  command = "node build.mjs"
+  publish = "public"
+  # Only rebuild when the site changed, not on every app commit. Paths are relative to base.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
+
+[build.environment]
+  NODE_VERSION = "22"

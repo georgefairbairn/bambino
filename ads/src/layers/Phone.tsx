@@ -8,7 +8,9 @@ import { DetailSheet } from './DetailSheet';
 import { ExploreScreen } from './ExploreScreen';
 import { FiltersScreen } from './FiltersScreen';
 import { StatusBar } from './StatusBar';
+import { TabBar } from './TabBar';
 import { TapIndicator } from './TapIndicator';
+import { useScreenChrome } from '../screen-chrome';
 
 const SCREEN_RADIUS = 55;
 
@@ -93,6 +95,7 @@ export const PhoneScreen: React.FC<{
 }> = ({ scene, cast = CAST, island = true }) => {
   const bg = screenBackground(scene.theme);
   const { stack } = scene;
+  const chrome = useScreenChrome();
 
   return (
     <>
@@ -122,6 +125,9 @@ export const PhoneScreen: React.FC<{
           )}
         </div>
       )}
+
+      {/* Filters is pushed inside the Explore tab, so the tab bar stays; the detail sheet covers it. */}
+      {chrome.tabBar && <TabBar theme={scene.theme} />}
 
       {stack.sheet?.kind === 'detail' && (
         <DetailSheet

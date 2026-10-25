@@ -1,6 +1,7 @@
 import type React from 'react';
 import { type CardVisuals } from '../card-visuals';
-import { CARD_H, CARD_W, CARD_X, CARD_Y } from '../device';
+import { CARD_W, CARD_X, CARD_Y } from '../device';
+import { useScreenChrome } from '../screen-chrome';
 import { GABARITO, SANS } from '../fonts';
 import { type AdName, getOriginFlag, getTrend } from '../names';
 import {
@@ -76,6 +77,7 @@ export const NameCard: React.FC<{
   /** Peek-card scale and offset, for the card waiting behind. */
   peek?: { scale: number; translateY: number };
 }> = ({ name, theme, visuals: v, peek }) => {
+  const { cardHeight } = useScreenChrome();
   const colors = AD_THEMES[theme];
   const underline = UNDERLINE_COLORS[name.gender];
   const trend = getTrend(name.tenYearRanks);
@@ -90,7 +92,7 @@ export const NameCard: React.FC<{
         left: CARD_X,
         top: CARD_Y,
         width: CARD_W,
-        height: CARD_H,
+        height: cardHeight,
         borderRadius: CARD.borderRadius,
         backgroundColor: CARD.backgroundColor,
         overflow: 'hidden',
