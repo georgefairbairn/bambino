@@ -1,6 +1,6 @@
 // Scroll-driven tour: the phone pins while the section scrolls past, and the
 // step whose slice of the scroll we're in sets the caption and the stretch of
-// video that loops on the phone. The progress bars fill continuously, so the
+// video that plays once on the phone. The progress bars fill continuously, so the
 // reader can see their scrolling is doing something between step changes.
 (() => {
   const tour = document.querySelector('.tour');
@@ -38,15 +38,21 @@
     partner.currentTime = Math.max(0, video.currentTime - partnerOffset);
   };
 
-  // Keep playback inside the active step's range, and the partner's phone in
-  // step with yours. requestAnimationFrame rather than timeupdate, which fires
-  // too rarely to stop at the boundary.
-  const loopWithinStep = () => {
+  // Play the active step's range once, then hold on its last frame; scrolling
+  // back into a step plays it again. requestAnimationFrame rather than
+  // timeupdate, which fires too rarely to stop at the boundary. The partner's
+  // phone is kept in step with yours.
+  const HOLD = 1 / 30; // stop a frame short, so the next step's first frame never shows
+  const playStepOnce = () => {
     if (active >= 0 && !video.paused) {
-      const [start, end] = ranges[active];
-      if (video.currentTime >= end || video.currentTime < start - 0.25) {
-        video.currentTime = start;
-        if (duo[active]) syncPartner();
+      const end = ranges[active][1];
+      if (video.currentTime >= end - HOLD) {
+        video.pause();
+        video.currentTime = end - HOLD;
+        if (duo[active]) {
+          partner.pause();
+          syncPartner();
+        }
       } else if (
         duo[active] &&
         Math.abs(partner.currentTime + partnerOffset - video.currentTime) > 0.2
@@ -54,7 +60,7 @@
         syncPartner();
       }
     }
-    requestAnimationFrame(loopWithinStep);
+    requestAnimationFrame(playStepOnce);
   };
 
   const setStep = (i) => {
@@ -126,5 +132,5 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
   update();
-  requestAnimationFrame(loopWithinStep);
+  requestAnimationFrame(playStepOnce);
 })();
