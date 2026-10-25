@@ -205,6 +205,8 @@ const config: ExpoConfig = {
         isAutoInitEnabled: true,
       },
     ],
+    // Xcode 27 won't build pods that target iOS < 15; see the plugin.
+    './plugins/with-pod-deployment-target',
   ],
   experiments: {
     typedRoutes: true,
