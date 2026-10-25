@@ -611,6 +611,8 @@ export const resetAppReviewDemo = internalMutation({
         hasOpenedFilters: undefined,
         filterNudgeShown: undefined,
         inviteNudgeShown: undefined,
+        inviteNudgeShowCount: undefined,
+        inviteNudgeLastShownAtSwipes: undefined,
         likedCount: 0,
         rejectedCount: 0,
         skippedCount: 0,

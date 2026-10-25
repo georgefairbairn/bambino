@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { sanitizeImageUrl } from './validation';
 import { convexError } from './errors';
+import { isInviteNudgeDue } from './inviteNudge';
 
 // 31-char alphabet with confusables (I/O/0/1) removed for readability when
 // users dictate codes verbally. 31^8 ≈ 8.5e11 keyspace.
@@ -179,7 +180,7 @@ export const getPartnerInfo = query({
     return {
       shareCode: user.shareCode ?? null,
       partner,
-      inviteNudgeShown: user.inviteNudgeShown === true,
+      inviteNudgeDue: isInviteNudgeDue(user),
     };
   },
 });

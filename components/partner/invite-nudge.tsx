@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -8,11 +8,9 @@ import { GradientButton } from '@/components/ui/gradient-button';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { usePushPrimingPrompt } from '@/contexts/push-priming-context';
-import { buildInviteMessage } from '@/constants/links';
 import { ShareCodeDisplay } from '@/components/partner/share-code-display';
 import { Events, trackEvent } from '@/lib/analytics';
-
-const LIKES_BEFORE_NUDGE = 10;
+import { shareInvite } from '@/lib/share-invite';
 
 interface InviteNudgeProps {
   /** Hold the nudge back this session — e.g. while the filter nudge is on screen. */
@@ -20,13 +18,10 @@ interface InviteNudgeProps {
 }
 
 /**
- * One-time partner-invite nudge. Slides up over the swipe screen once an
- * unpartnered user has liked {@link LIKES_BEFORE_NUDGE} names — the point where
- * they've shown intent but have nothing to match against.
- *
- * "Once" is enforced on the user row (`inviteNudgeShown`), not local state, so
- * it survives reinstalls and doesn't reappear on a second device. Both the
- * share path and the dismiss path mark it shown, so it never returns either way.
+ * Partner-invite nudge. Slides up over the swipe screen when the server says
+ * it's due (`inviteNudgeDue`): after 20 swipes, then once more 100 swipes
+ * later. The schedule lives on the user row (convex/inviteNudge.ts), so it
+ * survives reinstalls and doesn't repeat on a second device.
  */
 export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
   const { colors } = useTheme();
@@ -47,23 +42,27 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
     !suppressed &&
     partnerInfo != null &&
     !partnerInfo.partner &&
-    partnerInfo.inviteNudgeShown !== true &&
-    !!partnerInfo.shareCode &&
-    likedCount >= LIKES_BEFORE_NUDGE;
+    partnerInfo.inviteNudgeDue &&
+    !!partnerInfo.shareCode;
 
-  // Open once, then latch. Visibility deliberately does NOT track `eligible`:
-  // markShown() below sets inviteNudgeShown, which makes `eligible` false on the
-  // next query round-trip — driving the sheet off that would snap it shut a
-  // frame after it opened. `open` is owned by the user from here on.
+  // Open on each showing, then latch. Visibility deliberately does NOT track
+  // `eligible`: markShown() below makes the nudge not due on the next query
+  // round-trip, and driving the sheet off that would snap it shut a frame after
+  // it opened. `open` is owned by the user from here on. The latch resets once
+  // the server agrees the showing is recorded, ready for the next one.
   useEffect(() => {
-    if (!eligible || latchedRef.current) return;
+    if (!eligible) {
+      if (partnerInfo != null && !partnerInfo.inviteNudgeDue) latchedRef.current = false;
+      return;
+    }
+    if (latchedRef.current) return;
     latchedRef.current = true;
     setOpen(true);
     trackEvent(Events.INVITE_NUDGE_SHOWN, { liked_count: likedCount });
     // Persist immediately rather than on dismiss, so force-quitting the app
     // while it's on screen doesn't bring it back.
     void markShown();
-  }, [eligible, likedCount, markShown]);
+  }, [eligible, partnerInfo, likedCount, markShown]);
 
   const close = () => setOpen(false);
 
@@ -77,9 +76,7 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
     setIsSharing(true);
     let shared = false;
     try {
-      const result = await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
-      trackEvent(Events.PARTNER_CODE_SHARED, { source: 'invite_nudge' });
-      shared = result.action === Share.sharedAction;
+      shared = await shareInvite(partnerInfo.shareCode, 'invite_nudge');
     } catch (error) {
       Sentry.captureException(error);
     } finally {
@@ -99,8 +96,8 @@ export function InviteNudge({ suppressed = false }: InviteNudgeProps) {
       <View style={styles.header}>
         <Text style={styles.headline}>Invite your partner</Text>
         <Text style={styles.subcopy}>
-          You&apos;ve liked {likedCount} names. Invite your partner to start matching. The names you
-          both like show up together.
+          {likedCount >= 2 ? `You've liked ${likedCount} names. ` : ''}Invite your partner to start
+          matching. The names you both like show up together.
         </Text>
       </View>
 

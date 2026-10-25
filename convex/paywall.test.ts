@@ -320,39 +320,92 @@ describe('reciprocal premium match access', () => {
 });
 
 describe('partner invite nudge', () => {
-  test('getPartnerInfo reports inviteNudgeShown false before it fires', async () => {
+  const nudgeDue = async (t: ReturnType<typeof convexTest>, clerkId: string) =>
+    (await t.withIdentity({ subject: clerkId }).query(api.partners.getPartnerInfo, {}))
+      ?.inviteNudgeDue;
+
+  test('is due at 20 swipes, however few of them were likes', async () => {
     const t = convexTest(schema, modules);
-    await seedUser(t, { clerkId: 'clerk_nudge_a', shareCode: 'AAAA2222' });
+    const userId = await seedUser(t, {
+      clerkId: 'clerk_nudge_a',
+      shareCode: 'AAAA2222',
+      lifetimeSwipeCount: 19,
+    });
 
-    const info = await t
-      .withIdentity({ subject: 'clerk_nudge_a' })
-      .query(api.partners.getPartnerInfo, {});
-
-    expect(info?.inviteNudgeShown).toBe(false);
-    expect(info?.shareCode).toBe('AAAA2222');
+    expect(await nudgeDue(t, 'clerk_nudge_a')).toBe(false);
+    await t.run(async (ctx) => ctx.db.patch(userId, { lifetimeSwipeCount: 20, likedCount: 0 }));
+    expect(await nudgeDue(t, 'clerk_nudge_a')).toBe(true);
   });
 
-  test('markInviteNudgeShown latches the flag and is idempotent', async () => {
+  test('asks once more 100 swipes after the first, then never again', async () => {
     const t = convexTest(schema, modules);
-    const userId = await seedUser(t, { clerkId: 'clerk_nudge_b', shareCode: 'BBBB3333' });
+    const userId = await seedUser(t, {
+      clerkId: 'clerk_nudge_b',
+      shareCode: 'BBBB3333',
+      lifetimeSwipeCount: 25,
+    });
     const asUser = t.withIdentity({ subject: 'clerk_nudge_b' });
+    const setSwipes = (n: number) =>
+      t.run(async (ctx) => ctx.db.patch(userId, { lifetimeSwipeCount: n }));
 
     await asUser.mutation(api.users.markInviteNudgeShown, {});
-    const first = await t.run(async (ctx) => ctx.db.get(userId));
-    expect(first?.inviteNudgeShown).toBe(true);
+    expect(await nudgeDue(t, 'clerk_nudge_b')).toBe(false);
 
-    // Stamp a sentinel updatedAt so a second write is detectable. Comparing
-    // updatedAt before/after would NOT work: both calls land in the same
-    // millisecond, so the assertion passes even with the guard deleted.
-    await t.run(async (ctx) => ctx.db.patch(userId, { updatedAt: 1 }));
+    await setSwipes(124);
+    expect(await nudgeDue(t, 'clerk_nudge_b')).toBe(false);
+    await setSwipes(125);
+    expect(await nudgeDue(t, 'clerk_nudge_b')).toBe(true);
 
     await asUser.mutation(api.users.markInviteNudgeShown, {});
-    const second = await t.run(async (ctx) => ctx.db.get(userId));
-    expect(second?.inviteNudgeShown).toBe(true);
-    expect(second?.updatedAt).toBe(1);
+    await setSwipes(5000);
+    expect(await nudgeDue(t, 'clerk_nudge_b')).toBe(false);
 
-    const info = await asUser.query(api.partners.getPartnerInfo, {});
-    expect(info?.inviteNudgeShown).toBe(true);
+    const user = await t.run(async (ctx) => ctx.db.get(userId));
+    expect(user?.inviteNudgeShowCount).toBe(2);
+    expect(user?.inviteNudgeLastShownAtSwipes).toBe(125);
+  });
+
+  test('a repeat mark for the same showing does not use up the second ask', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, {
+      clerkId: 'clerk_nudge_c',
+      shareCode: 'CCCC4444',
+      lifetimeSwipeCount: 30,
+    });
+    const asUser = t.withIdentity({ subject: 'clerk_nudge_c' });
+
+    await asUser.mutation(api.users.markInviteNudgeShown, {});
+    await asUser.mutation(api.users.markInviteNudgeShown, {});
+
+    const user = await t.run(async (ctx) => ctx.db.get(userId));
+    expect(user?.inviteNudgeShowCount).toBe(1);
+  });
+
+  test('users who saw the old one-time nudge get their second ask at 100 swipes', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, {
+      clerkId: 'clerk_nudge_d',
+      shareCode: 'DDDD5555',
+      lifetimeSwipeCount: 99,
+    });
+    await t.run(async (ctx) => ctx.db.patch(userId, { inviteNudgeShown: true }));
+
+    expect(await nudgeDue(t, 'clerk_nudge_d')).toBe(false);
+    await t.run(async (ctx) => ctx.db.patch(userId, { lifetimeSwipeCount: 100 }));
+    expect(await nudgeDue(t, 'clerk_nudge_d')).toBe(true);
+  });
+
+  test('is never due once a partner is linked', async () => {
+    const t = convexTest(schema, modules);
+    const partnerId = await seedUser(t, { clerkId: 'clerk_nudge_p' });
+    await seedUser(t, {
+      clerkId: 'clerk_nudge_e',
+      shareCode: 'EEEE6666',
+      lifetimeSwipeCount: 500,
+      partnerId,
+    });
+
+    expect(await nudgeDue(t, 'clerk_nudge_e')).toBe(false);
   });
 });
 

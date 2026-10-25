@@ -82,6 +82,7 @@ export const Events = {
   // Partner invite nudge
   INVITE_NUDGE_SHOWN: 'invite_nudge_shown',
   INVITE_NUDGE_DISMISSED: 'invite_nudge_dismissed',
+  INVITE_BANNER_SHOWN: 'invite_banner_shown',
 
   // Paywall & purchases
   PAYWALL_SHOWN: 'paywall_shown',

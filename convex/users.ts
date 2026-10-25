@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, QueryCtx, MutationCtx } from './_generated/server';
 import { generateUniqueShareCode } from './partners';
+import { inviteNudgeShownPatch, isInviteNudgeDue } from './inviteNudge';
 import { applyPremiumChange } from './premium';
 import { sanitizeImageUrl } from './validation';
 
@@ -324,14 +325,17 @@ export const markFilterNudgeShown = mutation({
   },
 });
 
-/** Mark that the one-time partner-invite nudge has been shown. Idempotent. */
+/**
+ * Record that the partner-invite nudge was shown. A no-op unless it's due, so a
+ * repeat call for the same showing can't use up the user's second ask.
+ */
 export const markInviteNudgeShown = mutation({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserOrThrow(ctx);
-    if (user.inviteNudgeShown === true) return;
+    if (!isInviteNudgeDue(user)) return;
     await ctx.db.patch(user._id, {
-      inviteNudgeShown: true,
+      ...inviteNudgeShownPatch(user),
       updatedAt: Date.now(),
     });
   },

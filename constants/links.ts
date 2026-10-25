@@ -6,9 +6,8 @@
 export const APP_STORE_URL = 'https://apps.apple.com/app/id6773164657';
 
 /**
- * Single source of truth for the partner invite text. Three call sites share
- * it (profile share row, onboarding slide, invite nudge) — keep it here so the
- * copy can't drift between them.
+ * Single source of truth for the partner invite text. Every share goes through
+ * shareInvite (lib/share-invite.ts), so the copy can't drift between screens.
  */
 export function buildInviteMessage(shareCode: string): string {
   return (

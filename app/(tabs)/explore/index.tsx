@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useQuery } from 'convex/react';
@@ -8,19 +9,34 @@ import { api } from '@/convex/_generated/api';
 import { useFilterNudge } from '@/hooks/use-filter-nudge';
 import { SwipeCardStack } from '@/components/swipe/swipe-card-stack';
 import { InviteNudge } from '@/components/partner/invite-nudge';
+import { InviteBanner } from '@/components/partner/invite-banner';
 import { ExploreHeader } from '@/components/swipe/explore-header';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
+/** Swipes after which the invite banner folds away for the rest of the visit. */
+const INVITE_BANNER_SWIPES_TO_COLLAPSE = 3;
+
 export default function ExploreView() {
   const router = useRouter();
   const user = useQuery(api.users.getCurrentUser);
   const stats = useQuery(api.selections.getSelectionStats);
+  const partnerInfo = useQuery(api.partners.getPartnerInfo);
+  const soloShareCode = partnerInfo && !partnerInfo.partner ? partnerInfo.shareCode : null;
+
+  // The invite banner opens on every visit to Explore and folds away after a
+  // few swipes. It stays mounted even for linked users so its height always
+  // animates back to 0 and the cards get their full size back.
+  const [inviteBannerOpen, setInviteBannerOpen] = useState(false);
+  const swipesThisVisit = useRef(0);
+  const inviteBannerHeight = useSharedValue(0);
 
   useFocusEffect(
     useCallback(() => {
       trackScreen('Explore');
+      swipesThisVisit.current = 0;
+      setInviteBannerOpen(true);
     }, []),
   );
 
@@ -52,6 +68,15 @@ export default function ExploreView() {
     filterNudgeShown: user?.filterNudgeShown,
   });
 
+  const handleSwipeResult = useCallback(
+    (type: 'like' | 'reject') => {
+      registerSwipe(type);
+      swipesThisVisit.current += 1;
+      if (swipesThisVisit.current >= INVITE_BANNER_SWIPES_TO_COLLAPSE) setInviteBannerOpen(false);
+    },
+    [registerSwipe],
+  );
+
   const handleFilterPress = useCallback(() => {
     if (pulseActive || bannerVisible) {
       trackEvent(Events.FILTER_NUDGE_TAPPED);
@@ -79,15 +104,22 @@ export default function ExploreView() {
           pulseActive={pulseActive}
           onFilterPress={handleFilterPress}
         />
+        <InviteBanner
+          expanded={inviteBannerOpen && !!soloShareCode}
+          shareCode={soloShareCode ?? ''}
+          liked={stats?.liked ?? 0}
+          height={inviteBannerHeight}
+        />
         <ErrorBoundary>
           <SwipeCardStack
             key={swipeQueueKey}
-            onSwipeResult={registerSwipe}
+            onSwipeResult={handleSwipeResult}
             nudgeBannerVisible={bannerVisible}
             onNudgeBannerPress={handleFilterPress}
+            heightInset={inviteBannerHeight}
           />
         </ErrorBoundary>
-        {/* One-time partner-invite nudge. Held back while the filter nudge owns
+        {/* Partner-invite nudge sheet. Held back while the filter nudge owns
             the screen so the two can never stack; it re-qualifies next session. */}
         <InviteNudge suppressed={bannerVisible || pulseActive} />
       </SafeAreaView>
