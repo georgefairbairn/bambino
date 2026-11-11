@@ -121,7 +121,7 @@ export const getMatches = query({
       (m): m is typeof m & { name: NonNullable<typeof m.name> } => m.name !== null,
     );
 
-    // Free tier: withhold everything past the three earliest matches. Applied
+    // Free tier: withhold everything past the earliest match. Applied
     // before the search filter so a search term can't surface a locked match.
     const premiumStatus = await getEffectivePremiumStatusHelper(ctx, user._id);
     if (!premiumStatus.isPremium) {

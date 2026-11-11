@@ -14,7 +14,7 @@ import { Events, trackEvent, trackScreen } from '@/lib/analytics';
 import { LockedMatchRows } from '@/components/matches/locked-match-rows';
 import { PartnerLinkModal } from '@/components/partner/partner-link-modal';
 import { ShareCodeDisplay } from '@/components/partner/share-code-display';
-import { buildInviteMessage } from '@/constants/links';
+import { shareInvite } from '@/lib/share-invite';
 import { alertMatchMutationError } from '@/components/matches/match-error-alert';
 import { Paywall } from '@/components/paywall';
 import {
@@ -114,9 +114,7 @@ export default function Matches() {
   const handleShareCode = useCallback(async () => {
     if (!partnerInfo?.shareCode) return;
     try {
-      const result = await Share.share({ message: buildInviteMessage(partnerInfo.shareCode) });
-      trackEvent(Events.PARTNER_CODE_SHARED, { source: 'matches_empty' });
-      if (result.action === Share.sharedAction) await promptForPush('invite');
+      if (await shareInvite(partnerInfo.shareCode, 'matches_empty')) await promptForPush('invite');
     } catch (error) {
       Sentry.captureException(error);
     }

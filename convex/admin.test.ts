@@ -60,7 +60,12 @@ describe('resetAppReviewDemo', () => {
     const now = Date.now();
     await t.run(async (ctx) => {
       await ctx.db.patch(iapId, { isPremium: true, purchasedAt: now, likedCount: 1 });
-      await ctx.db.patch(reviewerId, { genderFilter: 'boy', inviteNudgeShown: true });
+      await ctx.db.patch(reviewerId, {
+        genderFilter: 'boy',
+        inviteNudgeShown: true,
+        inviteNudgeShowCount: 2,
+        inviteNudgeLastShownAtSwipes: 120,
+      });
       await ctx.db.insert('selections', {
         userId: iapId,
         nameId: zeldaId,
@@ -80,6 +85,8 @@ describe('resetAppReviewDemo', () => {
     expect(partner?.partnerId).toBe(reviewerId);
     expect(reviewer?.genderFilter).toBeUndefined();
     expect(reviewer?.inviteNudgeShown).toBeUndefined();
+    expect(reviewer?.inviteNudgeShowCount).toBeUndefined();
+    expect(reviewer?.inviteNudgeLastShownAtSwipes).toBeUndefined();
     expect(reviewer?.likedCount).toBe(4); // Olivia, Emma, Liam, Ava
     expect(reviewer?.rejectedCount).toBe(1); // Aaron
 

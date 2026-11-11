@@ -15,7 +15,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Share,
   ActivityIndicator,
   Linking,
 } from 'react-native';
@@ -39,7 +38,7 @@ import {
 } from '@/components/settings';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GradientButton } from '@/components/ui/gradient-button';
-import { buildInviteMessage } from '@/constants/links';
+import { shareInvite } from '@/lib/share-invite';
 import { ShareCodeDisplay } from '@/components/partner/share-code-display';
 import { BUTTON_TEXT, Fonts } from '@/constants/theme';
 import { useOnboarding } from '@/hooks/use-onboarding';
@@ -232,7 +231,7 @@ export default function Profile() {
     if (!partnerInfo?.shareCode) return;
     try {
       await Clipboard.setStringAsync(partnerInfo.shareCode);
-      trackEvent(Events.PARTNER_CODE_COPIED);
+      trackEvent(Events.PARTNER_CODE_COPIED, { source: 'settings' });
       Alert.alert('Copied', 'Share code copied to clipboard!');
     } catch (err) {
       // Clipboard writes can fail (restricted device profile, sandbox). Don't
@@ -245,11 +244,7 @@ export default function Profile() {
   const handleShareCode = useCallback(async () => {
     if (partnerInfo?.shareCode) {
       try {
-        const result = await Share.share({
-          message: buildInviteMessage(partnerInfo.shareCode),
-        });
-        trackEvent(Events.PARTNER_CODE_SHARED);
-        if (result.action === Share.sharedAction) await promptForPush('invite');
+        if (await shareInvite(partnerInfo.shareCode, 'settings')) await promptForPush('invite');
       } catch (error) {
         Sentry.captureException(error);
       }

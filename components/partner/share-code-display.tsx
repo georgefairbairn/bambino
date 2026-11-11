@@ -5,11 +5,12 @@ import * as Sentry from '@sentry/react-native';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/contexts/theme-context';
 import { Events, trackEvent } from '@/lib/analytics';
+import type { InviteSource } from '@/lib/share-invite';
 
 interface ShareCodeDisplayProps {
   code: string;
   /** Where this instance is rendered, for PARTNER_CODE_COPIED attribution. */
-  source: 'settings' | 'matches_empty' | 'invite_nudge';
+  source: InviteSource;
   /** Hide the "Your Code" caption when the surrounding copy already says it. */
   showLabel?: boolean;
 }

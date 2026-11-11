@@ -23,10 +23,13 @@ export default defineSchema({
     // once per user across devices/reinstalls, like onboardingCompleted.
     hasOpenedFilters: v.optional(v.boolean()),
     filterNudgeShown: v.optional(v.boolean()),
-    // Partner-invite nudge (one-time), shown once an unpartnered user has liked
-    // 10 names. On the user row for the same reason as filterNudgeShown: "once"
-    // must mean once per account, across devices and reinstalls.
+    // Partner-invite nudge, shown to an unpartnered user on a swipe schedule
+    // (convex/inviteNudge.ts). On the user row for the same reason as
+    // filterNudgeShown: the schedule must hold across devices and reinstalls.
+    // inviteNudgeShown predates the schedule, when the nudge showed once.
     inviteNudgeShown: v.optional(v.boolean()),
+    inviteNudgeShowCount: v.optional(v.number()),
+    inviteNudgeLastShownAtSwipes: v.optional(v.number()),
     // Running counters for getSelectionStats (#183). Kept in sync by every
     // mutation that inserts/deletes/changes a selection. Backfilled lazily
     // on first counter-touching mutation per user.

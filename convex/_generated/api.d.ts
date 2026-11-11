@@ -13,6 +13,7 @@ import type * as categories from "../categories.js";
 import type * as errors from "../errors.js";
 import type * as feedback from "../feedback.js";
 import type * as http from "../http.js";
+import type * as inviteNudge from "../inviteNudge.js";
 import type * as matches from "../matches.js";
 import type * as names from "../names.js";
 import type * as notifications from "../notifications.js";
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   errors: typeof errors;
   feedback: typeof feedback;
   http: typeof http;
+  inviteNudge: typeof inviteNudge;
   matches: typeof matches;
   names: typeof names;
   notifications: typeof notifications;

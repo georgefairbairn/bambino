@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from 'convex/react';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -30,6 +31,8 @@ interface SwipeCardStackProps {
   // trigger swipe, removed on the next swipe.
   nudgeBannerVisible?: boolean;
   onNudgeBannerPress?: () => void;
+  // Height of the invite banner above the stack; the cards give it up.
+  heightInset?: SharedValue<number>;
 }
 
 // One-time flag: the silent-mode listen hint is shown on the user's first-ever
@@ -40,6 +43,7 @@ export function SwipeCardStack({
   onSwipeResult,
   nudgeBannerVisible = false,
   onNudgeBannerPress,
+  heightInset,
 }: SwipeCardStackProps) {
   const router = useRouter();
 
@@ -287,6 +291,7 @@ export function SwipeCardStack({
             swipeEnabled={!showDetailModal && !needsButtons}
             detailOpen={showDetailModal}
             cardHeight={needsButtons ? CARD_HEIGHT_FULL - SWIPE_ACTION_BUTTONS_HEIGHT : undefined}
+            heightInset={heightInset}
             popularitySummary={index === 0 ? topSummary : nextSummary}
             onSwipeHintShown={() => setHintEligible(false)}
             onSwipeHintReset={() => setHintEligible(true)}

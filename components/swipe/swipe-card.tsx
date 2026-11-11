@@ -14,6 +14,7 @@ import Animated, {
   runOnJS,
   Extrapolation,
   cancelAnimation,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -50,6 +51,9 @@ interface SwipeCardProps {
   /** Override the default card height. Used when accessibility buttons need
    *  vertical space below the card. */
   cardHeight?: number;
+  /** Shrinks the card by this many px, animated, while a row above the stack
+   *  (the invite banner) takes the space. */
+  heightInset?: SharedValue<number>;
   /** Pre-fetched popularity summary supplied by the parent (#174). When
    *  provided, the card skips its own query so the sparkline is already
    *  populated the moment the card becomes top — no per-swipe flash.
@@ -104,9 +108,14 @@ export function SwipeCard({
   swipeEnabled = true,
   detailOpen = false,
   cardHeight,
+  heightInset,
   popularitySummary: prefetchedSummary,
 }: SwipeCardProps) {
   const { colors } = useTheme();
+
+  const insetStyle = useAnimatedStyle(() =>
+    heightInset ? { height: (cardHeight ?? CARD_HEIGHT_FULL) - heightInset.value } : {},
+  );
 
   // Prefer the parent's prefetched summary (#174). Only self-query when the
   // parent didn't supply one AND this is the top card — the fallback keeps
@@ -401,6 +410,7 @@ export function SwipeCard({
           styles.card,
           { borderColor: colors.primary },
           cardHeight !== undefined && { height: cardHeight },
+          insetStyle,
           isTop && cardAnimatedStyle,
           isTop && cardBorderStyle,
           { zIndex: isTop ? 2 : 1 },
